@@ -1,3 +1,6 @@
+// this is the base configuration extended by
+// tsconfig.json and _ur_addons/tsconfig.json
+// options are tuned for esbuild and vscode live linting
 {
   "compilerOptions": {
     "target": "es2022", // dynamic imports, top level await
