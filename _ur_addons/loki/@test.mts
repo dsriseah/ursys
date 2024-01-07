@@ -12,6 +12,6 @@ import { PromiseLoadDatabase, ListCollections } from './import-lokidb.mts';
 
 /// RUNTIME TESTS /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const datadir = FILES.AbsLocalPath('_ur/_data_nocommit/lokijs-team-ex');
+const datadir = FILES.AbsLocalPath('_ur_addons/loki/_data_nocommit/');
 await PromiseLoadDatabase(`${datadir}/team.loki`);
 ListCollections();

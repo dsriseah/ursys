@@ -1,7 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  read a loki database 
-  this code is based on the GEMSTEP version
+  read a loki database - based on netcreate
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -94,7 +93,7 @@ function _LoadDatabase(dataset: string, options: any = {}) {
   m_datafile = f_validname(dataset);
   FSE.ensureDirSync(PATH.dirname(m_datafile));
   if (!FSE.existsSync(m_datafile)) {
-    LOG(`DATABASE ${m_datafile} NOT FOUND`);
+    LOG.error(`DATABASE ${m_datafile} NOT FOUND`);
     if (!READONLY) LOG('creating blank database...');
     else if (m_options.reject) {
       m_options.reject();
