@@ -10,8 +10,8 @@
 
 # URSYS core and addon ignored directories
 _dist
+_public
 *_nocommit*
-public*
 
 # Also ignore build system directories
 .npmignore
