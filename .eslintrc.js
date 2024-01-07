@@ -17,7 +17,11 @@ const config = {
     es6: true,
     node: true
   },
-  plugins: ['react', '@typescript-eslint', 'import'],
+  plugins: [
+    // 'react',
+    '@typescript-eslint',
+    'import'
+  ],
   /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:
     Important: We use the official typescript-eslint/parser instead of the
     default espree parser. This supercedes TSLINT as of 2019, and is supported
@@ -39,7 +43,7 @@ const config = {
   :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
   extends: [
     'eslint:recommended', // standard recommendations
-    'plugin:react/recommended', // handle jsx syntax
+    // 'plugin:react/recommended', // handle jsx syntax
     'plugin:@typescript-eslint/eslint-recommended', // basic typescript rules
     'prettier' // prettier overrides
   ],
