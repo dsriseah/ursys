@@ -5,6 +5,7 @@
 # that begin with app and app-*
 /app
 /app-*
+/*-app
 # URSYS apps use a common runtime directory
 /runtime
 
