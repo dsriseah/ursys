@@ -4,12 +4,17 @@ URSYS originated in learning science research into embodied learning from 2013 t
 
 If you'd like to help test, see [First Install](https://github.com/dsriseah/ursys/wiki/First-Install) instructions and let me know how it went!
 
-#### PROGRESS LOG
+### Features
 
-* Created Visual Studio Code configuration for linting, typescript support.
-* Added node version, machine architecture detection and warning.
-* Created monorepo structure that has the URSYS Core Library and URSYS Addons that build on top of it. These are implemented as "npm workspaces" and `esbuild` is used to generate the library packages. 
-* Defined the process of building the libraries from a root application through npm scripts. 
-* Created initial addons for `loki`, `midi`
-* Currently working on foundational `net` state and pub/sub services
+* Visual Studio Code `.code-workspace` script to detect node version and architecture mismatches in integrated terminal
+* A core library `@ursys/core` has the system-level features in `_ur` directory
+* Core Extensions are stored in `_ur_addons` directory, and can be copy/pasted as self-contained modules
+* Monorepo-like structure using npm workspaces for developing more core and addon modules.
+* Your app source lives in top level; folders matching `app`, `app-*`, and `*-app` are git-ignored so you can manage them as separate repos.
+* Command line `ur` auto-discovers and spawns addons processes, using an entry point convention
+
+### Queued Features
+
+* UDS message and state server with WSS and HTTP bridges (essential!)
+
 
