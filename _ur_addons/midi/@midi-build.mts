@@ -1,6 +1,10 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  description
+  mini app demo
+
+  this runs when running the 'ur midi' command.
+  It launches an esbuild process to build the midi app bundle,
+  which is loaded by the index-midi.html file in the assets directory.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -45,13 +49,16 @@ async function ESBuildApp() {
   });
   await context.watch();
   // The return value tells us where esbuild's local server is
-  const { host, port } = await context.serve({
+  let { host, port } = await context.serve({
     servedir: DST,
-    port: 3000
+    port: 8888
   });
-  LOG('appserver at', `http://${host}:${port}`);
+  if (host === '0.0.0.0') host = 'localhost';
+  LOG('appserver is listening at', `http://${host}:${port}`);
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+LOG('mini app demo using esbuild, html5');
 await ESBuildApp();
+LOG.info('control-c to exit');

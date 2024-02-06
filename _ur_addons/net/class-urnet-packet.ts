@@ -1,91 +1,120 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  URNET PACKET 
-  
-  encapsulates a message sent over URNET
+  NetPacket encapsulates a message sent over URNET, including metadata
+  to route the packet across the network and return responses.
 
-  To use from esmodule code, need to import using commonjs semantics:
+  Works closely with NetEndpoint, which handles the actual sending and
+  receiving of packets. In practice, use Endpoint.newPacket() to create a new 
+  packet that has the correct source address and id.
+
+  CROSS PLATFORM USAGE --------------------------------------------------------
+
+  When using from nodejs mts file, you can only import this ts file as 'default' 
+  property. To access the NetPacket class do this:
 
     import CLASS_NP from './class-urnet-packet.ts';
-    const NetPacket = CLASS_NP.default;
-    
+    const NetPacket = CLASS_NP.default; // note .default
+
+  This is not required when importing from another .ts typescript file
+  such as class-urnet-endpoint.ts.
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import {
-  UR_MsgName,
-  UR_MsgData,
-  UR_MsgType,
-  UR_NetAddr,
-  UR_NetDir,
-  UR_PktID,
-  UR_PktOpts,
-  UR_NetMessage,
-  UR_NetSocket
-} from './urnet-types';
+import { PR } from '@ursys/core';
+import { I_NetMessage, NP_Address } from './urnet-types';
+import { NP_ID, NP_Type, NP_Dir } from './urnet-types';
+import { IsValidMessage, IsValidAddress, IsValidType } from './urnet-types';
+import { NP_Msg, NP_Data, DecodeMessage } from './urnet-types';
+import { NP_Options } from './urnet-types';
 
-/// CONSTANTS AND DECLARATIONS ////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-const MSG_CHANNELS = ['NET', 'UDS', ''];
-const PKT_TYPES = ['ping', 'signal', 'send', 'call'];
-function m_InvalidType(msg_type: UR_MsgType): boolean {
-  return !PKT_TYPES.includes(msg_type);
-}
+const LOG = PR('Packet', 'TagOrange');
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class NetPacket implements UR_NetMessage {
-  id: UR_PktID; // network-wide unique id for this packet
-  msg_type: UR_MsgType; // ping, signal, send, call
-  name: UR_MsgName; // name of the URNET message
-  data: UR_MsgData; // payload of the URNET message
-  src_addr: UR_NetAddr; // URNET address of the sender
+class NetPacket implements I_NetMessage {
+  id: NP_ID; // network-wide unique id for this packet
+  msg_type: NP_Type; // ping, signal, send, call
+  msg: NP_Msg; // name of the URNET message
+  data: any; // payload of the URNET message
+  src_addr: NP_Address; // URNET address of the sender
+  hop_seq: NP_Address[]; // URNET addresses that have seen this packet
   hop_log: string[]; // log of debug messages by hop
-  hop_dir: UR_NetDir; // direction of the packet 'req' or 'res'
+  hop_dir: NP_Dir; // direction of the packet 'req' or 'res'
   hop_rsvp?: boolean; // whether the packet is a response to a request
-  hop_seq: UR_NetAddr[]; // URNET addresses that have seen this packet
   err?: string; // returned error message
 
-  constructor() {
+  constructor(msg?: NP_Msg, data?: NP_Data) {
     // metadata
+    this.id = undefined;
     this.src_addr = undefined;
     this.hop_rsvp = false;
     this.hop_seq = [];
     this.hop_log = [];
     this.err = undefined;
-    // to make a new packet, call initializeMeta() with msg_type
-    // then setMsgData() with msg_name and msg_data
+    //
+    if (data !== undefined) this.data = data;
+    if (typeof msg === 'string') {
+      if (!IsValidMessage(msg)) throw Error(`invalid msg format: ${msg}`);
+      this.msg = msg;
+    }
   }
 
-  /** lifecycle - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - **/
-
-  /** initialize new packet with id and type, with optional meta overrides */
-  initializeMeta(msg_type: UR_MsgType, opt?: UR_PktOpts) {
-    if (m_InvalidType(msg_type)) throw Error(`invalid msg_type: ${msg_type}`);
+  /** after creating a new packet, use setMeta() to assign id and envelope
+   *  meta used for routing and return packets
+   */
+  setMeta(msg_type: NP_Type, opt?: NP_Options) {
+    if (!IsValidType(msg_type)) throw Error(`invalid msg_type: ${msg_type}`);
     this.msg_type = msg_type;
-    this.id = NetPacket.NewPacketID(this);
     // optional overrides
-    this.src_addr = opt?.addr;
-    this.hop_dir = opt?.dir;
-    this.hop_rsvp = opt?.rsvp;
+    this.hop_dir = opt?.dir || 'req';
+    this.hop_rsvp = opt?.rsvp || false;
   }
-  /** make a new packet with a message name and data */
-  setMsgData(msg: UR_MsgName, data: UR_MsgData): NetPacket {
-    this.name = msg;
-    this.data = data;
-    return this;
+
+  /** add hop to the hop sequence */
+  addHop(hop: NP_Address) {
+    if (!IsValidAddress(hop)) throw Error(`invalid hop: ${hop}`);
+    this.hop_seq.push(hop);
   }
-  /** set the address before sending */
-  stampSrcAddr(s_addr: UR_NetAddr): NetPacket {
-    const last = this.hop_seq[this.hop_seq.length - 1];
-    if (last === s_addr) this.error(`duplicate address ${s_addr} ${this.id}`);
+
+  /** utility setters w/ checks - - - - - - - - - - - - - - - - - - - - - - **/
+
+  /** manually set the source address, with check */
+  setSrcAddr(s_addr: NP_Address): NetPacket {
+    if (!IsValidAddress(s_addr)) throw Error(`invalid src_addr: ${s_addr}`);
+    // don't allow changing the src_addr once it's set by send()
+    // use clone() to make a new packet with a different src_addr
+    if (this.hop_seq.length > 0 && this.hop_seq[0] !== s_addr)
+      throw Error(`src_addr ${s_addr} != ${this.hop_seq[0]}`);
     this.src_addr = s_addr;
     return this;
   }
-  /** invoke global endpoint to send packet */
-  send() {
-    this.hop_dir = 'req';
-    NetPacket.Send(this);
+
+  /** manually set direction */
+  setDir(dir: NP_Dir): NetPacket {
+    if (dir !== 'req' && dir !== 'res') throw Error(`invalid dir: ${dir}`);
+    this.hop_dir = dir;
+    return this;
+  }
+
+  /** set message and data */
+  setMsgData(msg: NP_Msg, data: NP_Data): NetPacket {
+    this.setMsg(msg);
+    this.setData(data);
+    return this;
+  }
+  /** set message */
+  setMsg(msg: NP_Msg): NetPacket {
+    this.msg = msg;
+    return this;
+  }
+  /** set data */
+  setData(data: NP_Data): NetPacket {
+    this.data = data;
+    return this;
+  }
+  /** merge data */
+  mergeData(data: NP_Data): NetPacket {
+    this.data = { ...this.data, ...data };
     return this;
   }
 
@@ -93,12 +122,17 @@ class NetPacket implements UR_NetMessage {
 
   /** make a packet from existing JSON */
   setFromJSON(json: string): NetPacket {
+    if (typeof json !== 'string') throw Error(`invalid json: ${json}`);
     return this.deserialize(json);
   }
   /** make a packet from existing object */
   setFromObject(pktObj) {
+    const fn = 'setFromObject';
+    if (typeof pktObj !== 'object') throw Error(`invalid pktObj: ${pktObj}`);
     this.id = pktObj.id;
-    this.name = pktObj.name;
+    this.msg = pktObj.msg;
+    if (pktObj.data === undefined)
+      LOG(fn, `... pktObj${pktObj.id} .data is undefined`);
     this.data = pktObj.data;
     this.src_addr = pktObj.src_addr;
     this.hop_log = pktObj.hop_log;
@@ -110,6 +144,25 @@ class NetPacket implements UR_NetMessage {
     return this;
   }
 
+  /** packet transport  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+
+  /** rsvp required? */
+  isRsvp() {
+    return this.hop_rsvp;
+  }
+
+  lastHop() {
+    return this.hop_seq[this.hop_seq.length - 1];
+  }
+
+  isRequest() {
+    return this.hop_dir === 'req';
+  }
+
+  isResponse() {
+    return this.hop_dir === 'res';
+  }
+
   /** serialization - - - - - - - - - - - - - - - - - - - - - - - - - - - - **/
 
   serialize(): string {
@@ -119,12 +172,20 @@ class NetPacket implements UR_NetMessage {
     let obj = JSON.parse(data);
     return this.setFromObject(obj);
   }
-  // create a new NetPacket with the same data but new id
-  clone(): NetPacket {
-    const pkt = new NetPacket();
-    pkt.setFromJSON(this.serialize());
-    pkt.id = NetPacket.NewPacketID(pkt);
-    return pkt;
+
+  /** information utilities - - - - - - - - - - - - - - - - - - - - - - - - **/
+
+  isValidType(type: NP_Type): boolean {
+    return IsValidType(type);
+  }
+
+  isValidMessage(msg: NP_Msg): boolean {
+    return IsValidMessage(msg) !== undefined;
+    // note difference with IsValidMessage(), which returns [chan, msg] if valid
+  }
+
+  decodeMessage(msg: NP_Msg): [chan: string, msg: string] {
+    return DecodeMessage(msg);
   }
 
   /** debugging - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - **/
@@ -136,42 +197,13 @@ class NetPacket implements UR_NetMessage {
     return msg;
   }
 
-  /** add a transport-related message eto the hog log */
+  /** manually add a transport-related message eto the hog log. this is not
+   *  the same as hop_seq which is used to track the routing of the packet.
+   */
   hopLog(msg: string) {
     const info = `${this.id} ${this.hop_dir}`;
     this.hop_log.push(`${info}: ${msg}`);
     return msg;
-  }
-
-  /** static class elements - - - - - - - - - - - - - - - - - - - - - - - - **/
-
-  static packet_counter = 100;
-  static NewPacketID(pkt: NetPacket): UR_PktID {
-    const addr = pkt.src_addr || 'NO_ADDR';
-    const count = NetPacket.packet_counter++;
-    return `PKT[${addr}-${count}]`;
-  }
-  static urnet_endpoint: UR_NetSocket;
-  static SetEndpoint(endpoint: UR_NetSocket) {
-    if (typeof endpoint.sendPacket !== 'function') {
-      throw Error(`SetEndpoint: endpoint must have sendPacket() method`);
-    }
-    NetPacket.urnet_endpoint = endpoint;
-  }
-  static Send(pkt: NetPacket) {
-    if (!NetPacket.urnet_endpoint) pkt.error(`urnet_endpoint, failed to send`);
-    NetPacket.urnet_endpoint.sendPacket(pkt);
-  }
-
-  static ValidChannel(msg_channel: string): boolean {
-    const ok = MSG_CHANNELS.includes(msg_channel);
-    if (!ok) {
-      if (MSG_CHANNELS.includes(msg_channel.toUpperCase())) {
-        throw Error(`message channel ${msg_channel} must be UPPERCASE`);
-      }
-      return false;
-    }
-    return true;
   }
 }
 

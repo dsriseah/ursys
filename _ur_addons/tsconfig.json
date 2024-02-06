@@ -1,4 +1,19 @@
 {
-  "extends": "../_ur/tsconfig.json",
-  "compilerOptions": {}
+  "compilerOptions": {
+    "target": "es2022", // enables dynamic import + top level await
+    "module": "nodenext", // used by VSCODE typescript
+    "baseUrl": "./",
+    "paths": {},
+    "typeRoots": [
+      "./_types",
+      "../_ur/_types",
+      "./node_modules/@types",
+      "../node_modules/@types"
+    ],
+    // esbuild needs: see esbuild.github.io/content-types/#typescript-caveats
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true
+  }
 }
