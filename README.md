@@ -4,7 +4,7 @@ URSYS originated in learning science research into embodied learning from 2013 t
 
 If you'd like to help test, see [First Install](https://github.com/dsriseah/ursys/wiki/First-Install) instructions and let me know how it went!
 
-## FEATURES
+### Features
 
 * Visual Studio Code `.code-workspace` script to detect node version and architecture mismatches in integrated terminal
 * A core library `@ursys/core` has the system-level features in `_ur` directory
@@ -13,7 +13,7 @@ If you'd like to help test, see [First Install](https://github.com/dsriseah/ursy
 * Your app source lives in top level; folders matching `app`, `app-*`, and `*-app` are git-ignored so you can manage them as separate repos.
 * Command line `ur` auto-discovers and spawns addons processes, using an entry point convention
 
-## QUEUED FEATURES
+### Queued Features
 
 * UDS message and state server with WSS and HTTP bridges (essential!)
 
