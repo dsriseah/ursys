@@ -7,7 +7,11 @@
     "editorconfig.editorconfig",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "stkb.rewrap",
-    "fabiospampinato.vscode-highlight"
+    "stkb.rewrap"
+  ],
+  // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
+  "unwantedRecommendations": [
+    "hookyqr.beautify",
+    "dbaeumer.jshint"
   ]
 }
