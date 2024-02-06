@@ -63,7 +63,7 @@
           "${env:SHELL}",
           "-i",
           "-c",
-          "export VSCODE_TERM='x86 shell';source .vscode/check_env; exec ${env:SHELL}"
+          "export VSCODE_TERM='x86 shell';source ${workspaceFolder}/.vscode/vs_env; exec ${env:SHELL}"
         ]
       },
       "arm64 macos": {
@@ -74,7 +74,7 @@
           "${env:SHELL}",
           "-i",
           "-c",
-          "export VSCODE_TERM='arm64 shell'; source .vscode/check_env; exec ${env:SHELL}"
+          "export VSCODE_TERM='arm64 shell'; cd ${workspaceFolder}; source .vscode/vs_env; exec ${env:SHELL}"
         ]
       },
       "generic macos": {
@@ -82,7 +82,7 @@
         "args": [
           "-i",
           "-c",
-          "export VSCODE_TERM='generic bash'; source .vscode/check_env; exec ${env:SHELL}"
+          "export VSCODE_TERM='generic bash'; cd ${workspaceFolder}; source .vscode/vs_env; exec ${env:SHELL}"
         ]
       }
     },
@@ -92,11 +92,12 @@
         "args": [
           "-i",
           "-c",
-          "export VSCODE_TERM='generic bash'; source .vscode/check_env; exec ${env:SHELL}"
+          "export VSCODE_TERM='generic bash'; cd ${workspaceFolder}; source .vscode/vs_env; exec ${env:SHELL}"
         ]
       }
     },
-    // use 'x86 macos' profile to force i386 compatibility on ARM64 Macs
+    // this line will force use of the selected profile
+    // use "x86 macos" to force Rosetta x86 emulation in terminal
     "terminal.integrated.defaultProfile.osx": "generic macos",
     "terminal.integrated.defaultProfile.linux": "generic linux"
   }
