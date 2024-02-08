@@ -10,8 +10,7 @@
   "scripts": {
     "build-core": "node ./npm-scripts/@build-core.cjs",
     "lint": "eslint .",
-    "clean": "rm -rf ./node_modules ./_dist",
-    "test": "npx vitest --config ./test-scripts/vitest.config.mts"
+    "clean": "rm -rf ./node_modules ./_dist"
   },
   "browser": "./_dist/client-cjs.js",
   "main": "./_dist/server.cjs",
