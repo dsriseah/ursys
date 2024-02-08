@@ -27,8 +27,8 @@ const BROWSER_DEBUG = {
 };
 /* turn off typescript recommendations */
 const HELP_TSJS = {
-  // 'no-undef': 'off', // TS handles this better; works with global types
-  'no-unused-vars': 'warn',
+  'no-undef': 'off', // @typescript-eslint/no-undef handles this better
+  'no-unused-vars': 'off', // @typescript-eslint/no-unused-vars handles this better
   'no-shadow': 'off',
   'no-param-reassign': 'off',
   'object-curly-newline': 'off',
