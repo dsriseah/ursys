@@ -61,7 +61,7 @@ case "$1" in
 
     test)
         node $OPTS $CLI_BUILD/@build-core.cjs 2>&1 | cat
-        npx ts-node-esm $TSOPTS $CLI_BUILD/@test-unit.mts "$@"
+        npm run test
         exit 0;
         ;;
 esac
