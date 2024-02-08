@@ -60,7 +60,8 @@ case "$1" in
         ;;
 
     test)
-        echo "would be running tests..."
+        node $OPTS $CLI_BUILD/@build-core.cjs 2>&1 | cat
+        npx ts-node-esm $TSOPTS $CLI_BUILD/@test-unit.mts "$@"
         exit 0;
         ;;
 esac

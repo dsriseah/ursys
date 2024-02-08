@@ -8,29 +8,19 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-const PATH = require('node:path');
-const UR = require('@ursys/core');
+import * as UR from '@ursys/core';
 
 /// CONSTANTS AND DECLARATIONS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const APP_PORT = 3000;
-const { ROOT, DIR_URADDS } = require('./env-build.cjs');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const LOG = console.log;
+const LOG = UR.PR('UnitTests', 'TagBlue');
+const FAIL = UR.PR('UnitTests', 'Red').fail;
+const PASS = UR.PR('UnitTests', 'Green').pass;
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** TEST **/
-(async () => {
-  LOG('## DEV TESTS');
-  LOG('what keys are in imported UR?');
-  LOG(Object.keys(UR));
-  UR.Initialize({
-    rootDir: ROOT
-  });
-  UR.ADDONMGR.ProcTest();
-  UR.ADDONMGR.UR_Fork('parse', { cwd: DIR_URADDS });
-  // there is an error somewhere that is causing
-  // process.exit(0);
-})();
+LOG('would be running tests');
+FAIL('this is a fail');
+PASS('this is a pass');
