@@ -58,6 +58,12 @@
   _dequeue: void => void;
   _doEffect: void => void;
 
+  STATIC API
+  
+  GetStateManager: groupName => StateMgr;
+  GetStateData: groupName => TStateObj;
+  GetInstance: groupName => StateMgr;
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -71,6 +77,23 @@ type TStateChangeFunc = (newState: TStateObj, curState: TStateObj) => void;
 type TEffectFunc = () => void;
 type TTapFunc = (state: TStateObj) => void;
 type TQueuedAction = { stateEvent: TStateObj; callback: Function };
+interface IStateMgr {
+  State: (key: string) => TStateObj;
+  SendState: (vmStateEvent: TStateObj, callback: Function) => void;
+  SubscribeState: (subFunc: TStateChangeFunc) => void;
+  UnsubscribeState: (subFunc: TStateChangeFunc) => void;
+  QueueEffect: (effectFunc: TEffectFunc) => void;
+  _initializeState: (stateObj: TStateObj) => void;
+  _setState: (vmState: TStateObj) => void;
+  _interceptState: (tapFunc: TTapFunc) => void;
+  _insertStateEvent: (stateEvent: TStateObj, callback: TEffectFunc) => void;
+  _isValidState: (stateObj: TStateObj) => boolean;
+  _mergeState: (stateObj: TStateObj) => TStateObj;
+  _notifySubs: (stateObj: TStateObj) => void;
+  _enqueue: (action: TQueuedAction) => void;
+  _dequeue: () => void;
+  _doEffect: () => void;
+}
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -377,7 +400,7 @@ class StateMgr {
   /** return a locked copy of the state of a particular named state group.
    *  Unlike GetStateManager, this returns just the data object.
    */
-  static GetStateGroup(groupName: string) {
+  static GetStateData(groupName: string) {
     if (typeof groupName !== 'string') throw Error(`${groupName} is not a string`);
     const bucket = groupName.trim().toUpperCase();
     if (bucket !== groupName)
@@ -412,4 +435,5 @@ class StateMgr {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default StateMgr;
-export type { TStateObj };
+export type { TStateObj, TGroupName, TStateChangeFunc, TEffectFunc };
+export type { IStateMgr };
