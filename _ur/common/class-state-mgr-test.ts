@@ -4,11 +4,11 @@
 
   API REFERENCE (dupe from class-statemgr.ts)
 
-  State: groupName => TStateObj;
-  SendState: TStateObj => void;
-  SubscribeState: TStateChangeFunc => void;
-  UnsubscribeState: TStateChangeFunc => void;
-  QueueEffect: TEffectFunc => void;
+  state: groupName => TStateObj;
+  sendState: TStateObj => void;
+  subscribeState: TStateChangeFunc => void;
+  unsubscribeState: TStateChangeFunc => void;
+  queueEffect: TEffectFunc => void;
 
   INTERNAL API for APPCORE MANAGERS ONLY
 
@@ -32,7 +32,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import StateMgr from './class-statemgr.ts';
+import StateMgr from './class-state-mgr.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

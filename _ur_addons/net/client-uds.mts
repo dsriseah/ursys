@@ -4,17 +4,24 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR, FILES } from '@ursys/core';
+import { PR, FILE, PROC } from '@ursys/core';
 import { UDS_INFO } from './urnet-constants.mts';
+import NET from 'node:net';
 import ipc from '@achrinza/node-ipc';
+import PATH from 'node:path';
 import EP_DEFAULT from './class-urnet-endpoint.ts';
-const NetEndpoint = EP_DEFAULT.default;
+import NS_DEFAULT, { I_NetSocket } from './class-urnet-socket.ts';
+const { NetEndpoint } = EP_DEFAULT;
+const { NetSocket } = NS_DEFAULT;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = PR('UDSClient', 'TagBlue');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let UDS_DETECTED = false;
+const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);
+
+/// DATA INIT /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const EP = new NetEndpoint();
 
@@ -32,72 +39,97 @@ function m_Sleep(ms, resolve?): Promise<void> {
 /** check for UDS host sock file, meaning UDS server is running */
 function m_CheckForUDSHost() {
   const { sock_path } = UDS_INFO;
-  UDS_DETECTED = FILES.FileExists(sock_path);
+  UDS_DETECTED = FILE.FileExists(sock_path);
   return UDS_DETECTED;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** register the connection for the first time */
-function m_Register(sock: ipc.IpcClient) {
-  const fn = 'm_Register';
-  const { uds_sysmsg } = UDS_INFO;
-  const regPkt = EP.newRegistrationPacket();
-  regPkt.hop_seq.push(`NEW${Date.now()}`);
-  sock.emit(uds_sysmsg, regPkt.serialize());
-  LOG(`${fn} sent registration packet`);
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function Connect() {
-  const fn = 'Connect';
-  /// node-ipc baseline configuration
-  ipc.config.unlink = true; // unlink sock file on exit
-  ipc.config.retry = 1500;
-  ipc.config.maxRetries = 1;
-  ipc.config.silent = true;
-  const { uds_id, uds_sysmsg, sock_path } = UDS_INFO;
-
-  /// check that UDS host is running
-  await new Promise<void>((resolve, reject) => {
+/** create a connection to the UDS server */
+async function UDS_Connect(): Promise<boolean> {
+  const fn = 'UDS_Connect';
+  const { sock_path, sock_file } = UDS_INFO;
+  const promiseConnect = new Promise<boolean>(resolve => {
     if (!m_CheckForUDSHost()) {
-      reject(`${fn} ${uds_id} pipe not found`); // reject promise
+      resolve(false);
       return;
-    } else resolve();
+    }
+    // got this far, the UDS pipe file exists so server is running
+    const connection = NET.createConnection({ path: sock_path }, async () => {
+      // 1. wire-up connection to the endpoint via our netsocket wrapper
+      LOG(`Connected to server '${sock_file}'`);
+      const send = pkt => connection.write(pkt.serialize());
+      const onData = data => EP._onData(data, client_sock);
+      const client_sock = new NetSocket(connection, { send, onData });
+      connection.on('data', onData);
+      connection.on('end', () => {
+        LOG('server ended connection');
+        EP.disconnectAsClient();
+      });
+      connection.on('close', () => {
+        LOG('server closed connection...exiting process');
+        process.exit(0);
+      });
+      // 2. start client; EP handles the rest
+      const auth = { identity: 'my_voice_is_my_passport', secret: 'crypty' };
+      const resdata = await EP.connectAsClient(client_sock, auth);
+      LOG('EP.connectAsClient returned', resdata);
+      if (resdata.error) {
+        LOG.error(resdata.error);
+        resolve(false);
+        return;
+      }
+      // 3. register client with server
+      const info = { name: 'UDSClient', type: 'client' };
+      const regdata = await EP.registerClient(info);
+      if (regdata.error) {
+        LOG.error(regdata.error);
+        resolve(false);
+        return;
+      }
+      LOG('EP.registerClient returned', regdata);
+      resolve(true);
+    }); // end createConnection
   });
-
-  // if good connect to the sock file
-  ipc.connectTo(uds_id, sock_path, () => {
-    const client_sock = ipc.of[uds_id];
-
-    client_sock.on('connect', () => {
-      LOG(`${client_sock.id} connect: connected`);
-      m_Register(client_sock);
-    });
-
-    client_sock.on(uds_sysmsg, json => {
-      const pkt = EP.packetFromJSON(json);
-      const { msg, data } = pkt;
-      LOG(`${fn} got message: ${msg} w/ data`, data);
-      LOG.warn(`would finish processing`);
-    });
-
-    client_sock.on('disconnected', () => {
-      LOG(`${client_sock.id} disconnect: disconnected`);
-    });
-    client_sock.on('sock.disconnected', (sock, destroyedId) => {
-      let status = '';
-      if (sock) status += `sock:${sock.id || 'undefined'}`;
-      if (destroyedId) status += ` destroyedId:${destroyedId || 'undefined'}`;
-      LOG(`${client_sock.id} sock.disconnected: disconnected ${status}`);
-    });
-  });
+  return promiseConnect;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function Disconnect() {
-  const { uds_id, uds_sysmsg, sock_path } = UDS_INFO;
+/** define message handlers and register after authentation to be added to
+ *  URNET message network
+ */
+async function UDS_RegisterMessages() {
+  // register some message handlers
+  EP.registerMessage('NET:CLIENT_TEST', data => {
+    LOG('NET:CLIENT_TEST got', data);
+    return { 'NET:CLIENT_TEST': 'received' };
+  });
+  const resdata = await EP.clientDeclare();
+  LOG('EP.clientDeclare returned', resdata);
+  let count = 0;
+  let foo = setInterval(() => {
+    if (count > 9) {
+      clearInterval(foo);
+      LOG('interval stopped');
+      return;
+    }
+    if (count % 2) {
+      EP.netCall('SRV:REFLECT', { foo: 'bar' }).then(res => {
+        LOG('SRV:REFLECT returned', res);
+      });
+    } else {
+      EP.netCall('SRV:MYSERVER', { hello: 'world' }).then(res => {
+        LOG('SRV:MYSERVER returned', res);
+      });
+    }
+    count++;
+  }, 1000);
+}
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function UDS_Disconnect() {
+  const { sock_path } = UDS_INFO;
   await new Promise((resolve, reject) => {
     try {
-      ipc.disconnect(uds_id);
       resolve(true);
     } catch (err) {
       reject(err);
@@ -113,6 +145,7 @@ async function Disconnect() {
 /// used by direct module import
 export {
   // client interfaces (experimental wip, nonfunctional)
-  Connect,
-  Disconnect
+  UDS_Connect,
+  UDS_RegisterMessages,
+  UDS_Disconnect
 };

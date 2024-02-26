@@ -11,7 +11,7 @@ import copy from 'esbuild-plugin-copy';
 import * as PATH from 'node:path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { FILES, PR } from '@ursys/core';
+import { FILE, PR } from '@ursys/core';
 
 /// CONSTANTS AND DECLARATIONS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ function _short(path) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function ESBuildWebApp() {
   // make sure DIR_PUBLIC exists
-  FILES.EnsureDir(DIR_PUBLIC);
+  FILE.EnsureDir(DIR_PUBLIC);
 
   // build the webapp and stuff it into public
   const context = await esbuild.context({
