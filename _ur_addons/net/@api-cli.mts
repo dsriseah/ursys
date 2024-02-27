@@ -11,7 +11,9 @@ import { PR, PROC, FILE } from '@ursys/core';
 import * as KV from './kv-json.mts';
 import * as CTRL from './cli-serve-control.mts';
 import * as TEST from './cli-test.mts';
-import * as CLIENT from './client-uds.mts';
+import { UseServer } from './urnet-constants.mts';
+import * as CLIENT_UDS from './client-uds.mts';
+import * as CLIENT_WSS from './client-wss.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,9 +37,6 @@ function m_Sleep(ms, resolve?): Promise<void> {
     }, ms)
   );
 }
-
-/// API: UDS CLIENT ///////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /// API: CLI MANAGEMENT ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -98,6 +97,28 @@ async function ShutdownCLI() {
     if (DBG_CLI) LOG.info(`CLI: ${m_script} removed from process list`);
   } else if (DBG_CLI) LOG.info(`CLI: ${m_script} retained in process list`);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function ClientUDS() {
+  if (await CLIENT_UDS.Connect()) {
+    const dur = ARGS[2] || 15; // 15 min default
+    LOG(`client: sleeping for ${dur} minutes`);
+    const ms = 1000 * 60 * Number(dur);
+    m_Sleep(ms, CLIENT_UDS.Disconnect);
+    // extra
+    await CLIENT_UDS.RegisterMessages();
+  }
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function ClientWSS() {
+  if (await CLIENT_WSS.Connect()) {
+    const dur = ARGS[2] || 15; // 15 min default
+    LOG(`client: sleeping for ${dur} minutes`);
+    const ms = 1000 * 60 * Number(dur);
+    m_Sleep(ms, CLIENT_WSS.Disconnect);
+    // extra
+    await CLIENT_WSS.RegisterMessages();
+  }
+}
 
 /// CLI: MAIN PARSER ///////////////////////////////////////////////////////////
 /// - - - - - - - -å - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -106,14 +127,8 @@ const COMMAND_DICT = {
     await CTRL.StartServers();
   },
   'client': async () => {
-    if (await CLIENT.UDS_Connect()) {
-      const dur = ARGS[2] || 15; // 15 min default
-      LOG(`client: sleeping for ${dur} minutes`);
-      const ms = 1000 * 60 * Number(dur);
-      m_Sleep(ms, CLIENT.UDS_Disconnect);
-      // extra
-      await CLIENT.UDS_RegisterMessages();
-    }
+    if (UseServer('uds')) await ClientUDS();
+    if (UseServer('wss')) await ClientWSS();
   },
   'stop': async () => {
     await CTRL.TerminateServers();

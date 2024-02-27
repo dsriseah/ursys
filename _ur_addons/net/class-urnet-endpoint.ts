@@ -143,15 +143,6 @@ class NetEndpoint {
     this.pkt_counter = 0;
     this.cli_counter = 0;
     this.cli_sck_timer = null; // socket aging placeholder
-
-    // bind async methods that use transactions
-    // this.connectAsClient = this.connectAsClient.bind(this);
-    // this.netCall = this.netCall.bind(this);
-    // this.netPing = this.netPing.bind(this);
-    // this.netSend = this.netSend.bind(this);
-    // this.netSignal = this.netSignal.bind(this);
-    // bind asynchronous handlers
-    // this.SRV_DeclareMessages = this.SRV_DeclareMessages.bind(this);
   }
 
   /** client connection management  - - - - - - - - - - - - - - - - - - - - **/
@@ -213,22 +204,21 @@ class NetEndpoint {
   /** endpoint client management  - - - - - - - - - - - - - - - - - - - - - **/
 
   /** Server data event handler for incoming data from a client connection.
-   *  This is the mirror to _onData() function used by client endpoints.
+   *  This is the mirror to _serverDataIngest() function used by client endpoints.
    * This is the entry point for incoming data from clients */
-  handleClient(jsonData, socket: I_NetSocket): NetPacket {
-    // 0. first time we're seeing this socket? save it
+  _clientDataIngest(jsonData, socket: I_NetSocket): NetPacket {
     let pkt = this.newPacket().deserialize(jsonData);
-    let retPkt;
+    let retPkt: NetPacket;
 
-    // 1. protocol: is socket authenticated
+    // 1. protocol: authentication packet (once)
     retPkt = this.handleClientAuth(pkt, socket);
     if (retPkt) return retPkt;
 
-    // 2. protocol: is socket registered
+    // 2. protocol: registration packet (once)
     retPkt = this.handleClientReg(pkt, socket);
     if (retPkt) return retPkt;
 
-    // 3. protocol: is definition packet?
+    // 3. protocol: is definition packet (anytime)
     retPkt = this.handleClientDeclare(pkt, socket);
     if (retPkt) return retPkt;
 
@@ -390,10 +380,10 @@ class NetEndpoint {
   /** client connection handshaking - - - - - - - - - - - - - - - - - - - - **/
 
   /** Client data event handler for incoming data from the gateway.
-   *  This is the mirror to handleClient() function that is used by servers.
+   *  This is the mirror to _clientDataIngest() function that is used by servers.
    *  This is entry point for incoming data from server */
-  _onData(jsonData: any, socket: I_NetSocket): void {
-    const fn = '_onData:';
+  _serverDataIngest(jsonData: any, socket: I_NetSocket): void {
+    const fn = '_serverDataIngest:';
     const pkt = this.newPacket().deserialize(jsonData);
     // 1. is this connection handshaking for clients?
     if (this.cli_gateway) {
@@ -416,7 +406,7 @@ class NetEndpoint {
     if (auth) {
       const pkt = this.newAuthPacket(auth);
       const { msg } = pkt;
-      // this will be intercepted by _onData and not go through
+      // this will be intercepted by _serverDataIngest and not go through
       // the normal netcall interface. It leverages the transaction code
       const requestAuth = new Promise((resolve, reject) => {
         const hash = GetPacketHashString(pkt);
@@ -1150,9 +1140,7 @@ class NetEndpoint {
       clients
     };
   }
-
-  // end class
-}
+} // end NetEndpoint class
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

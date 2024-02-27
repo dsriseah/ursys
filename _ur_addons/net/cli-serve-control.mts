@@ -9,7 +9,7 @@ import PATH from 'node:path';
 import * as KV from './kv-json.mts';
 import { SpawnOptions, spawn } from 'node:child_process';
 import { PR, PROC, FILE } from '@ursys/core';
-import { UDS_INFO } from './urnet-constants.mts';
+import { UDS_INFO, UseServer } from './urnet-constants.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -20,7 +20,6 @@ const DBG_PROC = true;
 const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let DETACH_SERVERS = false; // disables child process detaching for debugging
-let UDS_ONLY = true; // set when only UDS server will be spawned
 
 /// UTILITY METHODS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -94,14 +93,9 @@ async function StartServers() {
     LOG.warn(`note: 'net start' will not exit automatically; use ctrl-c to exit`);
   }
   // main protocol host
-  await SpawnServer('./serve-uds.mts', 'uds');
-  // supplementary protocol hosts
-  if (!UDS_ONLY) {
-    await SpawnServer('./serve-wss.mts', 'wss');
-    await SpawnServer('./serve-http.mts', 'http');
-  } else {
-    LOG.warn(`UDS_ONLY flag is enabled, skipping other servers`);
-  }
+  if (UseServer('uds')) await SpawnServer('./serve-uds.mts', 'uds');
+  if (UseServer('wss')) await SpawnServer('./serve-wss.mts', 'wss');
+  if (UseServer('http')) await SpawnServer('./serve-http.mts', 'http');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** shutdown all communication servers */
