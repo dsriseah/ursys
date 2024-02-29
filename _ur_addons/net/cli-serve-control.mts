@@ -53,8 +53,8 @@ async function RemoveProcessKey(script: string) {
  *  with identifier. Allow only one such identifier */
 async function SpawnServer(scriptName: string, id: string) {
   // make sure that this isn't already in here
-  let identifier = `${m_script}`;
-  if (id) identifier = `${identifier}-${id}`;
+  let identifier = `${scriptName}`;
+  if (id) identifier = `${identifier} ('${id}')`;
   const found = await KV.GetEntryByValue(identifier);
   if (found) {
     if (DBG)
@@ -71,7 +71,7 @@ async function SpawnServer(scriptName: string, id: string) {
     ['--transpile-only', scriptName, ...m_args],
     options
   );
-  if (DBG_PROC) LOG.info(`.. spawning ${identifier} with pid:${proc.pid}`);
+  if (DBG_PROC) LOG(`Spawning ${identifier} with pid:${proc.pid}`);
 
   const pid = proc.pid.toString();
   await KV.SaveKey(pid, `${identifier}`);
@@ -103,7 +103,7 @@ async function TerminateServers() {
   LOG(`Terminating Child Processes...`);
   const entries = await GetActiveHostList();
   if (entries.length === 0) {
-    LOG.warn(`!! no running server processes`);
+    LOG.warn(`!! no running server processes${LOG.RST}`);
     return;
   }
   entries.forEach(async e => {

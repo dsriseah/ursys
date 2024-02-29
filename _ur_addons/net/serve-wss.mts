@@ -11,9 +11,9 @@ import { WebSocketServer } from 'ws';
 import { PR, PROC } from '@ursys/core';
 import CLASS_EP from './class-urnet-endpoint.ts';
 import CLASS_NS from './class-urnet-socket.ts';
-import { WSS_INFO } from './urnet-constants.mts';
 const { NetEndpoint } = CLASS_EP;
 const { NetSocket } = CLASS_NS;
+import { WSS_INFO } from './urnet-constants.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,17 +47,17 @@ EP.configAsServer('SRV02'); // hardcode arbitrary client_link address
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function WSS_RegisterServices() {
   EP.registerMessage('SRV:MYSERVER', data => {
-    return { memo: 'defined in serve-uds.UDS_RegisterServices' };
+    return { memo: `defined in ${m_script}.RegisterServices` };
   });
   // note that default services are also registered in Endpoint
   // configAsServer() method
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function WSS_Listen() {
-  const { ws_port, ws_host, ws_url } = WSS_INFO;
-  const options = { port: ws_port, host: ws_host, clientTracking: true };
+  const { wss_port, wss_host, wss_url } = WSS_INFO;
+  const options = { port: wss_port, host: wss_host, clientTracking: true };
   WSS = new WebSocketServer(options, () => {
-    LOG.info(`UDS Server listening on '${ws_url}'`);
+    LOG.info(`WSS Server listening on '${wss_url}'`);
     WSS.on('connection', (client_link, request) => {
       const send = pkt => client_link.send(pkt.serialize());
       const onData = data => {
@@ -96,13 +96,14 @@ function Start() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Stop() {
   return new Promise<void>(resolve => {
-    const { ws_url } = WSS_INFO;
-    LOG(`.. stopping WSS Server on ${ws_url}`);
+    const { wss_url } = WSS_INFO;
+    LOG.info(`.. stopping WSS Server on ${wss_url}`);
     WSS.clients.forEach(client => client.close());
     WSS.close();
     const _checker = setInterval(() => {
       if (typeof WSS.clients.every !== 'function') {
         clearInterval(_checker);
+        process.exit(0); // force exit...
         return;
       }
       if (WSS.clients.every(client => client.readyState === WebSocketServer.CLOSED)) {
