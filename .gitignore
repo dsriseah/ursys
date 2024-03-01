@@ -6,11 +6,15 @@
 /app
 /app-*
 /*-app
+
 # URSYS apps use a common runtime directory
 /runtime
 
-# URSYS core and addon ignored directories
-_dist
+# _dist is the esbuild out directory for _ur and _ur_addons
+# and are exposed by package.json as importable libraries
+# so it must be committed
+
+# don't commit _public or _nocommit files or directories
 _public
 *_nocommit*
 
