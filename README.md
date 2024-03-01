@@ -2,7 +2,7 @@
 
 URSYS originated in learning science research into embodied learning from 2013 to date. The requirements were LAN-based operation, realtime graphics, simulation, video, and motion tracking served from a single laptop to multiple tablet and Chromebook-type devices in a guided classroom environment. This repository is a modular rebuild of many of the key features of the original libraries into "building blocks" that hide the difficult parts of asynchronous lifecycle-driven programming in a distributed network environment. 
 
-If you'd like to help test, see [First Install](https://github.com/dsriseah/ursys/wiki/First-Install) instructions and let me know how it went!
+If you'd like to help test, see [First Install](https://github.com/dsriseah/ursys/wiki/Installation) instructions and let me know how it went!
 
 ### Features
 
@@ -12,9 +12,9 @@ If you'd like to help test, see [First Install](https://github.com/dsriseah/ursy
 * Monorepo-like structure using npm workspaces for developing more core and addon modules.
 * Your app source lives in top level; folders matching `app`, `app-*`, and `*-app` are git-ignored so you can manage them as separate repos.
 * Command line `ur` auto-discovers and spawns addons processes, using an entry point convention
+* Message broker with [URNET](/https://github.com/dsriseah/ursys/wiki/URNET) interface
 
 ### Queued Features
 
-* UDS message and state server with WSS and HTTP bridges (essential!)
-
+* State Server based on URNET
 
