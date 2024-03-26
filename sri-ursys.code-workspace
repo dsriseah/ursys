@@ -87,8 +87,8 @@
       }
     },
     "terminal.integrated.profiles.linux": {
-      "generic linux": {
-        "path": "${env:SHELL}",
+      "generic bash": {
+        "path": "/bin/bash",
         "args": [
           "-i",
           "-c",
@@ -99,6 +99,6 @@
     // this line will force use of the selected profile
     // use "x86 macos" to force Rosetta x86 emulation in terminal
     "terminal.integrated.defaultProfile.osx": "generic macos",
-    "terminal.integrated.defaultProfile.linux": "generic linux"
+    "terminal.integrated.defaultProfile.linux": "generic bash"
   }
 }
