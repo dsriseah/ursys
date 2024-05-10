@@ -116,7 +116,7 @@ async function TerminateServers() {
       if (DBG_PROC) LOG.info(`.. sending SIGTERM to pid:${pid} ${identifier}`);
     } catch (err) {
       if (err.code === 'ESRCH') {
-        LOG(`.. '${e.key}' (pid ${pid}) has already exited`);
+        LOG(`.. '${e.key}' (pid ${pid}) zombie key removed`);
         await KV.DeleteKey(e.key);
       } else LOG(`** Error sending SIGTERM to process ${pid}:`, err.code);
     }

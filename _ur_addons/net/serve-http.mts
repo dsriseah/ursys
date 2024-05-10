@@ -8,7 +8,6 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import http from 'node:http';
-import https from 'node:https';
 import express from 'express';
 import serveIndex from 'serve-index';
 import esbuild from 'esbuild';
@@ -55,18 +54,19 @@ EP.configAsServer('SRV03'); // hardcode arbitrary server address
 
 /// HELPERS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function HTTP_BuildApp() {
-  const fn = 'HTTP_BuildApp';
+async function BuildApp() {
+  const fn = 'BuildApp';
   const { http_docs, app_src, app_index } = HTTP_INFO;
   const { app_entry, app_bundle, app_bundle_map } = HTTP_INFO;
   const { es_target } = ESBUILD_INFO;
-  LOG.info(`HTTP Server building '${app_entry}' for '${app_index}'`);
   FILE.EnsureDir(http_docs);
   const entryFile = `${app_src}/${app_entry}`;
+  console.log(`entryFile: ${entryFile}`);
   if (!FILE.FileExists(entryFile)) throw Error(`${fn} missing entry ${entryFile}`);
   const indexFile = `${app_src}/${app_index}`;
   if (!FILE.FileExists(indexFile)) throw Error(`${fn} missing index ${indexFile}`);
   // esbuild build options
+  LOG.info(`HTTP Building Site'${app_entry}' from '${app_index}'`);
   const browserBuild: esbuild.BuildOptions = {
     entryPoints: [entryFile], // js file to start bundling
     target: [es_target], // js version to target
@@ -89,7 +89,6 @@ async function HTTP_BuildApp() {
             from: [`${app_src}/css/**/*`],
             to: [`${http_docs}/css`]
           },
-
           {
             from: [`${app_src}/${app_index}`],
             to: [`${http_docs}`]
@@ -109,9 +108,10 @@ async function HTTP_BuildApp() {
   // console.log(`${LOG.DIM}info: built ${app_entry} ${LOG.RST}`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function HTTP_Listen() {
-  const { http_port, http_host, http_docs, app_index } = HTTP_INFO;
+function Listen() {
+  const { http_port, http_host, http_docs, app_index, wss_path } = HTTP_INFO;
   FILE.EnsureDir(FILE.AbsLocalPath(http_docs));
+
   // configure HTTP server
   APP = express();
   if (SHOW_INDEX) {
@@ -128,70 +128,72 @@ function HTTP_Listen() {
   }
   // apply middleware
   APP.use(express.static(http_docs));
-  // start HTTP server
+
+  /** START HTTP SERVER **/
   SERVER = APP.listen(http_port, http_host, () => {
-    LOG.info(`HTTP Server listening at 'http://${http_host}:${http_port}'`);
+    LOG.info(`HTTP AppServer started on http://${http_host}:${http_port}`);
+  });
+  /** START WEBSOCKET SERVER with EXISTING HTTP SERVER **/
+  WSS = new WebSocketServer({
+    server: SERVER,
+    path: `/${wss_path}`, // requires leading slash
+    clientTracking: true
+  });
+  LOG.info(
+    `HTTP WebSocketServer started on ws://${http_host}:${http_port}/${wss_path}`
+  );
+  WSS.on('connection', (client_link, request) => {
+    const send = pkt => client_link.send(pkt.serialize());
+    const onData = data => {
+      const returnPkt = EP._clientDataIngest(data, client_sock);
+      if (returnPkt) client_link.send(returnPkt.serialize());
+    };
+    const client_sock = new NetSocket(client_link, { send, onData });
+    if (EP.isNewSocket(client_sock)) {
+      EP.addClient(client_sock);
+      const uaddr = client_sock.uaddr;
+      LOG(`${uaddr} client connected`);
+    }
+    // handle incoming data and return on wire
+    client_link.on('message', onData);
+    client_link.on('end', () => {
+      const uaddr = EP.removeClient(client_sock);
+      LOG(`${uaddr} client disconnected`);
+    });
+    client_link.on('close', () => {
+      const { uaddr } = client_sock;
+      LOG(`${uaddr} client disconnected`);
+    });
+    client_link.on('error', err => {
+      LOG.error(`.. socket error: ${err}`);
+    });
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function WSS_RegisterServices() {
+function RegisterServices() {
   EP.registerMessage('SRV:MYSERVER', data => {
     return { memo: `defined in ${m_script}.RegisterServices` };
   });
+  LOG.info(`HTTP URNET Server registered services`);
   // note that default services are also registered in Endpoint
   // configAsServer() method
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function WSS_Listen() {
-  const { wss_port, wss_host, wss_url } = HTTP_INFO;
-  const options = { port: wss_port, host: wss_host, clientTracking: true };
-  WSS = new WebSocketServer(options, () => {
-    LOG.info(`HTTP/WSS Server listening on '${wss_url}'`);
-    WSS.on('connection', (client_link, request) => {
-      const send = pkt => client_link.send(pkt.serialize());
-      const onData = data => {
-        const returnPkt = EP._clientDataIngest(data, client_sock);
-        if (returnPkt) client_link.send(returnPkt.serialize());
-      };
-      const client_sock = new NetSocket(client_link, { send, onData });
-      if (EP.isNewSocket(client_sock)) {
-        EP.addClient(client_sock);
-        const uaddr = client_sock.uaddr;
-        LOG(`${uaddr} client connected`);
-      }
-      // handle incoming data and return on wire
-      client_link.on('message', onData);
-      client_link.on('end', () => {
-        const uaddr = EP.removeClient(client_sock);
-        LOG(`${uaddr} client disconnected`);
-      });
-      client_link.on('close', () => {
-        const { uaddr } = client_sock;
-        LOG(`${uaddr} client disconnected`);
-      });
-      client_link.on('error', err => {
-        LOG.error(`.. socket error: ${err}`);
-      });
-    });
-  });
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Start() {
-  await HTTP_BuildApp();
-  HTTP_Listen();
-  WSS_RegisterServices();
-  WSS_Listen();
+  await BuildApp();
+  RegisterServices();
+  Listen();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Stop() {
   return new Promise<void>(resolve => {
-    const { http_url, wss_url } = HTTP_INFO;
-    LOG.info(`.. stopping HTTP/WSS Server on ${wss_url}`);
+    const { http_url, wss_path } = HTTP_INFO;
+    LOG.info(`.. stopping HTTP WebSocketServer on ${http_url}${wss_path}`);
     WSS.clients.forEach(client => client.close());
     WSS.close();
-    LOG.info(`.. stopping HTTP Server on ${http_url}`);
+    LOG.info(`.. stopping HTTP AppServer on ${http_url}`);
     SERVER.close();
     const _checker = setInterval(() => {
       if (typeof WSS.clients.every !== 'function') {

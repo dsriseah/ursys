@@ -7,6 +7,7 @@
 import { ConsoleStyler } from '@ursys/core';
 import { NetEndpoint } from '../../net/class-urnet-endpoint.ts';
 import { NetSocket } from '../../net/class-urnet-socket.ts';
+import { HTTP_CLIENT_INFO } from '../../net/urnet-constants-webclient.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,9 +33,10 @@ function m_Sleep(ms, resolve?): Promise<void> {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** create a client connection to the HTTP/WS server */
 function Connect(): Promise<boolean> {
+  const { wss_url } = HTTP_CLIENT_INFO;
   const promiseConnect = new Promise<boolean>(resolve => {
-    let wsURI = 'ws://localhost:3029/urnet-http';
-    SERVER_LINK = new WebSocket(wsURI);
+    LOG(...PR(`websocket connect to ${wss_url}`));
+    SERVER_LINK = new WebSocket(wss_url);
     SERVER_LINK.addEventListener('open', async () => {
       LOG(...PR('Connected to server'));
       const send = pkt => SERVER_LINK.send(pkt.serialize());
