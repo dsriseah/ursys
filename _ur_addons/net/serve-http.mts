@@ -190,7 +190,7 @@ async function Start() {
 function Stop() {
   return new Promise<void>(resolve => {
     const { http_url, wss_path } = HTTP_INFO;
-    LOG.info(`.. stopping HTTP WebSocketServer on ${http_url}${wss_path}`);
+    LOG.info(`.. stopping HTTP WebSocketServer on ${http_url}/${wss_path}`);
     WSS.clients.forEach(client => client.close());
     WSS.close();
     LOG.info(`.. stopping HTTP AppServer on ${http_url}`);
