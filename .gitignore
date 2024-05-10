@@ -13,6 +13,7 @@
 # _dist is the esbuild out directory for _ur and _ur_addons
 # and are exposed by package.json as importable libraries
 # so it must be committed
+_dist
 
 # don't commit _public or _nocommit files or directories
 _public
