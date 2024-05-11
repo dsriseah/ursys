@@ -54,6 +54,8 @@ EP.configAsServer('SRV03'); // hardcode arbitrary server address
 
 /// HELPERS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Use esbuild to create the app bundle and copy static assets to the
+ *  public http_docs directory. */
 async function BuildApp() {
   const fn = 'BuildApp';
   const { http_docs, app_src, app_index } = HTTP_INFO;
@@ -108,25 +110,40 @@ async function BuildApp() {
   // console.log(`${LOG.DIM}info: built ${app_entry} ${LOG.RST}`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Serve the app index file for this app */
+function ServeAppIndex(req: express.Request, res: express.Response) {
+  const { http_docs, app_index } = HTTP_INFO;
+  const indexFile = `${http_docs}/${app_index}`;
+  if (FILE.FileExists(indexFile)) {
+    res.sendFile(app_index, { root: http_docs });
+  } else {
+    res.send(`<pre>error: missing indexfile ${app_index}</pre>`);
+  }
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Start the HTTP and WebSocket servers. The WebSocket server uses the same
+ *  http server instance, which allows it to tunnel websocket traffic after
+ *  the initial handshake. This allows nginx (if running) to proxy forward
+ *  http traffic as https.
+ */
 function Listen() {
-  const { http_port, http_host, http_docs, app_index, wss_path } = HTTP_INFO;
+  const { http_port, http_host, http_docs, wss_path } = HTTP_INFO;
   FILE.EnsureDir(FILE.AbsLocalPath(http_docs));
 
   // configure HTTP server
   APP = express();
+
   if (SHOW_INDEX) {
+    // show index of the directory if SHOW_INDEX true
     APP.get('/', serveIndex(http_docs));
   } else {
+    // handle /
     APP.get('/', (req, res) => {
-      const indexFile = `${http_docs}/${app_index}`;
-      if (FILE.FileExists(indexFile)) {
-        res.sendFile(app_index, { root: http_docs });
-      } else {
-        res.send(`<pre>error: missing indexfile ${app_index}</pre>`);
-      }
+      ServeAppIndex(req, res);
     });
   }
-  // apply middleware
+
+  // apply static files middleware
   APP.use(express.static(http_docs));
 
   /** START HTTP SERVER **/
@@ -170,9 +187,12 @@ function Listen() {
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function RegisterServices() {
+/** Placeholder to register test messages services for this  server for use
+ *  by the demo client app
+ */
+function X_RegisterServices() {
   EP.registerMessage('SRV:MYSERVER', data => {
-    return { memo: `defined in ${m_script}.RegisterServices` };
+    return { memo: `defined in ${m_script}.X_RegisterServices` };
   });
   LOG.info(`HTTP URNET Server registered services`);
   // note that default services are also registered in Endpoint
@@ -183,7 +203,7 @@ function RegisterServices() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Start() {
   await BuildApp();
-  RegisterServices();
+  X_RegisterServices();
   Listen();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

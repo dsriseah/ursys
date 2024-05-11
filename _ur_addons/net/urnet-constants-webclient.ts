@@ -16,7 +16,7 @@ type T_HTTP_CLIENT = {
   wss_url: string; // wss connection string
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const http_host = '127.0.0.1'; // http server host
+const http_host = '127.0.0.1'; // http server host forced to ipv4
 const http_port = 8080; // http server port
 const wss_path = 'urnet-http'; // websocket server path rel to host url:port
 const HTTP_CLIENT_INFO: T_HTTP_CLIENT = {
