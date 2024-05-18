@@ -4,10 +4,10 @@
 
   API REFERENCE (dupe from class-statemgr.ts)
 
-  state: groupName => TStateObj;
+  getState: groupName => TStateObj;
   sendState: TStateObj => void;
-  subscribeState: TStateChangeFunc => void;
-  unsubscribeState: TStateChangeFunc => void;
+  subscribe: TStateChangeFunc => void;
+  unsubscribe: TStateChangeFunc => void;
   queueEffect: TEffectFunc => void;
 
   INTERNAL API for APPCORE MANAGERS ONLY
@@ -21,6 +21,7 @@
   _notifySubs: TStateObj => void;
   _enqueue: TQueuedAction => void;
   _dequeue: void => void;
+  _doCallback: void => void;
   _doEffect: void => void;
 
   STATIC API

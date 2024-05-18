@@ -735,8 +735,8 @@ class NetEndpoint {
   }
 
   /** remove a previously declared message handler for a given message */
-  removeHandler(msg: NP_Msg, handler: HandlerFunc) {
-    const fn = 'removeHandler:';
+  deregisterMessage(msg: NP_Msg, handler: HandlerFunc) {
+    const fn = 'deregisterMessage:';
     if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
     if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
     const key = NormalizeMessage(msg);

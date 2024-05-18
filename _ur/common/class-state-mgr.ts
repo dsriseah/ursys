@@ -62,7 +62,7 @@
   
   GetStateManager: groupName => StateMgr;
   GetStateData: groupName => TStateObj;
-  GetInstance: groupName => StateMgr;
+  NewInstance: groupName => StateMgr;
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -75,6 +75,7 @@ type TGroupMap = Map<TGroupName, StateMgr>; // group name --> class instance
 type TUsedProps = Map<TPropName, TGroupName>; // unique prop --> owning group
 type TStateChangeFunc = (newState: TStateObj, curState: TStateObj) => void;
 type TEffectFunc = () => void;
+type TCallbackFunc = () => void;
 type TTapFunc = (state: TStateObj) => void;
 type TQueuedAction = { stateEvent: TStateObj; callback: Function };
 interface IStateMgr {
@@ -109,7 +110,8 @@ class StateMgr {
   subs: Set<TStateChangeFunc>;
   queue: any[]; // queued state changes
   taps: TTapFunc[]; // queued state interceptor hooks
-  effects: TEffectFunc[]; // queued side effects
+  callbacks: TCallbackFunc[]; // queued callbacks reqested through sendState()
+  effects: TEffectFunc[]; // queued side effects inserted by queueEffect()
 
   /// CONSTRUCTOR /////////////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -129,14 +131,15 @@ class StateMgr {
     this.subs = new Set();
     this.queue = [];
     this.taps = [];
+    this.callbacks = [];
     this.effects = [];
     VM_STATE[this.name] = {};
     // bind 'this' for use with async code
     // if you don't do this, events will probably not have instance context
-    this.state = this.state.bind(this);
+    this.getState = this.getState.bind(this);
     this.sendState = this.sendState.bind(this);
-    this.subscribeState = this.subscribeState.bind(this);
-    this.unsubscribeState = this.unsubscribeState.bind(this);
+    this.subscribe = this.subscribe.bind(this);
+    this.unsubscribe = this.unsubscribe.bind(this);
     this.queueEffect = this.queueEffect.bind(this);
     this._initializeState = this._initializeState.bind(this);
     this._setState = this._setState.bind(this);
@@ -155,7 +158,7 @@ class StateMgr {
   /// MAIN CLASS METHODS //////////////////////////////////////////////////////
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** Return a COPY of the current clonedEvent */
-  state(key: string): TStateObj {
+  getState(key?: string): TStateObj {
     // const state = { ...VM_STATE[this.name] };
     const state = this._derefProps({ ...VM_STATE[this.name] });
     if (typeof key === 'string' && key.length > 0) return state[key];
@@ -181,14 +184,14 @@ class StateMgr {
   /** Subscribe to state. The subscriber function looks like:
    *  ( vmStateEvent, currentState ) => void
    */
-  subscribeState(subFunc: TStateChangeFunc) {
+  subscribe(subFunc: TStateChangeFunc) {
     if (typeof subFunc !== 'function') throw Error('subscriber must be function');
     if (this.subs.has(subFunc)) console.warn('duplicate subscriber function');
     this.subs.add(subFunc);
   }
 
   /** Unsubscribe state */
-  unsubscribeState(subFunc: TStateChangeFunc) {
+  unsubscribe(subFunc: TStateChangeFunc) {
     if (!this.subs.delete(subFunc))
       console.warn('function not subscribed for', this.name);
   }
@@ -356,24 +359,30 @@ class StateMgr {
    *  An action is { vmStateEvent, callback }
    */
   _dequeue() {
-    const callbacks = [];
     // iterate over all actions in queue
     let action = this.queue.shift();
     while (action !== undefined) {
       const { vmStateEvent, callback } = action;
       this._mergeState(vmStateEvent); // merge partial state into state
       this._notifySubs(vmStateEvent); // send partial state to subs
-      if (typeof callback === 'function') callbacks.push(callback);
+      if (typeof callback === 'function') this.callbacks.push(callback);
       // get next action in queue
       action = this.queue.shift();
     }
     // issues callbacks after ALL actions have completed
-    callbacks.forEach(f => f());
+    this._doCallbacks();
     this._doEffect();
   }
 
-  /** execute effect functions that have been queued, generally if there
-   *  are no pending state changes
+  /** execute callback functions that have been queued by action processing
+   *  in _dequeue().
+   */
+  _doCallbacks() {
+    this.callbacks.forEach(f => f());
+    this.callbacks = [];
+  }
+
+  /** execute effect functions that have been queued through queueEffect()
    */
   _doEffect() {
     if (this.queue.length > 0) return;
@@ -401,7 +410,7 @@ class StateMgr {
   /** return a locked copy of the state of a particular named state group.
    *  Unlike GetStateManager, this returns just the data object.
    */
-  static GetStateData(groupName: string) {
+  static GetStateData(groupName: string): TStateObj {
     if (typeof groupName !== 'string') throw Error(`${groupName} is not a string`);
     const bucket = groupName.trim().toUpperCase();
     if (bucket !== groupName)
@@ -424,7 +433,7 @@ class StateMgr {
    *  purposefully always returns an instance of an existing group if it
    *  already exists
    */
-  static GetInstance(groupName: string) {
+  static NewInstance(groupName: string): StateMgr {
     return new StateMgr(groupName);
   }
 }
