@@ -1,0 +1,353 @@
+/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
+
+  URSYS PhaseMachine is a class to implement simple "phased execution" by
+  operation and group. It's used for implementing looping lifecycle events.
+
+  EXAMPLE:
+
+  NOTES:
+  * It is up to you to implement the logic for when to execute phase
+    operations. See client-exec.js for examples.
+  * if you subscribe to a phase group operation, you receive the list of
+    phases and the current index at the beginning of each phase
+
+\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
+
+/// DEBUG CONSTANTS ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DBG = { subs: false, ops: false, phases: false, init: false };
+
+/// TYPE DECLARATIONS /////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type PhaseMap = { [key: string]: string[] };
+type PhaseHook = { f: Function; scope: string };
+type PhaseHooks = Map<string, PhaseHook[]>;
+type GroupOpList = { groupName: string; phaseOps: string[] };
+
+/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const m_machines = new Map(); // store phasemachines <machinename,instance>
+const m_queue = new Map(); // store by <machinename,['op',f]>
+
+/// PRIVATE HELPERS ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** UTILITY: extract the phase machine, phase from phaseSelector of form
+ *  SIM/UPDATE_ALL, where SIM is the phase machine and UPDATE_ALL is the phase
+ */
+function m_DecodePhase(psel) {
+  if (typeof psel !== 'string') throw Error('arg must be non-empty string');
+  const bits = psel.split('/');
+  if (bits.length !== 2) throw Error(`malformed phase selector ('MACHINE/PHASE')`);
+  const [machine, phase] = bits;
+  return { machine, phase };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** UTILITY: call the hook object's function. This used to do additional
+ *  checks to see if the function should be called based on the route.
+ */
+function m_InvokeHook(op, hook, ...args) {
+  if (hook.scope)
+    throw Error('scope checking is not implemented in this version of URSYS');
+  // execute callbac and return possible Promise
+  if (hook.f) return hook.f(...args);
+  // if no hook.f, this hook was implicitly mocked
+  return undefined;
+} // end m_InvokeHook
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** UTILITY: process queued hooks for a phasemachine name.
+ */
+function m_ProcessQueueFor(pmkey) {
+  const pm = m_machines.get(pmkey);
+  if (!pm) {
+    console.warn(`${pmkey} not yet defined`);
+    return;
+  }
+  const qhooks = m_queue.get(pmkey) || [];
+  if (DBG.init)
+    console.log(`phasemachine '${pmkey}' has ${qhooks.length} queued ops`);
+  try {
+    qhooks.forEach(element => {
+      const [op, f] = element;
+      pm.hook(op, f);
+    });
+    m_queue.delete(pmkey);
+  } catch (e) {
+    console.warn('Error while processing queued phasemachine hooks');
+    throw Error(e.toString());
+  }
+} // end m_ProcessQueueFor
+
+/// URSYS PhaseMachine CLASS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class PhaseMachine implements PhaseMachine {
+  NAME: string;
+  OP_HOOKS: PhaseHooks;
+  PHASES: PhaseMap;
+  currentOp: string;
+  opTimer: number | NodeJS.Timeout;
+  currentPhase: string;
+
+  constructor(shortName, phases) {
+    console.error(
+      'SriNote: PhaseMachine due for refactor (ambiguous/inconsistent semantics)'
+    );
+    if (typeof shortName !== 'string') throw Error('arg1 must be string');
+    if (shortName.length < 1) throw Error('arg1 string.length must be > 1');
+    if (m_machines.has(shortName)) throw Error(`already registered '${shortName}'`);
+    this.NAME = shortName;
+    this.OP_HOOKS = new Map();
+    this.PHASES = phases;
+    this.currentOp = ''; // current operation
+    this.opTimer = 0; // for catching lingering execution
+    Object.keys(phases).forEach(phaseKey => {
+      this.OP_HOOKS.set(phaseKey, []); // add the phase name to ophooks map as special case
+      this.PHASES[phaseKey].forEach(opKey => {
+        this.OP_HOOKS.set(opKey, []); // add each op in the phase to ophooks map
+      });
+    });
+    // bind functions to instance so it can be called inside promises
+    // and asynchronous handler context
+    this.hook = this.hook.bind(this);
+    this.execute = this.execute.bind(this);
+    this.executePhase = this.executePhase.bind(this);
+    this.executePhaseParallel = this.executePhaseParallel.bind(this);
+    this.getHookFunctions = this.getHookFunctions.bind(this);
+    this.getPhaseFunctionsAsMap = this.getPhaseFunctionsAsMap.bind(this);
+    this.consolePhaseInfo = this.consolePhaseInfo.bind(this);
+    this.currentPhase = '<none>'; // phase group
+    this.currentOp = '<none>'; // phase op
+    // save instance by name
+    m_machines.set(shortName, this);
+    if (DBG.init) console.log(`phasemachine '${shortName}' saved`);
+    // check queued hooks
+    m_ProcessQueueFor(shortName);
+  } // end constructor
+
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** API: register an Operations Handler. <op> is a string constant
+   *  define in PHASES and converted into the MAP. <f> is a function that
+   *  will be invoked during the operation, and it can return a promise or value.
+   */
+  hook(op, f, scope = '') {
+    // vestigial scope parameter check if we need it someday
+    if (typeof scope !== 'string') throw Error('<arg1> scope should be included');
+    // does this operation name exist?
+    if (typeof op !== 'string')
+      throw Error("<arg2> must be PHASENAME (e.g. 'LOAD_ASSETS')");
+    if (!this.OP_HOOKS.has(op))
+      throw Error(`Phase handler '${this.NAME}':'${op}' is not defined`);
+    let status = 'REGD';
+    if (!(f instanceof Function)) {
+      // no function means "implicit mock"
+      status = 'MOCK';
+    }
+    // get the list of promises associated with this op
+    // and add the new promise
+    const hook = { f, scope };
+    this.OP_HOOKS.get(op).push(hook);
+    if (DBG.init) console.log(`${status} '${this.NAME}.${op}' Hook`);
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** API: execute all Promises associated with a op, completing when
+   *  all the callback functions complete. If the callback function returns
+   *  a Promise, this is added to a list of Promises to wait for before the
+   *  function returns control to the calling code.
+   */
+  execute(op, ...args) {
+    // note: contents of PHASE_HOOKs are promise-generating functions
+    if (!this.OP_HOOKS.has(op)) throw Error(`${op} is not a recognized EXEC op`);
+    if (op.startsWith('PHASE_') && DBG.phases)
+      console.log(`warning:${op} phase group executed as single op`);
+    this.currentOp = op;
+    // check that there are promises to execute
+    let hooks = this.OP_HOOKS.get(op);
+    if (hooks.length === 0) {
+      if (DBG.ops) console.log(`[${op}] no subscribers`);
+      return Promise.resolve();
+    }
+
+    // now execute handlers and promises
+    let icount = 0;
+    // get an array of promises
+    // o contains 'f', 'scope' pushed in Hook() above
+    const promises = [];
+    hooks.forEach(hook => {
+      let retval = m_InvokeHook(op, hook, ...args);
+      if (retval instanceof Promise) {
+        icount++;
+        retval.catch(error => {
+          console.log(`intercept error in o:${op}`);
+          console.log('attempting to reroute error', error);
+        });
+        promises.push(retval);
+      }
+    });
+
+    const promiseAll = Promise.all(promises)
+      .then(values => {
+        if (DBG.ops && values.length)
+          console.log(`[${op}] PROMISES RETVALS  : ${values.length}`, values);
+        if (this.opTimer) clearTimeout(this.opTimer);
+        return values;
+      })
+      .catch(error => {
+        console.log('intercept Promise.all', error);
+      });
+
+    if (DBG.ops && hooks.length)
+      console.log(`[${op}] HANDLERS PROCESSED : ${hooks.length}`);
+    if (DBG.ops && icount)
+      console.log(`[${op}] AWAITING ${icount} PROMISES TO COMPLETE...`);
+
+    // timeout timer for phase
+    if (this.opTimer) clearTimeout(this.opTimer);
+    this.opTimer = setTimeout(() => {
+      const phaseInfo = this.consolePhaseInfo(
+        'PHASEMACHINE ERROR: Promises taking > 7 sec to resolve',
+        'red'
+      );
+      console.log('[1] check unresolved promises', promises);
+      console.log(`[2] check '${phaseInfo}' handlers`);
+      const err = `
+ERROR: PhaseMachine '${this.currentPhase}/${this.currentOp}' failed to complete\n
+This is an irrecoverable runtime error.
+1. Check console for error information.
+2. Use your phone to send SCREENSHOT of the error to the devteam for troubleshooting.
+      `;
+      // alert(err.trim());
+      console.error(err);
+    }, 7000);
+    return promiseAll;
+  }
+
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** API: execute all Promises associated with a Phase Group in serial
+   *  css-tricks.com/why-using-reduce-to-sequentially-resolve-promises-works/
+   */
+  executePhase(phaseName, ...args) {
+    if (DBG.phases) console.log(`executePhase('${phaseName}')`);
+    this.currentPhase = phaseName;
+    const ops = this.PHASES[phaseName];
+    if (ops === undefined)
+      throw Error(`Phase "${phaseName}" doesn't exist in ${this.NAME}`);
+    const phaseHookFuncs = this.getHookFunctions(phaseName);
+    let index = 0;
+    return ops.reduce(
+      async (previousPromise, nextOp) => {
+        phaseHookFuncs.forEach(f => f(ops, index++));
+        await previousPromise; // wait for previous promise to finish
+        return this.execute(nextOp, ...args); // queue next promise
+      },
+      phaseHookFuncs.forEach(f => f(ops, index++))
+    ); // initial value of previousPromise
+  }
+
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** API: execute all Promises associated with a Phase Group in parallel
+   */
+  executePhaseParallel(phaseName, ...args) {
+    const ops = this.PHASES[phaseName];
+    if (ops === undefined) throw Error(`Phase "${phaseName}" doesn't exist`);
+    return Promise.all(ops.map(op => this.execute(op, ...args)));
+    // fix this and return promise
+  }
+
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** UTILITY: Return hooks array for a given operation. Useful when
+   *  using closures to create an optimal execution function as in
+   *  client-exec SystemAppRun()
+   */
+  getHookFunctions(op) {
+    if (DBG.ops) console.log(`getting hook for '${op}'`);
+    return this.OP_HOOKS.get(op).map(hook => hook.f);
+  }
+
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** UTILITY: Return a Map organized by phase:functions[]
+   */
+  getPhaseFunctionsAsMap(phaseName) {
+    if (!phaseName.startsWith('PHASE_'))
+      throw Error(`${phaseName} is not a Phase Group name`);
+    if (DBG.ops) console.log(`getting hook map for phase '${phaseName}'`);
+    const phaseOps = this.PHASES[phaseName]; // list of operations in the phase
+    const map = new Map();
+    phaseOps.forEach(pop => {
+      map.set(
+        pop,
+        this.OP_HOOKS.get(phaseName).map(hook => hook.f)
+      );
+    });
+    return map;
+  }
+
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** UTILITY: Return a list of phase groups
+   */
+  getPhaseGroupNames() {
+    return Object.keys(this.PHASES);
+  }
+
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** UTILITY: Return an array of objects with { groupName, groupPhaseNames[] }
+   * for each phase group in the machine
+   */
+  getPhaseGroupOps(groupName?: string): GroupOpList | GroupOpList[] {
+    if (groupName) {
+      if (!this.PHASES[groupName]) throw Error(`group ${groupName} not found`);
+      return { groupName, phaseOps: this.PHASES[groupName] };
+    }
+    return Object.keys(this.PHASES).map(groupName => {
+      return { groupName, phaseOps: this.PHASES[groupName] };
+    });
+  }
+
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** UTILITY: print current phase information to console
+   */
+  consolePhaseInfo(pr = 'PhaseInfo', bg = 'MediumVioletRed') {
+    const phaseInfo = `${this.NAME}/${this.currentPhase}:${this.currentOp}`;
+    console.log(
+      `%c${pr}%c`,
+      `color:#fff;background-color:${bg};padding:3px 10px;border-radius:10px;`,
+      'color:auto;background-color:auto'
+    );
+    return phaseInfo;
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** STATIC: Queue hook requests even if machine isn't already defined.
+   *  This routine can be used as the standard hook method for UR clients.
+   */
+  static Hook(phaseSel, f) {
+    if (typeof phaseSel !== 'string')
+      throw Error('arg1 must be phase selector like MACHINE/PHASE');
+    if (typeof f !== 'function' && f !== undefined)
+      throw Error('arg2 must be function or undefined');
+    //
+    const { machine, phase } = m_DecodePhase(phaseSel);
+    const pm = m_machines.get(machine);
+    // if phasemachine is already valid, then just hook it directly
+    if (pm) {
+      pm.hook(phase, f);
+      return;
+    }
+    // otherwise, queue the request
+    if (!m_queue.has(machine)) m_queue.set(machine, []);
+    const q = m_queue.get(machine);
+    q.push([phase, f]); // array of 2-element arrays
+  }
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** STATIC: Return object of all current machines and phases */
+  static GetMachineStates() {
+    let out = '';
+    for (const [name, m] of m_machines) {
+      if (out.length !== 0) out += ', ';
+      out += `${name}[${m.currentPhase}.${m.currentOp}]`;
+    }
+    return out;
+  }
+}
+
+/// EXPORT CLASS DEFINITION ///////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export default PhaseMachine;
+export type { GroupOpList, PhaseMap };
