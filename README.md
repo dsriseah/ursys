@@ -18,9 +18,9 @@ Current Features
 Features Under Development
 
 * import URSYS as a dependency into existing projects
-* secure remote server 
+* secure remote server
 
-If you'd like to help test, see [First Install](https://github.com/dsriseah/ursys/wiki/Installation) instructions and let me know if you had any problems via [mastadon](https://opalstack.social/@dsri). Check out the [Wiki]([https://github.com/dsriseah/wiki) for more background info.
+Check out the [Wiki](https://github.com/dsriseah/ursys/wiki) for detailed information about URSYS concepts. If you'd like to help test, see [First Install](https://github.com/dsriseah/ursys/wiki/Installation) instructions.
 
-
+Questions? Contact me via [Mastadon](https://opalstack.social/@dsri). 
 
