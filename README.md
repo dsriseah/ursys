@@ -14,7 +14,4 @@ If you'd like to help test, see [First Install](https://github.com/dsriseah/ursy
 * Command line `ur` auto-discovers and spawns addons processes, using an entry point convention
 * Message broker with [URNET](/https://github.com/dsriseah/ursys/wiki/URNET) interface
 
-### Queued Features
-
-* State Server based on URNET
 
