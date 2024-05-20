@@ -2,7 +2,7 @@
 
 URSYS originated in learning science research into embodied learning from 2013 to date. The requirements were LAN-based operation, realtime graphics, simulation, video, and motion tracking served from a single laptop to multiple tablet and Chromebook-type devices in a guided classroom environment. This repository is a modular rebuild of many of the key features of the original libraries into "building blocks" that hide the difficult parts of asynchronous lifecycle-driven programming in a distributed network environment. 
 
-Major goal is to make a NodeJS-based framework that approachable to intermediate-level developers who are just getting into asyncronous realtime simulation programming. We want this to be as "plug and go" with a low threshold to starting.
+Major goal is to make a NodeJS-based framework that approachable to intermediate-level developers who are just getting into the stickiness of asynchronous realtime graphics simulation programming. We want this to be as "plug and go" with a low threshold to starting.
 
 Current Features
 
