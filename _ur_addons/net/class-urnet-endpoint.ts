@@ -165,7 +165,8 @@ class NetEndpoint {
     this.srv_msgs = new Map<NP_Msg, AddressSet>();
     // add default service message handlers here
     this.registerMessage('SRV:REFLECT', data => {
-      return { memo: 'defaults defined in Endpoint.configAsServer' };
+      data.info = `built-in service`;
+      return data;
     });
   }
 

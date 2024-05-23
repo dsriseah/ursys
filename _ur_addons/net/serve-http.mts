@@ -262,7 +262,9 @@ async function Listen() {
  *  by the demo client app
  */
 function X_RegisterServices() {
-  EP.registerMessage('SRV:MYSERVER', data => {
+  // SRV:REFLECT is built into URSYS, so don't define
+  EP.registerMessage('SRV:FAKE_SERVICE', data => {
+    LOG('FAKE_SERVICE received', data);
     return { memo: `defined in ${m_script}.X_RegisterServices` };
   });
   LOG.info(`HTTP URNET Server registered services`);
