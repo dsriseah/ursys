@@ -8,6 +8,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import http from 'node:http';
+import fs from 'node:fs';
 import express from 'express';
 import serveIndex from 'serve-index';
 import esbuild from 'esbuild';
@@ -25,6 +26,7 @@ import { HTTP_INFO, ESBUILD_INFO } from './urnet-constants.mts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = PR('HTTP', 'TagBlue');
 const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);
+let m_proxy_locations: Array<any>;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const SHOW_INDEX = false; // set to true to show index of htdocs
 
@@ -121,12 +123,73 @@ function ServeAppIndex(req: express.Request, res: express.Response) {
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Parse ursys.dsri.xyz nginx config for locations */
+function m_PromiseProxyLocations(): Promise<Array<any>> {
+  const nginxConf = '/etc/nginx/sites-enabled/ursys_dsri_xyz';
+  return new Promise((resolve, reject) => {
+    if (m_proxy_locations !== undefined) {
+      resolve(m_proxy_locations);
+    } else {
+      fs.readFile(nginxConf, 'utf8', (err, data) => {
+        if (err) reject(`error reading ${nginxConf}`);
+        const locationBlockRegex = /location\s+([^\s]+)\s*\{([^}]+)\}/g;
+        let match;
+        const locations = [];
+        // Collect and process all location blocks
+        while ((match = locationBlockRegex.exec(data)) !== null) {
+          const locationPath = match[1];
+          const blockContent = match[2];
+          // Extract proxy_pass value within the block
+          const proxyPortRegex = /proxy_pass\s+http:\/\/[^:]+:(\d+)\/;/;
+          const proxPortMatch = blockContent.match(proxyPortRegex);
+          if (proxPortMatch)
+            locations.push({ location: locationPath, proxyPort: proxPortMatch[1] });
+        }
+        m_proxy_locations = locations;
+        resolve(locations);
+      });
+    }
+  });
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** helper to return url on reverse proxy front end */
+async function m_PromiseProxyURL(http_port): Promise<string> {
+  if (http_port === undefined) return undefined;
+  const locations = await m_PromiseProxyLocations();
+  if (locations.length === 0) return undefined;
+  const found = locations.find(item => item.proxyPort === `${http_port}`);
+  if (!found) return undefined;
+  const { location } = found;
+  return `https://ursys.dsri.xyz${location}`;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** looks at nginx configutation of locations, returning html listing */
+async function ServeProxyLocations(req: express.Request, res: express.Response) {
+  try {
+    const locations = await m_PromiseProxyLocations();
+    if (locations.length === 0) {
+      res.send(`<pre>error: no nginx proxy locations found</pre>`);
+      return;
+    }
+    let out = '<ul>';
+    locations.forEach(loc => {
+      const { location, proxyPort } = loc;
+      out += `<li>location:${location} proxy_pass:${proxyPort}</li>`;
+    });
+    out += `</ul>`;
+    res.send(out);
+  } catch {
+    res.send(`<pre>internal error in ServeProxyLocations()</pre>`);
+  }
+}
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Start the HTTP and WebSocket servers. The WebSocket server uses the same
  *  http server instance, which allows it to tunnel websocket traffic after
  *  the initial handshake. This allows nginx (if running) to proxy forward
  *  http traffic as https.
  */
-function Listen() {
+async function Listen() {
   const { http_port, http_host, http_docs, wss_path } = HTTP_INFO;
   FILE.EnsureDir(FILE.AbsLocalPath(http_docs));
 
@@ -142,14 +205,21 @@ function Listen() {
       ServeAppIndex(req, res);
     });
   }
+  // sneaky locations list (as app/list)
+  APP.get('/list', (req, res) => {
+    ServeProxyLocations(req, res);
+  });
 
   // apply static files middleware
   APP.use(express.static(http_docs));
 
   //
   /** START HTTP SERVER **/
+  const proxy_url = await m_PromiseProxyURL(http_port);
+
   SERVER = APP.listen(http_port, http_host, () => {
     LOG.info(`HTTP AppServer started on http://${http_host}:${http_port}`);
+    if (proxy_url) LOG.info(`HTTP AppServer is proxied from ${proxy_url}`);
   });
   /** START WEBSOCKET SERVER with EXISTING HTTP SERVER **/
   WSS = new WebSocketServer({
