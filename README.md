@@ -22,5 +22,5 @@ Features Under Development
 
 Check out the [Wiki](https://github.com/dsriseah/ursys/wiki) for detailed information about URSYS concepts. If you'd like to help test, see [First Install](https://github.com/dsriseah/ursys/wiki/Installation) instructions.
 
-Questions? Contact me via [Mastadon](https://opalstack.social/@dsri). 
+Questions? Contact me via [Mastodon](https://opalstack.social/@dsri). 
 
