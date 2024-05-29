@@ -235,7 +235,8 @@ async function Listen() {
       const returnPkt = EP._ingestClientMessage(data, client_sock);
       if (returnPkt) client_link.send(returnPkt.serialize());
     };
-    const client_sock = new NetSocket(client_link, { send, onData });
+    const close = () => client_link.close();
+    const client_sock = new NetSocket(client_link, { send, onData, close });
     if (EP.isNewSocket(client_sock)) {
       EP.addClient(client_sock);
       const uaddr = client_sock.uaddr;
@@ -245,11 +246,11 @@ async function Listen() {
     client_link.on('message', onData);
     client_link.on('end', () => {
       const uaddr = EP.removeClient(client_sock);
-      LOG(`${uaddr} client disconnected`);
+      LOG(`${uaddr} client 'end' disconnect`);
     });
     client_link.on('close', () => {
-      const { uaddr } = client_sock;
-      LOG(`${uaddr} client disconnected`);
+      const uaddr = EP.removeClient(client_sock);
+      LOG(`${uaddr} client 'close' disconnect`);
     });
     client_link.on('error', err => {
       LOG.error(`.. socket error: ${err}`);

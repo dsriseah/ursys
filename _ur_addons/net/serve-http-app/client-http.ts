@@ -41,10 +41,16 @@ function Connect(): Promise<boolean> {
       LOG(...PR('Connected to server'));
       const send = pkt => SERVER_LINK.send(pkt.serialize());
       const onData = event => EP._ingestServerMessage(event.data, client_sock);
-      const client_sock = new NetSocket(SERVER_LINK, { send, onData });
+      const close = () => SERVER_LINK.close();
+      const client_sock = new NetSocket(SERVER_LINK, { send, onData, close });
       SERVER_LINK.addEventListener('message', onData);
       SERVER_LINK.addEventListener('close', () => {
         LOG(...PR('server closed connection'));
+        EP.disconnectAsClient();
+      });
+      // disconnect client on browser reload or close
+      // needed on chrome, which doesn't appear to send a websocket closeframe
+      window.addEventListener('beforeunload', () => {
         EP.disconnectAsClient();
       });
       // 2. start client; EP handles the rest

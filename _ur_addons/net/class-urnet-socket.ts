@@ -38,12 +38,14 @@ const LOG = (...args) => DBG && console.log(PR, ...args);
 /** the function that sends a packet to the wire */
 type NS_SendFunc = (pkt: NetPacket) => void;
 type NS_DataFunc = (data: any) => void;
-type NS_Options = { send: NS_SendFunc; onData: NS_DataFunc };
+type NS_CloseFunc = () => void;
+type NS_Options = { send: NS_SendFunc; onData: NS_DataFunc; close: NS_CloseFunc };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** this is the socket-ish object that we use to send data to the wire */
 interface I_NetSocket {
   connector?: any; // the original connection object (if needed)
   send: NS_SendFunc;
+  close: NS_CloseFunc; // close function
   uaddr?: NP_Address; // assigned uaddr for this socket-ish object
   auth?: any; // whatever authentication is needed for this socket
   msglist?: NP_Msg[]; // messages queued for this socket
@@ -57,6 +59,7 @@ interface I_NetSocket {
 class NetSocket implements I_NetSocket {
   connector: any; // the original connection object
   sendFunc: NS_SendFunc; // the outgoing send function for this socket
+  closeFunc: NS_CloseFunc; // function to disconnect
   onDataFunc: NS_DataFunc; // the incoming data function for this socket
   //
   uaddr?: NP_Address; // assigned uaddr for this socket-ish object
@@ -67,13 +70,18 @@ class NetSocket implements I_NetSocket {
 
   constructor(connectObj: any, io: NS_Options) {
     this.connector = connectObj;
-    const { send, onData } = io;
+    const { send, onData, close } = io;
     this.sendFunc = send.bind(connectObj);
+    this.closeFunc = close.bind(connectObj);
     this.onDataFunc = onData.bind(connectObj);
   }
 
   send(pkt: NetPacket) {
     this.sendFunc(pkt);
+  }
+
+  close() {
+    this.closeFunc();
   }
 
   getConnector() {

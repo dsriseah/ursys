@@ -23,7 +23,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR, CLASS } from '@ursys/core';
+import { PR } from '@ursys/core';
 import { NetPacket } from './class-urnet-packet.ts';
 import {
   NP_ID,
@@ -47,7 +47,7 @@ import {
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = false;
+const DBG = true;
 const PR = typeof process !== 'undefined' ? 'EndPoint'.padEnd(13) : 'EndPoint:';
 const LOG = (...args) => DBG && console.log(PR, ...args);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -573,8 +573,15 @@ class NetEndpoint {
     return true;
   }
 
-  /** disables down the gateway */
+  /** shuts down the gateway to server, forcing close
+   *  Chrome 125.0.6422.77 doesn't seem to send a close frame on reload
+   *  Firefox 126.0 doesn't fire beforeunload
+   */
   disconnectAsClient() {
+    if (this.cli_gateway === undefined) return;
+    if (typeof this.cli_gateway.close === 'function') {
+      this.cli_gateway.close();
+    }
     this.cli_gateway = undefined;
   }
 
@@ -1025,7 +1032,7 @@ class NetEndpoint {
     if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
     const { src_addr } = pkt;
     const { uaddr: dst_addr } = sock;
-    LOG(`${pkt.msg} dst:${dst_addr} src:${src_addr}`);
+    // LOG(`${pkt.msg} dst:${dst_addr} src:${src_addr}`);
     // for send and call packets, do not send to origin
     if (src_addr === dst_addr && SkipOriginType(pkt.msg_type)) {
       // LOG(`.. skipping reflect '${pkt.msg}' to ${dst_addr}==${src_addr}`);
