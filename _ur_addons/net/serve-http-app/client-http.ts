@@ -7,6 +7,7 @@
 import { ConsoleStyler } from '@ursys/core';
 import { NetEndpoint } from '../../net/class-urnet-endpoint.ts';
 import { NetSocket } from '../../net/class-urnet-socket.ts';
+import { HTTP_CLIENT_INFO } from '../../net/urnet-constants-webclient.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,17 +33,24 @@ function m_Sleep(ms, resolve?): Promise<void> {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** create a client connection to the HTTP/WS server */
 function Connect(): Promise<boolean> {
+  const { wss_url } = HTTP_CLIENT_INFO;
   const promiseConnect = new Promise<boolean>(resolve => {
-    let wsURI = 'ws://localhost:3029/urnet-http';
-    SERVER_LINK = new WebSocket(wsURI);
+    LOG(...PR(`websocket connect to ${wss_url}`));
+    SERVER_LINK = new WebSocket(wss_url);
     SERVER_LINK.addEventListener('open', async () => {
       LOG(...PR('Connected to server'));
       const send = pkt => SERVER_LINK.send(pkt.serialize());
-      const onData = event => EP._serverDataIngest(event.data, client_sock);
-      const client_sock = new NetSocket(SERVER_LINK, { send, onData });
+      const onData = event => EP._ingestServerMessage(event.data, client_sock);
+      const close = () => SERVER_LINK.close();
+      const client_sock = new NetSocket(SERVER_LINK, { send, onData, close });
       SERVER_LINK.addEventListener('message', onData);
       SERVER_LINK.addEventListener('close', () => {
         LOG(...PR('server closed connection'));
+        EP.disconnectAsClient();
+      });
+      // disconnect client on browser reload or close
+      // needed on chrome, which doesn't appear to send a websocket closeframe
+      window.addEventListener('beforeunload', () => {
         EP.disconnectAsClient();
       });
       // 2. start client; EP handles the rest
@@ -73,40 +81,65 @@ function Connect(): Promise<boolean> {
  *  URNET message network
  */
 async function RegisterMessages() {
+  const EP_UADDR = EP.urnet_addr;
   EP.registerMessage('NET:CLIENT_TEST', data => {
-    LOG(...PR('NET:CLIENT_TEST got', data));
-    return { 'NET:CLIENT_TEST': 'received' };
+    LOG(...PR(`CLIENT_TEST ${EP_UADDR} received`, data));
+    const { uaddr } = data;
+    return { status: `CLIENT_TEST ${EP_UADDR} responding to ${uaddr}` };
   });
   const resdata = await EP.clientDeclare();
   if (DBG) LOG(...PR('EP.clientDeclare returned', resdata));
-  // test code below can be removed //
+  TestClientMessage();
+  // TestServerReflect();
+  // TestServerService();
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TestClientMessage() {
+  const EP_UADDR = EP.urnet_addr;
+  // test client-to-client netcall CLIENT_TEST
+  LOG(...PR(`CLIENT_TEST ${EP_UADDR} invocation`));
+  EP.netCall('NET:CLIENT_TEST', { uaddr: EP_UADDR }).then(retdata => {
+    LOG(...PR(`CLIENT TEST ${EP_UADDR} resolved with `, retdata));
+  });
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TestServerReflect() {
   let count = 0;
   let foo = setInterval(() => {
     if (count > 3) {
       clearInterval(foo);
-      LOG(...PR('netCall test sequence complete'));
       return;
     }
-    if (count % 2) {
-      EP.netCall('SRV:REFLECT', { foo: 'bar' }).then(res => {
-        LOG(...PR('SRV:REFLECT returned', res));
-      });
-    } else {
-      EP.netCall('SRV:MYSERVER', { hello: 'world' }).then(res => {
-        LOG(...PR('SRV:MYSERVER returned', res));
-      });
-    }
+    EP.netCall('SRV:REFLECT', { foo: 'bar' }).then(refdata => {
+      if (refdata.foo !== 'bar') LOG(...PR('REFLECT foo failed', refdata));
+      else LOG(...PR(`REFLECT return success`, refdata));
+    });
     count++;
-  }, 1000);
+  }, 1500);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Disconnect(seconds = 15) {
+function TestServerService() {
+  let count = 0;
+  let foo = setInterval(() => {
+    if (count > 3) {
+      clearInterval(foo);
+      return;
+    }
+    EP.netCall('SRV:FAKE_SERVICE', { hello: 'world' }).then(res => {
+      if (res.memo === undefined) LOG(...PR('FAKE_SERVICE memo failed', res));
+      else LOG(...PR(`FAKE_SERVICE return success`, res));
+    });
+    count++;
+  }, 2000);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function Disconnect(seconds = 360) {
   return new Promise((resolve, reject) => {
     LOG(...PR(`waiting for ${seconds} seconds...`));
     m_Sleep(seconds * 1000, () => {
       resolve(true);
       SERVER_LINK.close();
-      LOG(...PR(`closing client connection...`));
+      LOG(...PR(`closing client connection after ${seconds}s...`));
     });
   });
 }

@@ -60,7 +60,7 @@ function Connect(): Promise<boolean> {
       // 1. wire-up SERVER_LINK to the endpoint via our netsocket wrapper
       LOG(`Connected to server '${sock_file}'`);
       const send = pkt => SERVER_LINK.write(pkt.serialize());
-      const onData = data => EP._serverDataIngest(data, client_sock);
+      const onData = data => EP._ingestServerMessage(data, client_sock);
       const client_sock = new NetSocket(SERVER_LINK, { send, onData });
       SERVER_LINK.on('data', onData);
       SERVER_LINK.on('end', () => {
