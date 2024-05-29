@@ -65,7 +65,6 @@ async function BuildApp() {
   const { es_target } = ESBUILD_INFO;
   FILE.EnsureDir(http_docs);
   const entryFile = `${app_src}/${app_entry}`;
-  console.log(`entryFile: ${entryFile}`);
   if (!FILE.FileExists(entryFile)) throw Error(`${fn} missing entry ${entryFile}`);
   const indexFile = `${app_src}/${app_index}`;
   if (!FILE.FileExists(indexFile)) throw Error(`${fn} missing index ${indexFile}`);

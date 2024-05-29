@@ -83,34 +83,48 @@ async function RegisterMessages() {
   });
   const resdata = await EP.clientDeclare();
   if (DBG) LOG(...PR('EP.clientDeclare returned', resdata));
-
+  TestClientMessage();
+  // TestServerReflect();
+  // TestServerService();
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TestClientMessage() {
+  const EP_UADDR = EP.urnet_addr;
   // test client-to-client netcall CLIENT_TEST
   LOG(...PR(`CLIENT_TEST ${EP_UADDR} invocation`));
   EP.netCall('NET:CLIENT_TEST', { uaddr: EP_UADDR }).then(retdata => {
     LOG(...PR(`CLIENT TEST ${EP_UADDR} resolved with `, retdata));
   });
-
-  // test client-to-server netcalls REFLECT and FAKE_SERVICE
-  // calls each one twice over 4 seconds
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TestServerReflect() {
   let count = 0;
   let foo = setInterval(() => {
     if (count > 3) {
       clearInterval(foo);
       return;
     }
-    if (count % 2) {
-      EP.netCall('SRV:REFLECT', { foo: 'bar' }).then(refdata => {
-        if (refdata.foo !== 'bar') LOG(...PR('REFLECT foo failed', refdata));
-        else LOG(...PR(`REFLECT return success`, refdata));
-      });
-    } else {
-      EP.netCall('SRV:FAKE_SERVICE', { hello: 'world' }).then(res => {
-        if (res.memo === undefined) LOG(...PR('FAKE_SERVICE memo failed', res));
-        else LOG(...PR(`FAKE_SERVICE return success`, res));
-      });
-    }
+    EP.netCall('SRV:REFLECT', { foo: 'bar' }).then(refdata => {
+      if (refdata.foo !== 'bar') LOG(...PR('REFLECT foo failed', refdata));
+      else LOG(...PR(`REFLECT return success`, refdata));
+    });
     count++;
-  }, 1000);
+  }, 1500);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function TestServerService() {
+  let count = 0;
+  let foo = setInterval(() => {
+    if (count > 3) {
+      clearInterval(foo);
+      return;
+    }
+    EP.netCall('SRV:FAKE_SERVICE', { hello: 'world' }).then(res => {
+      if (res.memo === undefined) LOG(...PR('FAKE_SERVICE memo failed', res));
+      else LOG(...PR(`FAKE_SERVICE return success`, res));
+    });
+    count++;
+  }, 2000);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Disconnect(seconds = 360) {

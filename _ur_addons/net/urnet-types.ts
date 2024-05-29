@@ -43,6 +43,7 @@ export const VALID_PKT_TYPES = [
   '_reg', // special packet
   '_decl' // special packet
 ] as const;
+export const SKIP_SELF_PKT_TYPES = ['call', 'send'];
 export const VALID_ADDR_PREFIX = ['???', 'UR_', 'WSS', 'UDS', 'MQT', 'SRV'] as const;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export const UADDR_DIGITS = 3; // number of digits in UADDR (padded with 0)
@@ -96,6 +97,11 @@ export interface I_NetMessage {
 /** runtime check of NP_Type */
 export function IsValidType(msg_type: string): boolean {
   return VALID_PKT_TYPES.includes(msg_type as NP_Type);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** some message types should not invoke back to the same pkt origin */
+export function SkipOriginType(msg_type: string): boolean {
+  return SKIP_SELF_PKT_TYPES.includes(msg_type as NP_Type);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** runtime check of protocol-related NP_Type */
