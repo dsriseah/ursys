@@ -9,6 +9,7 @@
 
 import http from 'node:http';
 import fs from 'node:fs';
+import path from 'node:path';
 import express from 'express';
 import serveIndex from 'serve-index';
 import esbuild from 'esbuild';
@@ -125,6 +126,13 @@ function ServeAppIndex(req: express.Request, res: express.Response) {
 /** Parse ursys.dsri.xyz nginx config for locations */
 function m_PromiseProxyLocations(): Promise<Array<any>> {
   const nginxConf = '/etc/nginx/sites-enabled/ursys_dsri_xyz';
+  // local install? then just return root
+  if (!FILE.FileExists(nginxConf)) {
+    const base = path.basename(nginxConf);
+    LOG.info(`HTTP URNET Server nginx config '${base}' not present`);
+    return Promise.resolve(['/']);
+  }
+  // otherwise, parse nginx config
   return new Promise((resolve, reject) => {
     if (m_proxy_locations !== undefined) {
       resolve(m_proxy_locations);
