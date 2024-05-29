@@ -40,7 +40,7 @@ function Connect(): Promise<boolean> {
     SERVER_LINK.addEventListener('open', async () => {
       LOG(...PR('Connected to server'));
       const send = pkt => SERVER_LINK.send(pkt.serialize());
-      const onData = event => EP._serverDataIngest(event.data, client_sock);
+      const onData = event => EP._ingestServerMessage(event.data, client_sock);
       const client_sock = new NetSocket(SERVER_LINK, { send, onData });
       SERVER_LINK.addEventListener('message', onData);
       SERVER_LINK.addEventListener('close', () => {
@@ -113,13 +113,13 @@ async function RegisterMessages() {
   }, 1000);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Disconnect(seconds = 60) {
+function Disconnect(seconds = 360) {
   return new Promise((resolve, reject) => {
     LOG(...PR(`waiting for ${seconds} seconds...`));
     m_Sleep(seconds * 1000, () => {
       resolve(true);
       SERVER_LINK.close();
-      LOG(...PR(`closing client connection...`));
+      LOG(...PR(`closing client connection after ${seconds}s...`));
     });
   });
 }

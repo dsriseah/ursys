@@ -233,7 +233,7 @@ async function Listen() {
   WSS.on('connection', (client_link, request) => {
     const send = pkt => client_link.send(pkt.serialize());
     const onData = data => {
-      const returnPkt = EP._clientDataIngest(data, client_sock);
+      const returnPkt = EP._ingestClientMessage(data, client_sock);
       if (returnPkt) client_link.send(returnPkt.serialize());
     };
     const client_sock = new NetSocket(client_link, { send, onData });

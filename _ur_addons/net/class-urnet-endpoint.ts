@@ -146,7 +146,9 @@ class NetEndpoint {
 
   /** client connection management  - - - - - - - - - - - - - - - - - - - - **/
 
-  /** return true if this endpoint is managing connections */
+  /** initialize this endpoint's client server, providing a hardcoded
+   *  server UADDR that is distinct from those used by client pools
+   */
   configAsServer(srv_addr: NP_Address) {
     const fn = 'configAsServer:';
     if (!IsValidAddress(srv_addr)) throw Error(`${fn} invalid srv_addr ${srv_addr}`);
@@ -204,9 +206,9 @@ class NetEndpoint {
   /** endpoint client management  - - - - - - - - - - - - - - - - - - - - - **/
 
   /** Server data event handler for incoming data from a client connection.
-   *  This is the mirror to _serverDataIngest() function used by client endpoints.
+   *  This is the mirror to _ingestServerMessage() function used by client endpoints.
    * This is the entry point for incoming data from clients */
-  _clientDataIngest(jsonData, socket: I_NetSocket): NetPacket {
+  _ingestClientMessage(jsonData, socket: I_NetSocket): NetPacket {
     let pkt = this.newPacket().deserialize(jsonData);
     let retPkt: NetPacket;
 
@@ -224,10 +226,11 @@ class NetEndpoint {
 
     // 4. normal: handle packets with authentication token
     if (pkt.auth) {
-      LOG('.. would check authentication token');
+      // if (!this.pktAuthenticate()) this.rejectAuth()
       this.pktReceive(pkt);
       return;
     }
+
     // 4. reject packets without authentication token
     pkt.setDir('res');
     pkt.addHop(this.urnet_addr);
@@ -380,10 +383,10 @@ class NetEndpoint {
   /** client connection handshaking - - - - - - - - - - - - - - - - - - - - **/
 
   /** Client data event handler for incoming data from the gateway.
-   *  This is the mirror to _clientDataIngest() function that is used by servers.
+   *  This is the mirror to _ingestClientMessage() function that is used by servers.
    *  This is entry point for incoming data from server */
-  _serverDataIngest(jsonData: any, socket: I_NetSocket): void {
-    const fn = '_serverDataIngest:';
+  _ingestServerMessage(jsonData: any, socket: I_NetSocket): void {
+    const fn = '_ingestServerMessage:';
     const pkt = this.newPacket().deserialize(jsonData);
     // 1. is this connection handshaking for clients?
     if (this.cli_gateway) {
@@ -406,7 +409,7 @@ class NetEndpoint {
     if (auth) {
       const pkt = this.newAuthPacket(auth);
       const { msg } = pkt;
-      // this will be intercepted by _serverDataIngest and not go through
+      // this will be intercepted by _ingestServerMessage and not go through
       // the normal netcall interface. It leverages the transaction code
       const requestAuth = new Promise((resolve, reject) => {
         const hash = GetPacketHashString(pkt);
@@ -931,12 +934,18 @@ class NetEndpoint {
         this.pktSendResponse(pkt);
         return;
       }
-      // if it's a signal, this is not an rsvp, but log it
+      // if it's a signal, this is not an rsvp, but log it for
+      // internal debug purposes (doesn't affect function)
       if (pkt.msg_type === 'signal') {
         if (DBG) LOG(_PKT(this, fn, '-recv-sig-', pkt), pkt.data);
         LOG('would handle signal', pkt.msg);
       }
-      //
+      // check to see if there are any handlers defined in this
+      // endpoint to process stuff. It first checks for client-side
+      // message handlers, and then if there are none it checks for
+      // server-defined handlers.
+      // the behavior is different on servers (which also implement
+      // a client) versus pure clients.
       const { msg } = pkt;
       let retData;
       if (this.msg_handlers.has(msg)) {
@@ -948,14 +957,24 @@ class NetEndpoint {
         retData = { error: `unknown message '${msg}'` };
       }
 
+      // if none of the above fired, then there were no handlers
+      // on this instance of endpoint, so we have to send it
+      // elsewhere. First,
       if (!pkt.isRsvp()) return;
 
-      // if we got this far, then we have data to return
+      // remember at this point, we're still handling a
+      // request packet. We already handled response
+      // packets at the very top,
+
+      // if this request isn't a call, then there
+      // is no data to return. This is the case for
+      // for signal, send, ping.
       if (pkt.msg_type !== 'call') pkt.data = true;
       else {
         retData = NormalizeData(retData);
         pkt.setData(retData);
       }
+      // now send the response, eventually
       this.pktSendResponse(pkt);
     } catch (err) {
       // format the error message to be nicer to read
@@ -1131,7 +1150,6 @@ class NetEndpoint {
     const msg_list = this.getAddressesForMessage(msg);
     const clients = [];
     msg_list.forEach(uaddr => {
-      LOG('uaddr', uaddr);
       if (uaddr === this.urnet_addr) return; // skip self
       const socket = this.getClient(uaddr);
       if (socket) clients.push(socket);
