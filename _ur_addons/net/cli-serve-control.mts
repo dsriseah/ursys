@@ -18,8 +18,6 @@ const LOG = PR('Process', 'TagCyan');
 const DBG_PROC = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let DETACH_SERVERS = false; // disables child process detaching for debugging
 
 /// UTILITY METHODS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -61,7 +59,8 @@ async function SpawnServer(scriptName: string, id: string) {
       LOG.error(`!! server '${identifier}' already running (pid ${found.key})`);
     return;
   }
-  // everything looks good, so spawn the process
+  // everything looks good, so spawn the process detached
+  // net stop will search for detached processes to kill them
   const options: SpawnOptions = {
     detached: true,
     stdio: DBG ? 'inherit' : 'ignore'
@@ -75,7 +74,6 @@ async function SpawnServer(scriptName: string, id: string) {
 
   const pid = proc.pid.toString();
   await KV.SaveKey(pid, `${identifier}`);
-  if (DETACH_SERVERS) proc.unref();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** spawn all communication servers */
@@ -86,12 +84,10 @@ async function StartServers() {
     LOG.error(`!! server list is not empty...did you crash? use 'ur net stop'`);
     return;
   }
-  if (m_args.find(a => a === '--detach')) DETACH_SERVERS = true;
-  if (DETACH_SERVERS)
-    LOG.warn(`note: servers will be detached; use 'net hosts --kill' to terminate`);
-  else {
-    LOG.warn(`note: 'net start' will not exit automatically; use ctrl-c to exit`);
-  }
+  LOG.warn(`note: To run in background, use 'nohup ur net start &'`);
+  LOG.warn(`      Use 'ur net stop' to terminate servers from any console`);
+  LOG.warn(`      Use 'tail -f nohup.out' to monitor server output/errors`);
+
   // main protocol host
   if (UseServer('uds')) await SpawnServer('./serve-uds.mts', 'uds');
   if (UseServer('wss')) await SpawnServer('./serve-wss.mts', 'wss');

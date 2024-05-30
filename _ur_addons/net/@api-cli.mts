@@ -2,6 +2,7 @@
 
   URSYS NET CLI
   invoked by the _ur/ur command line module loader
+  specific to the net addon
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -26,6 +27,10 @@ const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);
 const m_kvfile = PATH.join(process.cwd(), 'pid_keyv_nocommit.json');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let IS_MAIN = true; // set when no other @api-cli is running
+const m_allowed_flags = [
+  ['--detached', 'start'],
+  ['--kill', 'hosts'] // used by
+];
 
 /// HELPER FUNCTIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,6 +47,14 @@ function m_Sleep(ms, resolve?): Promise<void> {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** keep track of main api script running status in the process list */
 async function InitializeCLI() {
+  // check flags
+  const m_flags = m_args.filter(arg => arg.startsWith('-'));
+  const m_allowed = m_allowed_flags.map(flopb => flopb[0]);
+  if (m_flags.some(f => !m_allowed.includes(f))) {
+    LOG.error(`invalid flags in ${m_flags.join(', ')}`);
+    LOG(`allowed flags are ${m_allowed_flags.join(', ')}`);
+    return;
+  }
   // initialize the key-value store
   await KV.InitKeyStore(m_kvfile);
   if (await KV.HasValue(m_script)) {
@@ -52,7 +65,7 @@ async function InitializeCLI() {
   IS_MAIN = true;
   if (DBG_CLI) LOG.info(`CLI: ${m_script} setting process signal handlers`);
 
-  // set up signaltermination
+  // set up signal intercepts
   process.on('SIGTERM', () => {
     console.log('\n');
     LOG(`SIGTERM received`);
@@ -79,6 +92,10 @@ async function InitializeCLI() {
       }
     })();
   });
+  // this might not be necessary; check nohup.out log for this message when
+  // invoking ur with nohup net cmd &
+  process.on('SIGHUP', () => LOG(`ignoring SIGHUP received by @api-cli.mts`));
+
   // save m_script without the -identifier suffix
   // the suffix is used by SpawnServer to create a unique identifier
   const pid = process.pid.toString();

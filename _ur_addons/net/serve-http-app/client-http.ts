@@ -7,7 +7,7 @@
 import { ConsoleStyler } from '@ursys/core';
 import { NetEndpoint } from '../../net/class-urnet-endpoint.ts';
 import { NetSocket } from '../../net/class-urnet-socket.ts';
-import { HTTP_CLIENT_INFO } from '../../net/urnet-constants-webclient.ts';
+import { GetClientInfoFromWindowLocation } from '../../net/urnet-constants-webclient.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ function m_Sleep(ms, resolve?): Promise<void> {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** create a client connection to the HTTP/WS server */
 function Connect(): Promise<boolean> {
-  const { wss_url } = HTTP_CLIENT_INFO;
+  const { wss_url } = GetClientInfoFromWindowLocation(window.location);
   const promiseConnect = new Promise<boolean>(resolve => {
     LOG(...PR(`websocket connect to ${wss_url}`));
     SERVER_LINK = new WebSocket(wss_url);

@@ -24,6 +24,13 @@ const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const ARGS = process.argv.slice(2);
 
+/// SIGNAL HANDLING ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// this should allow 'nohup net start &' to work correctly
+process.on('SIGHUP', () => {
+  LOG(`ignoring SIGHUP received by @load-addon.mts`);
+});
+
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function ForkAddon(addonSelector: string) {
