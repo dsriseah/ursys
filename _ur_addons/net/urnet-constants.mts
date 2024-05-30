@@ -6,7 +6,7 @@
 
 import { FILE } from '@ursys/core';
 import CLIENT_CONSTANTS from './urnet-constants-webclient.ts';
-const { HTTP_CLIENT_INFO } = CLIENT_CONSTANTS;
+const { HTTP_CLIENT_INFO, GetClientInfoFromWindowLocation } = CLIENT_CONSTANTS;
 
 /// TYPES & INTERFACES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
