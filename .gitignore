@@ -28,6 +28,7 @@ _public
 .package-lock.json
 
 # And don't commit personal log files or temp
+nohup.out
 *_log.md
 *.log
 tmp-*

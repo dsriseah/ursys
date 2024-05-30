@@ -19,7 +19,7 @@ const DBG_PROC = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let DETACH_SERVERS = false; // disables child process detaching for debugging
+let ALLOW_DETACH = false; // disables child process detaching for debugging
 
 /// UTILITY METHODS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -61,7 +61,8 @@ async function SpawnServer(scriptName: string, id: string) {
       LOG.error(`!! server '${identifier}' already running (pid ${found.key})`);
     return;
   }
-  // everything looks good, so spawn the process
+  // everything looks good, so spawn the process detached
+  // net stop will search for detached processes to kill them
   const options: SpawnOptions = {
     detached: true,
     stdio: DBG ? 'inherit' : 'ignore'
@@ -75,7 +76,7 @@ async function SpawnServer(scriptName: string, id: string) {
 
   const pid = proc.pid.toString();
   await KV.SaveKey(pid, `${identifier}`);
-  if (DETACH_SERVERS) proc.unref();
+  if (ALLOW_DETACH) proc.unref();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** spawn all communication servers */
@@ -86,10 +87,10 @@ async function StartServers() {
     LOG.error(`!! server list is not empty...did you crash? use 'ur net stop'`);
     return;
   }
-  if (m_args.find(a => a === '--detach')) DETACH_SERVERS = true;
-  if (DETACH_SERVERS)
+  if (m_args.find(a => a === '--detached')) {
+    ALLOW_DETACH = true;
     LOG.warn(`note: servers will be detached; use 'net hosts --kill' to terminate`);
-  else {
+  } else {
     LOG.warn(`note: 'net start' will not exit automatically; use ctrl-c to exit`);
   }
   // main protocol host

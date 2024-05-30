@@ -46,6 +46,10 @@ process.on('SIGINT', () => {
     await Stop();
   })();
 });
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// this might not be necessary; check nohup.out log for this message when
+/// invoking ur with nohup net cmd &
+process.on('SIGHUP', () => LOG(`SIGHUP serve-http ignored`));
 
 /// DATA INIT /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
