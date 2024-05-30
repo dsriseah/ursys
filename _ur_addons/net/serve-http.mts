@@ -49,7 +49,7 @@ process.on('SIGINT', () => {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// this might not be necessary; check nohup.out log for this message when
 /// invoking ur with nohup net cmd &
-process.on('SIGHUP', () => LOG(`SIGHUP serve-http ignored`));
+process.on('SIGHUP', () => LOG(`ignoring SIGHUP received by serve-http.mts`));
 
 /// DATA INIT /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

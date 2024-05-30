@@ -94,7 +94,7 @@ async function InitializeCLI() {
   });
   // this might not be necessary; check nohup.out log for this message when
   // invoking ur with nohup net cmd &
-  process.on('SIGHUP', () => LOG(`SIGHUP @api-cli ignored`));
+  process.on('SIGHUP', () => LOG(`ignoring SIGHUP received by @api-cli.mts`));
 
   // save m_script without the -identifier suffix
   // the suffix is used by SpawnServer to create a unique identifier
