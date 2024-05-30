@@ -39,10 +39,10 @@ function GetClientInfoFromWindowLocation(winLocation: Location) {
   const { http_port, wss_path } = HTTP_CLIENT_INFO;
   const tls = protocol === 'https:';
   const hostpath = host + pathname;
-  const http_url = tls ? `https://${hostpath}` : `http://${hostpath}:${http_port}`;
+  const http_url = tls ? `https://${hostpath}` : `http://${hostpath}`;
   const wss_url = tls
     ? `wss://${hostpath}/${wss_path}`
-    : `ws://${hostpath}:${http_port}/${wss_path}`;
+    : `ws://${hostpath}${wss_path}`;
   let new_info = {
     ...HTTP_CLIENT_INFO,
     http_host: hostpath,
