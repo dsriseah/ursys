@@ -120,7 +120,7 @@ function m_MakeColorPromptFunction(prompt, colorName, opt = {}) {
         let RST = TERM_COLORS.Reset;
         let PR = padString(prompt);
         if (dim) TEXT += TERM_COLORS.Dim;
-        console.log(`${RST}${TAG}${PR}${RST}${TEXT}    ${str}`, ...args);
+        console.log(`${RST}${TAG}${PR}${RST}${TEXT}    ${str}`, ...args, RST);
       }
     : (str, ...args) => {
         if (args === undefined) args = '';
