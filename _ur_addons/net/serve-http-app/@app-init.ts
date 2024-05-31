@@ -19,6 +19,7 @@ const DBG = false;
   LOG(...PR('Initializing Test of Client HTTP Websocket Connection'));
   await CLIENT.Connect();
   await CLIENT.RegisterMessages();
+  await CLIENT.Test();
   await CLIENT.Disconnect();
   LOG(...PR('Test Complete'));
 })();

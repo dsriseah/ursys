@@ -48,7 +48,7 @@ import {
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const PR = typeof process !== 'undefined' ? 'EndPoint'.padEnd(13) : 'EndPoint:';
+const PR = typeof process !== 'undefined' ? 'EndPoint.ts'.padEnd(13) : 'EndPoint:';
 const LOG = (...args) => DBG && console.log(PR, ...args);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let AGE_INTERVAL = 1000; // milliseconds
@@ -217,32 +217,45 @@ class NetEndpoint {
     retPkt = this.handleClientAuth(pkt, socket);
     if (retPkt) return retPkt;
 
-    // 2. protocol: registration packet (once)
+    // 2. deny other packets until authentication was handled
+    if (pkt.auth === undefined) return this.handleClientAuthRejection(pkt, socket);
+    if (!this.pktIsAuthenticated(pkt, socket))
+      return this.handleClientAuthRejection(pkt, socket);
+
+    // 3. protocol: registration packet (anytime)
     retPkt = this.handleClientReg(pkt, socket);
     if (retPkt) return retPkt;
 
-    // 3. protocol: is definition packet (anytime)
+    // 4. protocol: is definition packet (anytime)
     retPkt = this.handleClientDeclare(pkt, socket);
     if (retPkt) return retPkt;
 
-    // 4. normal: handle packets with authentication token
-    if (pkt.auth) {
-      // if (!this.pktAuthenticate()) this.rejectAuth()
-      this.pktReceive(pkt);
-      return;
-    }
+    // 5. otherwise, handle the packet normally through the message interface
+    this.pktReceive(pkt);
+  }
 
-    // 4. reject packets without authentication token
+  /** check the auth field in the packet */
+  pktIsAuthenticated(pkt: NetPacket, socket: I_NetSocket): boolean {
+    const fn = 'pktAuthenticate:';
+    const { msg, src_addr, hop_dir, hop_seq } = pkt;
+    const seq = [...hop_seq].reverse().join('->');
+    if (hop_dir === 'res') LOG(`${this.urnet_addr} .. skip return ${seq} '${msg}'`);
+    else LOG(`${this.urnet_addr} would auth ${src_addr} '${msg}'`);
+    return true;
+  }
+
+  /** send a rejection packet to the client */
+  handleClientAuthRejection(pkt: NetPacket, socket: I_NetSocket): NetPacket {
+    const fn = 'rejectAuth:';
+    LOG(this.urnet_addr, 'would send reject packet');
+    pkt.data = { error: `${pkt.msg} has invalid authorization` };
     pkt.setDir('res');
     pkt.addHop(this.urnet_addr);
-    pkt.data = { error: 'unauthorized packet rejected' };
     return pkt;
   }
 
-  /** handle auth packet */
+  /** handle auth packet if the session.auth is not defined */
   handleClientAuth(pkt: NetPacket, socket: I_NetSocket): NetPacket {
-    // only handle auth once to enforce one socket per login session
-    // for purposes of data consistency?
     if (socket.auth === undefined) {
       pkt.setDir('res');
       pkt.addHop(this.urnet_addr);
@@ -252,14 +265,15 @@ class NetEndpoint {
           return pkt;
         }
       }
-      // got this far
-      const { identity } = pkt.data;
+      /** placeholder authentication check **/
+      const { identity, secret } = pkt.data;
       if (identity) {
         socket.auth = identity;
-        pkt.data = { uaddr: socket.uaddr, cli_auth: 'AnAuthToken' };
+        pkt.data = { uaddr: socket.uaddr, cli_auth: 'ServerProvidedAuthToken' };
       } else {
         pkt.data = { error: 'invalid identity' };
       }
+      /** end placeholder **/
       return pkt;
     }
     return undefined;
@@ -297,6 +311,7 @@ class NetEndpoint {
       pkt.setDir('res');
       pkt.addHop(this.urnet_addr);
       if (pkt.msg !== 'SRV:DEF') {
+        console.log('invalid def packet', pkt.msg);
         pkt.data = { error: `invalid def packet ${pkt.msg}` };
         return pkt;
       }
@@ -423,9 +438,13 @@ class NetEndpoint {
           reject(err);
         }
       });
-      /** suspend through transaction **/
+      /** MAGIC **/
+      /** await promise, which resolves when server responds to the auth packet */
       let authData: NP_Data = await requestAuth;
       /** resumes when handleAuthResponse() resolves the transaction **/
+      /** END MAGIC **/
+
+      // handle authdata
       const { uaddr, cli_auth, error } = authData;
       if (error) {
         LOG(`${fn} error:`, error);
@@ -458,8 +477,8 @@ class NetEndpoint {
     const fn = 'handleAuthResponse:';
     if (pkt.msg_type !== '_auth') return false;
     if (pkt.hop_dir !== 'res') return false;
-    // resuming from connectAsClient() await requestAuth
     this.pktResolveRequest(pkt);
+    // auth resumes in connectAsClient() magical await requestAuth
     return true;
   }
 
@@ -481,9 +500,13 @@ class NetEndpoint {
         reject(err);
       }
     });
+
+    /** MAGIC **/
     /** suspend through transaction **/
     let regData: NP_Data = await requestReg;
     /** resumes when handleAuthResponse() resolves the transaction **/
+    /** END MAGIC **/
+
     const { ok, status, error } = regData;
     if (error) {
       LOG(`${fn} error:`, error);
@@ -518,7 +541,9 @@ class NetEndpoint {
 
   /** declare client messages */
   async clientDeclare() {
+    const fn = 'clientDeclare:';
     const msg_list = this.listNetMessages();
+    LOG(this.urnet_addr, 'declaring', msg_list);
     return await this.clientDeclareServices({ msg_list });
   }
 
@@ -909,9 +934,10 @@ class NetEndpoint {
 
   /** packet interface  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
 
-  /** Receive a single packet from the wire, and determine
-   *  what to do with it. The packet has several possible
-   *  processing options!
+  /** Receive a single packet from the wire, and determine what to do with it.
+   *  It's assumed that _ingestClientMessage() has already handled
+   *  authentication for clients before this method is received.
+   *  The packet has several possible processing options!
    *  - packet is response to an outgoing transaction
    *  - packet is a message that we handle
    *  - packet is a message that we forward

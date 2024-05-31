@@ -11,7 +11,9 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import express from 'express';
+import { watch } from 'chokidar';
 import serveIndex from 'serve-index';
+import chokidar from 'chokidar';
 import esbuild from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
 import { WebSocketServer } from 'ws';
@@ -21,9 +23,13 @@ import CLASS_NS from './class-urnet-socket.ts';
 const { NetEndpoint } = CLASS_EP;
 const { NetSocket } = CLASS_NS;
 
-import { HTTP_INFO, ESBUILD_INFO } from './urnet-constants.mts';
+/// TYPE DECLARATIONS /////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import { BuildOptions } from 'esbuild';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import { HTTP_INFO, ESBUILD_INFO } from './urnet-constants.mts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = PR('HTTP', 'TagBlue');
 const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);
@@ -75,7 +81,7 @@ async function BuildApp() {
   if (!FILE.FileExists(indexFile)) throw Error(`${fn} missing index ${indexFile}`);
   // esbuild build options
   LOG.info(`HTTP Building Site'${app_entry}' from '${app_index}'`);
-  const browserBuild: esbuild.BuildOptions = {
+  const contextBuild: BuildOptions = {
     entryPoints: [entryFile], // js file to start bundling
     target: [es_target], // js version to target
     platform: 'browser', // environment to run in
@@ -101,18 +107,20 @@ async function BuildApp() {
             from: [`${app_src}/${app_index}`],
             to: [`${http_docs}`]
           }
-        ],
-        watch: true
+        ]
       })
     ]
   };
+
   // build for browser
-  await esbuild.build({
-    ...browserBuild,
+  // https://github.com/evanw/esbuild/releases/tag/v0.17.0 for notes
+  const context = await esbuild.context({
+    ...contextBuild,
     outfile: `${http_docs}/${app_bundle}`,
     format: 'esm'
   });
-  //
+  // context doesn't build, so we call rebuild()
+  await context.rebuild();
   // console.log(`${LOG.DIM}info: built ${app_entry} ${LOG.RST}`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -224,7 +232,6 @@ async function Listen() {
   // apply static files middleware
   APP.use(express.static(http_docs));
 
-  //
   /** START HTTP SERVER **/
   const proxy_url = await m_PromiseProxyURL(http_port);
 
@@ -270,6 +277,27 @@ async function Listen() {
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Watch for changes with chokidar, rebuilding app with esbuild when a change
+ *  to any source file is detected
+ */
+async function Watch() {
+  const { app_src } = HTTP_INFO;
+  const src_dir_glob = `${app_src}/**`;
+  // Initialize watcher.
+  const watcher = chokidar.watch([src_dir_glob], {
+    persistent: true
+  });
+  watcher.on('change', async changed => {
+    LOG(`watcher: path changed ${path.basename(changed)}`);
+    await BuildApp();
+    LOG('.. hot reload');
+    EP.netSignal('NET:HOT_RELOAD_APP', { memo: 'hot reload' });
+  });
+  LOG.info(`HTTP URNET Server watching ${path.basename(app_src)}/**`);
+  return Promise.resolve();
+}
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Placeholder to register test messages services for this  server for use
  *  by the demo client app
  */
@@ -287,9 +315,11 @@ function X_RegisterServices() {
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Start() {
-  await BuildApp();
-  X_RegisterServices();
-  Listen();
+  // first time build
+  await BuildApp(); // this completes
+  X_RegisterServices(); // build services
+  await Listen(); // start app and web server
+  await Watch(); // start watcher
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Stop() {

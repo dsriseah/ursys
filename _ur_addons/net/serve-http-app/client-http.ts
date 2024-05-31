@@ -48,7 +48,6 @@ function Connect(): Promise<boolean> {
         LOG(...PR('server closed connection'));
         EP.disconnectAsClient();
       });
-      // disconnect client on browser reload or close
       // needed on chrome, which doesn't appear to send a websocket closeframe
       window.addEventListener('beforeunload', () => {
         EP.disconnectAsClient();
@@ -82,14 +81,45 @@ function Connect(): Promise<boolean> {
  */
 async function RegisterMessages() {
   const EP_UADDR = EP.urnet_addr;
+  //
+  EP.registerMessage('NET:CLIENT_TEST_CHAT', data => {
+    const { message, uaddr } = data;
+    const chatWindow = document.getElementById('chat-history');
+    const chatMessage = document.createElement('div');
+    chatMessage.innerText = `${uaddr}: ${message}`;
+    chatWindow.appendChild(chatMessage);
+  });
+  //
+  EP.registerMessage('NET:HOT_RELOAD_APP', data => {
+    LOG(...PR(`HOT_RELOAD_APP`));
+    window.location.reload();
+  });
+  //
   EP.registerMessage('NET:CLIENT_TEST', data => {
     LOG(...PR(`CLIENT_TEST ${EP_UADDR} received`, data));
     const { uaddr } = data;
     return { status: `CLIENT_TEST ${EP_UADDR} responding to ${uaddr}` };
   });
+  //
   const resdata = await EP.clientDeclare();
   if (DBG) LOG(...PR('EP.clientDeclare returned', resdata));
-  TestClientMessage();
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function Disconnect(seconds = 360) {
+  return new Promise((resolve, reject) => {
+    LOG(...PR(`waiting for ${seconds} seconds...`));
+    m_Sleep(seconds * 1000, () => {
+      resolve(true);
+      SERVER_LINK.close();
+      LOG(...PR(`closing client connection after ${seconds}s...`));
+    });
+  });
+}
+
+/// TEST METHODS //////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function Test() {
+  // TestClientMessage();
   // TestServerReflect();
   // TestServerService();
 }
@@ -132,17 +162,6 @@ function TestServerService() {
     count++;
   }, 2000);
 }
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Disconnect(seconds = 360) {
-  return new Promise((resolve, reject) => {
-    LOG(...PR(`waiting for ${seconds} seconds...`));
-    m_Sleep(seconds * 1000, () => {
-      resolve(true);
-      SERVER_LINK.close();
-      LOG(...PR(`closing client connection after ${seconds}s...`));
-    });
-  });
-}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -152,5 +171,6 @@ export default {
 export {
   Connect, // await Connect() to start URNET client
   RegisterMessages, // await RegisterMessages() to declare client messages
-  Disconnect // await Disconnect() to close client connection
+  Disconnect, // await Disconnect() to close client connection
+  Test // await Test() to run client tests
 };
