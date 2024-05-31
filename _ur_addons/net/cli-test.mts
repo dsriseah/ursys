@@ -150,7 +150,8 @@ async function RunPacketTests() {
   async function PT_AddClient(name, host: T_Endpoint, gateway: I_NetSocket) {
     const client: T_Endpoint = new NetEndpoint();
     const sock = {
-      send: (pkt: T_Packet) => client.pktReceive(pkt)
+      send: (pkt: T_Packet) => client.pktReceive(pkt),
+      close: () => LOG('client gateway closed')
     };
     const addr = host.addClient(sock);
     const auth = {
@@ -172,7 +173,8 @@ async function RunPacketTests() {
     // create endpoint handler for server
     const host = PT_AddServer('server');
     const client_gateway = {
-      send: (pkt: T_Packet) => host.pktReceive(pkt)
+      send: (pkt: T_Packet) => host.pktReceive(pkt),
+      close: () => LOG('client gateway closed')
     };
 
     const alice = await PT_AddClient('alice', host, client_gateway);

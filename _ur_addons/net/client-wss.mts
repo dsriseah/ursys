@@ -47,7 +47,8 @@ function Connect(): Promise<boolean> {
       LOG(`Connected to server '${wss_url}'`);
       const send = pkt => SERVER_LINK.send(pkt.serialize()); // client send
       const onData = data => EP._ingestServerMessage(data, client_sock); // client receive
-      const client_sock = new NetSocket(SERVER_LINK, { send, onData });
+      const close = () => SERVER_LINK.close(); // client close
+      const client_sock = new NetSocket(SERVER_LINK, { send, onData, close });
       SERVER_LINK.on('message', onData);
       SERVER_LINK.on('close', (code, reason) => {
         LOG('server closed connection');
