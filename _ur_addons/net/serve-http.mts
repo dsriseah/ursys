@@ -245,9 +245,7 @@ async function Listen() {
     path: `/${wss_path}`, // requires leading slash
     clientTracking: true
   });
-  LOG.info(
-    `HTTP WebSocketServer started on ws://${http_host}:${http_port}/${wss_path}`
-  );
+  LOG.info(`HTTP URNET WSS started on ws://${http_host}:${http_port}/${wss_path}`);
   WSS.on('connection', (client_link, request) => {
     const send = pkt => client_link.send(pkt.serialize());
     const onData = data => {
