@@ -180,7 +180,7 @@ class NetPacket implements I_NetMessage {
     return this.auth !== undefined;
   }
 
-  /** types that begin with _ are protocol messages that bypass routeMessage() */
+  /** types that begin with _ are protocol messages that bypass routePacket() */
   isSpecialPkt() {
     return this.msg_type.startsWith('_');
   }

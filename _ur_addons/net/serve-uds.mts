@@ -60,7 +60,7 @@ function UDS_Listen() {
     // socket housekeeping
     const send = pkt => client_link.write(pkt.serialize());
     const onData = data => {
-      const returnPkt = EP._ingestClientMessage(data, socket);
+      const returnPkt = EP._ingestClientPacket(data, socket);
       if (returnPkt) client_link.write(returnPkt.serialize());
     };
     const close = () => client_link.end();

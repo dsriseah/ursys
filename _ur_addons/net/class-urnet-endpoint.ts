@@ -208,9 +208,9 @@ class NetEndpoint {
   /** endpoint client management  - - - - - - - - - - - - - - - - - - - - - **/
 
   /** Server data event handler for incoming data from a client connection.
-   *  This is the mirror to _ingestServerMessage() function used by client endpoints.
+   *  This is the mirror to _ingestServerPacket() function used by client endpoints.
    * This is the entry point for incoming data from clients */
-  _ingestClientMessage(jsonData, socket: I_NetSocket): NetPacket {
+  _ingestClientPacket(jsonData, socket: I_NetSocket): NetPacket {
     let pkt = this.newPacket().deserialize(jsonData);
     let retPkt: NetPacket;
 
@@ -234,7 +234,7 @@ class NetEndpoint {
     if (retPkt) return retPkt;
 
     // 5. otherwise, handle the packet normally through the message interface
-    this.routeMessage(pkt);
+    this.routePacket(pkt);
   }
 
   /** check the auth field in the packet */
@@ -402,10 +402,10 @@ class NetEndpoint {
   /** client connection handshaking - - - - - - - - - - - - - - - - - - - - **/
 
   /** Client data event handler for incoming data from the gateway.
-   *  This is the mirror to _ingestClientMessage() function that is used by servers.
+   *  This is the mirror to _ingestClientPacket() function that is used by servers.
    *  This is entry point for incoming data from server */
-  _ingestServerMessage(jsonData: any, socket: I_NetSocket): void {
-    const fn = '_ingestServerMessage:';
+  _ingestServerPacket(jsonData: any, socket: I_NetSocket): void {
+    const fn = '_ingestServerPacket:';
     const pkt = this.newPacket().deserialize(jsonData);
     // 1. is this connection handshaking for clients?
     if (this.cli_gateway) {
@@ -416,7 +416,7 @@ class NetEndpoint {
       if (this.handleRegResponse(pkt)) return;
     }
     // 2. otherwise handle the message interface normally
-    this.routeMessage(pkt);
+    this.routePacket(pkt);
   }
 
   /** client endpoints need to have an "address" assigned to them, otherwise
@@ -429,7 +429,7 @@ class NetEndpoint {
     if (auth) {
       const pkt = this.newAuthPacket(auth);
       const { msg } = pkt;
-      // this will be intercepted by _ingestServerMessage and not go through
+      // this will be intercepted by _ingestServerPacket and not go through
       // the normal netcall interface. It leverages the transaction code
       const requestAuth = new Promise((resolve, reject) => {
         const hash = GetPacketHashString(pkt);
@@ -476,7 +476,7 @@ class NetEndpoint {
   }
 
   /** handle authentication response packet directly rather than through
-   *  the netcall interface in routeMessage() */
+   *  the netcall interface in routePacket() */
   handleAuthResponse(pkt: NetPacket): boolean {
     const fn = 'handleAuthResponse:';
     if (pkt.msg_type !== '_auth') return false;
@@ -532,7 +532,7 @@ class NetEndpoint {
   }
 
   /** handle registration response packet directly rather than through
-   *  the netcall interface in routeMessage() */
+   *  the netcall interface in routePacket() */
   handleRegResponse(pkt: NetPacket): boolean {
     const fn = 'handleRegResponse:';
     if (pkt.msg_type !== '_reg') return false;
@@ -947,7 +947,7 @@ class NetEndpoint {
   /** packet interface  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
 
   /** Receive a single packet from the wire, and determine what to do with it.
-   *  It's assumed that _ingestClientMessage() has already handled
+   *  It's assumed that _ingestClientPacket() has already handled
    *  authentication for clients before this method is received.
    *  The packet has several possible processing options!
    *  - packet is response to an outgoing transaction
@@ -957,9 +957,9 @@ class NetEndpoint {
    *  If the packet has the rsvp flag set, we need to return
    *  it to the source address in the packet with any data
    */
-  async routeMessage(pkt: NetPacket): Promise<void> {
+  async routePacket(pkt: NetPacket): Promise<void> {
     try {
-      const fn = 'routeMessage:';
+      const fn = 'routePacket:';
       // is this a response to a transaction?
       if (pkt.isResponse()) {
         if (pkt.src_addr === this.uaddr) this.pktResolveRequest(pkt);
@@ -1086,7 +1086,7 @@ class NetEndpoint {
   }
 
   /** Resolve a transaction when a packet is returned to it through
-   *  routeMessage(pkt) which determines that it is a returning transaction
+   *  routePacket(pkt) which determines that it is a returning transaction
    */
   pktResolveRequest(pkt: NetPacket) {
     const fn = 'pktResolveRequest:';
@@ -1168,7 +1168,7 @@ class NetEndpoint {
 
   /** Start a transaction, which returns promises to await. This method
    *  is a queue that uses Promises to wait for the return, which is
-   *  triggered by a returning packet in routeMessage(pkt).
+   *  triggered by a returning packet in routePacket(pkt).
    */
   async pktAwaitRequest(pkt: NetPacket) {
     const fn = 'pktAwaitRequest:';

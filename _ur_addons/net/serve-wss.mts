@@ -62,7 +62,7 @@ function WSS_Listen() {
       const send = pkt => client_link.send(pkt.serialize());
       const close = () => client_link.close();
       const onData = data => {
-        const returnPkt = EP._ingestClientMessage(data, client_sock);
+        const returnPkt = EP._ingestClientPacket(data, client_sock);
         if (returnPkt) client_link.send(returnPkt.serialize());
       };
       const client_sock = new NetSocket(client_link, { send, onData, close });

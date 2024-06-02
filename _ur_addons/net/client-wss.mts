@@ -46,7 +46,7 @@ function Connect(): Promise<boolean> {
       // 1. wire-up SERVER_LINK to the endpoint via our netsocket wrapper
       LOG(`Connected to server '${wss_url}'`);
       const send = pkt => SERVER_LINK.send(pkt.serialize()); // client send
-      const onData = data => EP._ingestServerMessage(data, client_sock); // client receive
+      const onData = data => EP._ingestServerPacket(data, client_sock); // client receive
       const close = () => SERVER_LINK.close(); // client close
       const client_sock = new NetSocket(SERVER_LINK, { send, onData, close });
       SERVER_LINK.on('message', onData);

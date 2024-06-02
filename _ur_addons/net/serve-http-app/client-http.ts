@@ -40,7 +40,7 @@ function Connect(): Promise<boolean> {
     SERVER_LINK.addEventListener('open', async () => {
       LOG(...PR('Connected to server'));
       const send = pkt => SERVER_LINK.send(pkt.serialize());
-      const onData = event => EP._ingestServerMessage(event.data, client_sock);
+      const onData = event => EP._ingestServerPacket(event.data, client_sock);
       const close = () => SERVER_LINK.close();
       const client_sock = new NetSocket(SERVER_LINK, { send, onData, close });
       SERVER_LINK.addEventListener('message', onData);
