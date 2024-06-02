@@ -16,6 +16,7 @@ const LOG = console.log.bind(console);
 const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const EP = new NetEndpoint();
+const EP_UADDR = EP.uaddr;
 let SERVER_LINK: WebSocket;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const InputLabel: HTMLInputElement = document.querySelector('#chat-input label');
@@ -80,45 +81,48 @@ function Connect(): Promise<boolean> {
   return promiseConnect;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** define message handlers and register after authentation to be added to
+/** delare message handlers and register after authentation to be added to
  *  URNET message network
  */
 async function RegisterMessages() {
-  const EP_UADDR = EP.uaddr;
-  //
+  // add message handler for incoming chat messages
   EP.addMessageHandler('NET:CLIENT_TEST_CHAT', data => {
     const { message, uaddr } = data;
     ChatText.value += `${uaddr}: ${message}\n`;
   });
-  //
-  EP.addMessageHandler('NET:HOT_RELOAD_APP', data => {
-    LOG(...PR(`HOT_RELOAD_APP`));
-    window.location.reload();
-  });
-  //
+  // add message handler used for client tests
   EP.addMessageHandler('NET:CLIENT_TEST', data => {
     LOG(...PR(`CLIENT_TEST ${EP_UADDR} received`, data));
     const { uaddr } = data;
     return { status: `CLIENT_TEST ${EP_UADDR} responding to ${uaddr}` };
   });
-  //
+  // add message handler to respond to hot reload requests
+  EP.addMessageHandler('NET:HOT_RELOAD_APP', data => {
+    LOG(...PR(`HOT_RELOAD_APP`));
+    window.location.reload();
+  });
+  // now declare messages to server
   const resdata = await EP.declareClientMessages();
   if (DBG) LOG(...PR('EP.declareClientMessages returned', resdata));
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** close the client connection, after waiting for the prescribed number of
+ *  seconds
+ */
 function Disconnect(seconds = 360) {
   return new Promise((resolve, reject) => {
     LOG(...PR(`waiting for ${seconds} seconds...`));
     m_Sleep(seconds * 1000, () => {
       resolve(true);
       SERVER_LINK.close();
-      LOG(...PR(`closing client connection after ${seconds}s...`));
+      LOG(...PR(`closed client connection after waiting ${seconds}s...`));
     });
   });
 }
 
 /// MAIN APP //////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** start the application */
 function Start() {
   // send chat message
   InputText.addEventListener('keypress', event => {
@@ -133,14 +137,17 @@ function Start() {
 
 /// TEST METHODS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** catch-all simple test runner. results are in the browser console */
 async function Test() {
   TestClientMessage();
   // TestServerReflect();
   // TestServerService();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** netCall all implementors of NET:CLIENT_TEST, which will return results for
+ *  every implementor EXCEPT the calling endpoint
+ */
 function TestClientMessage() {
-  const EP_UADDR = EP.uaddr;
   // test client-to-client netcall CLIENT_TEST
   LOG(...PR(`CLIENT_TEST ${EP_UADDR} invocation`));
   EP.netCall('NET:CLIENT_TEST', { uaddr: EP_UADDR }).then(retdata => {
@@ -148,6 +155,8 @@ function TestClientMessage() {
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** netCall the built-in SRV:REFLECT service on the server, which returns the
+ *  data that was sent to it */
 function TestServerReflect() {
   let count = 0;
   let foo = setInterval(() => {
@@ -163,6 +172,8 @@ function TestServerReflect() {
   }, 1500);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** netCall SRV:FAKE_SERVICE which is a fake "service" that will return some
+ *  data simulating an RPC call */
 function TestServerService() {
   let count = 0;
   let foo = setInterval(() => {
