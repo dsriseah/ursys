@@ -19,19 +19,40 @@ const EP = new NetEndpoint();
 let EP_UADDR = EP.uaddr;
 let SERVER_LINK: WebSocket;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const InputLabel: HTMLInputElement = document.querySelector('#chat-input label');
+const InputPrompt: HTMLInputElement = document.querySelector('#chat-input label');
 const InputText: HTMLInputElement = document.querySelector('#chat-input input');
 const ChatText: HTMLInputElement = document.querySelector('#chat-history');
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const TIMEOUT = 360; // seconds before client closes connection
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_Sleep(ms, resolve?): Promise<void> {
+function m_Sleep(ms: number, resolve?: Function): Promise<void> {
   return new Promise(localResolve =>
     setTimeout(() => {
       if (typeof resolve === 'function') resolve();
       localResolve();
     }, ms)
   );
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function ui_AddChatLine(line: string) {
+  ChatText.value += line + '\n';
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function ui_SetPrompt(text: string) {
+  InputPrompt.innerText = text;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function ui_DisableInput() {
+  InputText.disabled = true;
+  InputText.placeholder = 'Disconnected. Reload page to reconnect.';
+  InputText.value = '';
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function ui_EnableInput() {
+  InputText.disabled = false;
+  InputText.placeholder = 'Enter chat message';
 }
 
 /// CLIENT API ////////////////////////////////////////////////////////////////
@@ -40,17 +61,20 @@ function m_Sleep(ms, resolve?): Promise<void> {
 function Connect(): Promise<boolean> {
   const { wss_url } = GetClientInfoFromWindowLocation(window.location);
   const promiseConnect = new Promise<boolean>(resolve => {
-    LOG(...PR(`websocket connect to ${wss_url}`));
     SERVER_LINK = new WebSocket(wss_url);
     SERVER_LINK.addEventListener('open', async () => {
-      LOG(...PR('Connected to server'));
+      let out = `Connected to ${wss_url}`;
+      LOG(...PR(out));
+      ui_AddChatLine(out);
       const send = pkt => SERVER_LINK.send(pkt.serialize());
       const onData = event => EP._ingestServerPacket(event.data, client_sock);
       const close = () => SERVER_LINK.close();
       const client_sock = new NetSocket(SERVER_LINK, { send, onData, close });
       SERVER_LINK.addEventListener('message', onData);
       SERVER_LINK.addEventListener('close', () => {
-        LOG(...PR('server closed connection'));
+        out = `Server closed connection`;
+        LOG(...PR(out));
+        ui_AddChatLine(out);
         EP.disconnectAsClient();
       });
       // needed on chrome, which doesn't appear to send a websocket closeframe
@@ -90,7 +114,8 @@ async function RegisterMessages() {
   // add message handler for incoming chat messages
   EP.addMessageHandler('NET:CLIENT_TEST_CHAT', data => {
     const { message, uaddr } = data;
-    ChatText.value += `${uaddr}: ${message}\n`;
+    const prompt = uaddr === EP_UADDR ? 'you say: ' : `${uaddr} says: `;
+    ui_AddChatLine(`${prompt}${message}`);
   });
   // add message handler used for client tests
   EP.addMessageHandler('NET:CLIENT_TEST', data => {
@@ -111,13 +136,18 @@ async function RegisterMessages() {
 /** close the client connection, after waiting for the prescribed number of
  *  seconds
  */
-function Disconnect(seconds = 360) {
+function Disconnect(seconds = TIMEOUT) {
   return new Promise((resolve, reject) => {
+    ui_AddChatLine(`Client will autoclose in ${seconds} seconds.`);
     LOG(...PR(`waiting for ${seconds} seconds...`));
     m_Sleep(seconds * 1000, () => {
       resolve(true);
       SERVER_LINK.close();
-      LOG(...PR(`closed client connection after waiting ${seconds}s...`));
+      let out = `Client closing connection.`;
+      LOG(...PR(out));
+      ui_AddChatLine(out);
+      ui_SetPrompt('---');
+      ui_DisableInput();
     });
   });
 }
@@ -134,7 +164,8 @@ function Start() {
       EP.netSignal('NET:CLIENT_TEST_CHAT', { uaddr: EP.uaddr, message });
     }
   });
-  InputLabel.innerText = EP.uaddr;
+  ui_SetPrompt(EP_UADDR);
+  ui_EnableInput();
 }
 
 /// TEST METHODS //////////////////////////////////////////////////////////////
