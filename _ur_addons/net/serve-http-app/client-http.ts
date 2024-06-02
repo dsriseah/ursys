@@ -84,10 +84,10 @@ async function RegisterMessages() {
   //
   EP.addMessageHandler('NET:CLIENT_TEST_CHAT', data => {
     const { message, uaddr } = data;
-    const chatWindow = document.getElementById('chat-history');
-    const chatMessage = document.createElement('div');
-    chatMessage.innerText = `${uaddr}: ${message}`;
-    chatWindow.appendChild(chatMessage);
+    const chatWindow: HTMLTextAreaElement = document.getElementById(
+      'chat-history'
+    ) as HTMLTextAreaElement;
+    chatWindow.value += `${uaddr}: ${message}\n`;
   });
   //
   EP.addMessageHandler('NET:HOT_RELOAD_APP', data => {
@@ -119,7 +119,6 @@ function Disconnect(seconds = 360) {
 /// MAIN APP //////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Start() {
-  const chatWindow: HTMLElement = document.getElementById('chat-history');
   const chatInput: HTMLInputElement = document.getElementById(
     'chat-input'
   ) as HTMLInputElement;
@@ -128,7 +127,7 @@ function Start() {
     if (event.key === 'Enter') {
       const message = chatInput.value;
       chatInput.value = '';
-      EP.netSignal('NET:CLIENT_TEST_CHAT', { message });
+      EP.netSignal('NET:CLIENT_TEST_CHAT', { uaddr: EP.uaddr, message });
     }
   });
 }

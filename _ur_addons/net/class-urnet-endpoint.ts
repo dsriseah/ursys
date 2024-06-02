@@ -839,15 +839,13 @@ class NetEndpoint {
 
     // handle signal packets
     if (pkt.msg_type === 'signal') {
-      let handled;
       await this.awaitHandlers(pkt);
       if (this.isServer()) await this.awaitRemoteHandlers(pkt);
-      LOG('SIGNAL', pkt.hasRsvp(), pkt.msg, pkt.data);
       return;
     }
 
     // handle call and send packets
-    let retData;
+    let retData: any;
     let handled = 0;
     // handle send and call, which do not reflect back to sender
     retData = await this.awaitHandlers(pkt);
