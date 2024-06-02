@@ -587,6 +587,7 @@ class NetEndpoint {
       dir: 'req',
       rsvp: true
     });
+    // note: this is similar to _queueTransaction() but without the extra checks
     const p = new Promise((resolve, reject) => {
       const hash = GetPacketHashString(pkt);
       if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
@@ -598,7 +599,9 @@ class NetEndpoint {
         reject(err);
       }
     });
+    /** MAGIC **/
     let resData = await p;
+    /** end MAGIC **/
     return resData;
   }
 
@@ -607,6 +610,7 @@ class NetEndpoint {
   async netSend(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
     const fn = 'netSend:';
     if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
+    // note: this is similar to _queueTransaction() but without the extra checks
     const p = new Promise((resolve, reject) => {
       const pkt = this.newPacket(msg, data);
       pkt.setMeta('send', {
@@ -623,7 +627,9 @@ class NetEndpoint {
         reject(err);
       }
     });
+    /** MAGIC **/
     let resData = await p;
+    /** end MAGIC **/
     return resData;
   }
 
