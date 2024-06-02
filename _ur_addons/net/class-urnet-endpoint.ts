@@ -717,6 +717,7 @@ class NetEndpoint {
   /** return list of local handlers for given message */
   getMessageHandlers(msg: NP_Msg): HandlerFunc[] {
     const fn = 'getMessageHandlers:';
+    if (this.handled_msgs === undefined) return [];
     if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
     const key = NormalizeMessage(msg);
     if (!this.handled_msgs.has(key))
@@ -806,73 +807,73 @@ class NetEndpoint {
    *  it to the source address in the packet with any data
    */
   async dispatchPacket(pkt: NetPacket): Promise<void> {
-    try {
-      const fn = 'dispatchPacket:';
+    const fn = 'dispatchPacket:';
 
-      // filter out response packets
-      if (pkt.isResponse()) {
-        if (pkt.src_addr === this.uaddr) {
-          // this is a returning packet that originated from this endpoint
-          this.resolveTransaction(pkt);
-        } else {
-          // otherwise, it's a response packet to a downstream client
-          this.returnToSender(pkt);
-        }
-        return; // done processing, so exit
-      }
-
-      // make sure only request packets are processed
-      if (!pkt.isRequest()) {
-        LOG(PR, this.uaddr, fn, `invalid packet`, pkt);
-        return;
-      }
-
-      // handle ping packets
-      if (pkt.msg_type === 'ping') {
-        const pingArr = this.getMessageAddresses(pkt.msg);
-        const pingHandlers = this.getMessageHandlers(pkt.msg);
-        if (pingHandlers.length > 0) pingArr.push(this.uaddr);
-        pkt.setData(pingArr);
-        this.returnToSender(pkt);
-        return;
-      }
-
-      // handle signal packets
-      if (pkt.msg_type === 'signal') {
-        this.blindBroadcast(pkt);
-        return;
-      }
-
-      // handle send and call packets
-      let retData;
-      //
-      if (this.handled_msgs.has(pkt.msg)) {
-        retData = await this.awaitHandlers(pkt);
-      } else if (this.remoted_msgs.has(pkt.msg)) {
-        retData = await this.awaitRemoteHandlers(pkt);
+    // filter out response packets
+    if (pkt.isResponse()) {
+      if (pkt.src_addr === this.uaddr) {
+        // this is a returning packet that originated from this endpoint
+        this.resolveTransaction(pkt);
       } else {
-        LOG(PR, this.uaddr, fn, `unknown message`, pkt);
-        retData = { error: `unknown message '${pkt.msg}'` };
+        // otherwise, it's a response packet to a downstream client
+        this.returnToSender(pkt);
       }
-
-      // if the packet doesn't have an RSVP flag, then we don't
-      // have to return any data so quit
-      if (!pkt.hasRsvp()) return;
-
-      // otherwise, we need to return the appropriate data
-      // to the callee. ping and signal have already been handled
-      if (pkt.msg_type === 'call') {
-        pkt.data = NormalizeData(retData);
-      } else if (pkt.msg_type === 'send') {
-        pkt.data = true;
-      }
-      // now send the response, eventually
-      this.returnToSender(pkt);
-    } catch (err) {
-      // format the error message to be nicer to read
-      LOG(PR, err.message);
-      LOG(PR, err.stack.split('\n').slice(1).join('\n').trim());
+      return; // done processing, so exit
     }
+
+    // make sure only request packets are processed
+    if (!pkt.isRequest()) {
+      LOG(PR, this.uaddr, fn, `invalid packet`, pkt);
+      return;
+    }
+
+    // handle ping packets
+    if (pkt.msg_type === 'ping') {
+      const pingArr = this.getMessageAddresses(pkt.msg);
+      const pingHandlers = this.getMessageHandlers(pkt.msg);
+      if (pingHandlers.length > 0) pingArr.push(this.uaddr);
+      pkt.setData(pingArr);
+      this.returnToSender(pkt);
+      return;
+    }
+
+    // handle signal packets
+    if (pkt.msg_type === 'signal') {
+      let handled;
+      await this.awaitHandlers(pkt);
+      if (this.isServer()) await this.awaitRemoteHandlers(pkt);
+      LOG('SIGNAL', pkt.hasRsvp(), pkt.msg, pkt.data);
+      return;
+    }
+
+    // handle call and send packets
+    let retData;
+    let handled = 0;
+    // handle send and call, which do not reflect back to sender
+    retData = await this.awaitHandlers(pkt);
+    handled += retData.length;
+    if (this.isServer()) {
+      retData = await this.awaitRemoteHandlers(pkt);
+      handled += retData.length;
+    }
+    if (handled === 0) {
+      LOG(PR, this.uaddr, fn, `unknown message`, pkt);
+      retData = { error: `unknown message '${pkt.msg}'` };
+    }
+
+    // if the packet doesn't have an RSVP flag, then we don't
+    // have to return any data so quit
+    if (!pkt.hasRsvp()) return;
+
+    // otherwise, we need to return the appropriate data
+    // to the callee. ping and signal have already been handled
+    if (pkt.msg_type === 'call') {
+      pkt.data = NormalizeData(retData);
+    } else if (pkt.msg_type === 'send') {
+      pkt.data = true;
+    }
+    // now send the response, eventually
+    this.returnToSender(pkt);
   }
 
   /** Start a transaction, which returns promises to await. This method
@@ -899,9 +900,7 @@ class NetEndpoint {
       });
     }
     let data = await Promise.all(promises);
-    if (Array.isArray(data) && data.length === 1) data = data[0];
-    // LOG(PR,_PKT(this, fn, '-retn-req-', pkt), pkt.data);
-    return data;
+    return data; // an array of results
   }
 
   /** Start a handler call, which might have multiple implementors.
@@ -911,8 +910,7 @@ class NetEndpoint {
     const fn = 'awaitHandlers:';
     const { msg } = pkt;
     const handlers = this.getMessageHandlers(msg);
-    if (handlers.length === 0)
-      return Promise.resolve({ error: `no handler for '${msg}'` });
+    if (handlers.length === 0) return Promise.resolve([]);
     const promises = [];
     // LOG(PR,_PKT(this, fn, '-wait-hnd-', pkt), pkt.data);
     handlers.forEach(handler => {
@@ -927,9 +925,7 @@ class NetEndpoint {
       );
     });
     let data = await Promise.all(promises);
-    if (Array.isArray(data) && data.length === 1) data = data[0];
-    // LOG(PR,_PKT(this, fn, '-retn-hnd-', pkt), pkt.data);
-    return data;
+    return data; // an array of data
   }
 
   /** Send a single packet on all available interfaces based on the
@@ -989,7 +985,7 @@ class NetEndpoint {
     // LOG(PR,`${pkt.msg} dst:${dst_addr} src:${src_addr}`);
     // for send and call packets, do not send to origin
     if (src_addr === dst_addr && SkipOriginType(pkt.msg_type)) {
-      // LOG(PR,`.. skipping reflect '${pkt.msg}' to ${dst_addr}==${src_addr}`);
+      LOG(PR, `.. skipping reflect '${pkt.msg}' to ${dst_addr}==${src_addr}`);
       return undefined;
     }
     // otherwise Promise
@@ -1045,34 +1041,6 @@ class NetEndpoint {
       return;
     }
     LOG(PR, `${fn} unroutable packet`, pkt);
-  }
-
-  /** broadcast a received signal packet to everyone, even the
-   *  sender. This is used by endpoints to broadcast signals
-   */
-  blindBroadcast(pkt: NetPacket) {
-    const fn = 'blindBroadcast:';
-    // check for validity
-    if (pkt.hop_rsvp !== false) throw Error(`${fn} packet is RSVP`);
-    if (pkt.hop_seq.length < 1) throw Error(`${fn} packet has no hops`);
-    // want to broadcast to everyone
-    pkt.addHop(this.uaddr);
-    const { gateway, clients } = this.getRoutingInformation(pkt);
-    if (gateway) {
-      const clone = this.clonePacket(pkt);
-      clone.id = this.assignPacketId(clone);
-      LOG(PR, _PKT(this, fn, '-signal-gatewat-', clone), clone.data);
-      gateway.send(clone);
-    }
-    if (Array.isArray(clients)) {
-      // LOG(PR,_PKT(this, fn, '-wait-req-', pkt), pkt.data);
-      clients.forEach(sock => {
-        const clone = this.clonePacket(pkt);
-        clone.id = this.assignPacketId(clone);
-        LOG(PR, _PKT(this, fn, '-signal-client-', clone), clone.data);
-        sock.send(clone);
-      });
-    }
   }
 
   /** return array of sockets to use for sending packet,
