@@ -106,6 +106,10 @@ async function BuildApp() {
           {
             from: [`${app_src}/${app_index}`],
             to: [`${http_docs}`]
+          },
+          {
+            from: [`${app_src}/favicon.svg`],
+            to: [`${http_docs}`]
           }
         ]
       })
