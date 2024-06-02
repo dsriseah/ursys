@@ -113,7 +113,7 @@ export interface I_NetSocket {
   msglist?: NP_Msg[]; // messages queued for this socket
   age?: number; // number of seconds since this socket was used
   label?: string; // name of the socket-ish object
-  notAuthenticated(): boolean;
+  authenticated(): boolean;
 }
 
 /// FUNCTION SIGNATURES ///////////////////////////////////////////////////////
@@ -129,7 +129,7 @@ export function SkipOriginType(msg_type: string): boolean {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** runtime check of protocol-related NP_Type */
-export function IsProtocolType(msg_type: string): boolean {
+export function isSpecialPktType(msg_type: string): boolean {
   if (!IsValidType(msg_type)) return false;
   return msg_type.startsWith('_');
 }

@@ -223,11 +223,13 @@ class NetEndpoint {
     if (!this.pktIsAuthenticated(pkt, socket))
       return this.handleClientAuthRejection(pkt, socket);
 
-    // 3. protocol: registration packet (anytime)
+    /** from this point forward, packets are authenticated **/
+
+    // 3. is this a special registration packet (anytime)
     retPkt = this.handleClientReg(pkt, socket);
     if (retPkt) return retPkt;
 
-    // 4. protocol: is definition packet (anytime)
+    // 4. is this a special declaration packet (anytime)
     retPkt = this.handleClientDeclare(pkt, socket);
     if (retPkt) return retPkt;
 
@@ -1091,7 +1093,7 @@ class NetEndpoint {
     // LOG(PR,this.uaddr, 'resolving', pkt.msg);
     if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
     if (pkt.hop_dir !== 'res') throw Error(`${fn} packet is not a response`);
-    if (pkt.hop_seq.length < 2 && !pkt.isProtocol())
+    if (pkt.hop_seq.length < 2 && !pkt.isSpecialPkt())
       throw Error(`${fn} packet has no hops`);
     const hash = GetPacketHashString(pkt);
     const resolver = this.transactions.get(hash);
