@@ -23,12 +23,28 @@
     }
 
     #chat-input {
+      display: flex;
       box-sizing: border-box;
       padding: 0 0.5rem;
       margin-top: 1rem;
       width: 100%;
       height: 2rem;
       border: 0;
+    }
+
+    #chat-input label {
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      padding-right: 0.5rem;
+    }
+
+    #chat-input input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 0.5rem;
+      flex-grow: 1;
+      border: 1px solid #ccc;
     }
   </style>
 </head>
@@ -43,7 +59,11 @@
       <p>The source files for this test app are located in <tt>_ur_addons/net/serve-http-app</tt>.</p>
       <!-- Interactive Elements -->
       <textarea id="chat-history" readonly rows="10" scroll="auto"></textarea>
-      <input id="chat-input" type="text" placeholder="Type a message">
+      <div id="chat-input">
+        <label for="message-input">ADDR</label>
+        <input type="text" id="message-input" placeholder="Type a message">
+      </div>
+
   </div>
   <script src="js/net-http.bundle.js"></script>
 </body>

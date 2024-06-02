@@ -17,6 +17,10 @@ const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const EP = new NetEndpoint();
 let SERVER_LINK: WebSocket;
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const InputLabel: HTMLInputElement = document.querySelector('#chat-input label');
+const InputText: HTMLInputElement = document.querySelector('#chat-input input');
+const ChatText: HTMLInputElement = document.querySelector('#chat-history');
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -84,10 +88,7 @@ async function RegisterMessages() {
   //
   EP.addMessageHandler('NET:CLIENT_TEST_CHAT', data => {
     const { message, uaddr } = data;
-    const chatWindow: HTMLTextAreaElement = document.getElementById(
-      'chat-history'
-    ) as HTMLTextAreaElement;
-    chatWindow.value += `${uaddr}: ${message}\n`;
+    ChatText.value += `${uaddr}: ${message}\n`;
   });
   //
   EP.addMessageHandler('NET:HOT_RELOAD_APP', data => {
@@ -119,17 +120,15 @@ function Disconnect(seconds = 360) {
 /// MAIN APP //////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Start() {
-  const chatInput: HTMLInputElement = document.getElementById(
-    'chat-input'
-  ) as HTMLInputElement;
   // send chat message
-  chatInput.addEventListener('keypress', event => {
+  InputText.addEventListener('keypress', event => {
     if (event.key === 'Enter') {
-      const message = chatInput.value;
-      chatInput.value = '';
+      const message = InputText.value;
+      InputText.value = '';
       EP.netSignal('NET:CLIENT_TEST_CHAT', { uaddr: EP.uaddr, message });
     }
   });
+  InputLabel.innerText = EP.uaddr;
 }
 
 /// TEST METHODS //////////////////////////////////////////////////////////////
