@@ -22,8 +22,13 @@
 
 import { PR } from '@ursys/core';
 import { I_NetMessage, NP_Address } from './urnet-types';
-import { NP_ID, NP_Type, NP_Dir } from './urnet-types';
-import { IsValidMessage, IsValidAddress, IsValidType } from './urnet-types';
+import { NP_ID, NP_Type, NP_Dir, I_NetSocket } from './urnet-types';
+import {
+  IsValidMessage,
+  IsValidAddress,
+  IsValidType,
+  UADDR_NONE
+} from './urnet-types';
 import { NP_Msg, NP_Data, DecodeMessage } from './urnet-types';
 import { NP_Options } from './urnet-types';
 
@@ -171,9 +176,46 @@ class NetPacket implements I_NetMessage {
     return this.hop_seq[this.hop_seq.length - 1];
   }
 
-  /** types that begin with _ are protocol messages that bypass pktReceive() */
+  hasAuth() {
+    return this.auth !== undefined;
+  }
+
+  /** types that begin with _ are protocol messages that bypass routeMessage() */
   isProtocol() {
     return this.msg_type.startsWith('_');
+  }
+
+  /** authorization packets are the first packet sent on a client connection to
+   *  the message gateway server. They must not have a src_addr aassigned, using
+   *  the special UADDR_NONE value instead.
+   */
+  isBadAuthPkt() {
+    let error = '';
+    let a = this.msg_type === '_auth';
+    let b = this.msg === 'SRV:AUTH';
+    let c = this.src_addr === UADDR_NONE;
+    if (!a) error += `msg_type ${this.msg_type} not _auth. `;
+    if (!b) error += `msg ${this.msg} not SRV:AUTH. `;
+    if (!c) error += `src_addr ${this.src_addr} not ${UADDR_NONE} `;
+    if (error.length > 0) return `isBadAuthPkt: ${error}`;
+    return undefined;
+  }
+
+  /** registration packets are sent on a client connection after
+   *  authentication. They must have a src_addr assigned, which was returned
+   *  by the server in the response to the auth packet, and this must match
+   *  the server's stored uaddr for the client connection.
+   */
+  isBadRegPkt(socket: I_NetSocket) {
+    let error = '';
+    let a = this.msg_type === '_reg';
+    let b = this.msg === 'SRV:REG';
+    let c = this.src_addr === socket.uaddr;
+    if (!a) error += `msg_type ${this.msg_type} not _reg. `;
+    if (!b) error += `msg ${this.msg} not SRV:REG. `;
+    if (!c) error += `src_addr ${this.src_addr} not ${socket.uaddr}. `;
+    if (error.length > 0) return `isBadRegPkt: ${error}`;
+    return undefined;
   }
 
   isRequest() {

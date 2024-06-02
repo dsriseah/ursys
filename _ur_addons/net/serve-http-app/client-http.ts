@@ -57,7 +57,7 @@ function Connect(): Promise<boolean> {
       const resdata = await EP.connectAsClient(client_sock, auth);
       if (DBG) LOG(...PR('EP.connectAsClient returned', resdata));
       if (resdata.error) {
-        LOG.error(resdata.error);
+        console.error(resdata.error);
         resolve(false);
         return;
       }
@@ -66,7 +66,7 @@ function Connect(): Promise<boolean> {
       const regdata = await EP.registerClient(info);
       if (DBG) LOG(...PR('EP.registerClient returned', regdata));
       if (regdata.error) {
-        LOG.error(regdata.error);
+        console.error(regdata.error);
         resolve(false);
         return;
       }
@@ -116,10 +116,27 @@ function Disconnect(seconds = 360) {
   });
 }
 
+/// MAIN APP //////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function Start() {
+  const chatWindow: HTMLElement = document.getElementById('chat-history');
+  const chatInput: HTMLInputElement = document.getElementById(
+    'chat-input'
+  ) as HTMLInputElement;
+  // send chat message
+  chatInput.addEventListener('keypress', event => {
+    if (event.key === 'Enter') {
+      const message = chatInput.value;
+      chatInput.value = '';
+      EP.netSignal('NET:CLIENT_TEST_CHAT', { message });
+    }
+  });
+}
+
 /// TEST METHODS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Test() {
-  // TestClientMessage();
+  TestClientMessage();
   // TestServerReflect();
   // TestServerService();
 }
@@ -171,6 +188,7 @@ export default {
 export {
   Connect, // await Connect() to start URNET client
   RegisterMessages, // await RegisterMessages() to declare client messages
+  Start, // start the app
   Disconnect, // await Disconnect() to close client connection
   Test // await Test() to run client tests
 };

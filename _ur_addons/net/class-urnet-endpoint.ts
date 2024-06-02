@@ -219,7 +219,7 @@ class NetEndpoint {
     if (retPkt) return retPkt;
 
     // 2. deny other packets until authentication was handled
-    if (pkt.auth === undefined) return this.handleClientAuthRejection(pkt, socket);
+    if (!pkt.hasAuth()) return this.handleClientAuthRejection(pkt, socket);
     if (!this.pktIsAuthenticated(pkt, socket))
       return this.handleClientAuthRejection(pkt, socket);
 
@@ -232,7 +232,7 @@ class NetEndpoint {
     if (retPkt) return retPkt;
 
     // 5. otherwise, handle the packet normally through the message interface
-    this.pktReceive(pkt);
+    this.routeMessage(pkt);
   }
 
   /** check the auth field in the packet */
@@ -258,14 +258,14 @@ class NetEndpoint {
 
   /** handle auth packet if the session.auth is not defined */
   handleClientAuth(pkt: NetPacket, socket: I_NetSocket): NetPacket {
-    if (socket.auth === undefined) {
+    if (!socket.authenticated()) {
       pkt.setDir('res');
       pkt.addHop(this.urnet_addr);
-      if (pkt.msg_type === '_auth') {
-        if (pkt.msg !== 'SRV:AUTH') {
-          pkt.data = { error: `invalid auth packet ${pkt.msg}` };
-          return pkt;
-        }
+      const error = pkt.isBadAuthPkt();
+      if (error) {
+        console.error(PR, error);
+        pkt.data = { error };
+        return pkt;
       }
       /** placeholder authentication check **/
       const { identity, secret } = pkt.data;
@@ -283,7 +283,7 @@ class NetEndpoint {
 
   /** handle registration packet */
   handleClientReg(pkt: NetPacket, socket: I_NetSocket): NetPacket {
-    if (pkt.msg_type === '_reg') {
+    if (!pkt.isBadRegPkt(socket)) {
       pkt.setDir('res');
       pkt.addHop(this.urnet_addr);
       if (pkt.msg !== 'SRV:REG') {
@@ -408,13 +408,14 @@ class NetEndpoint {
     const pkt = this.newPacket().deserialize(jsonData);
     // 1. is this connection handshaking for clients?
     if (this.cli_gateway) {
+      // only clients have a defined cli_gateway
       // these types of packets are never dispatched through the net message
       // API, and are handled directly by the client endpoint to connect
       if (this.handleAuthResponse(pkt)) return;
       if (this.handleRegResponse(pkt)) return;
     }
     // 2. otherwise handle the message interface normally
-    this.pktReceive(pkt);
+    this.routeMessage(pkt);
   }
 
   /** client endpoints need to have an "address" assigned to them, otherwise
@@ -474,7 +475,7 @@ class NetEndpoint {
   }
 
   /** handle authentication response packet directly rather than through
-   *  the netcall interface in pktReceive() */
+   *  the netcall interface in routeMessage() */
   handleAuthResponse(pkt: NetPacket): boolean {
     const fn = 'handleAuthResponse:';
     if (pkt.msg_type !== '_auth') return false;
@@ -530,7 +531,7 @@ class NetEndpoint {
   }
 
   /** handle registration response packet directly rather than through
-   *  the netcall interface in pktReceive() */
+   *  the netcall interface in routeMessage() */
   handleRegResponse(pkt: NetPacket): boolean {
     const fn = 'handleRegResponse:';
     if (pkt.msg_type !== '_reg') return false;
@@ -954,9 +955,9 @@ class NetEndpoint {
    *  If the packet has the rsvp flag set, we need to return
    *  it to the source address in the packet with any data
    */
-  async pktReceive(pkt: NetPacket): Promise<void> {
+  async routeMessage(pkt: NetPacket): Promise<void> {
     try {
-      const fn = 'pktReceive:';
+      const fn = 'routeMessage:';
       // is this a response to a transaction?
       if (pkt.isResponse()) {
         if (pkt.src_addr === this.urnet_addr) this.pktResolveRequest(pkt);
@@ -972,18 +973,18 @@ class NetEndpoint {
       // if it's a ping, we just want to return number of
       // messages this server knows about.
       if (pkt.msg_type === 'ping') {
-        const addrs = this.getAddressesForMessage(pkt.msg);
-        const handlers = this.getHandlersForMessage(pkt.msg);
-        if (handlers.length > 0) addrs.push(this.urnet_addr);
-        pkt.setData(addrs);
+        const pingArr = this.getAddressesForMessage(pkt.msg);
+        const pingHandlers = this.getHandlersForMessage(pkt.msg);
+        if (pingHandlers.length > 0) pingArr.push(this.urnet_addr);
+        pkt.setData(pingArr);
         this.pktSendResponse(pkt);
         return;
       }
       // if it's a signal, this is not an rsvp, but log it for
       // internal debug purposes (doesn't affect function)
       if (pkt.msg_type === 'signal') {
-        // LOG(PR,_PKT(this, fn, '-recv-sig-', pkt), pkt.data);
-        LOG(PR, 'would handle signal', pkt.msg);
+        this.pktForward(pkt);
+        return;
       }
       // check to see if there are any handlers defined in this
       // endpoint to process stuff. It first checks for client-side
@@ -1083,7 +1084,7 @@ class NetEndpoint {
   }
 
   /** Resolve a transaction when a packet is returned to it through
-   *  pktReceive(pkt) which determines that it is a returning transaction
+   *  routeMessage(pkt) which determines that it is a returning transaction
    */
   pktResolveRequest(pkt: NetPacket) {
     const fn = 'pktResolveRequest:';
@@ -1135,9 +1136,37 @@ class NetEndpoint {
     LOG(PR, `${fn} unroutable packet`, pkt);
   }
 
+  /** broadcast a received signal packet to everyone, even the
+   *  sender. This is used by endpoints to broadcast signals
+   */
+  pktForward(pkt: NetPacket) {
+    const fn = 'pktForward:';
+    // check for validity
+    if (pkt.hop_rsvp !== false) throw Error(`${fn} packet is RSVP`);
+    if (pkt.hop_seq.length < 1) throw Error(`${fn} packet has no hops`);
+    // want to broadcast to everyone
+    pkt.addHop(this.urnet_addr);
+    const { gateway, clients } = this.pktGetSocketRouting(pkt);
+    if (gateway) {
+      const clone = this.clonePacket(pkt);
+      clone.id = this.assignPacketId(clone);
+      LOG(PR, _PKT(this, fn, '-signal-gatewat-', clone), clone.data);
+      gateway.send(clone);
+    }
+    if (Array.isArray(clients)) {
+      // LOG(PR,_PKT(this, fn, '-wait-req-', pkt), pkt.data);
+      clients.forEach(sock => {
+        const clone = this.clonePacket(pkt);
+        clone.id = this.assignPacketId(clone);
+        LOG(PR, _PKT(this, fn, '-signal-client-', clone), clone.data);
+        sock.send(clone);
+      });
+    }
+  }
+
   /** Start a transaction, which returns promises to await. This method
    *  is a queue that uses Promises to wait for the return, which is
-   *  triggered by a returning packet in pktReceive(pkt).
+   *  triggered by a returning packet in routeMessage(pkt).
    */
   async pktAwaitRequest(pkt: NetPacket) {
     const fn = 'pktAwaitRequest:';

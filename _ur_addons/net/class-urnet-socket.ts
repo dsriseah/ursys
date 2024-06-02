@@ -25,33 +25,21 @@
 
 import { PR } from '@ursys/core';
 import { NetPacket } from './class-urnet-packet.ts';
-import { NP_Address, NP_Msg } from './urnet-types.ts';
+import {
+  NP_Address,
+  NP_Msg,
+  I_NetSocket,
+  NS_SendFunc,
+  NS_CloseFunc,
+  NS_DataFunc,
+  NS_Options
+} from './urnet-types.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const PR = typeof process !== 'undefined' ? 'Socket'.padEnd(13) : 'Socket:';
 const LOG = (...args) => DBG && console.log(PR, ...args);
-
-/// LOCAL TYPES ///////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** the function that sends a packet to the wire */
-type NS_SendFunc = (pkt: NetPacket) => void;
-type NS_DataFunc = (data: any) => void;
-type NS_CloseFunc = () => void;
-type NS_Options = { send: NS_SendFunc; onData: NS_DataFunc; close: NS_CloseFunc };
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** this is the socket-ish object that we use to send data to the wire */
-interface I_NetSocket {
-  connector?: any; // the original connection object (if needed)
-  send: NS_SendFunc;
-  close: NS_CloseFunc; // close function
-  uaddr?: NP_Address; // assigned uaddr for this socket-ish object
-  auth?: any; // whatever authentication is needed for this socket
-  msglist?: NP_Msg[]; // messages queued for this socket
-  age?: number; // number of seconds since this socket was used
-  label?: string; // name of the socket-ish object
-}
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -86,6 +74,11 @@ class NetSocket implements I_NetSocket {
 
   getConnector() {
     return this.connector;
+  }
+
+  authenticated() {
+    let a = this.auth !== undefined;
+    return a;
   }
 }
 
