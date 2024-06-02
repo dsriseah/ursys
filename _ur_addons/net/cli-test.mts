@@ -163,7 +163,7 @@ async function RunPacketTests() {
     const info = { name: 'UDSClient', type: 'client' };
     const regdata = await client.declareClientProperties(info);
     PT_Register(name, client);
-    host.registerRemoteMessages(addr, client.listNetMessages());
+    host.registerRemoteMessagesToAddress(addr, client.getNetMessageNames());
     return client;
   }
 
