@@ -16,7 +16,7 @@ const LOG = console.log.bind(console);
 const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const EP = new NetEndpoint();
-const EP_UADDR = EP.uaddr;
+let EP_UADDR = EP.uaddr;
 let SERVER_LINK: WebSocket;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const InputLabel: HTMLInputElement = document.querySelector('#chat-input label');
@@ -75,6 +75,8 @@ function Connect(): Promise<boolean> {
         resolve(false);
         return;
       }
+      // 4. save global uaddr
+      EP_UADDR = EP.uaddr;
       resolve(true);
     }); // end createConnection
   });
