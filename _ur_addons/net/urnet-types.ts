@@ -113,7 +113,7 @@ export interface I_NetSocket {
   msglist?: NP_Msg[]; // messages queued for this socket
   age?: number; // number of seconds since this socket was used
   label?: string; // name of the socket-ish object
-  authenticated(): boolean;
+  authenticated?: () => boolean;
 }
 
 /// FUNCTION SIGNATURES ///////////////////////////////////////////////////////

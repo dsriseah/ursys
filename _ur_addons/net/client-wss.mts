@@ -65,7 +65,7 @@ function Connect(): Promise<boolean> {
       }
       // 3. register client with server
       const info = { name: 'WSSClient', type: 'client' };
-      const regdata = await EP.registerClient(info);
+      const regdata = await EP.declareClientProperties(info);
       if (regdata.error) {
         LOG.error(regdata.error);
         resolve(false);
@@ -82,11 +82,11 @@ function Connect(): Promise<boolean> {
  */
 async function RegisterMessages() {
   // register some message handlers
-  EP.registerMessage('NET:CLIENT_TEST', data => {
+  EP.addMessageHandler('NET:CLIENT_TEST', data => {
     LOG('NET:CLIENT_TEST got', data);
     return { 'NET:CLIENT_TEST': 'received' };
   });
-  const resdata = await EP.clientDeclare();
+  const resdata = await EP.declareClientMessages();
   // test code below can be removed //
   let count = 0;
   let foo = setInterval(() => {

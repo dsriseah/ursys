@@ -81,8 +81,8 @@ function Connect(): Promise<boolean> {
       }
       // 3. register client with server
       const info = { name: 'UDSClient', type: 'client' };
-      const regdata = await EP.registerClient(info);
-      if (DBG) LOG('EP.registerClient returned', regdata);
+      const regdata = await EP.declareClientProperties(info);
+      if (DBG) LOG('EP.declareClientProperties returned', regdata);
       if (regdata.error) {
         LOG.error(regdata.error);
         resolve(false);
@@ -99,12 +99,12 @@ function Connect(): Promise<boolean> {
  */
 async function RegisterMessages() {
   // register some message handlers
-  EP.registerMessage('NET:CLIENT_TEST', data => {
+  EP.addMessageHandler('NET:CLIENT_TEST', data => {
     LOG('NET:CLIENT_TEST got', data);
     return { 'NET:CLIENT_TEST': 'received' };
   });
-  const resdata = await EP.clientDeclare();
-  if (DBG) LOG(...PR('EP.clientDeclare returned', resdata));
+  const resdata = await EP.declareClientMessages();
+  if (DBG) LOG(...PR('EP.declareClientMessages returned', resdata));
   // test code below can be removed //
   let count = 0;
   let foo = setInterval(() => {

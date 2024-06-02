@@ -168,7 +168,7 @@ class NetPacket implements I_NetMessage {
   /** packet transport  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
 
   /** rsvp required? */
-  isRsvp() {
+  hasRsvp() {
     return this.hop_rsvp;
   }
 
@@ -180,7 +180,7 @@ class NetPacket implements I_NetMessage {
     return this.auth !== undefined;
   }
 
-  /** types that begin with _ are protocol messages that bypass routePacket() */
+  /** types that begin with _ are protocol messages that bypass dispatchPacket() */
   isSpecialPkt() {
     return this.msg_type.startsWith('_');
   }

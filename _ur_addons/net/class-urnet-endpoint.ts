@@ -166,7 +166,7 @@ class NetEndpoint {
       LOG(PR, this.uaddr, `already configured`, [...this.remoted_msgs.keys()]);
     this.remoted_msgs = new Map<NP_Msg, AddressSet>();
     // add default service message handlers here
-    this.registerMessage('SRV:REFLECT', data => {
+    this.addMessageHandler('SRV:REFLECT', data => {
       data.info = `built-in service`;
       return data;
     });
@@ -199,7 +199,7 @@ class NetEndpoint {
     if (retPkt) return retPkt;
 
     // 5. otherwise, handle the packet normally through the message interface
-    this.routePacket(pkt);
+    this.dispatchPacket(pkt);
   }
 
   /** API: when a client connects to this endpoint, register it as a socket and
@@ -264,27 +264,303 @@ class NetEndpoint {
     LOG(PR, this.uaddr, `timer stopped`);
   }
 
-  /** return true if this endpoint is managing connections */
-  isServer() {
-    return this.client_socks !== undefined && this.remoted_msgs !== undefined;
+  /** client connection handshaking - - - - - - - - - - - - - - - - - - - - **/
+
+  /** API: client endpoints need to have an "address" assigned to them,
+   *  otherwise the endpoint will not work */
+  async connectAsClient(gateway: I_NetSocket, auth: TClientAuth): Promise<NP_Data> {
+    const fn = 'connectAsClient:';
+    if (gateway && typeof gateway.send === 'function') {
+      this.cli_gateway = gateway;
+    } else throw Error(`${fn} invalid gateway`);
+    if (auth) {
+      const pkt = this.newAuthPacket(auth);
+      const { msg } = pkt;
+      // this will be intercepted by _ingestServerPacket and not go through
+      // the normal netcall interface. It leverages the transaction code
+
+      const requestAuth = new Promise((resolve, reject) => {
+        const hash = GetPacketHashString(pkt);
+        if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+        const meta = { msg, uaddr: this.uaddr };
+        this.transactions.set(hash, { resolve, reject, ...meta });
+        try {
+          this.cli_gateway.send(pkt);
+        } catch (err) {
+          reject(err);
+        }
+      });
+      /** MAGIC **/
+      /** await promise, which resolves when server responds to the auth packet */
+      let authData: NP_Data = await requestAuth;
+      /** resumes when handleAuthResponse() resolves the transaction **/
+      /** END MAGIC **/
+
+      // handle authdata
+      const { uaddr, cli_auth, error } = authData;
+      if (error) {
+        LOG(PR, `${fn} error:`, error);
+        return false;
+      }
+      if (!IsValidAddress(uaddr)) throw Error(`${fn} invalid uaddr ${uaddr}`);
+      this.uaddr = uaddr;
+      if (cli_auth === undefined) throw Error(`${fn} invalid cli_auth`);
+      this.cli_auth = cli_auth;
+      LOG(PR, 'AUTHENTICATED', uaddr, cli_auth);
+      this.cli_auth = cli_auth;
+      return authData;
+    }
+    throw Error(`${fn} arg must be identity`);
   }
 
-  /** socket utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
-
-  /** given a socket, see if it's already registered */
-  isNewSocket(socket: I_NetSocket): boolean {
-    const fn = 'isNewSocket:';
-    if (typeof socket !== 'object') return false;
-    return socket.uaddr === undefined;
-  }
-
-  /** client endpoints need to have an authentication token to
-   *  access URNET beyond registration
+  /** API: Client data event handler for incoming data from the gateway. This is
+   *  the mirror to _ingestClientPacket() function that is used by servers. This
+   *  is entry point for incoming data from server
    */
-  authorizeSocket(auth: any) {
-    const fn = 'authorizeSocket:';
-    LOG(PR, this.uaddr, 'would check auth token');
+  _ingestServerPacket(jsonData: any, socket: I_NetSocket): void {
+    const fn = '_ingestServerPacket:';
+    const pkt = this.newPacket().deserialize(jsonData);
+    // 1. is this connection handshaking for clients?
+    if (this.cli_gateway) {
+      // only clients have a defined cli_gateway
+      // these types of packets are never dispatched through the net message
+      // API, and are handled directly by the client endpoint to connect
+      if (this.handleAuthResponse(pkt)) return;
+      if (this.handleRegResponse(pkt)) return;
+    }
+    // 2. otherwise handle the message interface normally
+    this.dispatchPacket(pkt);
   }
+
+  /** API: register client with client endpoint info */
+  async declareClientProperties(info: TClientReg): Promise<NP_Data> {
+    const fn = 'declareClientProperties:';
+    if (!this.cli_gateway) throw Error(`${fn} no gateway`);
+    const pkt = this.newRegPacket();
+    pkt.data = { ...info };
+    const { msg } = pkt;
+    const requestReg = new Promise((resolve, reject) => {
+      const hash = GetPacketHashString(pkt);
+      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+      const meta = { msg, uaddr: this.uaddr };
+      this.transactions.set(hash, { resolve, reject, ...meta });
+      try {
+        this.cli_gateway.send(pkt);
+      } catch (err) {
+        reject(err);
+      }
+    });
+
+    /** MAGIC **/
+    /** suspend through transaction **/
+    let regData: NP_Data = await requestReg;
+    /** resumes when handleAuthResponse() resolves the transaction **/
+    /** END MAGIC **/
+
+    const { ok, status, error } = regData;
+    if (error) {
+      LOG(PR, `${fn} error:`, error);
+      return regData;
+    }
+    if (ok) {
+      LOG(PR, 'REGISTERED', status);
+      this.cli_reg = info; // save registration info
+      return regData;
+    }
+    throw Error(`${fn} unexpected response`, regData);
+  }
+
+  /** API: declare client messages */
+  async declareClientMessages() {
+    const fn = 'declareClientMessages:';
+    const msg_list = this.listNetMessages();
+    const response = await this._declareClientServices({ msg_list });
+    const { msg_list: rmsg_list, error } = response;
+    if (error) {
+      LOG(PR, `${fn} error:`, error);
+    } else {
+      LOG(PR, `DECLARED ${rmsg_list.length} messages`);
+      rmsg_list.forEach(msg => LOG(PR, `  '${msg}'`));
+    }
+    return response;
+  }
+
+  /** message declaration and invocation - - - - - - - - - - - - - - - - - -**/
+
+  /** API: declare a message handler for a given message */
+  addMessageHandler(msg: NP_Msg, handler: HandlerFunc) {
+    const fn = 'addMessageHandler:';
+    // LOG(PR,this.uaddr, `reg handler '${msg}'`);
+    if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
+    if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
+    if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
+    const key = NormalizeMessage(msg);
+    if (!this.handled_msgs.has(key))
+      this.handled_msgs.set(key, new Set<HandlerFunc>());
+    const handler_set = this.handled_msgs.get(key);
+    handler_set.add(handler);
+  }
+
+  /** API: remove a previously declared message handler for a given message */
+  deleteMessageHandler(msg: NP_Msg, handler: HandlerFunc) {
+    const fn = 'deleteMessageHandler:';
+    if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
+    if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
+    const key = NormalizeMessage(msg);
+    const handler_set = this.handled_msgs.get(key);
+    if (!handler_set) throw Error(`${fn} unexpected empty set '${key}'`);
+    handler_set.delete(handler);
+  }
+
+  /** API: call local message registered on this endPoint only */
+  async call(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
+    const fn = 'call:';
+    if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
+    const handlers = this.getMessageHandlers(msg);
+    const promises = [];
+    handlers.forEach(handler => {
+      promises.push(
+        new Promise((resolve, reject) => {
+          try {
+            resolve(handler({ ...data })); // copy of data
+          } catch (err) {
+            reject(err);
+          }
+        })
+      );
+    });
+    if (promises.length === 0)
+      return Promise.resolve({ error: `no handler for '${msg}'` });
+    // wait for all promises to resolve
+    const resData = await Promise.all(promises);
+    return resData;
+  }
+
+  /** API: send local message registered on this endPoint only, returning no data */
+  async send(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
+    const fn = 'send:';
+    if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
+    const handlers = this.getMessageHandlers(msg);
+    if (handlers.length === 0)
+      return Promise.resolve({ error: `no handler for '${msg}'` });
+    handlers.forEach(handler => {
+      handler({ ...data }); // copy of data
+    });
+    return Promise.resolve(true);
+  }
+
+  /** API: signal local message registered on this endPoint only, returning no data.
+   */
+  async signal(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
+    const fn = 'signal:';
+    if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
+    const handlers = this.getMessageHandlers(msg);
+    if (handlers.length === 0)
+      return Promise.resolve({ error: `no handler for '${msg}'` });
+    handlers.forEach(handler => {
+      handler({ ...data }); // copy of data
+    });
+    return Promise.resolve(true);
+  }
+
+  /** API: ping local message, return with number of handlers */
+  async ping(msg: NP_Msg): Promise<NP_Data> {
+    const fn = 'ping:';
+    if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
+    const handlers = this.getMessageHandlers(msg);
+    return Promise.resolve(handlers.length);
+  }
+
+  /** API: call net message, resolves when packet returns from server with data */
+  async netCall(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
+    const fn = 'netCall:';
+    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
+    const pkt = this.newPacket(msg, data);
+    pkt.setMeta('call', {
+      dir: 'req',
+      rsvp: true
+    });
+    const p = new Promise((resolve, reject) => {
+      const hash = GetPacketHashString(pkt);
+      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+      const meta = { msg, uaddr: this.uaddr };
+      this.transactions.set(hash, { resolve, reject, ...meta });
+      try {
+        this.blindSend(pkt);
+      } catch (err) {
+        reject(err);
+      }
+    });
+    let resData = await p;
+    return resData;
+  }
+
+  /** API: send net message, returning promise that will resolve when the server has
+   *  received and processed/forwarded the message */
+  async netSend(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
+    const fn = 'netSend:';
+    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
+    const p = new Promise((resolve, reject) => {
+      const pkt = this.newPacket(msg, data);
+      pkt.setMeta('send', {
+        dir: 'req',
+        rsvp: true
+      });
+      const hash = GetPacketHashString(pkt);
+      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+      const meta = { msg, uaddr: this.uaddr };
+      this.transactions.set(hash, { resolve, reject, ...meta });
+      try {
+        this.blindSend(pkt);
+      } catch (err) {
+        reject(err);
+      }
+    });
+    let resData = await p;
+    return resData;
+  }
+
+  /** API: signal net message, returning void (not promise)
+   *  used for the idea of 'raising signals' as opposed to 'sending data'. It
+   *  resolves immediately when the signal is sent, and does not check with the
+   *  server  */
+  netSignal(msg: NP_Msg, data: NP_Data): void {
+    const fn = 'netSignal:';
+    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
+    const pkt = this.newPacket(msg, data);
+    pkt.setMeta('signal', {
+      dir: 'req',
+      rsvp: false
+    });
+    this.blindSend(pkt);
+  }
+
+  /** API: returns with a list of uaddr from the server which is the uaddr of the
+   *  all clients that have registered for the message */
+  async netPing(msg: NP_Msg): Promise<NP_Data> {
+    const fn = 'netPing:';
+    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
+    const pkt = this.newPacket(msg);
+    pkt.setMeta('ping', {
+      dir: 'req',
+      rsvp: true
+    });
+    const p = new Promise((resolve, reject) => {
+      const hash = GetPacketHashString(pkt);
+      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+      const meta = { msg, uaddr: this.uaddr };
+      this.transactions.set(hash, { resolve, reject, ...meta });
+      try {
+        this.blindSend(pkt);
+      } catch (err) {
+        reject(err);
+      }
+    });
+    let resData = await p;
+    return resData;
+  }
+
+  /** packet utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
 
   /** check the auth field in the packet */
   checkPacketAuthorization(pkt: NetPacket, socket: I_NetSocket): boolean {
@@ -386,170 +662,34 @@ class NetEndpoint {
     return undefined;
   }
 
-  /** client connection handshaking - - - - - - - - - - - - - - - - - - - - **/
-
-  /** Client data event handler for incoming data from the gateway.
-   *  This is the mirror to _ingestClientPacket() function that is used by servers.
-   *  This is entry point for incoming data from server */
-  _ingestServerPacket(jsonData: any, socket: I_NetSocket): void {
-    const fn = '_ingestServerPacket:';
-    const pkt = this.newPacket().deserialize(jsonData);
-    // 1. is this connection handshaking for clients?
-    if (this.cli_gateway) {
-      // only clients have a defined cli_gateway
-      // these types of packets are never dispatched through the net message
-      // API, and are handled directly by the client endpoint to connect
-      if (this.handleAuthResponse(pkt)) return;
-      if (this.handleRegResponse(pkt)) return;
-    }
-    // 2. otherwise handle the message interface normally
-    this.routePacket(pkt);
-  }
-
-  /** client endpoints need to have an "address" assigned to them, otherwise
-   *  the endpoint will not work */
-  async connectAsClient(gateway: I_NetSocket, auth: TClientAuth): Promise<NP_Data> {
-    const fn = 'connectAsClient:';
-    if (gateway && typeof gateway.send === 'function') {
-      this.cli_gateway = gateway;
-    } else throw Error(`${fn} invalid gateway`);
-    if (auth) {
-      const pkt = this.newAuthPacket(auth);
-      const { msg } = pkt;
-      // this will be intercepted by _ingestServerPacket and not go through
-      // the normal netcall interface. It leverages the transaction code
-      const requestAuth = new Promise((resolve, reject) => {
-        const hash = GetPacketHashString(pkt);
-        if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-        const meta = { msg, uaddr: this.uaddr };
-        this.transactions.set(hash, { resolve, reject, ...meta });
-        try {
-          this.cli_gateway.send(pkt);
-        } catch (err) {
-          reject(err);
-        }
-      });
-      /** MAGIC **/
-      /** await promise, which resolves when server responds to the auth packet */
-      let authData: NP_Data = await requestAuth;
-      /** resumes when handleAuthResponse() resolves the transaction **/
-      /** END MAGIC **/
-
-      // handle authdata
-      const { uaddr, cli_auth, error } = authData;
-      if (error) {
-        LOG(PR, `${fn} error:`, error);
-        return false;
-      }
-      if (!IsValidAddress(uaddr)) throw Error(`${fn} invalid uaddr ${uaddr}`);
-      this.uaddr = uaddr;
-      if (cli_auth === undefined) throw Error(`${fn} invalid cli_auth`);
-      this.cli_auth = cli_auth;
-      LOG(PR, 'AUTHENTICATED', uaddr, cli_auth);
-      this.cli_auth = cli_auth;
-      return authData;
-    }
-    throw Error(`${fn} arg must be identity`);
-  }
-
-  /** create an authentication packet, which is the first packet that must be sent
-   *  after connecting to the server */
-  newAuthPacket(authObj: TClientAuth): NetPacket {
-    const pkt = this.newPacket('SRV:AUTH', { ...authObj });
-    pkt.setMeta('_auth', { rsvp: true });
-    pkt.setSrcAddr(UADDR_NONE); // provide null address
-    this.assignPacketId(pkt);
-    return pkt;
-  }
-
   /** handle authentication response packet directly rather than through
-   *  the netcall interface in routePacket() */
+   *  the netcall interface in dispatchPacket() */
   handleAuthResponse(pkt: NetPacket): boolean {
     const fn = 'handleAuthResponse:';
     if (pkt.msg_type !== '_auth') return false;
     if (pkt.hop_dir !== 'res') return false;
-    this.pktResolveRequest(pkt);
+    this.resolveTransaction(pkt);
     // auth resumes in connectAsClient() magical await requestAuth
     return true;
   }
 
-  /** register client with client endpoint info */
-  async registerClient(info: TClientReg): Promise<NP_Data> {
-    const fn = 'registerClient:';
-    if (!this.cli_gateway) throw Error(`${fn} no gateway`);
-    const pkt = this.newRegPacket();
-    pkt.data = { ...info };
-    const { msg } = pkt;
-    const requestReg = new Promise((resolve, reject) => {
-      const hash = GetPacketHashString(pkt);
-      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.uaddr };
-      this.transactions.set(hash, { resolve, reject, ...meta });
-      try {
-        this.cli_gateway.send(pkt);
-      } catch (err) {
-        reject(err);
-      }
-    });
-
-    /** MAGIC **/
-    /** suspend through transaction **/
-    let regData: NP_Data = await requestReg;
-    /** resumes when handleAuthResponse() resolves the transaction **/
-    /** END MAGIC **/
-
-    const { ok, status, error } = regData;
-    if (error) {
-      LOG(PR, `${fn} error:`, error);
-      return regData;
-    }
-    if (ok) {
-      LOG(PR, 'REGISTERED', status);
-      this.cli_reg = info; // save registration info
-      return regData;
-    }
-    throw Error(`${fn} unexpected response`, regData);
-  }
-
-  /** create a registration packet */
-  newRegPacket(): NetPacket {
-    const pkt = this.newPacket('SRV:REG');
-    pkt.setMeta('_reg', { rsvp: true });
-    return pkt;
-  }
-
   /** handle registration response packet directly rather than through
-   *  the netcall interface in routePacket() */
+   *  the netcall interface in dispatchPacket() */
   handleRegResponse(pkt: NetPacket): boolean {
     const fn = 'handleRegResponse:';
     if (pkt.msg_type !== '_reg') return false;
     if (pkt.hop_dir !== 'res') return false;
     if (pkt.src_addr !== this.uaddr) throw Error(`${fn} misaddressed packet???`);
-    // resuming from registerClient() await requestReg
-    this.pktResolveRequest(pkt);
+    // resuming from declareClientProperties() await requestReg
+    this.resolveTransaction(pkt);
     return true;
-  }
-
-  /** declare client messages */
-  async clientDeclare() {
-    const fn = 'clientDeclare:';
-    const msg_list = this.listNetMessages();
-    const response = await this.clientDeclareServices({ msg_list });
-    const { msg_list: rmsg_list, error } = response;
-    if (error) {
-      LOG(PR, `${fn} error:`, error);
-    } else {
-      LOG(PR, `DECLARED ${rmsg_list.length} messages`);
-      rmsg_list.forEach(msg => LOG(PR, `  '${msg}'`));
-    }
-    return response;
   }
 
   /** declare client attributes is a generic declaration packet that can contain
    *  any number of attributes that the client wants to declare to the server.
-   *  for example, see clientDeclare() */
-  async clientDeclareServices(def: TClientDeclare): Promise<NP_Data> {
-    const fn = 'clientDeclareServices:';
+   *  for example, see declareClientMessages() */
+  async _declareClientServices(def: TClientDeclare): Promise<NP_Data> {
+    const fn = '_declareClientServices:';
     if (!this.cli_gateway) throw Error(`${fn} no gateway`);
     const pkt = this.newDeclPacket();
     pkt.data = { ...def };
@@ -578,21 +718,14 @@ class NetEndpoint {
     throw Error(`${fn} unexpected response`, declared);
   }
 
-  /** create a declaration packet shell */
-  newDeclPacket(): NetPacket {
-    const pkt = this.newPacket('SRV:DEF');
-    pkt.setMeta('_decl', { rsvp: true });
-    return pkt;
-  }
-
   /** handle declaration packet */
   handleDeclResponse(pkt: NetPacket): boolean {
     const fn = 'handleDeclResponse:';
     if (pkt.msg_type !== '_decl') return false;
     if (pkt.hop_dir !== 'res') return false;
     if (pkt.src_addr !== this.uaddr) throw Error(`${fn} misaddressed packet???`);
-    // resuming from clientDeclareServices() await requestReg
-    this.pktResolveRequest(pkt);
+    // resuming from _declareClientServices() await requestReg
+    this.resolveTransaction(pkt);
     return true;
   }
 
@@ -625,8 +758,8 @@ class NetEndpoint {
   }
 
   /** get list of UADDRs that a message is forwarded to */
-  getAddressesForMessage(msg: NP_Msg): NP_Address[] {
-    const fn = 'getAddressesForMessage:';
+  getMessageAddresses(msg: NP_Msg): NP_Address[] {
+    const fn = 'getMessageAddresses:';
     if (!this.isServer()) return []; // invalid for client-only endpoints
     if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
     const key = NormalizeMessage(msg);
@@ -638,8 +771,8 @@ class NetEndpoint {
   }
 
   /** return list of local handlers for given message */
-  getHandlersForMessage(msg: NP_Msg): HandlerFunc[] {
-    const fn = 'getHandlersForMessage:';
+  getMessageHandlers(msg: NP_Msg): HandlerFunc[] {
+    const fn = 'getMessageHandlers:';
     if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
     const key = NormalizeMessage(msg);
     if (!this.handled_msgs.has(key))
@@ -690,12 +823,6 @@ class NetEndpoint {
     const fn = 'registerRemoteMessages:';
     if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
     if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
-    this._setRemoteMessages(uaddr, msgList);
-  }
-
-  /** secret utility function for registerRemoteMessages */
-  _setRemoteMessages(uaddr: NP_Address, msgList: NP_Msg[]) {
-    const fn = '_setRemoteMessages:';
     msgList.forEach(msg => {
       if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
       if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
@@ -719,6 +846,316 @@ class NetEndpoint {
       msg_set.delete(uaddr);
     });
     return removed;
+  }
+
+  /** packet interface  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+
+  /** Receive a single packet from the wire, and determine what to do with it.
+   *  It's assumed that _ingestClientPacket() has already handled
+   *  authentication for clients before this method is received.
+   *  The packet has several possible processing options!
+   *  - packet is response to an outgoing transaction
+   *  - packet is a message that we handle
+   *  - packet is a message that we forward
+   *  - packet is unknown message so we return it with error
+   *  If the packet has the rsvp flag set, we need to return
+   *  it to the source address in the packet with any data
+   */
+  async dispatchPacket(pkt: NetPacket): Promise<void> {
+    try {
+      const fn = 'dispatchPacket:';
+
+      // filter out response packets
+      if (pkt.isResponse()) {
+        if (pkt.src_addr === this.uaddr) {
+          // this is a returning packet that originated from this endpoint
+          this.resolveTransaction(pkt);
+        } else {
+          // otherwise, it's a response packet to a downstream client
+          this.returnToSender(pkt);
+        }
+        return; // done processing, so exit
+      }
+
+      // make sure only request packets are processed
+      if (!pkt.isRequest()) {
+        LOG(PR, this.uaddr, fn, `invalid packet`, pkt);
+        return;
+      }
+
+      // handle ping packets
+      if (pkt.msg_type === 'ping') {
+        const pingArr = this.getMessageAddresses(pkt.msg);
+        const pingHandlers = this.getMessageHandlers(pkt.msg);
+        if (pingHandlers.length > 0) pingArr.push(this.uaddr);
+        pkt.setData(pingArr);
+        this.returnToSender(pkt);
+        return;
+      }
+
+      // handle signal packets
+      if (pkt.msg_type === 'signal') {
+        this.blindBroadcast(pkt);
+        return;
+      }
+
+      // handle send and call packets
+      let retData;
+      //
+      if (this.handled_msgs.has(pkt.msg)) {
+        retData = await this.awaitHandlers(pkt);
+      } else if (this.remoted_msgs.has(pkt.msg)) {
+        retData = await this.awaitRemoteHandlers(pkt);
+      } else {
+        LOG(PR, this.uaddr, fn, `unknown message`, pkt);
+        retData = { error: `unknown message '${pkt.msg}'` };
+      }
+
+      // if the packet doesn't have an RSVP flag, then we don't
+      // have to return any data so quit
+      if (!pkt.hasRsvp()) return;
+
+      // otherwise, we need to return the appropriate data
+      // to the callee. ping and signal have already been handled
+      if (pkt.msg_type === 'call') {
+        pkt.data = NormalizeData(retData);
+      } else if (pkt.msg_type === 'send') {
+        pkt.data = true;
+      }
+      // now send the response, eventually
+      this.returnToSender(pkt);
+    } catch (err) {
+      // format the error message to be nicer to read
+      LOG(PR, err.message);
+      LOG(PR, err.stack.split('\n').slice(1).join('\n').trim());
+    }
+  }
+
+  /** Start a transaction, which returns promises to await. This method
+   *  is a queue that uses Promises to wait for the return, which is
+   *  triggered by a returning packet in dispatchPacket(pkt).
+   */
+  async awaitRemoteHandlers(pkt: NetPacket) {
+    const fn = 'awaitRemoteHandlers:';
+    if (pkt.hop_dir !== 'req') throw Error(`${fn} packet is not a request`);
+    // prep for return
+    const { gateway, clients } = this.getRoutingInformation(pkt);
+    const promises = [];
+    if (gateway) {
+      // LOG(PR,_PKT(this, fn, '-wait-req-', pkt), pkt.data);
+      const p = this.awaitTransaction(pkt, gateway);
+      if (p) promises.push(p);
+    }
+    if (Array.isArray(clients)) {
+      // LOG(PR,_PKT(this, fn, '-wait-req-', pkt), pkt.data);
+      clients.forEach(sock => {
+        // LOG(PR,this.uaddr, 'await remote', pkt.msg, sock.uaddr);
+        const p = this.awaitTransaction(pkt, sock);
+        if (p) promises.push(p);
+      });
+    }
+    let data = await Promise.all(promises);
+    if (Array.isArray(data) && data.length === 1) data = data[0];
+    // LOG(PR,_PKT(this, fn, '-retn-req-', pkt), pkt.data);
+    return data;
+  }
+
+  /** Start a handler call, which might have multiple implementors.
+   *  Returns data from all handlers as an array or a single item
+   */
+  async awaitHandlers(pkt: NetPacket) {
+    const fn = 'awaitHandlers:';
+    const { msg } = pkt;
+    const handlers = this.getMessageHandlers(msg);
+    if (handlers.length === 0)
+      return Promise.resolve({ error: `no handler for '${msg}'` });
+    const promises = [];
+    // LOG(PR,_PKT(this, fn, '-wait-hnd-', pkt), pkt.data);
+    handlers.forEach(handler => {
+      promises.push(
+        new Promise((resolve, reject) => {
+          try {
+            resolve(handler({ ...pkt.data })); // copy of data
+          } catch (err) {
+            reject(err);
+          }
+        })
+      );
+    });
+    let data = await Promise.all(promises);
+    if (Array.isArray(data) && data.length === 1) data = data[0];
+    // LOG(PR,_PKT(this, fn, '-retn-hnd-', pkt), pkt.data);
+    return data;
+  }
+
+  /** Send a single packet on all available interfaces based on the
+   *  message. And endpoint can be a client (with gateway) or a server
+   *  (with clients). Use for initial outgoing packets only.
+   */
+  blindSend(pkt: NetPacket) {
+    const fn = 'blindSend:';
+    // sanity checks
+    if (pkt.src_addr === undefined) throw Error(`${fn}src_addr undefined`);
+    if (this.uaddr === undefined) throw Error(`${fn} uaddr undefined`);
+    if (pkt.hop_seq.length !== 0) throw Error(`${fn} pkt must have no hops yet`);
+    if (pkt.msg_type !== 'ping' && pkt.data === undefined)
+      throw Error(`${fn} data undefined`);
+    // prep for sending
+    // LOG(PR,_PKT(this, fn, '-send-req-', pkt), pkt.data);
+    const { gateway, clients } = this.getRoutingInformation(pkt);
+    // send on the wire
+    pkt.addHop(this.uaddr);
+    if (gateway) {
+      if (this.cli_reg === undefined) throw Error(`${fn} endpoint not registered`);
+      gateway.send(pkt);
+    }
+    if (Array.isArray(clients)) {
+      clients.forEach(sock => sock.send(pkt));
+    }
+  }
+
+  /** Used to forward a transaction from server to a remote client
+   */
+  awaitTransaction(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
+    const clone = this.clonePacket(pkt);
+    clone.id = this.assignPacketId(clone);
+    return this._queueTransaction(clone, sock);
+  }
+
+  /** Used to resolve a forwarded transaction received by server from
+   *  a remote client
+   */
+  resolveTransaction(pkt: NetPacket) {
+    const fn = 'resolveTransaction:';
+    // LOG(PR,this.uaddr, 'resolving', pkt.msg);
+    if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
+    if (pkt.hop_dir !== 'res') throw Error(`${fn} packet is not a response`);
+    if (pkt.hop_seq.length < 2 && !pkt.isSpecialPkt())
+      throw Error(`${fn} packet has no hops`);
+    this._dequeueTransaction(pkt);
+  }
+
+  /** utility method for conducting transactions */
+  _queueTransaction(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
+    const fn = '_queueTransaction:';
+    const hash = GetPacketHashString(pkt);
+    if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+    const { src_addr } = pkt;
+    const { uaddr: dst_addr } = sock;
+    // LOG(PR,`${pkt.msg} dst:${dst_addr} src:${src_addr}`);
+    // for send and call packets, do not send to origin
+    if (src_addr === dst_addr && SkipOriginType(pkt.msg_type)) {
+      // LOG(PR,`.. skipping reflect '${pkt.msg}' to ${dst_addr}==${src_addr}`);
+      return undefined;
+    }
+    // otherwise Promise
+    const p = new Promise((resolve, reject) => {
+      const meta = { msg: pkt.msg, uaddr: pkt.src_addr };
+      this.transactions.set(hash, { resolve, reject, ...meta });
+      sock.send(pkt);
+    });
+    return p;
+  }
+
+  /** utility method for completing transactions */
+  _dequeueTransaction(pkt: NetPacket) {
+    const fn = '_finishTransaction:';
+    const hash = GetPacketHashString(pkt);
+    const resolver = this.transactions.get(hash);
+    if (!resolver) throw Error(`${fn} no resolver for hash ${hash}`);
+    const { resolve, reject } = resolver;
+    const { data } = pkt;
+    // LOG(PR,_PKT(this, fn, '-recv-res-', pkt), pkt.data);
+    if (pkt.err) reject(pkt.err);
+    else resolve(data);
+    this.transactions.delete(hash);
+  }
+
+  /** Return a packet to its source address. If this endpoint is a server,
+   *  then it might have the socket stored. Otherwise, if this endpoint is
+   *  also a client of another server, pass the back through the gateway.
+   *  This is used by server endpoints to return packets to clients.
+   */
+  returnToSender(pkt: NetPacket) {
+    const fn = 'returnToSender:';
+    // check for validity
+    if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
+    if (pkt.hop_seq.length < 1) throw Error(`${fn} packet has no hops`);
+    // prep for return
+    pkt.setDir('res');
+    pkt.addHop(this.uaddr);
+    // LOG(PR,_PKT(this, fn, '-send-res-', pkt), pkt.data);
+    const { gateway, src_addr } = this.getRoutingInformation(pkt);
+    if (this.isServer()) {
+      // LOG(PR,this.uaddr, 'returning to', src_addr);
+      const socket = this.getClient(src_addr);
+      if (socket) socket.send(pkt);
+      // responses go to a single address; if we found it here,
+      // then we're done
+      return;
+    }
+    // if we have a gateway, pass the buck onward and let it
+    // find the client
+    if (gateway) {
+      gateway.send(pkt);
+      return;
+    }
+    LOG(PR, `${fn} unroutable packet`, pkt);
+  }
+
+  /** broadcast a received signal packet to everyone, even the
+   *  sender. This is used by endpoints to broadcast signals
+   */
+  blindBroadcast(pkt: NetPacket) {
+    const fn = 'blindBroadcast:';
+    // check for validity
+    if (pkt.hop_rsvp !== false) throw Error(`${fn} packet is RSVP`);
+    if (pkt.hop_seq.length < 1) throw Error(`${fn} packet has no hops`);
+    // want to broadcast to everyone
+    pkt.addHop(this.uaddr);
+    const { gateway, clients } = this.getRoutingInformation(pkt);
+    if (gateway) {
+      const clone = this.clonePacket(pkt);
+      clone.id = this.assignPacketId(clone);
+      LOG(PR, _PKT(this, fn, '-signal-gatewat-', clone), clone.data);
+      gateway.send(clone);
+    }
+    if (Array.isArray(clients)) {
+      // LOG(PR,_PKT(this, fn, '-wait-req-', pkt), pkt.data);
+      clients.forEach(sock => {
+        const clone = this.clonePacket(pkt);
+        clone.id = this.assignPacketId(clone);
+        LOG(PR, _PKT(this, fn, '-signal-client-', clone), clone.data);
+        sock.send(clone);
+      });
+    }
+  }
+
+  /** return array of sockets to use for sending packet,
+   *  based on pkt.msg and pkt.src_addr
+   */
+  getRoutingInformation(pkt: NetPacket): PktRoutingInfo {
+    const fn = 'getRoutingInformation:';
+    const { msg, src_addr } = pkt;
+    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' is invalid message`);
+    // check if there's a gateway first and add it
+    const gateway = this.cli_gateway;
+    const self_addr = this.uaddr;
+    // check if we're a server
+    const msg_list = this.getMessageAddresses(msg);
+    const clients = [];
+    msg_list.forEach(uaddr => {
+      if (uaddr === this.uaddr) return; // skip self
+      const socket = this.getClient(uaddr);
+      if (socket) clients.push(socket);
+    });
+    return {
+      msg,
+      src_addr,
+      self_addr,
+      gateway,
+      clients
+    };
   }
 
   /** packet utility - - - - - - - - - - - - - - - - - - - - - - - - - - - -**/
@@ -756,485 +1193,51 @@ class NetEndpoint {
     return clone;
   }
 
-  /** message declaration and invocation - - - - - - - - - - - - - - - - - -**/
-
-  /** declare a message handler for a given message */
-  registerMessage(msg: NP_Msg, handler: HandlerFunc) {
-    const fn = 'registerMessage:';
-    // LOG(PR,this.uaddr, `reg handler '${msg}'`);
-    if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
-    if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
-    if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
-    const key = NormalizeMessage(msg);
-    if (!this.handled_msgs.has(key))
-      this.handled_msgs.set(key, new Set<HandlerFunc>());
-    const handler_set = this.handled_msgs.get(key);
-    handler_set.add(handler);
+  /** create an authentication packet, which is the first packet that must be sent
+   *  after connecting to the server */
+  newAuthPacket(authObj: TClientAuth): NetPacket {
+    const pkt = this.newPacket('SRV:AUTH', { ...authObj });
+    pkt.setMeta('_auth', { rsvp: true });
+    pkt.setSrcAddr(UADDR_NONE); // provide null address
+    this.assignPacketId(pkt);
+    return pkt;
+  }
+  /** create a registration packet */
+  newRegPacket(): NetPacket {
+    const pkt = this.newPacket('SRV:REG');
+    pkt.setMeta('_reg', { rsvp: true });
+    return pkt;
   }
 
-  /** remove a previously declared message handler for a given message */
-  removeMessage(msg: NP_Msg, handler: HandlerFunc) {
-    const fn = 'removeMessage:';
-    if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
-    if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
-    const key = NormalizeMessage(msg);
-    const handler_set = this.handled_msgs.get(key);
-    if (!handler_set) throw Error(`${fn} unexpected empty set '${key}'`);
-    handler_set.delete(handler);
+  /** create a declaration packet shell */
+  newDeclPacket(): NetPacket {
+    const pkt = this.newPacket('SRV:DEF');
+    pkt.setMeta('_decl', { rsvp: true });
+    return pkt;
   }
 
-  /** call local message registered on this endPoint only */
-  async call(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
-    const fn = 'call:';
-    if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
-    const handlers = this.getHandlersForMessage(msg);
-    const promises = [];
-    handlers.forEach(handler => {
-      promises.push(
-        new Promise((resolve, reject) => {
-          try {
-            resolve(handler({ ...data })); // copy of data
-          } catch (err) {
-            reject(err);
-          }
-        })
-      );
-    });
-    if (promises.length === 0)
-      return Promise.resolve({ error: `no handler for '${msg}'` });
-    // wait for all promises to resolve
-    const resData = await Promise.all(promises);
-    return resData;
+  /** environment utilities - - - - - - - - - - - - - - - - - - - - - - - - **/
+
+  /** return true if this endpoint is managing connections */
+  isServer() {
+    return this.client_socks !== undefined && this.remoted_msgs !== undefined;
   }
 
-  /** send local message registered on this endPoint only, returning no data */
-  async send(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
-    const fn = 'send:';
-    if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
-    const handlers = this.getHandlersForMessage(msg);
-    if (handlers.length === 0)
-      return Promise.resolve({ error: `no handler for '${msg}'` });
-    handlers.forEach(handler => {
-      handler({ ...data }); // copy of data
-    });
-    return Promise.resolve(true);
+  /** socket utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+
+  /** given a socket, see if it's already registered */
+  isNewSocket(socket: I_NetSocket): boolean {
+    const fn = 'isNewSocket:';
+    if (typeof socket !== 'object') return false;
+    return socket.uaddr === undefined;
   }
 
-  /** signal local message registered on this endPoint only, returning no data.
+  /** client endpoints need to have an authentication token to
+   *  access URNET beyond registration
    */
-  async signal(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
-    const fn = 'signal:';
-    if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
-    const handlers = this.getHandlersForMessage(msg);
-    if (handlers.length === 0)
-      return Promise.resolve({ error: `no handler for '${msg}'` });
-    handlers.forEach(handler => {
-      handler({ ...data }); // copy of data
-    });
-    return Promise.resolve(true);
-  }
-
-  /** ping local message, return with number of handlers */
-  async ping(msg: NP_Msg): Promise<NP_Data> {
-    const fn = 'ping:';
-    if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
-    const handlers = this.getHandlersForMessage(msg);
-    return Promise.resolve(handlers.length);
-  }
-
-  /** call net message, resolves when packet returns from server with data */
-  async netCall(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
-    const fn = 'netCall:';
-    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
-    const pkt = this.newPacket(msg, data);
-    pkt.setMeta('call', {
-      dir: 'req',
-      rsvp: true
-    });
-    const p = new Promise((resolve, reject) => {
-      const hash = GetPacketHashString(pkt);
-      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.uaddr };
-      this.transactions.set(hash, { resolve, reject, ...meta });
-      try {
-        this.pktSendRequest(pkt);
-      } catch (err) {
-        reject(err);
-      }
-    });
-    let resData = await p;
-    return resData;
-  }
-
-  /** send net message, returning promise that will resolve when the server has
-   *  received and processed/forwarded the message */
-  async netSend(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
-    const fn = 'netSend:';
-    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
-    const p = new Promise((resolve, reject) => {
-      const pkt = this.newPacket(msg, data);
-      pkt.setMeta('send', {
-        dir: 'req',
-        rsvp: true
-      });
-      const hash = GetPacketHashString(pkt);
-      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.uaddr };
-      this.transactions.set(hash, { resolve, reject, ...meta });
-      try {
-        this.pktSendRequest(pkt);
-      } catch (err) {
-        reject(err);
-      }
-    });
-    let resData = await p;
-    return resData;
-  }
-
-  /** signal net message, returning void (not promise)
-   *  used for the idea of 'raising signals' as opposed to 'sending data'. It
-   *  resolves immediately when the signal is sent, and does not check with the
-   *  server  */
-  netSignal(msg: NP_Msg, data: NP_Data): void {
-    const fn = 'netSignal:';
-    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
-    const pkt = this.newPacket(msg, data);
-    pkt.setMeta('signal', {
-      dir: 'req',
-      rsvp: false
-    });
-    this.pktSendRequest(pkt);
-  }
-
-  /** returns with a list of uaddr from the server which is the uaddr of the
-   *  all clients that have registered for the message */
-  async netPing(msg: NP_Msg): Promise<NP_Data> {
-    const fn = 'netPing:';
-    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
-    const pkt = this.newPacket(msg);
-    pkt.setMeta('ping', {
-      dir: 'req',
-      rsvp: true
-    });
-    const p = new Promise((resolve, reject) => {
-      const hash = GetPacketHashString(pkt);
-      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.uaddr };
-      this.transactions.set(hash, { resolve, reject, ...meta });
-      try {
-        this.pktSendRequest(pkt);
-      } catch (err) {
-        reject(err);
-      }
-    });
-    let resData = await p;
-    return resData;
-  }
-
-  /** packet interface  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
-
-  /** Receive a single packet from the wire, and determine what to do with it.
-   *  It's assumed that _ingestClientPacket() has already handled
-   *  authentication for clients before this method is received.
-   *  The packet has several possible processing options!
-   *  - packet is response to an outgoing transaction
-   *  - packet is a message that we handle
-   *  - packet is a message that we forward
-   *  - packet is unknown message so we return it with error
-   *  If the packet has the rsvp flag set, we need to return
-   *  it to the source address in the packet with any data
-   */
-  async routePacket(pkt: NetPacket): Promise<void> {
-    try {
-      const fn = 'routePacket:';
-      // is this a response to a transaction?
-      if (pkt.isResponse()) {
-        if (pkt.src_addr === this.uaddr) this.pktResolveRequest(pkt);
-        else this.pktSendResponse(pkt);
-        return;
-      }
-      // make sure if it's not a response, then it's a request
-      if (!pkt.isRequest()) {
-        LOG(PR, this.uaddr, fn, `invalid packet`, pkt);
-        return;
-      }
-
-      // if it's a ping, we just want to return number of
-      // messages this server knows about.
-      if (pkt.msg_type === 'ping') {
-        const pingArr = this.getAddressesForMessage(pkt.msg);
-        const pingHandlers = this.getHandlersForMessage(pkt.msg);
-        if (pingHandlers.length > 0) pingArr.push(this.uaddr);
-        pkt.setData(pingArr);
-        this.pktSendResponse(pkt);
-        return;
-      }
-      // if it's a signal, this is not an rsvp, but log it for
-      // internal debug purposes (doesn't affect function)
-      if (pkt.msg_type === 'signal') {
-        this.pktForward(pkt);
-        return;
-      }
-      // check to see if there are any handlers defined in this
-      // endpoint to process stuff. It first checks for client-side
-      // message handlers, and then if there are none it checks for
-      // server-defined handlers.
-      // the behavior is different on servers (which also implement
-      // a client) versus pure clients.
-      const { msg } = pkt;
-      let retData;
-      if (this.handled_msgs.has(msg)) {
-        retData = await this.pktAwaitHandlers(pkt);
-      } else if (this.remoted_msgs.has(msg)) {
-        retData = await this.pktAwaitRequest(pkt);
-      } else {
-        LOG(PR, this.uaddr, fn, `unknown message '${msg}'`, pkt);
-        retData = { error: `unknown message '${msg}'` };
-      }
-
-      // if none of the above fired, then there were no handlers
-      // on this instance of endpoint, so we have to send it
-      // elsewhere. First,
-      if (!pkt.isRsvp()) return;
-
-      // remember at this point, we're still handling a
-      // request packet. We already handled response
-      // packets at the very top,
-
-      // if this request isn't a call, then there
-      // is no data to return. This is the case for
-      // for signal, send, ping.
-      if (pkt.msg_type !== 'call') pkt.data = true;
-      else {
-        retData = NormalizeData(retData);
-        pkt.setData(retData);
-      }
-      // now send the response, eventually
-      this.pktSendResponse(pkt);
-    } catch (err) {
-      // format the error message to be nicer to read
-      LOG(PR, err.message);
-      LOG(PR, err.stack.split('\n').slice(1).join('\n').trim());
-    }
-  }
-
-  /** Send a single packet on all available interfaces based on the
-   *  message. And endpoint can be a client (with gateway) or a server
-   *  (with clients). Use for initial outgoing packets only.
-   */
-  pktSendRequest(pkt: NetPacket) {
-    const fn = 'pktSendRequest:';
-    // sanity checks
-    if (pkt.src_addr === undefined) throw Error(`${fn}src_addr undefined`);
-    if (this.uaddr === undefined) throw Error(`${fn} uaddr undefined`);
-    if (pkt.hop_seq.length !== 0) throw Error(`${fn} pkt must have no hops yet`);
-    if (pkt.msg_type !== 'ping' && pkt.data === undefined)
-      throw Error(`${fn} data undefined`);
-    // prep for sending
-    // LOG(PR,_PKT(this, fn, '-send-req-', pkt), pkt.data);
-    const { gateway, clients } = this.pktGetSocketRouting(pkt);
-    // send on the wire
-    pkt.addHop(this.uaddr);
-    if (gateway) {
-      if (this.cli_reg === undefined) throw Error(`${fn} endpoint not registered`);
-      gateway.send(pkt);
-    }
-    if (Array.isArray(clients)) {
-      clients.forEach(sock => sock.send(pkt));
-    }
-  }
-
-  /** Given a packet and a socket, clone it and then return a
-   *  promise that sends it out on all network interfaces. This
-   *  is used by server endpoints as a utility to send a clone
-   *  packet on a particular socket to a particular address.
-   */
-  pktQueueRequest(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
-    const fn = 'pktQueueRequest:';
-    const clone = this.clonePacket(pkt);
-    clone.id = this.assignPacketId(clone);
-    const hash = GetPacketHashString(clone);
-    if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-    const { src_addr } = pkt;
-    const { uaddr: dst_addr } = sock;
-    // LOG(PR,`${pkt.msg} dst:${dst_addr} src:${src_addr}`);
-    // for send and call packets, do not send to origin
-    if (src_addr === dst_addr && SkipOriginType(pkt.msg_type)) {
-      // LOG(PR,`.. skipping reflect '${pkt.msg}' to ${dst_addr}==${src_addr}`);
-      return undefined;
-    }
-    // otherwise Promise
-    const p = new Promise((resolve, reject) => {
-      const meta = { msg: pkt.msg, uaddr: pkt.src_addr };
-      this.transactions.set(hash, { resolve, reject, ...meta });
-      sock.send(clone);
-    });
-    return p;
-  }
-
-  /** Resolve a transaction when a packet is returned to it through
-   *  routePacket(pkt) which determines that it is a returning transaction
-   */
-  pktResolveRequest(pkt: NetPacket) {
-    const fn = 'pktResolveRequest:';
-    // LOG(PR,this.uaddr, 'resolving', pkt.msg);
-    if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
-    if (pkt.hop_dir !== 'res') throw Error(`${fn} packet is not a response`);
-    if (pkt.hop_seq.length < 2 && !pkt.isSpecialPkt())
-      throw Error(`${fn} packet has no hops`);
-    const hash = GetPacketHashString(pkt);
-    const resolver = this.transactions.get(hash);
-    if (!resolver) throw Error(`${fn} no resolver for hash ${hash}`);
-    const { resolve, reject } = resolver;
-    const { data } = pkt;
-    // LOG(PR,_PKT(this, fn, '-recv-res-', pkt), pkt.data);
-    if (pkt.err) reject(pkt.err);
-    else resolve(data);
-    this.transactions.delete(hash);
-  }
-
-  /** Return a packet to its source address. If this endpoint is a server,
-   *  then it might have the socket stored. Otherwise, if this endpoint is
-   *  also a client of another server, pass the back through the gateway.
-   *  This is used by server endpoints to return packets to clients.
-   */
-  pktSendResponse(pkt: NetPacket) {
-    const fn = 'pktSendResponse:';
-    // check for validity
-    if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
-    if (pkt.hop_seq.length < 1) throw Error(`${fn} packet has no hops`);
-    // prep for return
-    pkt.setDir('res');
-    pkt.addHop(this.uaddr);
-    // LOG(PR,_PKT(this, fn, '-send-res-', pkt), pkt.data);
-    const { gateway, src_addr } = this.pktGetSocketRouting(pkt);
-    if (this.isServer()) {
-      // LOG(PR,this.uaddr, 'returning to', src_addr);
-      const socket = this.getClient(src_addr);
-      if (socket) socket.send(pkt);
-      // responses go to a single address; if we found it here,
-      // then we're done
-      return;
-    }
-    // if we have a gateway, pass the buck onward and let it
-    // find the client
-    if (gateway) {
-      gateway.send(pkt);
-      return;
-    }
-    LOG(PR, `${fn} unroutable packet`, pkt);
-  }
-
-  /** broadcast a received signal packet to everyone, even the
-   *  sender. This is used by endpoints to broadcast signals
-   */
-  pktForward(pkt: NetPacket) {
-    const fn = 'pktForward:';
-    // check for validity
-    if (pkt.hop_rsvp !== false) throw Error(`${fn} packet is RSVP`);
-    if (pkt.hop_seq.length < 1) throw Error(`${fn} packet has no hops`);
-    // want to broadcast to everyone
-    pkt.addHop(this.uaddr);
-    const { gateway, clients } = this.pktGetSocketRouting(pkt);
-    if (gateway) {
-      const clone = this.clonePacket(pkt);
-      clone.id = this.assignPacketId(clone);
-      LOG(PR, _PKT(this, fn, '-signal-gatewat-', clone), clone.data);
-      gateway.send(clone);
-    }
-    if (Array.isArray(clients)) {
-      // LOG(PR,_PKT(this, fn, '-wait-req-', pkt), pkt.data);
-      clients.forEach(sock => {
-        const clone = this.clonePacket(pkt);
-        clone.id = this.assignPacketId(clone);
-        LOG(PR, _PKT(this, fn, '-signal-client-', clone), clone.data);
-        sock.send(clone);
-      });
-    }
-  }
-
-  /** Start a transaction, which returns promises to await. This method
-   *  is a queue that uses Promises to wait for the return, which is
-   *  triggered by a returning packet in routePacket(pkt).
-   */
-  async pktAwaitRequest(pkt: NetPacket) {
-    const fn = 'pktAwaitRequest:';
-    if (pkt.hop_dir !== 'req') throw Error(`${fn} packet is not a request`);
-    // prep for return
-    const { gateway, clients } = this.pktGetSocketRouting(pkt);
-    const promises = [];
-    if (gateway) {
-      // LOG(PR,_PKT(this, fn, '-wait-req-', pkt), pkt.data);
-      const p = this.pktQueueRequest(pkt, gateway);
-      if (p) promises.push(p);
-    }
-    if (Array.isArray(clients)) {
-      // LOG(PR,_PKT(this, fn, '-wait-req-', pkt), pkt.data);
-      clients.forEach(sock => {
-        // LOG(PR,this.uaddr, 'await remote', pkt.msg, sock.uaddr);
-        const p = this.pktQueueRequest(pkt, sock);
-        if (p) promises.push(p);
-      });
-    }
-    let data = await Promise.all(promises);
-    if (Array.isArray(data) && data.length === 1) data = data[0];
-    // LOG(PR,_PKT(this, fn, '-retn-req-', pkt), pkt.data);
-    return data;
-  }
-
-  /** Start a handler call, which might have multiple implementors.
-   *  Returns data from all handlers as an array or a single item
-   */
-  async pktAwaitHandlers(pkt: NetPacket) {
-    const fn = 'pktAwaitHandlers:';
-    const { msg } = pkt;
-    const handlers = this.getHandlersForMessage(msg);
-    if (handlers.length === 0)
-      return Promise.resolve({ error: `no handler for '${msg}'` });
-    const promises = [];
-    // LOG(PR,_PKT(this, fn, '-wait-hnd-', pkt), pkt.data);
-    handlers.forEach(handler => {
-      promises.push(
-        new Promise((resolve, reject) => {
-          try {
-            resolve(handler({ ...pkt.data })); // copy of data
-          } catch (err) {
-            reject(err);
-          }
-        })
-      );
-    });
-    let data = await Promise.all(promises);
-    if (Array.isArray(data) && data.length === 1) data = data[0];
-    // LOG(PR,_PKT(this, fn, '-retn-hnd-', pkt), pkt.data);
-    return data;
-  }
-
-  /** return array of sockets to use for sending packet,
-   *  based on pkt.msg and pkt.src_addr
-   */
-  pktGetSocketRouting(pkt: NetPacket): PktRoutingInfo {
-    const fn = 'pktGetSocketRouting:';
-    const { msg, src_addr } = pkt;
-    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' is invalid message`);
-    // check if there's a gateway first and add it
-    const gateway = this.cli_gateway;
-    const self_addr = this.uaddr;
-    // check if we're a server
-    const msg_list = this.getAddressesForMessage(msg);
-    const clients = [];
-    msg_list.forEach(uaddr => {
-      if (uaddr === this.uaddr) return; // skip self
-      const socket = this.getClient(uaddr);
-      if (socket) clients.push(socket);
-    });
-    return {
-      msg,
-      src_addr,
-      self_addr,
-      gateway,
-      clients
-    };
+  authorizeSocket(auth: any) {
+    const fn = 'authorizeSocket:';
+    LOG(PR, this.uaddr, 'would check auth token');
   }
 } // end NetEndpoint class
 

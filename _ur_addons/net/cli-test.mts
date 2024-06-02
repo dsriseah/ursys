@@ -37,12 +37,12 @@ async function RunLocalTests() {
 
     const ep = new NetEndpoint();
 
-    ep.registerMessage('FOO', async data => {
+    ep.addMessageHandler('FOO', async data => {
       LOG('FOO handler called, returned data: ', data);
       data.one = 1;
       return data;
     });
-    ep.registerMessage('FOO', async data => {
+    ep.addMessageHandler('FOO', async data => {
       LOG('FOO handler 2 called, returned data: ', data);
       data.two = 2;
       return data;
@@ -88,13 +88,13 @@ function RunPacketLoopbackTests() {
 
     const ep = new NetEndpoint();
 
-    ep.registerMessage('BAR', async data => {
+    ep.addMessageHandler('BAR', async data => {
       data.result = data.result || [];
       data.result.push('one');
       LOG('BAR handler called, returned data: ', data);
       return data;
     });
-    ep.registerMessage('BAR', async data => {
+    ep.addMessageHandler('BAR', async data => {
       data.result = data.result || [];
       data.result.push('two');
       LOG('BAR handler called, returned data: ', data);
@@ -126,12 +126,12 @@ async function RunPacketTests() {
     const netMsg = `NET:${name}`;
     const msg = name;
     //
-    ep.registerMessage(netMsg, data => {
+    ep.addMessageHandler(netMsg, data => {
       data[name] = `'${netMsg}' succeeded`;
       LOG.info(`'${netMsg}' handler called, returned data: `, data);
       return data;
     });
-    ep.registerMessage(msg, data => {
+    ep.addMessageHandler(msg, data => {
       data[name] = `'${msg}' succeeded`;
       LOG.info(`'${msg}' handler called, returned data: `, data);
       return data;
@@ -150,7 +150,7 @@ async function RunPacketTests() {
   async function PT_AddClient(name, host: T_Endpoint, gateway: I_NetSocket) {
     const client: T_Endpoint = new NetEndpoint();
     const sock = {
-      send: (pkt: T_Packet) => client.routePacket(pkt),
+      send: (pkt: T_Packet) => client.dispatchPacket(pkt),
       close: () => LOG('client gateway closed')
     };
     const addr = host.addClient(sock);
@@ -161,7 +161,7 @@ async function RunPacketTests() {
     client.uaddr = addr; // hack to set the address
     const authData = await client.connectAsClient(gateway, auth);
     const info = { name: 'UDSClient', type: 'client' };
-    const regdata = await client.registerClient(info);
+    const regdata = await client.declareClientProperties(info);
     PT_Register(name, client);
     host.registerRemoteMessages(addr, client.listNetMessages());
     return client;
@@ -173,7 +173,7 @@ async function RunPacketTests() {
     // create endpoint handler for server
     const host = PT_AddServer('server');
     const client_gateway = {
-      send: (pkt: T_Packet) => host.routePacket(pkt),
+      send: (pkt: T_Packet) => host.dispatchPacket(pkt),
       close: () => LOG('client gateway closed')
     };
 

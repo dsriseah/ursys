@@ -46,7 +46,7 @@ EP.configAsServer('SRV02'); // hardcode arbitrary client_link address
 /// HELPERS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function WSS_RegisterServices() {
-  EP.registerMessage('SRV:MYSERVER', data => {
+  EP.addMessageHandler('SRV:MYSERVER', data => {
     return { memo: `defined in ${m_script}.RegisterServices` };
   });
   // note that default services are also registered in Endpoint

@@ -63,8 +63,8 @@ function Connect(): Promise<boolean> {
       }
       // 3. register client with server
       const info = { name: 'UDSClient', type: 'client' };
-      const regdata = await EP.registerClient(info);
-      if (DBG) LOG(...PR('EP.registerClient returned', regdata));
+      const regdata = await EP.declareClientProperties(info);
+      if (DBG) LOG(...PR('EP.declareClientProperties returned', regdata));
       if (regdata.error) {
         console.error(regdata.error);
         resolve(false);
@@ -82,7 +82,7 @@ function Connect(): Promise<boolean> {
 async function RegisterMessages() {
   const EP_UADDR = EP.uaddr;
   //
-  EP.registerMessage('NET:CLIENT_TEST_CHAT', data => {
+  EP.addMessageHandler('NET:CLIENT_TEST_CHAT', data => {
     const { message, uaddr } = data;
     const chatWindow = document.getElementById('chat-history');
     const chatMessage = document.createElement('div');
@@ -90,19 +90,19 @@ async function RegisterMessages() {
     chatWindow.appendChild(chatMessage);
   });
   //
-  EP.registerMessage('NET:HOT_RELOAD_APP', data => {
+  EP.addMessageHandler('NET:HOT_RELOAD_APP', data => {
     LOG(...PR(`HOT_RELOAD_APP`));
     window.location.reload();
   });
   //
-  EP.registerMessage('NET:CLIENT_TEST', data => {
+  EP.addMessageHandler('NET:CLIENT_TEST', data => {
     LOG(...PR(`CLIENT_TEST ${EP_UADDR} received`, data));
     const { uaddr } = data;
     return { status: `CLIENT_TEST ${EP_UADDR} responding to ${uaddr}` };
   });
   //
-  const resdata = await EP.clientDeclare();
-  if (DBG) LOG(...PR('EP.clientDeclare returned', resdata));
+  const resdata = await EP.declareClientMessages();
+  if (DBG) LOG(...PR('EP.declareClientMessages returned', resdata));
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Disconnect(seconds = 360) {
