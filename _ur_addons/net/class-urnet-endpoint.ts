@@ -114,8 +114,8 @@ class NetEndpoint {
   //
   cli_gateway: I_NetSocket; // gateway to server
   srv_socks: SocketMap; // uaddr->I_NetSocket
-  remote_msgs: ForwardMap; // msg->uaddr[]
-  msg_handlers: HandlerMap; // msg->handlers[]
+  remoted_msgs: ForwardMap; // msg->uaddr[]
+  handled_msgs: HandlerMap; // msg->handlers[]
   transactions: TransactionMap; // hash->resolver
   //
   cli_counter: number; // counter for generating unique uaddr
@@ -136,9 +136,9 @@ class NetEndpoint {
     this.cli_gateway = undefined; // client gateway
     // endpoint as server
     this.srv_socks = undefined;
-    this.remote_msgs = undefined;
+    this.remoted_msgs = undefined;
     // endpoint message handling support
-    this.msg_handlers = new Map<NP_Msg, HandlerSet>();
+    this.handled_msgs = new Map<NP_Msg, HandlerSet>();
     this.transactions = new Map<NP_Hash, PktResolver>();
     // runtime packet, socket counters
     this.pkt_counter = 0;
@@ -164,9 +164,9 @@ class NetEndpoint {
     if (this.srv_socks !== undefined)
       LOG(PR, this.urnet_addr, `already configured`, [...this.srv_socks.keys()]);
     this.srv_socks = new Map<NP_Address, I_NetSocket>();
-    if (this.remote_msgs !== undefined)
-      LOG(PR, this.urnet_addr, `already configured`, [...this.remote_msgs.keys()]);
-    this.remote_msgs = new Map<NP_Msg, AddressSet>();
+    if (this.remoted_msgs !== undefined)
+      LOG(PR, this.urnet_addr, `already configured`, [...this.remoted_msgs.keys()]);
+    this.remoted_msgs = new Map<NP_Msg, AddressSet>();
     // add default service message handlers here
     this.registerMessage('SRV:REFLECT', data => {
       data.info = `built-in service`;
@@ -176,7 +176,7 @@ class NetEndpoint {
 
   /** return true if this endpoint is managing connections */
   isServer() {
-    return this.srv_socks !== undefined && this.remote_msgs !== undefined;
+    return this.srv_socks !== undefined && this.remoted_msgs !== undefined;
   }
 
   /** socket utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
@@ -369,7 +369,7 @@ class NetEndpoint {
       return undefined;
     }
     if (!this.srv_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
-    // remote_msgs is msg->set of uaddr, so iterate over all messages
+    // remoted_msgs is msg->set of uaddr, so iterate over all messages
     this._delRemoteMessages(uaddr);
     // delete the socket
     this.srv_socks.delete(uaddr);
@@ -628,9 +628,9 @@ class NetEndpoint {
     if (!this.isServer()) return []; // invalid for client-only endpoints
     if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
     if (!this.srv_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
-    // remote_msgs is msg->set of uaddr, so iterate over all messages
+    // remoted_msgs is msg->set of uaddr, so iterate over all messages
     const msg_list: NP_Msg[] = [];
-    this.remote_msgs.forEach((addr_set, msg) => {
+    this.remoted_msgs.forEach((addr_set, msg) => {
       if (addr_set.has(uaddr)) msg_list.push(msg);
     });
     return msg_list;
@@ -642,8 +642,9 @@ class NetEndpoint {
     if (!this.isServer()) return []; // invalid for client-only endpoints
     if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
     const key = NormalizeMessage(msg);
-    if (!this.remote_msgs.has(key)) this.remote_msgs.set(key, new Set<NP_Address>());
-    const addr_set = this.remote_msgs.get(key);
+    if (!this.remoted_msgs.has(key))
+      this.remoted_msgs.set(key, new Set<NP_Address>());
+    const addr_set = this.remoted_msgs.get(key);
     const addr_list = Array.from(addr_set);
     return addr_list;
   }
@@ -653,9 +654,9 @@ class NetEndpoint {
     const fn = 'getHandlersForMessage:';
     if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
     const key = NormalizeMessage(msg);
-    if (!this.msg_handlers.has(key))
-      this.msg_handlers.set(key, new Set<HandlerFunc>());
-    const handler_set = this.msg_handlers.get(key);
+    if (!this.handled_msgs.has(key))
+      this.handled_msgs.set(key, new Set<HandlerFunc>());
+    const handler_set = this.handled_msgs.get(key);
     if (!handler_set) throw Error(`${fn} unexpected empty set '${key}'`);
     const handler_list = Array.from(handler_set);
     return handler_list;
@@ -665,9 +666,9 @@ class NetEndpoint {
 
   /** return handler list for this endpoint */
   listMessages(): NP_Msg[] {
-    // get message keys from msg_handlers
+    // get message keys from handled_msgs
     const list = [];
-    this.msg_handlers.forEach((handler_set, key) => {
+    this.handled_msgs.forEach((handler_set, key) => {
       list.push(key);
     });
     return list;
@@ -676,7 +677,7 @@ class NetEndpoint {
   /** return only net messages */
   listNetMessages(): NP_Msg[] {
     const list = [];
-    this.msg_handlers.forEach((handler_set, key) => {
+    this.handled_msgs.forEach((handler_set, key) => {
       if (IsNetMessage(key)) list.push(key);
     });
     return list;
@@ -711,9 +712,9 @@ class NetEndpoint {
       if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
       if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
       const key = NormalizeMessage(msg);
-      if (!this.remote_msgs.has(key))
-        this.remote_msgs.set(key, new Set<NP_Address>());
-      const msg_set = this.remote_msgs.get(key);
+      if (!this.remoted_msgs.has(key))
+        this.remoted_msgs.set(key, new Set<NP_Address>());
+      const msg_set = this.remoted_msgs.get(key);
       msg_set.add(uaddr);
       // LOG(PR,this.urnet_addr, `reg remote ${key} for ${uaddr}`);
     });
@@ -725,7 +726,7 @@ class NetEndpoint {
     if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
     if (!this.srv_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
     const removed = [];
-    this.remote_msgs.forEach((msg_set, key) => {
+    this.remoted_msgs.forEach((msg_set, key) => {
       if (msg_set.has(uaddr)) removed.push(key);
       msg_set.delete(uaddr);
     });
@@ -777,9 +778,9 @@ class NetEndpoint {
     if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
     if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
     const key = NormalizeMessage(msg);
-    if (!this.msg_handlers.has(key))
-      this.msg_handlers.set(key, new Set<HandlerFunc>());
-    const handler_set = this.msg_handlers.get(key);
+    if (!this.handled_msgs.has(key))
+      this.handled_msgs.set(key, new Set<HandlerFunc>());
+    const handler_set = this.handled_msgs.get(key);
     handler_set.add(handler);
   }
 
@@ -789,7 +790,7 @@ class NetEndpoint {
     if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
     if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
     const key = NormalizeMessage(msg);
-    const handler_set = this.msg_handlers.get(key);
+    const handler_set = this.handled_msgs.get(key);
     if (!handler_set) throw Error(`${fn} unexpected empty set '${key}'`);
     handler_set.delete(handler);
   }
@@ -994,9 +995,9 @@ class NetEndpoint {
       // a client) versus pure clients.
       const { msg } = pkt;
       let retData;
-      if (this.msg_handlers.has(msg)) {
+      if (this.handled_msgs.has(msg)) {
         retData = await this.pktAwaitHandlers(pkt);
-      } else if (this.remote_msgs.has(msg)) {
+      } else if (this.remoted_msgs.has(msg)) {
         retData = await this.pktAwaitRequest(pkt);
       } else {
         LOG(PR, this.urnet_addr, fn, `unknown message '${msg}'`, pkt);
