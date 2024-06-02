@@ -8,12 +8,12 @@
   - configAsServer(srv_addr: NP_Address): void
   - addClient(socket: I_NetSocket): NP_Address
   - removeClient(uaddr: NP_Address): NP_Address
-  - _ingestClientPacket(jsonData, socket: I_NetSocket): NetPacket
+  - _ingestClientPacket(jsonData:string, socket: I_NetSocket): NetPacket
 
   Client-Only API
   - connectAsClient(gateway: I_NetSocket, auth: TClientAuth): Promise<NP_Data>
   - disconnectAsClient(): void
-  - _ingestServerPacket(jsonData: any, socket: I_NetSocket): void
+  - _ingestServerPacket(jsonData: string, socket: I_NetSocket): void
 
   Shared API
   - addMessageHandler(msg: NP_Msg, handler: HandlerFunc): void
@@ -198,7 +198,7 @@ class NetEndpoint {
   /** API: Server data event handler for incoming data from a client connection.
    *  This is the mirror to _ingestServerPacket() function used by client endpoints.
    * This is the entry point for incoming data from clients */
-  _ingestClientPacket(jsonData, socket: I_NetSocket): NetPacket {
+  _ingestClientPacket(jsonData: string, socket: I_NetSocket): NetPacket {
     let pkt = this.newPacket().deserialize(jsonData);
     let retPkt: NetPacket;
 
@@ -402,7 +402,7 @@ class NetEndpoint {
    *  the mirror to _ingestClientPacket() function that is used by servers. This
    *  is entry point for incoming data from server
    */
-  _ingestServerPacket(jsonData: any, socket: I_NetSocket): void {
+  _ingestServerPacket(jsonData: string, socket: I_NetSocket): void {
     const fn = '_ingestServerPacket:';
     const pkt = this.newPacket().deserialize(jsonData);
     // 1. is this connection handshaking for clients?
