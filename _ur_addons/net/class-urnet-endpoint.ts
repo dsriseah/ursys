@@ -146,9 +146,7 @@ class NetEndpoint {
     this.cli_sck_timer = null; // socket aging placeholder
   }
 
-  /** client connection management  - - - - - - - - - - - - - - - - - - - - **/
-
-  /** initialize this endpoint's client server, providing a hardcoded
+  /** API: initialize this endpoint's client server, providing a hardcoded
    *  server UADDR that is distinct from those used by client pools
    */
   configAsServer(srv_addr: NP_Address) {
@@ -174,6 +172,98 @@ class NetEndpoint {
     });
   }
 
+  /** API: Server data event handler for incoming data from a client connection.
+   *  This is the mirror to _ingestServerPacket() function used by client endpoints.
+   * This is the entry point for incoming data from clients */
+  _ingestClientPacket(jsonData, socket: I_NetSocket): NetPacket {
+    let pkt = this.newPacket().deserialize(jsonData);
+    let retPkt: NetPacket;
+
+    // 1. protocol: authentication packet (once)
+    retPkt = this.processClientAuthPacket(pkt, socket);
+    if (retPkt) return retPkt;
+
+    // 2. deny other packets until authentication was handled
+    if (!pkt.hasAuth()) return this.rejectClientAuthPacket(pkt, socket);
+    if (!this.checkPacketAuthorization(pkt, socket))
+      return this.rejectClientAuthPacket(pkt, socket);
+
+    /** from this point forward, packets are authenticated **/
+
+    // 3. is this a special registration packet (anytime)
+    retPkt = this.processClientRegPacket(pkt, socket);
+    if (retPkt) return retPkt;
+
+    // 4. is this a special declaration packet (anytime)
+    retPkt = this.processClientDeclarePacket(pkt, socket);
+    if (retPkt) return retPkt;
+
+    // 5. otherwise, handle the packet normally through the message interface
+    this.routePacket(pkt);
+  }
+
+  /** API: when a client connects to this endpoint, register it as a socket and
+   *  allocate a uaddr for it */
+  addClient(socket: I_NetSocket): NP_Address {
+    const fn = 'addClient:';
+    if (typeof socket !== 'object') throw Error(`${fn} invalid socket`);
+    if (socket.uaddr !== undefined) throw Error(`${fn} socket already added`);
+    const new_uaddr = AllocateAddress({ prefix: 'UR_' });
+    socket.uaddr = new_uaddr;
+    socket.age = 0;
+    socket.auth = undefined; // filled-in by socket authorization
+    socket.msglist = undefined; // filled-in by message registration
+    this.client_socks.set(new_uaddr, socket);
+    // LOG(PR,this.uaddr, `socket ${new_uaddr} registered`);
+    return new_uaddr;
+  }
+
+  /** API: when a client disconnects from this endpoint, delete its socket and
+   *  remove all message forwarding */
+  removeClient(uaddr_obj: NP_Address | I_NetSocket): NP_Address {
+    const fn = 'removeClient:';
+    let uaddr = typeof uaddr_obj === 'string' ? uaddr_obj : uaddr_obj.uaddr;
+    if (typeof uaddr !== 'string') {
+      LOG(PR, `${fn} invalid uaddr ${typeof uaddr}`);
+      return undefined;
+    }
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    // remoted_msgs is msg->set of uaddr, so iterate over all messages
+    this._delRemoteMessages(uaddr);
+    // delete the socket
+    this.client_socks.delete(uaddr);
+    // LOG(PR,this.uaddr, `socket ${uaddr} deleted`);
+    return uaddr;
+  }
+
+  /** API: given a uaddr, return the socket */
+  getClient(uaddr: NP_Address): I_NetSocket {
+    const fn = 'getClient:';
+    if (this.client_socks === undefined) return undefined;
+    return this.client_socks.get(uaddr);
+  }
+
+  /** API: start a timer to check for dead sockets */
+  enableClientAging(activate: boolean) {
+    const fn = 'enableClientAging:';
+    if (activate) {
+      if (this.cli_sck_timer) clearInterval(this.cli_sck_timer);
+      this.cli_sck_timer = setInterval(() => {
+        this.client_socks.forEach((socket, uaddr) => {
+          socket.age += AGE_INTERVAL;
+          if (socket.age > AGE_MAX) {
+            LOG(PR, this.uaddr, `socket ${uaddr} expired`);
+            // put stuff here
+          }
+        });
+      }, AGE_INTERVAL);
+      return;
+    }
+    if (this.cli_sck_timer) clearInterval(this.cli_sck_timer);
+    this.cli_sck_timer = null;
+    LOG(PR, this.uaddr, `timer stopped`);
+  }
+
   /** return true if this endpoint is managing connections */
   isServer() {
     return this.client_socks !== undefined && this.remoted_msgs !== undefined;
@@ -196,49 +286,8 @@ class NetEndpoint {
     LOG(PR, this.uaddr, 'would check auth token');
   }
 
-  /** return true if this socket passes authentication status */
-  isAuthorizedSocket(socket: I_NetSocket): boolean {
-    const fn = 'authorizeSocket:';
-    LOG(PR, fn, 'would check JWT in socket.auth');
-    LOG(PR, this.uaddr, 'would check JWT in socket.auth');
-    if (!socket.auth) return false;
-    return true;
-  }
-
-  /** endpoint client management  - - - - - - - - - - - - - - - - - - - - - **/
-
-  /** Server data event handler for incoming data from a client connection.
-   *  This is the mirror to _ingestServerPacket() function used by client endpoints.
-   * This is the entry point for incoming data from clients */
-  _ingestClientPacket(jsonData, socket: I_NetSocket): NetPacket {
-    let pkt = this.newPacket().deserialize(jsonData);
-    let retPkt: NetPacket;
-
-    // 1. protocol: authentication packet (once)
-    retPkt = this.handleClientAuth(pkt, socket);
-    if (retPkt) return retPkt;
-
-    // 2. deny other packets until authentication was handled
-    if (!pkt.hasAuth()) return this.handleClientAuthRejection(pkt, socket);
-    if (!this.pktIsAuthenticated(pkt, socket))
-      return this.handleClientAuthRejection(pkt, socket);
-
-    /** from this point forward, packets are authenticated **/
-
-    // 3. is this a special registration packet (anytime)
-    retPkt = this.handleClientReg(pkt, socket);
-    if (retPkt) return retPkt;
-
-    // 4. is this a special declaration packet (anytime)
-    retPkt = this.handleClientDeclare(pkt, socket);
-    if (retPkt) return retPkt;
-
-    // 5. otherwise, handle the packet normally through the message interface
-    this.routePacket(pkt);
-  }
-
   /** check the auth field in the packet */
-  pktIsAuthenticated(pkt: NetPacket, socket: I_NetSocket): boolean {
+  checkPacketAuthorization(pkt: NetPacket, socket: I_NetSocket): boolean {
     const fn = 'pktAuthenticate:';
     const { msg, src_addr, hop_dir, hop_seq } = pkt;
     const seq = [...hop_seq].reverse().join('->');
@@ -248,7 +297,7 @@ class NetEndpoint {
   }
 
   /** send a rejection packet to the client */
-  handleClientAuthRejection(pkt: NetPacket, socket: I_NetSocket): NetPacket {
+  rejectClientAuthPacket(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     const fn = 'rejectAuth:';
     LOG(PR, this.uaddr, 'would send reject packet');
     pkt.data = { error: `${pkt.msg} has invalid authorization` };
@@ -258,7 +307,7 @@ class NetEndpoint {
   }
 
   /** handle auth packet if the session.auth is not defined */
-  handleClientAuth(pkt: NetPacket, socket: I_NetSocket): NetPacket {
+  processClientAuthPacket(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     if (!socket.authenticated()) {
       pkt.setDir('res');
       pkt.addHop(this.uaddr);
@@ -283,7 +332,7 @@ class NetEndpoint {
   }
 
   /** handle registration packet */
-  handleClientReg(pkt: NetPacket, socket: I_NetSocket): NetPacket {
+  processClientRegPacket(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     if (!pkt.isBadRegPkt(socket)) {
       pkt.setDir('res');
       pkt.addHop(this.uaddr);
@@ -309,7 +358,7 @@ class NetEndpoint {
   }
 
   /** handle client dynamic definitions */
-  handleClientDeclare(pkt: NetPacket, socket: I_NetSocket): NetPacket {
+  processClientDeclarePacket(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     if (pkt.msg_type === '_decl') {
       pkt.setDir('res');
       pkt.addHop(this.uaddr);
@@ -335,68 +384,6 @@ class NetEndpoint {
       }
     }
     return undefined;
-  }
-
-  /** when a client connects to this endpoint, register it as a socket and
-   *  allocate a uaddr for it */
-  addClient(socket: I_NetSocket): NP_Address {
-    const fn = 'addClient:';
-    if (typeof socket !== 'object') throw Error(`${fn} invalid socket`);
-    if (socket.uaddr !== undefined) throw Error(`${fn} socket already added`);
-    const new_uaddr = AllocateAddress({ prefix: 'UR_' });
-    socket.uaddr = new_uaddr;
-    socket.age = 0;
-    socket.auth = undefined; // filled-in by socket authorization
-    socket.msglist = undefined; // filled-in by message registration
-    this.client_socks.set(new_uaddr, socket);
-    // LOG(PR,this.uaddr, `socket ${new_uaddr} registered`);
-    return new_uaddr;
-  }
-
-  /** given a uaddr, return the socket */
-  getClient(uaddr: NP_Address): I_NetSocket {
-    const fn = 'getClient:';
-    if (this.client_socks === undefined) return undefined;
-    return this.client_socks.get(uaddr);
-  }
-
-  /** when a client disconnects from this endpoint, delete its socket and
-   *  remove all message forwarding */
-  removeClient(uaddr_obj: NP_Address | I_NetSocket): NP_Address {
-    const fn = 'removeClient:';
-    let uaddr = typeof uaddr_obj === 'string' ? uaddr_obj : uaddr_obj.uaddr;
-    if (typeof uaddr !== 'string') {
-      LOG(PR, `${fn} invalid uaddr ${typeof uaddr}`);
-      return undefined;
-    }
-    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
-    // remoted_msgs is msg->set of uaddr, so iterate over all messages
-    this._delRemoteMessages(uaddr);
-    // delete the socket
-    this.client_socks.delete(uaddr);
-    // LOG(PR,this.uaddr, `socket ${uaddr} deleted`);
-    return uaddr;
-  }
-
-  /** start a timer to check for dead sockets */
-  enableClientAging(activate: boolean) {
-    const fn = 'enableClientAging:';
-    if (activate) {
-      if (this.cli_sck_timer) clearInterval(this.cli_sck_timer);
-      this.cli_sck_timer = setInterval(() => {
-        this.client_socks.forEach((socket, uaddr) => {
-          socket.age += AGE_INTERVAL;
-          if (socket.age > AGE_MAX) {
-            LOG(PR, this.uaddr, `socket ${uaddr} expired`);
-            // put stuff here
-          }
-        });
-      }, AGE_INTERVAL);
-      return;
-    }
-    if (this.cli_sck_timer) clearInterval(this.cli_sck_timer);
-    this.cli_sck_timer = null;
-    LOG(PR, this.uaddr, `timer stopped`);
   }
 
   /** client connection handshaking - - - - - - - - - - - - - - - - - - - - **/

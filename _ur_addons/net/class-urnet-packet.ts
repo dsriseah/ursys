@@ -218,6 +218,12 @@ class NetPacket implements I_NetMessage {
     return undefined;
   }
 
+  authenticate(socket: I_NetSocket) {
+    const { msg, src_addr, hop_dir, hop_seq } = this;
+    if (!this.isResponse()) LOG(PR, `would auth ${src_addr} '${msg}'`);
+    return true;
+  }
+
   isRequest() {
     return this.hop_dir === 'req';
   }
