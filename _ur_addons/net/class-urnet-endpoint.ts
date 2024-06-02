@@ -536,7 +536,7 @@ class NetEndpoint {
 
   /** API: signal local message registered on this endPoint only, returning no data.
    */
-  async signal(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
+  signal(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
     const fn = 'signal:';
     if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
     const handlers = this.getMessageHandlers(msg);
@@ -545,7 +545,6 @@ class NetEndpoint {
     handlers.forEach(handler => {
       handler({ ...data }); // copy of data
     });
-    return Promise.resolve(true);
   }
 
   /** API: ping local message, return with number of handlers */
@@ -571,7 +570,7 @@ class NetEndpoint {
       const meta = { msg, uaddr: this.uaddr };
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
-        this.blindSend(pkt);
+        this.initialSend(pkt);
       } catch (err) {
         reject(err);
       }
@@ -596,7 +595,7 @@ class NetEndpoint {
       const meta = { msg, uaddr: this.uaddr };
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
-        this.blindSend(pkt);
+        this.initialSend(pkt);
       } catch (err) {
         reject(err);
       }
@@ -617,7 +616,7 @@ class NetEndpoint {
       dir: 'req',
       rsvp: false
     });
-    this.blindSend(pkt);
+    this.initialSend(pkt);
   }
 
   /** API: returns with a list of uaddr from the server which is the uaddr of the
@@ -636,7 +635,7 @@ class NetEndpoint {
       const meta = { msg, uaddr: this.uaddr };
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
-        this.blindSend(pkt);
+        this.initialSend(pkt);
       } catch (err) {
         reject(err);
       }
@@ -927,11 +926,11 @@ class NetEndpoint {
   }
 
   /** Send a single packet on all available interfaces based on the
-   *  message. And endpoint can be a client (with gateway) or a server
-   *  (with clients). Use for initial outgoing packets only.
+   *  message. Use for initial outgoing packets only from the
+   *  netCall, netSend, netSignal, and netPing methods.
    */
-  blindSend(pkt: NetPacket) {
-    const fn = 'blindSend:';
+  initialSend(pkt: NetPacket) {
+    const fn = 'initialSend:';
     // sanity checks
     if (pkt.src_addr === undefined) throw Error(`${fn}src_addr undefined`);
     if (this.uaddr === undefined) throw Error(`${fn} uaddr undefined`);
