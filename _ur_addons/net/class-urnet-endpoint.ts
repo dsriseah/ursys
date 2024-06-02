@@ -102,7 +102,7 @@ type TClientDeclare = {
 function _PKT(ep: NetEndpoint, fn: string, text: string, pkt: NetPacket) {
   let { id, msg, msg_type } = pkt;
   if (id === undefined && msg_type === '_reg') id = `pkt[${UADDR_NONE}:0]`;
-  let out = `${ep.urnet_addr} ${text} '${msg}' `.padEnd(40, '~');
+  let out = `${ep.uaddr} ${text} '${msg}' `.padEnd(40, '~');
   out += ` ${id.padEnd(12)} ${fn}`;
   return out;
 }
@@ -110,17 +110,17 @@ function _PKT(ep: NetEndpoint, fn: string, text: string, pkt: NetPacket) {
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class NetEndpoint {
-  urnet_addr: NP_Address; // the address for this endpoint
-  //
-  cli_gateway: I_NetSocket; // gateway to server
-  srv_socks: SocketMap; // uaddr->I_NetSocket
-  remoted_msgs: ForwardMap; // msg->uaddr[]
   handled_msgs: HandlerMap; // msg->handlers[]
+  //
+  uaddr: NP_Address; // the address for this endpoint
+  client_socks: SocketMap; // uaddr->I_NetSocket
+  remoted_msgs: ForwardMap; // msg->uaddr[]
   transactions: TransactionMap; // hash->resolver
   //
   cli_counter: number; // counter for generating unique uaddr
   pkt_counter: number; // counter for generating packet ids
   //
+  cli_gateway: I_NetSocket; // gateway to server
   cli_sck_timer: any; // timer for checking socket age
   cli_ident: any; // client credentials to request authentication
   cli_auth: any; // client access token for
@@ -128,14 +128,14 @@ class NetEndpoint {
 
   constructor() {
     //
-    this.urnet_addr = undefined; // assigned address
+    this.uaddr = undefined; // assigned address
     // endpoint as client
     this.cli_ident = undefined; // client identity
     this.cli_auth = undefined; // client access token
     this.cli_reg = undefined; // client registration status
     this.cli_gateway = undefined; // client gateway
     // endpoint as server
-    this.srv_socks = undefined;
+    this.client_socks = undefined;
     this.remoted_msgs = undefined;
     // endpoint message handling support
     this.handled_msgs = new Map<NP_Msg, HandlerSet>();
@@ -154,18 +154,18 @@ class NetEndpoint {
   configAsServer(srv_addr: NP_Address) {
     const fn = 'configAsServer:';
     if (!IsValidAddress(srv_addr)) throw Error(`${fn} invalid srv_addr ${srv_addr}`);
-    if (this.urnet_addr && this.urnet_addr !== srv_addr) {
-      let err = `${fn} urnet_addr ${this.urnet_addr} already set.`;
+    if (this.uaddr && this.uaddr !== srv_addr) {
+      let err = `${fn} uaddr ${this.uaddr} already set.`;
       err += `currently, `;
       throw Error(err);
     }
-    this.urnet_addr = srv_addr;
+    this.uaddr = srv_addr;
     // make sure we don't nuke
-    if (this.srv_socks !== undefined)
-      LOG(PR, this.urnet_addr, `already configured`, [...this.srv_socks.keys()]);
-    this.srv_socks = new Map<NP_Address, I_NetSocket>();
+    if (this.client_socks !== undefined)
+      LOG(PR, this.uaddr, `already configured`, [...this.client_socks.keys()]);
+    this.client_socks = new Map<NP_Address, I_NetSocket>();
     if (this.remoted_msgs !== undefined)
-      LOG(PR, this.urnet_addr, `already configured`, [...this.remoted_msgs.keys()]);
+      LOG(PR, this.uaddr, `already configured`, [...this.remoted_msgs.keys()]);
     this.remoted_msgs = new Map<NP_Msg, AddressSet>();
     // add default service message handlers here
     this.registerMessage('SRV:REFLECT', data => {
@@ -176,7 +176,7 @@ class NetEndpoint {
 
   /** return true if this endpoint is managing connections */
   isServer() {
-    return this.srv_socks !== undefined && this.remoted_msgs !== undefined;
+    return this.client_socks !== undefined && this.remoted_msgs !== undefined;
   }
 
   /** socket utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
@@ -193,14 +193,14 @@ class NetEndpoint {
    */
   authorizeSocket(auth: any) {
     const fn = 'authorizeSocket:';
-    LOG(PR, this.urnet_addr, 'would check auth token');
+    LOG(PR, this.uaddr, 'would check auth token');
   }
 
   /** return true if this socket passes authentication status */
   isAuthorizedSocket(socket: I_NetSocket): boolean {
     const fn = 'authorizeSocket:';
     LOG(PR, fn, 'would check JWT in socket.auth');
-    LOG(PR, this.urnet_addr, 'would check JWT in socket.auth');
+    LOG(PR, this.uaddr, 'would check JWT in socket.auth');
     if (!socket.auth) return false;
     return true;
   }
@@ -240,19 +240,18 @@ class NetEndpoint {
     const fn = 'pktAuthenticate:';
     const { msg, src_addr, hop_dir, hop_seq } = pkt;
     const seq = [...hop_seq].reverse().join('->');
-    if (hop_dir === 'res')
-      LOG(PR, `${this.urnet_addr} .. skip return ${seq} '${msg}'`);
-    else LOG(PR, `${this.urnet_addr} would auth ${src_addr} '${msg}'`);
+    if (hop_dir === 'res') LOG(PR, `${this.uaddr} .. skip return ${seq} '${msg}'`);
+    else LOG(PR, `${this.uaddr} would auth ${src_addr} '${msg}'`);
     return true;
   }
 
   /** send a rejection packet to the client */
   handleClientAuthRejection(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     const fn = 'rejectAuth:';
-    LOG(PR, this.urnet_addr, 'would send reject packet');
+    LOG(PR, this.uaddr, 'would send reject packet');
     pkt.data = { error: `${pkt.msg} has invalid authorization` };
     pkt.setDir('res');
-    pkt.addHop(this.urnet_addr);
+    pkt.addHop(this.uaddr);
     return pkt;
   }
 
@@ -260,7 +259,7 @@ class NetEndpoint {
   handleClientAuth(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     if (!socket.authenticated()) {
       pkt.setDir('res');
-      pkt.addHop(this.urnet_addr);
+      pkt.addHop(this.uaddr);
       const error = pkt.isBadAuthPkt();
       if (error) {
         console.error(PR, error);
@@ -285,7 +284,7 @@ class NetEndpoint {
   handleClientReg(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     if (!pkt.isBadRegPkt(socket)) {
       pkt.setDir('res');
-      pkt.addHop(this.urnet_addr);
+      pkt.addHop(this.uaddr);
       if (pkt.msg !== 'SRV:REG') {
         pkt.data = { error: `invalid reg packet ${pkt.msg}` };
         return pkt;
@@ -311,7 +310,7 @@ class NetEndpoint {
   handleClientDeclare(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     if (pkt.msg_type === '_decl') {
       pkt.setDir('res');
-      pkt.addHop(this.urnet_addr);
+      pkt.addHop(this.uaddr);
       if (pkt.msg !== 'SRV:DEF') {
         console.log('invalid def packet', pkt.msg);
         pkt.data = { error: `invalid def packet ${pkt.msg}` };
@@ -347,16 +346,16 @@ class NetEndpoint {
     socket.age = 0;
     socket.auth = undefined; // filled-in by socket authorization
     socket.msglist = undefined; // filled-in by message registration
-    this.srv_socks.set(new_uaddr, socket);
-    // LOG(PR,this.urnet_addr, `socket ${new_uaddr} registered`);
+    this.client_socks.set(new_uaddr, socket);
+    // LOG(PR,this.uaddr, `socket ${new_uaddr} registered`);
     return new_uaddr;
   }
 
   /** given a uaddr, return the socket */
   getClient(uaddr: NP_Address): I_NetSocket {
     const fn = 'getClient:';
-    if (this.srv_socks === undefined) return undefined;
-    return this.srv_socks.get(uaddr);
+    if (this.client_socks === undefined) return undefined;
+    return this.client_socks.get(uaddr);
   }
 
   /** when a client disconnects from this endpoint, delete its socket and
@@ -368,12 +367,12 @@ class NetEndpoint {
       LOG(PR, `${fn} invalid uaddr ${typeof uaddr}`);
       return undefined;
     }
-    if (!this.srv_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
     // remoted_msgs is msg->set of uaddr, so iterate over all messages
     this._delRemoteMessages(uaddr);
     // delete the socket
-    this.srv_socks.delete(uaddr);
-    // LOG(PR,this.urnet_addr, `socket ${uaddr} deleted`);
+    this.client_socks.delete(uaddr);
+    // LOG(PR,this.uaddr, `socket ${uaddr} deleted`);
     return uaddr;
   }
 
@@ -383,10 +382,10 @@ class NetEndpoint {
     if (activate) {
       if (this.cli_sck_timer) clearInterval(this.cli_sck_timer);
       this.cli_sck_timer = setInterval(() => {
-        this.srv_socks.forEach((socket, uaddr) => {
+        this.client_socks.forEach((socket, uaddr) => {
           socket.age += AGE_INTERVAL;
           if (socket.age > AGE_MAX) {
-            LOG(PR, this.urnet_addr, `socket ${uaddr} expired`);
+            LOG(PR, this.uaddr, `socket ${uaddr} expired`);
             // put stuff here
           }
         });
@@ -395,7 +394,7 @@ class NetEndpoint {
     }
     if (this.cli_sck_timer) clearInterval(this.cli_sck_timer);
     this.cli_sck_timer = null;
-    LOG(PR, this.urnet_addr, `timer stopped`);
+    LOG(PR, this.uaddr, `timer stopped`);
   }
 
   /** client connection handshaking - - - - - - - - - - - - - - - - - - - - **/
@@ -433,7 +432,7 @@ class NetEndpoint {
       const requestAuth = new Promise((resolve, reject) => {
         const hash = GetPacketHashString(pkt);
         if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-        const meta = { msg, uaddr: this.urnet_addr };
+        const meta = { msg, uaddr: this.uaddr };
         this.transactions.set(hash, { resolve, reject, ...meta });
         try {
           this.cli_gateway.send(pkt);
@@ -454,7 +453,7 @@ class NetEndpoint {
         return false;
       }
       if (!IsValidAddress(uaddr)) throw Error(`${fn} invalid uaddr ${uaddr}`);
-      this.urnet_addr = uaddr;
+      this.uaddr = uaddr;
       if (cli_auth === undefined) throw Error(`${fn} invalid cli_auth`);
       this.cli_auth = cli_auth;
       LOG(PR, 'AUTHENTICATED', uaddr, cli_auth);
@@ -495,7 +494,7 @@ class NetEndpoint {
     const requestReg = new Promise((resolve, reject) => {
       const hash = GetPacketHashString(pkt);
       if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.urnet_addr };
+      const meta = { msg, uaddr: this.uaddr };
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
         this.cli_gateway.send(pkt);
@@ -536,7 +535,7 @@ class NetEndpoint {
     const fn = 'handleRegResponse:';
     if (pkt.msg_type !== '_reg') return false;
     if (pkt.hop_dir !== 'res') return false;
-    if (pkt.src_addr !== this.urnet_addr) throw Error(`${fn} misaddressed packet???`);
+    if (pkt.src_addr !== this.uaddr) throw Error(`${fn} misaddressed packet???`);
     // resuming from registerClient() await requestReg
     this.pktResolveRequest(pkt);
     return true;
@@ -569,7 +568,7 @@ class NetEndpoint {
     const decSvcs = new Promise((resolve, reject) => {
       const hash = GetPacketHashString(pkt);
       if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.urnet_addr };
+      const meta = { msg, uaddr: this.uaddr };
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
         this.cli_gateway.send(pkt);
@@ -602,7 +601,7 @@ class NetEndpoint {
     const fn = 'handleDeclResponse:';
     if (pkt.msg_type !== '_decl') return false;
     if (pkt.hop_dir !== 'res') return false;
-    if (pkt.src_addr !== this.urnet_addr) throw Error(`${fn} misaddressed packet???`);
+    if (pkt.src_addr !== this.uaddr) throw Error(`${fn} misaddressed packet???`);
     // resuming from clientDeclareServices() await requestReg
     this.pktResolveRequest(pkt);
     return true;
@@ -627,7 +626,7 @@ class NetEndpoint {
     const fn = 'getMessagesForAddress:';
     if (!this.isServer()) return []; // invalid for client-only endpoints
     if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
-    if (!this.srv_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
     // remoted_msgs is msg->set of uaddr, so iterate over all messages
     const msg_list: NP_Msg[] = [];
     this.remoted_msgs.forEach((addr_set, msg) => {
@@ -701,7 +700,7 @@ class NetEndpoint {
   registerRemoteMessages(uaddr: NP_Address, msgList: NP_Msg[]) {
     const fn = 'registerRemoteMessages:';
     if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
-    if (!this.srv_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
     this._setRemoteMessages(uaddr, msgList);
   }
 
@@ -716,7 +715,7 @@ class NetEndpoint {
         this.remoted_msgs.set(key, new Set<NP_Address>());
       const msg_set = this.remoted_msgs.get(key);
       msg_set.add(uaddr);
-      // LOG(PR,this.urnet_addr, `reg remote ${key} for ${uaddr}`);
+      // LOG(PR,this.uaddr, `reg remote ${key} for ${uaddr}`);
     });
   }
 
@@ -724,7 +723,7 @@ class NetEndpoint {
   _delRemoteMessages(uaddr: NP_Address): NP_Msg[] {
     const fn = '_delRemoteMessages:';
     if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
-    if (!this.srv_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
     const removed = [];
     this.remoted_msgs.forEach((msg_set, key) => {
       if (msg_set.has(uaddr)) removed.push(key);
@@ -736,7 +735,7 @@ class NetEndpoint {
   /** packet utility - - - - - - - - - - - - - - - - - - - - - - - - - - - -**/
 
   assignPacketId(pkt: NetPacket): NP_ID {
-    if (pkt.src_addr === undefined) pkt.src_addr = this.urnet_addr;
+    if (pkt.src_addr === undefined) pkt.src_addr = this.uaddr;
     const count = ++this.pkt_counter;
     pkt.id = `pkt[${pkt.src_addr}:${count}]`;
     return pkt.id;
@@ -753,7 +752,7 @@ class NetEndpoint {
   newPacket(msg?: NP_Msg, data?: NP_Data): NetPacket {
     const fn = 'newPacket:';
     const pkt = new NetPacket(msg, data);
-    pkt.setSrcAddr(this.urnet_addr || UADDR_NONE);
+    pkt.setSrcAddr(this.uaddr || UADDR_NONE);
     if (this.cli_auth) pkt.setAuth(this.cli_auth);
     pkt.id = this.assignPacketId(pkt);
     return pkt;
@@ -763,7 +762,7 @@ class NetEndpoint {
   clonePacket(pkt: NetPacket): NetPacket {
     const clone = this.newPacket(pkt.msg, pkt.data);
     clone.setFromJSON(pkt.serialize());
-    clone.src_addr = this.urnet_addr;
+    clone.src_addr = this.uaddr;
     clone.id = this.assignPacketId(clone);
     return clone;
   }
@@ -773,7 +772,7 @@ class NetEndpoint {
   /** declare a message handler for a given message */
   registerMessage(msg: NP_Msg, handler: HandlerFunc) {
     const fn = 'registerMessage:';
-    // LOG(PR,this.urnet_addr, `reg handler '${msg}'`);
+    // LOG(PR,this.uaddr, `reg handler '${msg}'`);
     if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
     if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
     if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
@@ -866,7 +865,7 @@ class NetEndpoint {
     const p = new Promise((resolve, reject) => {
       const hash = GetPacketHashString(pkt);
       if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.urnet_addr };
+      const meta = { msg, uaddr: this.uaddr };
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
         this.pktSendRequest(pkt);
@@ -891,7 +890,7 @@ class NetEndpoint {
       });
       const hash = GetPacketHashString(pkt);
       if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.urnet_addr };
+      const meta = { msg, uaddr: this.uaddr };
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
         this.pktSendRequest(pkt);
@@ -931,7 +930,7 @@ class NetEndpoint {
     const p = new Promise((resolve, reject) => {
       const hash = GetPacketHashString(pkt);
       if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.urnet_addr };
+      const meta = { msg, uaddr: this.uaddr };
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
         this.pktSendRequest(pkt);
@@ -961,13 +960,13 @@ class NetEndpoint {
       const fn = 'routeMessage:';
       // is this a response to a transaction?
       if (pkt.isResponse()) {
-        if (pkt.src_addr === this.urnet_addr) this.pktResolveRequest(pkt);
+        if (pkt.src_addr === this.uaddr) this.pktResolveRequest(pkt);
         else this.pktSendResponse(pkt);
         return;
       }
       // make sure if it's not a response, then it's a request
       if (!pkt.isRequest()) {
-        LOG(PR, this.urnet_addr, fn, `invalid packet`, pkt);
+        LOG(PR, this.uaddr, fn, `invalid packet`, pkt);
         return;
       }
 
@@ -976,7 +975,7 @@ class NetEndpoint {
       if (pkt.msg_type === 'ping') {
         const pingArr = this.getAddressesForMessage(pkt.msg);
         const pingHandlers = this.getHandlersForMessage(pkt.msg);
-        if (pingHandlers.length > 0) pingArr.push(this.urnet_addr);
+        if (pingHandlers.length > 0) pingArr.push(this.uaddr);
         pkt.setData(pingArr);
         this.pktSendResponse(pkt);
         return;
@@ -1000,7 +999,7 @@ class NetEndpoint {
       } else if (this.remoted_msgs.has(msg)) {
         retData = await this.pktAwaitRequest(pkt);
       } else {
-        LOG(PR, this.urnet_addr, fn, `unknown message '${msg}'`, pkt);
+        LOG(PR, this.uaddr, fn, `unknown message '${msg}'`, pkt);
         retData = { error: `unknown message '${msg}'` };
       }
 
@@ -1038,7 +1037,7 @@ class NetEndpoint {
     const fn = 'pktSendRequest:';
     // sanity checks
     if (pkt.src_addr === undefined) throw Error(`${fn}src_addr undefined`);
-    if (this.urnet_addr === undefined) throw Error(`${fn} urnet_addr undefined`);
+    if (this.uaddr === undefined) throw Error(`${fn} uaddr undefined`);
     if (pkt.hop_seq.length !== 0) throw Error(`${fn} pkt must have no hops yet`);
     if (pkt.msg_type !== 'ping' && pkt.data === undefined)
       throw Error(`${fn} data undefined`);
@@ -1046,7 +1045,7 @@ class NetEndpoint {
     // LOG(PR,_PKT(this, fn, '-send-req-', pkt), pkt.data);
     const { gateway, clients } = this.pktGetSocketRouting(pkt);
     // send on the wire
-    pkt.addHop(this.urnet_addr);
+    pkt.addHop(this.uaddr);
     if (gateway) {
       if (this.cli_reg === undefined) throw Error(`${fn} endpoint not registered`);
       gateway.send(pkt);
@@ -1089,7 +1088,7 @@ class NetEndpoint {
    */
   pktResolveRequest(pkt: NetPacket) {
     const fn = 'pktResolveRequest:';
-    // LOG(PR,this.urnet_addr, 'resolving', pkt.msg);
+    // LOG(PR,this.uaddr, 'resolving', pkt.msg);
     if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
     if (pkt.hop_dir !== 'res') throw Error(`${fn} packet is not a response`);
     if (pkt.hop_seq.length < 2 && !pkt.isProtocol())
@@ -1117,11 +1116,11 @@ class NetEndpoint {
     if (pkt.hop_seq.length < 1) throw Error(`${fn} packet has no hops`);
     // prep for return
     pkt.setDir('res');
-    pkt.addHop(this.urnet_addr);
+    pkt.addHop(this.uaddr);
     // LOG(PR,_PKT(this, fn, '-send-res-', pkt), pkt.data);
     const { gateway, src_addr } = this.pktGetSocketRouting(pkt);
     if (this.isServer()) {
-      // LOG(PR,this.urnet_addr, 'returning to', src_addr);
+      // LOG(PR,this.uaddr, 'returning to', src_addr);
       const socket = this.getClient(src_addr);
       if (socket) socket.send(pkt);
       // responses go to a single address; if we found it here,
@@ -1146,7 +1145,7 @@ class NetEndpoint {
     if (pkt.hop_rsvp !== false) throw Error(`${fn} packet is RSVP`);
     if (pkt.hop_seq.length < 1) throw Error(`${fn} packet has no hops`);
     // want to broadcast to everyone
-    pkt.addHop(this.urnet_addr);
+    pkt.addHop(this.uaddr);
     const { gateway, clients } = this.pktGetSocketRouting(pkt);
     if (gateway) {
       const clone = this.clonePacket(pkt);
@@ -1183,7 +1182,7 @@ class NetEndpoint {
     if (Array.isArray(clients)) {
       // LOG(PR,_PKT(this, fn, '-wait-req-', pkt), pkt.data);
       clients.forEach(sock => {
-        // LOG(PR,this.urnet_addr, 'await remote', pkt.msg, sock.uaddr);
+        // LOG(PR,this.uaddr, 'await remote', pkt.msg, sock.uaddr);
         const p = this.pktQueueRequest(pkt, sock);
         if (p) promises.push(p);
       });
@@ -1231,12 +1230,12 @@ class NetEndpoint {
     if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' is invalid message`);
     // check if there's a gateway first and add it
     const gateway = this.cli_gateway;
-    const self_addr = this.urnet_addr;
+    const self_addr = this.uaddr;
     // check if we're a server
     const msg_list = this.getAddressesForMessage(msg);
     const clients = [];
     msg_list.forEach(uaddr => {
-      if (uaddr === this.urnet_addr) return; // skip self
+      if (uaddr === this.uaddr) return; // skip self
       const socket = this.getClient(uaddr);
       if (socket) clients.push(socket);
     });

@@ -158,7 +158,7 @@ async function RunPacketTests() {
       identity: 'my_voice_is_my_passport',
       secret: 'crypty'
     };
-    client.urnet_addr = addr; // hack to set the address
+    client.uaddr = addr; // hack to set the address
     const authData = await client.connectAsClient(gateway, auth);
     const info = { name: 'UDSClient', type: 'client' };
     const regdata = await client.registerClient(info);

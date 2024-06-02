@@ -80,7 +80,7 @@ function Connect(): Promise<boolean> {
  *  URNET message network
  */
 async function RegisterMessages() {
-  const EP_UADDR = EP.urnet_addr;
+  const EP_UADDR = EP.uaddr;
   //
   EP.registerMessage('NET:CLIENT_TEST_CHAT', data => {
     const { message, uaddr } = data;
@@ -142,7 +142,7 @@ async function Test() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function TestClientMessage() {
-  const EP_UADDR = EP.urnet_addr;
+  const EP_UADDR = EP.uaddr;
   // test client-to-client netcall CLIENT_TEST
   LOG(...PR(`CLIENT_TEST ${EP_UADDR} invocation`));
   EP.netCall('NET:CLIENT_TEST', { uaddr: EP_UADDR }).then(retdata => {
