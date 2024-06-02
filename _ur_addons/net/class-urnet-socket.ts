@@ -6,7 +6,7 @@
   different methods for reading/writing to the connection object using the
   same API and extend it as needed. 
 
-  CROSS PLATFORM USAGE --------------------------------------------------------
+  -- CROSS PLATFORM IMPORT TRICKS -------------------------------------------
 
   When using from nodejs mts file, you can only import 'default', which is the
   NetEndpoint class. If you want to import other exports, you need to

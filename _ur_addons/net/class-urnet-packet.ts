@@ -7,7 +7,7 @@
   receiving of packets. In practice, use Endpoint.newPacket() to create a new 
   packet that has the correct source address and id.
 
-  CROSS PLATFORM USAGE --------------------------------------------------------
+  -- CROSS PLATFORM IMPORT TRICKS -------------------------------------------
 
   When using from nodejs mts file, you can only import this ts file as 'default' 
   property. To access the NetPacket class do this:

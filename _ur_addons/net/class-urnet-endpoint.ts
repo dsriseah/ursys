@@ -1,12 +1,35 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  NetEndpoint implements a connection to URNET as an implementation-
-  independent object. It provides the API for sending and receiving messages
-  in conjunction with the NetPacket class.
+  NetEndpoint is a connection object that talks to the UR Messaging Network.
+  Both servers and clients can use this class to build connections over
+  different transports (HTTP, WS, etc).
 
-  NetEndpoint makes use of NetSockets, an abstraction of a "socketish" object
+  Server-Only API
+  - configAsServer(srv_addr: NP_Address): void
+  - addClient(socket: I_NetSocket): NP_Address
+  - removeClient(uaddr: NP_Address): NP_Address
+  - _ingestClientPacket(jsonData, socket: I_NetSocket): NetPacket
 
-  CROSS PLATFORM USAGE --------------------------------------------------------
+  Client-Only API
+  - connectAsClient(gateway: I_NetSocket, auth: TClientAuth): Promise<NP_Data>
+  - disconnectAsClient(): void
+  - _ingestServerPacket(jsonData: any, socket: I_NetSocket): void
+
+  Shared API
+  - addMessageHandler(msg: NP_Msg, handler: HandlerFunc): void
+  - call(msg: NP_Msg, data: NP_Data): Promise<NP_Data>
+  - send(msg: NP_Msg, data: NP_Data): Promise<NP_Data>
+  - signal(msg: NP_Msg, data: NP_Data): void
+  - ping(msg: NP_Msg): Promise<NP_Data>
+  - netCall(msg: NP_Msg, data: NP_Data): Promise<NP_Data>
+  - netSend(msg: NP_Msg, data: NP_Data): Promise<NP_Data>
+  - netSignal(msg: NP_Msg, data: NP_Data): void
+  - netPing(msg: NP_Msg): Promise<NP_Data>
+
+  See https://github.com/dsriseah/ursys/wiki/URSYS-Network-Concepts for
+  documentation on using this class
+
+  -- CROSS PLATFORM IMPORT TRICKS -------------------------------------------
 
   When using from nodejs mts file, you can only import 'default', which is the
   NetEndpoint class. If you want to import other exports, you need to
