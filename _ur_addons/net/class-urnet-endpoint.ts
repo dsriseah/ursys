@@ -716,6 +716,14 @@ class NetEndpoint {
 
   /** endpoint lookup tables - - - - - - - - - - - - - - - - - - - -  - - - **/
 
+  /** return true if the message is handled anywhere */
+  packetHasHandler(pkt: NetPacket): boolean {
+    const fn = 'messageHasHandler:';
+    const a = this.getMessageHandlers(pkt.msg).length > 0;
+    const b = this.isServer() && this.getMessageAddresses(pkt.msg).length > 0;
+    return a || b;
+  }
+
   /** get list of messages allocated to a uaddr */
   getMessagesForAddress(uaddr: NP_Address): NP_Msg[] {
     const fn = 'getMessagesForAddress:';
@@ -875,15 +883,11 @@ class NetEndpoint {
 
     // handle call and send packets
     let retData: any;
-    let handled = 0;
-    // handle send and call, which do not reflect back to sender
-    retData = await this.awaitHandlers(pkt);
-    handled += retData.length;
-    if (this.isServer()) {
-      retData = await this.awaitRemoteHandlers(pkt);
-      handled += retData.length;
-    }
-    if (handled === 0) {
+    if (this.packetHasHandler(pkt)) {
+      // handle send and call, which do not reflect back to sender
+      retData = await this.awaitHandlers(pkt);
+      if (this.isServer()) retData = await this.awaitRemoteHandlers(pkt);
+    } else {
       LOG(PR, this.uaddr, fn, `unknown message`, pkt);
       retData = { error: `unknown message '${pkt.msg}'` };
     }
@@ -986,6 +990,7 @@ class NetEndpoint {
   awaitTransaction(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
     const clone = this.clonePacket(pkt);
     clone.id = this.assignPacketId(clone);
+    if (pkt.src_addr === sock.uaddr && SkipOriginType(pkt.msg_type)) return;
     return this._queueTransaction(clone, sock);
   }
 
