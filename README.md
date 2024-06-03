@@ -14,11 +14,11 @@ Current Features
 * Command line `ur` auto-discovers and spawns addons processes, using an entry point convention.
 * Pub/Sub message broker interface for webclient-to-webclient mesaging, including transactions that asynchronously return values.
 * Your app source lives in top level; folders matching `app`, `app-*`, and `*-app` are git-ignored so you can manage your repositories separately from the URSYS Framework that hosts them.
+* Compatibility with nginx proxy forwarding for both http and websocket connections, as well as https redirect/secure websocket. 
 
 Features Under Development
 
 * import URSYS as a dependency into existing projects
-* secure remote server configuration
 
 Check out the [Wiki](https://github.com/dsriseah/ursys/wiki) for detailed information about URSYS concepts. If you'd like to help test, see [First Install](https://github.com/dsriseah/ursys/wiki/Installation) instructions.
 
