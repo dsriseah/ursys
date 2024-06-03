@@ -204,17 +204,17 @@ class NetEndpoint {
 
     // 1. protocol: authentication packet (once)
     retPkt = this._handleAuthRequest(pkt, socket);
-    if (retPkt) return retPkt;
+    if (retPkt) return retPkt; // ...to client _ingestServerPacket()
 
     /** from this point forward, packets are authenticated **/
 
     // 2. is this a special registration packet (anytime)
     retPkt = this._handleRegRequest(pkt, socket);
-    if (retPkt) return retPkt;
+    if (retPkt) return retPkt; // ...to client _ingestServerPacket()
 
     // 3. is this a special declaration packet (anytime)
     retPkt = this._handleDeclRequest(pkt, socket);
-    if (retPkt) return retPkt;
+    if (retPkt) return retPkt; // ...to client _ingestServerPacket()
 
     // 4. otherwise, handle the packet normally through the message interface
     this.dispatchPacket(pkt);
@@ -407,9 +407,10 @@ class NetEndpoint {
     const pkt = this.newPacket().deserialize(jsonData);
     // 1. is this connection handshaking for clients?
     if (this.cli_gateway) {
-      // only clients have a defined cli_gateway
-      // these types of packets are never dispatched through the net message
-      // API, and are handled directly by the client endpoint to connect
+      // only clients have this.cli_gateway socket defined
+      // special packets are handled separately from the normal message dispatcher
+      // the parallel _ingestClientPacket() function for servers are who return
+      // these response packets
       if (this._handleAuthResponse(pkt)) return;
       if (this._handleRegResponse(pkt)) return;
       if (this._handleDeclResponse(pkt)) return;
@@ -1139,6 +1140,7 @@ class NetEndpoint {
     this.assignPacketId(pkt);
     return pkt;
   }
+
   /** create a registration packet */
   newRegPacket(): NetPacket {
     const pkt = this.newPacket('SRV:REG');
