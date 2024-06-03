@@ -72,7 +72,7 @@ function Connect(): Promise<boolean> {
       const client_sock = new NetSocket(SERVER_LINK, { send, onData, close });
       SERVER_LINK.addEventListener('message', onData);
       SERVER_LINK.addEventListener('close', () => {
-        out = `Server closed connection`;
+        out = `Server closed connection.`;
         LOG(...PR(out));
         ui_AddChatLine(out);
         EP.disconnectAsClient();
