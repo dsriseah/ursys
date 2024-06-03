@@ -123,7 +123,9 @@ export function IsValidType(msg_type: string): boolean {
   return VALID_PKT_TYPES.includes(msg_type as NP_Type);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** some message types should not invoke back to the same pkt origin */
+/** some message types should not invoke back to the same pkt origin
+ *  returning true 'call' and 'send'
+ */
 export function SkipOriginType(msg_type: string): boolean {
   return SKIP_SELF_PKT_TYPES.includes(msg_type as NP_Type);
 }

@@ -8,7 +8,7 @@
   - configAsServer(srv_addr: NP_Address): void
   - addClient(socket: I_NetSocket): NP_Address
   - removeClient(uaddr: NP_Address): NP_Address
-  - _ingestClientPacket(jsonData:string, socket: I_NetSocket): NetPacket
+  - _ingestClientPacket(jsonData: string, socket: I_NetSocket): NetPacket
 
   Client-Only API
   - connectAsClient(gateway: I_NetSocket, auth: TClientAuth): Promise<NP_Data>
@@ -197,7 +197,7 @@ class NetEndpoint {
 
   /** API: Server data event handler for incoming data from a client connection.
    *  This is the mirror to _ingestServerPacket() function used by client endpoints.
-   * This is the entry point for incoming data from clients */
+   *  This is the entry point for incoming data from clients */
   _ingestClientPacket(jsonData: string, socket: I_NetSocket): NetPacket {
     let pkt = this.newPacket().deserialize(jsonData);
     let retPkt: NetPacket;
@@ -587,11 +587,12 @@ class NetEndpoint {
       dir: 'req',
       rsvp: true
     });
-    // note: this is similar to _queueTransaction() but without the extra checks
-    const p = new Promise((resolve, reject) => {
+    /** MAGIC **/
+    let resData = await new Promise((resolve, reject) => {
+      const meta = { msg, uaddr: this.uaddr }; // this is transaction meta, not pkt meta
+      // note: this is similar to _queueTransaction() but without the extra checks
       const hash = GetPacketHashString(pkt);
       if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.uaddr };
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
         this.initialSend(pkt);
@@ -599,8 +600,6 @@ class NetEndpoint {
         reject(err);
       }
     });
-    /** MAGIC **/
-    let resData = await p;
     /** end MAGIC **/
     return resData;
   }
@@ -610,16 +609,17 @@ class NetEndpoint {
   async netSend(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
     const fn = 'netSend:';
     if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
-    // note: this is similar to _queueTransaction() but without the extra checks
-    const p = new Promise((resolve, reject) => {
-      const pkt = this.newPacket(msg, data);
-      pkt.setMeta('send', {
-        dir: 'req',
-        rsvp: true
-      });
+    const pkt = this.newPacket(msg, data);
+    pkt.setMeta('send', {
+      dir: 'req',
+      rsvp: true
+    });
+    /** MAGIC **/
+    let resData = await new Promise((resolve, reject) => {
+      // note: this is similar to _queueTransaction() but without the extra checks
       const hash = GetPacketHashString(pkt);
       if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.uaddr };
+      const meta = { msg, uaddr: this.uaddr }; // this is transaction meta, not pkt meta
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
         this.initialSend(pkt);
@@ -627,8 +627,6 @@ class NetEndpoint {
         reject(err);
       }
     });
-    /** MAGIC **/
-    let resData = await p;
     /** end MAGIC **/
     return resData;
   }
@@ -645,6 +643,7 @@ class NetEndpoint {
       dir: 'req',
       rsvp: false
     });
+    /** no magic, just send and forget **/
     this.initialSend(pkt);
   }
 
@@ -658,10 +657,12 @@ class NetEndpoint {
       dir: 'req',
       rsvp: true
     });
-    const p = new Promise((resolve, reject) => {
+    /** MAGIC **/
+    let resData = await new Promise((resolve, reject) => {
+      // note: this is similar to _queueTransaction() but without the extra checks
       const hash = GetPacketHashString(pkt);
       if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.uaddr };
+      const meta = { msg, uaddr: this.uaddr }; // this is transaction meta, not pkt meta
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
         this.initialSend(pkt);
@@ -669,7 +670,7 @@ class NetEndpoint {
         reject(err);
       }
     });
-    let resData = await p;
+    /** end MAGIC **/
     return resData;
   }
 
@@ -920,7 +921,7 @@ class NetEndpoint {
     if (Array.isArray(clients)) {
       // LOG(PR,_PKT(this, fn, '-wait-req-', pkt), pkt.data);
       clients.forEach(sock => {
-        // LOG(PR,this.uaddr, 'await remote', pkt.msg, sock.uaddr);
+        // LOG(PR,fn,this.uaddr, 'await remote', pkt.msg, sock.uaddr);
         const p = this.awaitTransaction(pkt, sock);
         if (p) promises.push(p);
       });
@@ -993,7 +994,7 @@ class NetEndpoint {
    */
   resolveTransaction(pkt: NetPacket) {
     const fn = 'resolveTransaction:';
-    // LOG(PR,this.uaddr, 'resolving', pkt.msg);
+    // LOG(PR, fn, this.uaddr, 'resolving', pkt.msg);
     if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
     if (pkt.hop_dir !== 'res') throw Error(`${fn} packet is not a response`);
     if (pkt.hop_seq.length < 2 && !pkt.isSpecialPkt())
@@ -1008,19 +1009,12 @@ class NetEndpoint {
     if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
     const { src_addr } = pkt;
     const { uaddr: dst_addr } = sock;
-    // LOG(PR,`${pkt.msg} dst:${dst_addr} src:${src_addr}`);
-    // for send and call packets, do not send to origin
-    if (src_addr === dst_addr && SkipOriginType(pkt.msg_type)) {
-      LOG(PR, `.. skipping reflect '${pkt.msg}' to ${dst_addr}==${src_addr}`);
-      return undefined;
-    }
-    // otherwise Promise
-    const p = new Promise((resolve, reject) => {
+    // LOG(PR, fn, `${pkt.msg} dst:${dst_addr} src:${src_addr}`);
+    return new Promise((resolve, reject) => {
       const meta = { msg: pkt.msg, uaddr: pkt.src_addr };
       this.transactions.set(hash, { resolve, reject, ...meta });
       sock.send(pkt);
     });
-    return p;
   }
 
   /** utility method for completing transactions */
@@ -1053,7 +1047,7 @@ class NetEndpoint {
     // LOG(PR,_PKT(this, fn, '-send-res-', pkt), pkt.data);
     const { gateway, src_addr } = this.getRoutingInformation(pkt);
     if (this.isServer()) {
-      // LOG(PR,this.uaddr, 'returning to', src_addr);
+      // LOG(PR,fn,this.uaddr, 'returning to', src_addr);
       const socket = this.getClient(src_addr);
       if (socket) socket.send(pkt);
       // responses go to a single address; if we found it here,
