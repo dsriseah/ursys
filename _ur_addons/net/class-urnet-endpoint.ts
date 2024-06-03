@@ -177,7 +177,6 @@ class NetEndpoint {
     if (!IsValidAddress(srv_addr)) throw Error(`${fn} invalid srv_addr ${srv_addr}`);
     if (this.uaddr && this.uaddr !== srv_addr) {
       let err = `${fn} uaddr ${this.uaddr} already set.`;
-      err += `currently, `;
       throw Error(err);
     }
     this.uaddr = srv_addr;
