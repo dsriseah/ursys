@@ -35,7 +35,6 @@ let HTTP_CLIENT_INFO: T_HTTP_CLIENT = {
  */
 function GetClientInfoFromWindowLocation(winLocation: Location) {
   const { host, pathname, protocol } = winLocation;
-  console.log(`GetClientInfoFromWindowLocation: ${host} ${pathname} ${protocol}`);
   const { http_port, wss_path } = HTTP_CLIENT_INFO;
   const tls = protocol === 'https:';
   const hostpath = host + pathname;

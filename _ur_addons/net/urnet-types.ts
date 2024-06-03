@@ -91,6 +91,30 @@ export interface I_NetMessage {
   hop_log: string[];
   err?: string;
 }
+/// LOCAL TYPES ///////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** the function that sends a packet to the wire */
+export type NS_SendFunc = (pkt: I_NetMessage) => void;
+export type NS_DataFunc = (data: any) => void;
+export type NS_CloseFunc = () => void;
+export type NS_Options = {
+  send: NS_SendFunc;
+  onData: NS_DataFunc;
+  close: NS_CloseFunc;
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** this is the socket-ish object that we use to send data to the wire */
+export interface I_NetSocket {
+  connector?: any; // the original connection object (if needed)
+  send: NS_SendFunc;
+  close: NS_CloseFunc; // close function
+  uaddr?: NP_Address; // assigned uaddr for this socket-ish object
+  auth?: any; // whatever authentication is needed for this socket
+  msglist?: NP_Msg[]; // messages queued for this socket
+  age?: number; // number of seconds since this socket was used
+  label?: string; // name of the socket-ish object
+  authenticated?: () => boolean;
+}
 
 /// FUNCTION SIGNATURES ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -99,13 +123,15 @@ export function IsValidType(msg_type: string): boolean {
   return VALID_PKT_TYPES.includes(msg_type as NP_Type);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** some message types should not invoke back to the same pkt origin */
+/** some message types should not invoke back to the same pkt origin
+ *  returning true 'call' and 'send'
+ */
 export function SkipOriginType(msg_type: string): boolean {
   return SKIP_SELF_PKT_TYPES.includes(msg_type as NP_Type);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** runtime check of protocol-related NP_Type */
-export function IsProtocolType(msg_type: string): boolean {
+export function isSpecialPktType(msg_type: string): boolean {
   if (!IsValidType(msg_type)) return false;
   return msg_type.startsWith('_');
 }

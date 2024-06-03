@@ -60,8 +60,9 @@ function Connect(): Promise<boolean> {
       // 1. wire-up SERVER_LINK to the endpoint via our netsocket wrapper
       LOG(`Connected to server '${sock_file}'`);
       const send = pkt => SERVER_LINK.write(pkt.serialize());
-      const onData = data => EP._ingestServerMessage(data, client_sock);
-      const client_sock = new NetSocket(SERVER_LINK, { send, onData });
+      const onData = data => EP._ingestServerPacket(data, client_sock);
+      const close = () => SERVER_LINK.end();
+      const client_sock = new NetSocket(SERVER_LINK, { send, onData, close });
       SERVER_LINK.on('data', onData);
       SERVER_LINK.on('end', () => {
         EP.disconnectAsClient();
@@ -80,8 +81,8 @@ function Connect(): Promise<boolean> {
       }
       // 3. register client with server
       const info = { name: 'UDSClient', type: 'client' };
-      const regdata = await EP.registerClient(info);
-      if (DBG) LOG('EP.registerClient returned', regdata);
+      const regdata = await EP.declareClientProperties(info);
+      if (DBG) LOG('EP.declareClientProperties returned', regdata);
       if (regdata.error) {
         LOG.error(regdata.error);
         resolve(false);
@@ -98,12 +99,12 @@ function Connect(): Promise<boolean> {
  */
 async function RegisterMessages() {
   // register some message handlers
-  EP.registerMessage('NET:CLIENT_TEST', data => {
+  EP.addMessageHandler('NET:CLIENT_TEST', data => {
     LOG('NET:CLIENT_TEST got', data);
     return { 'NET:CLIENT_TEST': 'received' };
   });
-  const resdata = await EP.clientDeclare();
-  if (DBG) LOG(...PR('EP.clientDeclare returned', resdata));
+  const resdata = await EP.declareClientMessages();
+  if (DBG) LOG(...PR('EP.declareClientMessages returned', resdata));
   // test code below can be removed //
   let count = 0;
   let foo = setInterval(() => {

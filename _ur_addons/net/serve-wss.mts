@@ -46,7 +46,7 @@ EP.configAsServer('SRV02'); // hardcode arbitrary client_link address
 /// HELPERS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function WSS_RegisterServices() {
-  EP.registerMessage('SRV:MYSERVER', data => {
+  EP.addMessageHandler('SRV:MYSERVER', data => {
     return { memo: `defined in ${m_script}.RegisterServices` };
   });
   // note that default services are also registered in Endpoint
@@ -60,11 +60,12 @@ function WSS_Listen() {
     LOG.info(`WSS Server listening on '${wss_url}'`);
     WSS.on('connection', (client_link, request) => {
       const send = pkt => client_link.send(pkt.serialize());
+      const close = () => client_link.close();
       const onData = data => {
-        const returnPkt = EP._ingestClientMessage(data, client_sock);
+        const returnPkt = EP._ingestClientPacket(data, client_sock);
         if (returnPkt) client_link.send(returnPkt.serialize());
       };
-      const client_sock = new NetSocket(client_link, { send, onData });
+      const client_sock = new NetSocket(client_link, { send, onData, close });
       if (EP.isNewSocket(client_sock)) {
         EP.addClient(client_sock);
         const uaddr = client_sock.uaddr;

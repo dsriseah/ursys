@@ -46,8 +46,9 @@ function Connect(): Promise<boolean> {
       // 1. wire-up SERVER_LINK to the endpoint via our netsocket wrapper
       LOG(`Connected to server '${wss_url}'`);
       const send = pkt => SERVER_LINK.send(pkt.serialize()); // client send
-      const onData = data => EP._ingestServerMessage(data, client_sock); // client receive
-      const client_sock = new NetSocket(SERVER_LINK, { send, onData });
+      const onData = data => EP._ingestServerPacket(data, client_sock); // client receive
+      const close = () => SERVER_LINK.close(); // client close
+      const client_sock = new NetSocket(SERVER_LINK, { send, onData, close });
       SERVER_LINK.on('message', onData);
       SERVER_LINK.on('close', (code, reason) => {
         LOG('server closed connection');
@@ -64,7 +65,7 @@ function Connect(): Promise<boolean> {
       }
       // 3. register client with server
       const info = { name: 'WSSClient', type: 'client' };
-      const regdata = await EP.registerClient(info);
+      const regdata = await EP.declareClientProperties(info);
       if (regdata.error) {
         LOG.error(regdata.error);
         resolve(false);
@@ -81,11 +82,11 @@ function Connect(): Promise<boolean> {
  */
 async function RegisterMessages() {
   // register some message handlers
-  EP.registerMessage('NET:CLIENT_TEST', data => {
+  EP.addMessageHandler('NET:CLIENT_TEST', data => {
     LOG('NET:CLIENT_TEST got', data);
     return { 'NET:CLIENT_TEST': 'received' };
   });
-  const resdata = await EP.clientDeclare();
+  const resdata = await EP.declareClientMessages();
   // test code below can be removed //
   let count = 0;
   let foo = setInterval(() => {

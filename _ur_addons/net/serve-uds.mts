@@ -46,7 +46,7 @@ EP.configAsServer('SRV01'); // hardcode arbitrary server address
 /// HELPERS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function UDS_RegisterServices() {
-  EP.registerMessage('SRV:MYSERVER', data => {
+  EP.addMessageHandler('SRV:MYSERVER', data => {
     return { memo: `defined in ${m_script}.RegisterServices` };
   });
   // note that default services are also registered in Endpoint
@@ -60,10 +60,11 @@ function UDS_Listen() {
     // socket housekeeping
     const send = pkt => client_link.write(pkt.serialize());
     const onData = data => {
-      const returnPkt = EP._ingestClientMessage(data, socket);
+      const returnPkt = EP._ingestClientPacket(data, socket);
       if (returnPkt) client_link.write(returnPkt.serialize());
     };
-    const socket = new NetSocket(client_link, { send, onData });
+    const close = () => client_link.end();
+    const socket = new NetSocket(client_link, { send, onData, close });
     if (EP.isNewSocket(socket)) {
       EP.addClient(socket);
       const uaddr = socket.uaddr;
@@ -99,16 +100,16 @@ function Stop() {
     const shortPath = FILE.ShortPath(sock_path);
     LOG.info(`.. stopping UDS Server on ${shortPath}`);
     // request end all socket connections
-    EP.srv_socks.forEach(sock => sock.connector.end());
+    EP.client_socks.forEach(sock => sock.connector.end());
     if (FILE.UnlinkFile(sock_path)) LOG.info(`.. unlinked ${shortPath}`);
     const _checker = setInterval(() => {
-      // check if EP.srv_socks map is empty
-      if (EP.srv_socks.size === 0) {
+      // check if EP.client_socks map is empty
+      if (EP.client_socks.size === 0) {
         clearInterval(_checker);
         process.exit(0); // force exit...
         return;
       }
-      const clients = Array.from(EP.srv_socks.values());
+      const clients = Array.from(EP.client_socks.values());
       if (
         clients.every(client => {
           const test = client.connector.destroyed;

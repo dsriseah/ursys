@@ -7,7 +7,7 @@
   receiving of packets. In practice, use Endpoint.newPacket() to create a new 
   packet that has the correct source address and id.
 
-  CROSS PLATFORM USAGE --------------------------------------------------------
+  -- CROSS PLATFORM IMPORT TRICKS -------------------------------------------
 
   When using from nodejs mts file, you can only import this ts file as 'default' 
   property. To access the NetPacket class do this:
@@ -22,8 +22,13 @@
 
 import { PR } from '@ursys/core';
 import { I_NetMessage, NP_Address } from './urnet-types';
-import { NP_ID, NP_Type, NP_Dir } from './urnet-types';
-import { IsValidMessage, IsValidAddress, IsValidType } from './urnet-types';
+import { NP_ID, NP_Type, NP_Dir, I_NetSocket } from './urnet-types';
+import {
+  IsValidMessage,
+  IsValidAddress,
+  IsValidType,
+  UADDR_NONE
+} from './urnet-types';
 import { NP_Msg, NP_Data, DecodeMessage } from './urnet-types';
 import { NP_Options } from './urnet-types';
 
@@ -163,7 +168,7 @@ class NetPacket implements I_NetMessage {
   /** packet transport  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
 
   /** rsvp required? */
-  isRsvp() {
+  hasRsvp() {
     return this.hop_rsvp;
   }
 
@@ -171,9 +176,52 @@ class NetPacket implements I_NetMessage {
     return this.hop_seq[this.hop_seq.length - 1];
   }
 
-  /** types that begin with _ are protocol messages that bypass pktReceive() */
-  isProtocol() {
+  hasAuth() {
+    return this.auth !== undefined;
+  }
+
+  /** types that begin with _ are protocol messages that bypass dispatchPacket() */
+  isSpecialPkt() {
     return this.msg_type.startsWith('_');
+  }
+
+  /** authorization packets are the first packet sent on a client connection to
+   *  the message gateway server. They must not have a src_addr aassigned, using
+   *  the special UADDR_NONE value instead.
+   */
+  isBadAuthPkt() {
+    let error = '';
+    let a = this.msg_type === '_auth';
+    let b = this.msg === 'SRV:AUTH';
+    let c = this.src_addr === UADDR_NONE;
+    if (!a) error += `msg_type ${this.msg_type} not _auth. `;
+    if (!b) error += `msg ${this.msg} not SRV:AUTH. `;
+    if (!c) error += `src_addr ${this.src_addr} not ${UADDR_NONE} `;
+    if (error.length > 0) return `isBadAuthPkt: ${error}`;
+    return undefined;
+  }
+
+  /** registration packets are sent on a client connection after
+   *  authentication. They must have a src_addr assigned, which was returned
+   *  by the server in the response to the auth packet, and this must match
+   *  the server's stored uaddr for the client connection.
+   */
+  isBadRegPkt(socket: I_NetSocket) {
+    let error = '';
+    let a = this.msg_type === '_reg';
+    let b = this.msg === 'SRV:REG';
+    let c = this.src_addr === socket.uaddr;
+    if (!a) error += `msg_type ${this.msg_type} not _reg. `;
+    if (!b) error += `msg ${this.msg} not SRV:REG. `;
+    if (!c) error += `src_addr ${this.src_addr} not ${socket.uaddr}. `;
+    if (error.length > 0) return `isBadRegPkt: ${error}`;
+    return undefined;
+  }
+
+  authenticate(socket: I_NetSocket) {
+    const { msg, src_addr, hop_dir, hop_seq } = this;
+    if (!this.isResponse()) LOG(PR, `would auth ${src_addr} '${msg}'`);
+    return true;
   }
 
   isRequest() {

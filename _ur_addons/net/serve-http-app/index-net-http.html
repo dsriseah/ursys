@@ -5,19 +5,67 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Net Addon Test Client for HTTP</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    #chat-history {
+      box-sizing: border-box;
+      padding: 0.5rem 0.25rem;
+      width: 100%;
+      border: 0;
+    }
+
+    #chat-input {
+      display: flex;
+      box-sizing: border-box;
+      padding: 0 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+      height: 2rem;
+      border: 0;
+    }
+
+    #chat-input label {
+      display: flex;
+      flex: 0 0 auto;
+      align-items: center;
+      padding-right: 0.5rem;
+    }
+
+    #chat-input input {
+      width: 100%;
+      padding: 0.5rem;
+      flex-grow: 1;
+      border: 1px solid #ccc;
+    }
+  </style>
 </head>
 
 <body>
   <div class="container">
     <!-- Your content here -->
-    <h1>URNet Message Test Client for HTTP/S</h2>
+    <h1>URNet Test Client for HTTP/S</h2>
       <p>Open the <b>Javascript Console</b> to see URNET message tests.<br>(Chrome shortcuts: 🍎 CMD-OPT-J / 🪟
         CTRL-SHIFT-J)
       </p>
       <p>The source files for this test app are located in <tt>_ur_addons/net/serve-http-app</tt>.</p>
-      <script src="js/net-http.bundle.js"></script>
+      <!-- Interactive Elements -->
+      <textarea id="chat-history" readonly rows="10" scroll="auto"></textarea>
+      <div id="chat-input">
+        <label for="message-input">---</label>
+        <input type="text" id="message-input" placeholder="Type a message" disabled>
+      </div>
+
   </div>
+  <script src="js/net-http.bundle.js"></script>
 </body>
 
 </html>
