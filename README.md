@@ -1,22 +1,21 @@
 ## Sri's Universal Realtime System (URSYS)
 
-URSYS originated in learning science research into embodied learning from 2013 to date. The requirements were LAN-based operation, realtime graphics, simulation, video, and motion tracking served from a single laptop to multiple tablet and Chromebook-type devices in a guided classroom environment. This repository is a modular rebuild of many of the key features of the original libraries into "building blocks" that hide the difficult parts of asynchronous lifecycle-driven programming in a distributed network environment. 
+URSYS originated in learning science research into embodied learning from 2013 to date. The requirements were LAN-based operation, realtime graphics, simulation, video, and motion tracking served from a single laptop to multiple tablet and Chromebook-type devices in a guided classroom environment. 
 
-Major goal is to make a NodeJS-based framework that approachable to intermediate-level developers who are just getting into the stickiness of asynchronous realtime graphics simulation programming. We want this to be as "plug and go" with a low threshold to starting.
+This repository is a modular rebuild of support features I've developed for these project. The development goal is to create many "building blocks" that hide the difficult parts of asynchronous lifecycle-driven programming in a distributed network environment under an open license compatible with contract work for the NSF grants I am working on. The usability goal is to make a NodeJS-based framework that can be used productively by intermediate-level developers who are just getting into asynchronous realtime graphics simulation programming. I'd like this to be as "plug and go" as possible. For a more detailed list of this project's goals, see [Development Priorities](https://github.com/dsriseah/ursys/wiki/Development-Priorities) in the Wiki.
 
-Current Features
+Features
 
-* Visual Studio Code `.code-workspace` script to detect node version and architecture mismatches in integrated terminal.
-* Local development model for Macos and Linux-based systems with 4GB minimum memory.
-* A core library `@ursys/core` has the system-level features in `_ur` directory
-* Core Extensions are stored in `_ur_addons` directory, and can be copy/pasted as self-contained modules.
-* Monorepo-like structure using npm workspaces for developing more core and addon modules.
-* Command line `ur` auto-discovers and spawns addons processes, using an entry point convention.
-* Pub/Sub message broker interface for webclient-to-webclient mesaging, including transactions that asynchronously return values.
-* Your app source lives in top level; folders matching `app`, `app-*`, and `*-app` are git-ignored so you can manage your repositories separately from the URSYS Framework that hosts them.
-* Compatibility with nginx proxy forwarding for both http and websocket connections, as well as https redirect/secure websocket. 
+* Designed to use Visual Studio Code features from integrated terminal.
+* Works on MacOS/Linux systems with a minimum of 4GB memory free.
+* Monorepo structure implemented with npm workspaces.
+* Modular separation between core, addon, and app directories for easy extensibility.
+* Designed for simple copy/paste folder operation with automatic configuration whereever possible.
+* Command line `ur` auto-discovers and spawns addons processes.
+* Tested with nginx proxy forwarding for both http and websocket connections
+* Verbose prompting and guardrails to help users understand what's going on
 
-Features Under Development
+Under Development
 
 * import URSYS as a dependency into existing projects
 * other [feature porting](https://github.com/dsriseah/ursys/wiki/Catalog-of-URSYS-Modules) candidates
