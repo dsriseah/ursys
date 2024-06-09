@@ -6,6 +6,9 @@
     "_ur/",
     "_ur_addons/"
   ],
+  "bin": {
+    "ur": "./_ur/ur"
+  },
   "scripts": {
     "example": "node ./_ur/npm-scripts/@build-core.cjs && node ./example-app/@build-example.mjs",
     "build-libs": "node ./_ur/npm-scripts/@build-core.cjs",
