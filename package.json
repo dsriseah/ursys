@@ -7,7 +7,8 @@
     "_ur_addons/"
   ],
   "bin": {
-    "ur": "./_ur/ur"
+    "ur": "./_ur/ur",
+    "create": "./_ur/ur-create.sh"
   },
   "scripts": {
     "example": "node ./_ur/npm-scripts/@build-core.cjs && node ./example-app/@build-example.mjs",
