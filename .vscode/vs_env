@@ -1,27 +1,22 @@
 # The following script is invoked on Apple OSX machines
 # in the .code-workspace setting "terminal.integrated.profiles.osx"
 
-# Portable Echo
-prln() {
-  printf "%s\n" "$*"
-}
-
 # ANSI Terminal Colors
-ALRT="\e[33;1m" # yellow
-INFO="\e[34;1m" # blue
-NRML="\e[0m"    # normal
-BOLD="\e[1m"    # normal bold
+ALRT="\033[33;1m" # yellow
+INFO="\033[34;1m" # blue
+NRML="\033[0m"    # normal
+BOLD="\033[1m"    # normal bold
 
 # Check if NVM_DIR is defined
 if [ -z "$NVM_DIR" ]; then
-  prln ""
-  prln "vsenv: ${ALRT}NVM does not appear to be installed${NRML}"
-  prln "       Does your ${INFO}~/.zshrc${NRML} have ${INFO}export NVM_DIR${NRML} lines?"
-  prln ""
-  prln "       If you haven't installed nvm yet, please follow the instructions"
-  prln "       on the NetCreate wiki."
-  prln "       If you are using 'bash' as your default shell, you can copy "
-  prln "       these lines to your .zshrc file so nvm will also work in zsh."
+  printf "\n"
+  printf "vsenv: ${ALRT}NVM does not appear to be installed${NRML}\n"
+  printf "       Does your ${INFO}~/.zshrc${NRML} have ${INFO}export NVM_DIR${NRML} lines?\n"
+  printf "\n"
+  printf "       If you haven't installed nvm yet, please follow the instructions\n"
+  printf "       on the NetCreate wiki.\n"
+  printf "       If you are using 'bash' as your default shell, you can copy\n"
+  printf "       these lines to your .zshrc file so nvm will also work in zsh.\n"
   return
 fi
 
@@ -38,39 +33,38 @@ if [ -n "$NVM_DIR" ] && [ -s "./.nvmrc" ] && [ -d "./.vscode" ]; then
   if [ -n "$str_alias" ]; then
     str_out="$str_out and alias"
   fi
-  prln ""
-  prln "vsenv: VISUAL STUDIO CODE INTEGRATED TERMINAL DETECTED"
-  echo   "       ${str_out} detected setting: node ${INFO}$NODE_VERSION${NRML}"
+  printf "\n"
+  printf "vsenv: VISUAL STUDIO CODE INTEGRATED TERMINAL DETECTED\n"
+  printf "       ${str_out} detected setting: node ${INFO}$NODE_VERSION${NRML}\n"
   ARCH=$(uname -m)
-  prln "       architecture is ${INFO}$ARCH${NRML} (this can be forced in .code-workspace)"
+  printf "       architecture is ${INFO}$ARCH${NRML} (override in code-workspace file)\n"
 
   # check if node binary is in the path
   if ! command -v node &> /dev/null; then
-    prln ""
-    prln "vsenv: ${ALRT}The node binary can not be found! That is weird!${NRML}"
-    prln "       This is a possible incompatibility with your shell environment."
-    prln "       Contact your friendly neighborhood developer for help."
-    prln "       your shell:   $SHELL"
-    prln "       your path:    $PATH"
-    prln "       your nvm dir: $NVM_DIR"
+    printf "\n"
+    printf "vsenv: ${ALRT}The node binary can not be found! That is weird!${NRML}\n"
+    printf "       This is a possible incompatibility with your shell environment.\n"
+    printf "       Contact your friendly neighborhood developer for help.\n"
+    printf "       your shell:   $SHELL\n"
+    printf "       your path:    $PATH\n"
+    printf "       your nvm dir: $NVM_DIR\n"
     return
   else
-    prln "vsenv: node binary found at ${INFO}$(command -v node)${NRML}"
+    printf "vsenv: node binary found at ${INFO}$(command -v node)${NRML}\n"
   fi
 
   CURRENT_VERSION=$(node --version)
   if [ "$CURRENT_VERSION" != "$NODE_VERSION" ] && [ -n "$str_alias" ]; then
-    prln "vsenv: ${BOLD}kill/restart VSCODE for nvm alias default to take effect!${NRML}"
-    prln "       this shell is using version ${INFO}$CURRENT_VERSION${NRML} until you do"
-    prln "       alternatively, type ${ALRT}nvm use $NODE_VERSION${NRML} to use it now"
+    printf "vsenv: ${BOLD}kill/restart VSCODE for nvm alias default to take effect!${NRML}\n"
+    printf "       this shell is using version ${INFO}$CURRENT_VERSION${NRML} until you do\n"
+    printf "       alternatively, type ${ALRT}nvm use $NODE_VERSION${NRML} to use it now\n"
   fi
 fi
 
 # for bash and zsh shells: if ./ is not in PATH, add it to end of PATH
 if [[ $PATH != *":./"* ]]; then
   export PATH=$PATH:./
-  prln ""
-  prln "vsenv: adding './' to end of PATH for easier CLI execution in _ur directory!"
-  prln "       (applies only to this shell)"
+  printf "\n"
+  printf "vsenv: adding './' to end of PATH for easier CLI execution in _ur directory!\n"
+  printf "       (applies only to this shell)\n"
 fi
-
