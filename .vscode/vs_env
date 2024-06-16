@@ -1,5 +1,28 @@
-# The following script is invoked on Apple OSX machines
-# in the .code-workspace setting "terminal.integrated.profiles.osx"
+# vs_env.sh - Sri's Visual Studio Code Environment Script
+# 
+# The following script is invoked from inside a Visual Studio Code integrated terminal
+# and is located in a workspace .vscode folder. Accompanying changes must be made to
+# the .code-workspace file to enable this script to run. As an example, these settings
+# in the .code-workspace file will first force x86 mode on an ARM-based Mac through
+# Rosetta 2, and then run the script vs_env script
+#
+# "terminal.integrated.profiles.osx": {
+#   "x86 macos": {
+#     "path": "/usr/bin/arch",
+#     "args": [
+#       "-arch",
+#       "x86_64",
+#       "${env:SHELL}",
+#       "-i",
+#       "-c",
+#       "export VSCODE_TERM='x86 shell';source ${workspaceFolder}/.vscode/vs_env; exec ${env:SHELL}"
+#     ]
+#   }
+# },
+# "terminal.integrated.defaultProfile.osx": "x86 macos",
+# 
+# For more information on terminal profiles in vscode, see
+# https://code.visualstudio.com/docs/terminal/profiles
 
 # ANSI Terminal Colors
 ALRT="\033[33;1m" # yellow
