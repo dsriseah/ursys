@@ -1,6 +1,6 @@
-# vs_env.sh - Sri's Visual Studio Code Environment Script
+# vs_env - Sri's Visual Studio Code Environment Script
 # 
-# The following script is invoked from inside a Visual Studio Code integrated terminal
+# The following script is source'd from inside a Visual Studio Code integrated terminal
 # and is located in a workspace .vscode folder. Accompanying changes must be made to
 # the .code-workspace file to enable this script to run. As an example, these settings
 # in the .code-workspace file will first force x86 mode on an ARM-based Mac through
