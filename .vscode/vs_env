@@ -36,8 +36,8 @@ if [ -z "$NVM_DIR" ]; then
   printf "vsenv: ${ALRT}NVM does not appear to be installed${NRML}\n"
   printf "       Does your ${INFO}~/.zshrc${NRML} have ${INFO}export NVM_DIR${NRML} lines?\n"
   printf "\n"
-  printf "       If you haven't installed nvm yet, please follow the instructions\n"
-  printf "       on the NetCreate wiki.\n"
+  printf "       If you haven't yet installed nvm, please follow the instructions\n"
+  printf "       at https://github.com/nvm-sh/nvm to install it."
   printf "       If you are using 'bash' as your default shell, you can copy\n"
   printf "       these lines to your .zshrc file so nvm will also work in zsh.\n"
   return
@@ -47,17 +47,26 @@ fi
 # is NVM is installed, there is a .nvmrc file and a .vscode directory?
 if [ -n "$NVM_DIR" ] && [ -s "./.nvmrc" ] && [ -d "./.vscode" ]; then
   NVM_RC=$(cat ./.nvmrc)
-  NODE_VERSION=$(nvm version $NVM_RC)
-  NODE_LABEL="$NVM_RC"
-  if [ "$NVM_RC" != "$NODE_VERSION" ]; then
-    NODE_LABEL="$NODE_LABEL ($NODE_VERSION)"
+  REQ_VERSION=$(nvm version $NVM_RC)
+  if [ "$REQ_VERSION" = "N/A" ]; then
+    REQ_VERSION="$NVM_RC"
+  fi
+
+  CUR_VERSION=$(nvm current)
+  NODE_LABEL="$CUR_VERSION"
+  if [ "$NVM_RC" != "$REQ_VERSION" ]; then
+    NODE_LABEL="$NODE_LABEL ($REQ_VERSION)"
   fi
 
   printf "\n"
   printf "vsenv: VISUAL STUDIO CODE INTEGRATED TERMINAL DETECTED\n"
+  ARCH_LABEL=$(uname -m)
+  printf "       detected architecture is ${INFO}$ARCH_LABEL${NRML}\n"
+  if [ "$CUR_VERSION" != "$REQ_VERSION" ]; then
+    printf "       ${ALRT}required node version is ${INFO}$REQ_VERSION${NRML}\n"
+  fi
   printf "       detected node version is ${INFO}$NODE_LABEL${NRML}\n"
-  ARCH=$(uname -m)
-  printf "       detected architecture is ${INFO}$ARCH${NRML} (can override in code-workspace)\n"
+
 
   # check if node binary is in the path
   if ! command -v node &> /dev/null; then
@@ -73,14 +82,13 @@ if [ -n "$NVM_DIR" ] && [ -s "./.nvmrc" ] && [ -d "./.vscode" ]; then
     printf "\n"
     printf "vsenv: node binary found at ${INFO}$(command -v node)${NRML}\n"
   fi
-
-  CURRENT_VERSION=$(node --version)
-  if [ "$CURRENT_VERSION" != "$NODE_VERSION" ] && [ -n "$str_alias" ]; then
+  
+  if [ "$CUR_VERSION" != "$REQ_VERSION" ]; then
     printf "\n"
     printf "vsenv: ** WARNING **\n"
-    printf "       This shell is using version ${INFO}$CURRENT_VERSION${NRML}, not the ${ALRT}specified ${INFO}$NODE_VERSION${NRML} in .nvmrc\n"
+    printf "       This shell is using version ${INFO}$CUR_VERSION${NRML}, not the ${ALRT}specified ${INFO}$REQ_VERSION${NRML} in .nvmrc\n"
     printf "       Type ${ALRT}nvm use${NRML} to use .nvmrc version. You may need to run ${ALRT}npm ci${NRML} again.\n"
-    printf "       If you want to use this version as default, type ${ALRT}nvm alias default $NODE_VERSION${NRML}\n"
+    printf "       If you want to use this version as default, type ${ALRT}nvm alias default $REQ_VERSION${NRML}\n"
   fi
 else
   printf "\n"
