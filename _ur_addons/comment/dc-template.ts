@@ -1,0 +1,96 @@
+/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
+
+  dc-template - placeholder for "templates" related to comments
+
+\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
+
+import * as UR from '@ursys/core'; // want phasemachine, but is it available?
+import DEFAULT_TEMPLATE from './dc-template-default';
+
+/// TYPE DEFINITIONS //////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import type { TCommentType, TCommentTypeMap, TLokiData } from './types-comment';
+
+/// DEBUG SUPPORT /////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DBG = false;
+const PR = 'dc-template';
+const LOG = console.log;
+LOG.bind(console);
+
+/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const TPL_COMMENTS: TCommentTypeMap = new Map(); // Map<typeId, commentTypeObject>
+const DEFAULT: Array<TCommentType> = DEFAULT_TEMPLATE.comment_types;
+
+/// LIFECYCLE HOOKS ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// currently not supported in new ursys...
+
+/// TEMPLATE TYPES ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// TODO: This is temporarily hard-coded until we have a new Template Editor
+/*/ COMMENT TEMPLATE PROMPT TYPES 
+  - `text` data is stored as a single string
+  - `dropdown` (menu) -- single-select, single-view
+  - `checkbox` (multi-select) -- multi-select, multi-view
+    data is stored as a single delimited (\n) string so that it is human readable
+    The format is '<optionLabel>\n', e.g.
+      ```
+      Apples\n
+      Banana\n
+      Orange
+      ```
+  - `radio` (scale) -- single-select, multi vertical view
+  - `likert` -- likert scale for single-select, multi horizontal view
+  - 'discrete-slider' -- single-select, stacked horizontal view
+/*/
+
+/// DATA LIFECYCLE METHODS ////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: First time initialization */
+function Init() {
+  if (DBG) LOG(`${PR} Init()`);
+  m_UpdateTPL_COMMENTS(DEFAULT);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: update from passed LokiData object */
+function UpdateData(data: TLokiData) {
+  if (data.comments) m_UpdateTPL_COMMENTS(data.commenttypes);
+  m_UpdateDerivedData();
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: called immediately after data is updated */
+function m_UpdateDerivedData() {}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** HELPER: called from Init, UpdateData */
+function m_UpdateTPL_COMMENTS(comments: TCommentType[]) {
+  comments.forEach(t => TPL_COMMENTS.set(t.slug, t));
+}
+
+/// DATA ACCESS METHODS  ////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Get a specific comment type for .../ */
+function GetCommentType(typeid): TCommentType {
+  return TPL_COMMENTS.get(typeid);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Get the default comment type */
+function GetDefaultCommentType(): TCommentType {
+  // returns the first comment type object
+  if (DEFAULT.length < 1) throw new Error(`${PR} No comment types defined!`);
+  return GetCommentType(DEFAULT[0].slug);
+}
+
+/// EXPORTS ///////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export {
+  // lifecycle
+  Init,
+  UpdateData,
+  // template getters
+  GetCommentType, //
+  GetDefaultCommentType, //
+  // "protected" data for ac-template
+  TPL_COMMENTS
+};
