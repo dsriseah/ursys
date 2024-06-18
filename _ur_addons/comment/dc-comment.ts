@@ -2,155 +2,91 @@
 
   dc-comments
   
-  Data Care Comments
-      
-  DATA
+  test module/code review for dc-comment.ts
+
+  main concepts
+
+    The Comment Data Struture is implemented as a bidirectional graph using
+    CommentObjs as their nodes. The term Comment and CommentObjs are used
+    interchangeably. They are of interface type TComment. Each node has a parent
+    and child link.
+
+    A runtime collection of "root comments" is maintained. These are comments
+    with no parent, and are the starting point for a thread of replies.
+
+    Comment threads are CommentObjs that have a parent. The parent might be a
+    root comment or another comment in the same thread. 
+
+  supporting concepts
+
+    Each Comment is associated with a "commentable object", identified by a
+    "collection reference" id. These can be individual nodes or areas of the
+    screen.
+
+    Each Comment contains the "commenter id" and their text. The system supports
+    a "read by" data structure that consists of an array of ReadBy objects. Each
+    ReadBy object has the comment_id (unique across the system) and an arrar of
+    commenter ids that have read the comment.
+
+  data sets - persisted and pure
+
+    COMMENTS      : TComment[];
+    READBY        : TCommentReadMap;
+    USERS         : Map<TUserId, TUserName>
+    
+  data sets - derived at runtime as lookup tables
+
+    ROOTS       : Map<TCommentCollectionID, TCommentID>
+    REPLY_ROOTS : Map<TCommentID, TCommentID>
+    NEXT        : Map<TCommentID, TCommentID>
+
+  template stuff that has nothing to do with comment objects
+
+    COMMENT_TYPES : Map<CType, TCommentType>
+
+  EXAMPLE
   
-    COMMENTS
-    --------
-    COMMENTS are a flat array of the raw comment data.
-    aka a "comment object" or "cobj"
-    Used by the TComment component to render the text in each comment.
-    
-      interface TComment {
-        collection_ref: any;
-        comment_id: any;
-        comment_id_parent: any;
-        comment_id_previous: any;
-        comment_type: string;
-        comment_createtime: number;
-        comment_modifytime: number;
-        comment_isMarkedDeleted: boolean;
-
-        commenter_id: any;
-        commenter_text: string[];
-      };
-
-      
-    READBY
-    ------
-    READBY keeps track of which user id has "read" which comment id.
-    This can get rather long over time.
-    
-      interface ReadBy {
-        comment_id: any;
-        commenter_ids: any[];
-      }
-
-      
-    DERIVED DATA
-    ------------
-    dc-comments keeps track of various indices for constructing threads:
-    * ROOTS       -- Root comment for a collection
-    * REPLY_ROOTS -- Root for a reply thread (the first comment in a child thread)
-    * NEXT        -- Points to the next comment in a thread
-    These need to be updated whenever a comment is added, updated, or deleted
-    with a call to `deriveValues()`
-
-    EXAMPLE
-    
-       COMMENT OBJECT                                    DERIVED DATA
-       --------------------------------------------      ----------------
-       parnt prev                                        NEXT  REPLY-ROOT
-                   "r1 First Comment"                    r2    r1.1
-       r1            "r1.1 Reply to First Comment"       r1.2
-       r1    r1.1    "r1.2 Reply to First Comment"       
-             r1    "r2 Second Comment"                   r3    r2.1
-       r2            "r2.1 Reply to Second Comment"      r2.2
-       r2    r2.1    "r2.2 Reply to Second Comment"      r2.3
-       r2    r2.2    "r2.3 Reply to Second Comment"
-             r2    "r3 Third Comment"                    r4
-             r4    "r4 Fourth Comment"                   
+    COMMENT OBJECT                                    DERIVED DATA
+    --------------------------------------------      ----------------
+    parnt prev                                        NEXT  REPLY-ROOT
+                "r1 First Comment"                    r2    r1.1
+    r1            "r1.1 Reply to First Comment"       r1.2
+    r1    r1.1    "r1.2 Reply to First Comment"       
+          r1    "r2 Second Comment"                   r3    r2.1
+    r2            "r2.1 Reply to Second Comment"      r2.2
+    r2    r2.1    "r2.2 Reply to Second Comment"      r2.3
+    r2    r2.2    "r2.3 Reply to Second Comment"
+          r2    "r3 Third Comment"                    r4
+          r4    "r4 Fourth Comment"                   
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-const DBG = false;
-const PR = 'dc-comments';
+import DEFAULT_TEMPLATE from './dc-template-default.ts';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-///
-export type TUserID = string;
-type TUserName = string;
-type TUserObject = {
-  id: TUserID;
-  name: TUserName;
-};
-
-// REVIEW CType needs to be defined after we figure out how to handle templates
-//        Eventually we will dynamically define them.
-// Comment Template Type Slug
-export type CType = 'cmt' | 'tellmemore' | 'source' | 'demo';
-type CPromptFormat =
-  | 'text'
-  | 'dropdown'
-  | 'checkbox'
-  | 'radio'
-  | 'likert'
-  | 'discrete-slider';
-export type TCommentID = string;
-export type TCommentType = {
-  slug: CType;
-  label: string;
-  prompts: TCommentPrompt[];
-};
-type TCommentPrompt = {
-  format: CPromptFormat;
-  prompt: string;
-  options?: string[];
-  help: string;
-  feedback: string;
-};
-
-export type TCollectionRef = any;
-export type TComment = {
-  collection_ref: TCollectionRef; // aka 'cref'
-  comment_id: TCommentID;
-  comment_id_parent: any;
-  comment_id_previous: any;
-  comment_type: string;
-  comment_createtime: number;
-  comment_modifytime: number;
-  comment_isMarkedDeleted: boolean;
-
-  commenter_id: TUserID;
-  commenter_text: string[];
-};
-
-type TReadByObject = {
-  comment_id: TCommentID;
-  commenter_ids: TUserID[];
-};
-type TCollectionType = 'n' | 'p' | 'e';
-type TCommentCollectionID = `${TCollectionType}` | string;
-
-type TLokiData = {
-  users?: TUserObject[];
-  commenttypes?: TCommentType[];
-  comments?: TComment[];
-  readby?: TReadByObject[];
-};
-
-export type TCommentQueueActions =
-  | TCommentQueueAction_RemoveCommentID
-  | TCommentQueueAction_RemoveCollectionRef
-  | TCommentQueueAction_Update;
-type TCommentQueueAction_RemoveCommentID = {
-  commentID: TCommentID;
-};
-type TCommentQueueAction_RemoveCollectionRef = {
-  collection_ref: TCollectionRef;
-};
-type TCommentQueueAction_Update = {
-  comment: TComment;
-};
-
-type TUserMap = Map<TUserID, TUserName>;
-export type TCommentTypeMap = Map<CType, TCommentType>;
-export type TCommentMap = Map<TCommentID, TComment>;
-type TReadByMap = Map<TCommentID, TUserID[]>;
+import type {
+  TCommentID,
+  TCommentType,
+  TComment,
+  TReadByObject,
+  TCollectionRef,
+  TLokiData,
+  TCommentQueueActions,
+  TUserID,
+  TUserName,
+  TUserMap,
+  TCommentTypeMap,
+  TCommentMap,
+  TReadByMap,
+  TCommentCollectionID,
+  TUserObject
+} from './types-comment';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DBG = false;
+const PR = 'dc-comments';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const USERS: TUserMap = new Map(); // Map<uid, name>
 const COMMENTTYPES: TCommentTypeMap = new Map(); // Map<typeId, commentTypeObject>
@@ -163,146 +99,21 @@ const NEXT: Map<TCommentID, TCommentID> = new Map(); // Map<comment_id_previous,
 
 /// DEFAULTS //////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// TODO This is temporarily hard-coded until we have a new Template Editor
-/// const DCT = { [key: string]: { label, prompts} }
-
-/** COMMENT TEMPLATE PROMPT TYPES
-    
-    - `text` data is stored as a single string
-    
-    - `dropdown` (menu) -- single-select, single-view
-    
-    - `checkbox` (multi-select) -- multi-select, multi-view
-       data is stored as a single delimited (\n) string so that it is human readable
-       The format is '<optionLabel>\n', e.g.
-          ```
-          Apples\n
-          Banana\n
-          Orange
-          ```
-
-    - `radio` (scale) -- single-select, multi vertical view
-
-    - `likert` -- single-select, multi horizontal view
-
-    - 'discrete-slider' -- single-select, stacked horizontal view
-    
-**/
-export type CPromptFormatOption_TextData = string; // simple string, e.g. "This is my comment."
-export type CPromptFormatOption_DropdownData = string; // selected menu item string, e.g. "A little"
-export type CPromptFormatOption_CheckboxData = string; // selected items <optionLabel>\n, e.g. "Banana\nOrange"
-export type CPromptFormatOption_RadioData = string; // selected item string, e.g. "I agree"
-export type CPromptFormatOption_LikertData = string; // selected item string, e.g. '💚'
-export type CPromptFormatOption_DiscreteSliderData = string; // selected item 0-based index e.g. "2"
-
-const DEFAULT_CommentTypes: Array<TCommentType> = [
-  {
-    slug: 'demo',
-    label: 'Demo',
-    prompts: [
-      {
-        format: 'text',
-        prompt: 'Comment', // prompt label
-        help: 'Use this for any general comment.',
-        feedback: 'Just enter text'
-      },
-      {
-        format: 'dropdown',
-        prompt: 'How often did you use "Dropdown"', // prompt label
-        options: ['🥲 No', '🤔 A little', '😀 A lot'],
-        help: 'Select one.',
-        feedback: 'Single selection via dropdown menu'
-      },
-      {
-        format: 'checkbox',
-        prompt: 'What types of fruit did you "Checkbox"?', // prompt label
-        options: ['Apple Pie', 'Orange, Lime', 'Banana'],
-        help: 'Select as many as you want.',
-        feedback: 'Supports multiple selections'
-      },
-      {
-        format: 'radio',
-        prompt: 'What do you think "Radio"?', // prompt label
-        options: [
-          'It makes sense',
-          'I disagree',
-          "I don't know",
-          'Handle, comma, please'
-        ],
-        help: 'Select only one.',
-        feedback: 'Mutually exclusive single selections'
-      },
-      {
-        format: 'likert',
-        prompt: 'How did you like it "likert"?', // prompt label
-        options: ['💙', '💚', '💛', '🧡', '🩷'],
-        help: 'Select one of a series listed horizontally',
-        feedback: 'Select with a single click.  Supports emojis.'
-      },
-      {
-        format: 'discrete-slider',
-        prompt: 'Star Rating "discrete-slider"?', // prompt label
-        options: ['★', '★', '★', '★', '★'],
-        help: 'Select one of a series stacked horizontally',
-        feedback: 'Select with a single click.  Supports emojis.'
-      }
-    ]
-  },
-  {
-    slug: 'cmt',
-    label: 'Comment', // comment type label
-    prompts: [
-      {
-        format: 'text',
-        prompt: 'Comment', // prompt label
-        help: 'Use this for any general comment.',
-        feedback: ''
-      }
-    ]
-  },
-  {
-    slug: 'tellmemore',
-    label: 'Tell me more', // comment type label
-    prompts: [
-      {
-        format: 'text',
-        prompt: 'Please tell me more', // prompt label
-        help: 'Can you tell me more about ... ',
-        feedback: ''
-      }
-    ]
-  },
-  {
-    slug: 'source',
-    label: 'Source', // comment type label
-    prompts: [
-      {
-        format: 'text',
-        prompt: 'Is this well sourced?', // prompt label
-        help: 'Yes/No',
-        feedback: ''
-      },
-      {
-        format: 'text',
-        prompt: 'Changes', // prompt label
-        help: 'What about the sourcing could be improved?',
-        feedback: ''
-      }
-    ]
-  }
-];
 
 /// HELPER FUNCTIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_LoadUsers(dbUsers: TUserObject[]) {
   dbUsers.forEach(u => USERS.set(u.id, u.name));
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_LoadCommentTypes(commentTypes: TCommentType[]) {
   commentTypes.forEach(t => COMMENTTYPES.set(t.slug, t));
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_LoadComments(comments: TComment[]) {
   comments.forEach(c => COMMENTS.set(c.comment_id, c));
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_LoadReadBy(readby: TReadByObject[]) {
   readby.forEach(r => READBY.set(r.comment_id, r.commenter_ids));
 }
@@ -311,10 +122,8 @@ function m_LoadReadBy(readby: TReadByObject[]) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Init() {
   if (DBG) console.log(PR, 'Init');
-  // Load Defaults
-  m_LoadCommentTypes(DEFAULT_CommentTypes);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * @param {Object} data
  * @param {Object} data.users
@@ -322,8 +131,8 @@ function Init() {
  * @param {Object} data.comments
  * @param {Object} data.readby
  */
-function LoadDB(data: TLokiData) {
-  if (DBG) console.log(PR, 'LoadDB');
+function SetData(data: TLokiData) {
+  if (DBG) console.log(PR, 'SetData');
   // Load Data!
   if (data.commenttypes) m_LoadCommentTypes(data.commenttypes);
   if (data.users) m_LoadUsers(data.users);
@@ -334,45 +143,32 @@ function LoadDB(data: TLokiData) {
   if (DBG) console.log('COMMENTS', COMMENTS);
   if (DBG) console.log('READBY', READBY);
   // Derive Secondary Values
-  m_DeriveValues();
+  m_UpdateDerivedData();
 }
-
-function GetUsers(): TUserMap {
-  return USERS;
-}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetUser(uid): TUserName {
   return USERS.get(uid);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetUserName(uid): TUserName {
   const u = USERS.get(uid);
   return u !== undefined ? u : uid; // fallback to using `uid` if there's no record
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetCurrentUser(): TUserName {
   // TODO Placeholder
   return 'Ben32';
 }
-
-function GetCommentTypes(): TCommentTypeMap {
-  return COMMENTTYPES;
-}
-function GetCommentType(typeid): TCommentType {
-  return COMMENTTYPES.get(typeid);
-}
-function GetDefaultCommentType(): TCommentType {
-  // returns the first comment type object
-  if (DEFAULT_CommentTypes.length < 1)
-    throw new Error('dc-comments: No comment types defined!');
-  return GetCommentType(DEFAULT_CommentTypes[0].slug);
-}
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetCOMMENTS(): TCommentMap {
   return COMMENTS;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetComment(cid): TComment {
   return COMMENTS.get(cid);
 }
-
-function m_DeriveValues() {
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function m_UpdateDerivedData() {
   ROOTS.clear();
   REPLY_ROOTS.clear();
   NEXT.clear();
@@ -390,7 +186,7 @@ function m_DeriveValues() {
   if (DBG) console.log('REPLY_ROOTS', REPLY_ROOTS);
   if (DBG) console.log('NEXT', NEXT);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function AddComment(data): TComment {
   if (data.cref === undefined)
     throw new Error('Comments must have a collection ref!');
@@ -413,19 +209,20 @@ function AddComment(data): TComment {
   };
 
   COMMENTS.set(comment.comment_id, comment);
-  m_DeriveValues();
+  m_UpdateDerivedData();
 
   return comment;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * API Call to processes a single update
  * @param {Object} cobj TComment
  */
 function UpdateComment(cobj: TComment) {
   m_UpdateComment(cobj);
-  m_DeriveValues();
+  m_UpdateDerivedData();
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * Processes a single update
  * @param {Object} cobj TComment
@@ -439,15 +236,16 @@ function m_UpdateComment(cobj: TComment) {
   );
   COMMENTS.set(cobj.comment_id, cobj);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * API Call to batch updates an array of updated comments
  * @param {Object[]} cobjs TComment[]
  */
 function HandleUpdatedComments(cobjs: TComment[]) {
   cobjs.forEach(cobj => m_UpdateComment(cobj));
-  m_DeriveValues();
+  m_UpdateDerivedData();
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * @param {Object} parms
  * @param {Object} parms.collection_ref
@@ -569,7 +367,8 @@ function RemoveComment(parms): TCommentQueueActions[] {
   } else if (markDeleted) {
     // MARK TARGET DELETED
     if (DBG) console.log('markDeleted', cidToDelete);
-    cobjToDelete.comment_type = DEFAULT_CommentTypes[0].slug; // revert to default comment type
+    const { comment_types } = DEFAULT_TEMPLATE; // REVIEW this hack
+    cobjToDelete.comment_type = comment_types[0].slug; // revert to default comment type
     cobjToDelete.comment_isMarkedDeleted = true;
     COMMENTS.set(cobjToDelete.comment_id, cobjToDelete);
     queuedActions.push({ comment: cobjToDelete });
@@ -639,19 +438,12 @@ function RemoveComment(parms): TCommentQueueActions[] {
   }
 
   // IIg. FINISHED
-  m_DeriveValues();
+  m_UpdateDerivedData();
   return queuedActions;
 }
-
-/**
- * @param {Object} parms
- * @param {Object} parms.collection_ref
- * @param {Object} parms.uid
- * @returns {(any|Array)} if {comment: cobj} updates the comment
- *                        if {comment_id: id} deletes the comment
- */
-function RemoveAllCommentsForCref(parms): TCommentQueueActions[] {
-  const { collection_ref } = parms;
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
+function RemoveAllCommentsForCref({ collection_ref, uid }): TCommentQueueActions[] {
   const queuedActions = [];
   const cids = COMMENTS.forEach(cobj => {
     if (cobj.collection_ref === collection_ref) {
@@ -659,17 +451,14 @@ function RemoveAllCommentsForCref(parms): TCommentQueueActions[] {
       queuedActions.push({ commentID: cobj.comment_id });
     }
   });
-  m_DeriveValues();
+  m_UpdateDerivedData();
   return queuedActions;
 }
-
-/**
- * Checks if the current root and all children are marked deleted.
- * Ignores the NEXT root items
- * This is used to determine if we can safely prune the whole thread
- * because every other comment in the thread has been marked deleted.
- * @param {string} rootCommentId NOT a comment thread
- * @returns {boolean}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Checks if the current root and all children are marked deleted.
+ *  Ignores the NEXT root items
+ *  This is used to determine if we can safely prune the whole thread
+ *  because every other comment in the thread has been marked deleted.
  */
 function m_AllAreMarkedDeleted(rootCommentId: TCommentID): boolean {
   const allCommentIdsInThread = [rootCommentId, ...m_GetReplies(rootCommentId)];
@@ -681,47 +470,45 @@ function m_AllAreMarkedDeleted(rootCommentId: TCommentID): boolean {
   });
   return allAreMarkedDeleted;
 }
-
-/**
- * Batch updates an array of removed comment ids
- * @param {number[]} comment_ids
- */
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Batch updates an array of removed comment ids */
 function HandleRemovedComments(comment_ids: TCommentID[]) {
   comment_ids.forEach(comment_id => {
     if (DBG) console.log('...removing', comment_id);
     COMMENTS.delete(comment_id);
   });
-  m_DeriveValues();
+  m_UpdateDerivedData();
 }
-
-/**
- * `uid` can be undefined if user is not logged in
- */
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** `uid` can be undefined if user is not logged in */
 function MarkCommentRead(cid: TCommentID, uid: TUserID) {
   // Mark the comment read
   const readby = READBY.get(cid) || [];
   if (!readby.includes(uid)) readby.push(uid);
   READBY.set(cid, readby);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function MarkCommentUnread(cid: TCommentID, uid: TUserID) {
   // Mark the comment NOT read
   const readby = READBY.get(cid) || [];
   const updatedReadby = readby.filter(readByUid => readByUid !== uid);
   READBY.set(cid, updatedReadby);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function IsMarkedRead(cid: TCommentID, uid: TUserID): boolean {
   const readby = READBY.get(cid) || [];
   return readby.includes(uid);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function IsMarkedDeleted(cid: TCommentID): boolean {
   return COMMENTS.get(cid).comment_isMarkedDeleted;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Walk down the next items starting with the current
  *  Ignores child threads
- *  @returns {string[]} comment_ids
  */
 function m_GetNexts(cid: TCommentID): TCommentID[] {
   const results = [];
@@ -730,11 +517,9 @@ function m_GetNexts(cid: TCommentID): TCommentID[] {
   if (nextId) results.push(nextId, ...m_GetNexts(nextId));
   return results;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Gets all the child reply comments under the root
  *  Does not include the rootCid
- *  @param {string} rootCid root comment id
- *  @returns {string[]} comment_ids
  */
 function m_GetReplies(rootCid: TCommentID): TCommentID[] {
   const results = [];
@@ -743,11 +528,11 @@ function m_GetReplies(rootCid: TCommentID): TCommentID[] {
   if (replyRootId) results.push(replyRootId, ...m_GetNexts(replyRootId));
   return results;
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** recursively add replies and next
- * 1. Adds nested children reply threads first
- * 2. Then adds the next younger sibling
- * Does NOT include the passed cid
+ *  1. Adds nested children reply threads first
+ *  2. Then adds the next younger sibling
+ *  Does NOT include the passed cid
  */
 function m_GetRepliesAndNext(cid: TCommentID): TCommentID[] {
   const results = [];
@@ -768,13 +553,10 @@ function m_GetRepliesAndNext(cid: TCommentID): TCommentID[] {
 
   return results;
 }
-
-/**
- * Get all the comment ids related to a particular collection_ref
- * based on ROOTS.
- * DeriveValues needs to be called before this method can be used.
- * @param {string} cref collection_ref id
- * @returns comment_id[]
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Get all the comment ids related to a particular collection_ref
+ *  based on ROOTS.
+ *  DeriveValues needs to be called before this method can be used.
  */
 function GetThreadedCommentIds(cref: TCollectionRef): TCommentID[] {
   const all_comments_ids = [];
@@ -787,58 +569,36 @@ function GetThreadedCommentIds(cref: TCollectionRef): TCommentID[] {
   all_comments_ids.push(rootId, ...m_GetRepliesAndNext(rootId));
   return all_comments_ids;
 }
-if (DBG) console.log('GetThreadedView', GetThreadedCommentIds('1'));
-if (DBG) console.log('GetThreadedView', GetThreadedCommentIds('2'));
-
-/**
- * [Currently not used]
- * Get all the comments related to a particular collection_ref
- * @param {string} cref collection_ref id
- * @returns {Object[]} TComment[]
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** [Currently not used]
+ *  Get all the comments related to a particular collection_ref
  */
 function GetThreadedCommentData(cref: TCollectionRef): TComment[] {
   const threaded_comments_ids = GetThreadedCommentIds(cref);
   // convert ids to comment objects
   return threaded_comments_ids.map(cid => COMMENTS.get(cid));
 }
-
-// NOT USED?
-//
-// /**
-//  * Get all the comments related to a particular root
-//  * Gets just the child replies, does not include the root
-//  * @param {string} comment_id
-//  * @returns {Object[]} commentObject[]
-//  */
-// function GetThreadedCommentDataForRoot(comment_id) {
-//   const threaded_comments_ids = m_GetRepliesAndNext(comment_id);
-//   // convert ids to comment objects
-//   return threaded_comments_ids.map(cid => COMMENTS.get(cid));
-// }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function GetReadby(cid: TCommentID): TUserID[] {
   return READBY.get(cid);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function GetCrefs(): TCollectionRef[] {
   return [...ROOTS.keys()];
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default {
+export {
   Init,
   // DB
-  LoadDB,
+  SetData,
   // USERS
-  GetUsers,
   GetUser,
   GetUserName,
   GetCurrentUser,
-  // COMMENT TYPES
-  GetCommentTypes,
-  GetCommentType,
-  GetDefaultCommentType,
   // COMMENTS
   GetCOMMENTS,
   GetComment,
@@ -854,9 +614,10 @@ export default {
   IsMarkedDeleted,
   GetThreadedCommentIds,
   GetThreadedCommentData,
-  // GetThreadedCommentDataForRoot,
   // READBY
   GetReadby,
   // ROOTS
-  GetCrefs
+  GetCrefs,
+  // 'protected' data for ac-comment
+  USERS
 };

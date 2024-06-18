@@ -11,7 +11,7 @@ import DEFAULT_TEMPLATE from './dc-template-default';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { TCommentType, TCommentTypeMap, TLokiData } from './types-comment';
 
-/// DEBUG SUPPORT /////////////////////////////////////////////////////////////
+/// DEBUGGER UTILS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR = 'dc-template';
@@ -44,6 +44,14 @@ const DEFAULT: Array<TCommentType> = DEFAULT_TEMPLATE.comment_types;
   - `radio` (scale) -- single-select, multi vertical view
   - `likert` -- likert scale for single-select, multi horizontal view
   - 'discrete-slider' -- single-select, stacked horizontal view
+
+  CPromptFormatOption_TextData = string; // simple string, e.g. "This is my comment."
+  CPromptFormatOption_DropdownData = string; // selected menu item string, e.g. "A little"
+  CPromptFormatOption_CheckboxData = string; // selected items <optionLabel>\n, e.g. "Banana\nOrange"
+  CPromptFormatOption_RadioData = string; // selected item string, e.g. "I agree"
+  CPromptFormatOption_LikertData = string; // selected item string, e.g. '💚'
+  CPromptFormatOption_DiscreteSliderData = string; // selected item 0-based index e.g. "2"
+  
 /*/
 
 /// DATA LIFECYCLE METHODS ////////////////////////////////////////////////////
@@ -75,7 +83,8 @@ function GetCommentType(typeid): TCommentType {
   return TPL_COMMENTS.get(typeid);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Get the default comment type */
+/** Get the default that's used when a user creates a comment, which they
+ *  can change if they want to */
 function GetDefaultCommentType(): TCommentType {
   // returns the first comment type object
   if (DEFAULT.length < 1) throw new Error(`${PR} No comment types defined!`);

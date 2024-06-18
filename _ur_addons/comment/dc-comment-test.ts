@@ -46,7 +46,8 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import DC from './dc-comment.ts';
+import * as DC from './dc-comment.ts';
+import * as DTPL from './dc-template.ts';
 
 /// IMPORTED TYPES ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -60,32 +61,18 @@ import type {
   TCommentQueueActions,
   TCommentTypeMap,
   TCommentMap
-} from './dc-comment.ts';
-
-import type {
-  CPromptFormatOption_TextData,
-  CPromptFormatOption_DropdownData,
-  CPromptFormatOption_CheckboxData,
-  CPromptFormatOption_RadioData,
-  CPromptFormatOption_LikertData,
-  CPromptFormatOption_DiscreteSliderData
-} from './dc-comment.ts';
+} from './types-comment.ts';
 
 /// EXTRACTED METHODS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const {
   Init, //
   // DB
-  LoadDB, // data object => initializes internal data
-  // USERS
-  GetUsers, // => user map?
+  SetData, // data object => initializes internal data
+  // USERS,
   GetUser, // id => userdata
   GetUserName, // id => username
   GetCurrentUser, // => current user id ???
-  // COMMENT TYPES
-  GetCommentTypes, //
-  GetCommentType,
-  GetDefaultCommentType,
   // COMMENTS
   GetCOMMENTS,
   GetComment,
@@ -105,8 +92,18 @@ const {
   // READBY
   GetReadby,
   // ROOTS
-  GetCrefs
+  GetCrefs,
+  // protected data
+  USERS
 } = DC;
+
+const {
+  // protected data
+  TPL_COMMENTS,
+  // COMMENT TYPES
+  GetCommentType,
+  GetDefaultCommentType
+} = DTPL;
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
