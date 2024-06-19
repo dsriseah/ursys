@@ -12,6 +12,25 @@
   // 	],
   // 	"description": "Log output to console"
   // }
+  "basic ursys divider": {
+    "prefix": "base-ur-divider",
+    "description": "basic divider comment",
+    "body": [
+      "",
+      "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
+      ""
+    ]
+  },
+  "basic ursys header": {
+    "prefix": "base-ur-header",
+    "description": "basic header comment",
+    "body": [
+      "",
+      "/// HEADER ////////////////////////////////////////////////////////////////////",
+      "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
+      ""
+    ]
+  },
   "ursys bare module": {
     "prefix": "ur-module-elements",
     "description": "a bare module ",
@@ -48,7 +67,7 @@
     ]
   },
   "ursys block h1": {
-    "prefix": "ur-block-head",
+    "prefix": "ur-header-block",
     "description": "level 1 group header for a block of related code",
     "body": [
       "",
@@ -62,11 +81,6 @@
       "    alternate format for longer header descriptions",
       "| - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - **/"
     ]
-  },
-  "ursys block h1 extended": {
-    "prefix": "ur-block-head-extended",
-    "description": "Used for longer headers below a block h1",
-    "body": ["", ""]
   },
   "ursys function": {
     "prefix": "ur-function",
@@ -118,13 +132,13 @@
       "|*****************************************************************************/"
     ]
   },
-  "ursys block block info": {
-    "prefix": "ur-inline-block-info",
+  "ursys inline info": {
+    "prefix": "ur-inline-info",
     "description": "Used for longer temporary inline comments",
     "body": ["/*/", "extended comment", "/*/", ""]
   },
   "ursys function header": {
-    "prefix": "ur-jsdoc",
+    "prefix": "ur-function-jsdoc",
     "description": "JSDOC param header for NON-TypeScript functions",
     "body": [
       "",
