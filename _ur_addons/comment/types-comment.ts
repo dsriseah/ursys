@@ -1,3 +1,13 @@
+/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
+
+  Base Types for Comment Manager Addon
+  includes placeholder Comment Template typers as well
+
+\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
+
+/// USERS /////////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 export type TUserID = string;
 export type TUserName = string;
 export type TUserObject = {
@@ -5,9 +15,10 @@ export type TUserObject = {
   name: TUserName;
 };
 
-// REVIEW CType needs to be defined after we figure out how to handle templates
-//        Eventually we will dynamically define them.
-// Comment Template Type Slug
+/// COMMENT TEMPLATING ////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// CType needs to be defined after we figure out how to handle templates
+// Eventually we will dynamically define them.
 export type CType = 'cmt' | 'tellmemore' | 'source' | 'demo';
 export type CPromptFormat =
   | 'text'
@@ -30,6 +41,8 @@ export type TCommentPrompt = {
   feedback: string;
 };
 
+/// COLLECTION REFERENCES /////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type TCollectionRef = any;
 export type TComment = {
   collection_ref: TCollectionRef; // aka 'cref'
@@ -40,18 +53,21 @@ export type TComment = {
   comment_createtime: number;
   comment_modifytime: number;
   comment_isMarkedDeleted: boolean;
-
   commenter_id: TUserID;
   commenter_text: string[];
-};
-
-export type TReadByObject = {
-  comment_id: TCommentID;
-  commenter_ids: TUserID[];
 };
 export type TCollectionType = 'n' | 'p' | 'e';
 export type TCommentCollectionID = `${TCollectionType}` | string;
 
+/// COMMENT MARKED AS READ ////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type TReadByObject = {
+  comment_id: TCommentID;
+  commenter_ids: TUserID[];
+};
+
+/// DATA PAYLOAD //////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type TLokiData = {
   users?: TUserObject[];
   commenttypes?: TCommentType[];
@@ -59,6 +75,8 @@ export type TLokiData = {
   readby?: TReadByObject[];
 };
 
+/// COMMENT QUEUE /////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type TCommentQueueActions =
   | TCommentQueueAction_RemoveCommentID
   | TCommentQueueAction_RemoveCollectionRef
@@ -72,8 +90,3 @@ export type TCommentQueueAction_RemoveCollectionRef = {
 export type TCommentQueueAction_Update = {
   comment: TComment;
 };
-
-export type TUserMap = Map<TUserID, TUserName>;
-export type TCommentTypeMap = Map<CType, TCommentType>;
-export type TCommentMap = Map<TCommentID, TComment>;
-export type TReadByMap = Map<TCommentID, TUserID[]>;

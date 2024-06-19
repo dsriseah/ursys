@@ -67,32 +67,30 @@ import DEFAULT_TEMPLATE from './dc-template-default.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   TCommentID,
-  TCommentType,
   TComment,
-  TReadByObject,
   TCollectionRef,
   TLokiData,
+  TCommentCollectionID,
   TCommentQueueActions,
   TUserID,
   TUserName,
-  TUserMap,
-  TCommentTypeMap,
-  TCommentMap,
-  TReadByMap,
-  TCommentCollectionID,
-  TUserObject
+  TUserObject,
+  TReadByObject
 } from './types-comment';
+/** local data structure  - - - - - - - - - - - - - - - - - - - - - - - - - **/
+type UserMap = Map<TUserID, TUserName>;
+type CommentMap = Map<TCommentID, TComment>;
+type ReadByMap = Map<TCommentID, TUserID[]>;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR = 'dc-comments';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const USERS: TUserMap = new Map(); // Map<uid, name>
-const COMMENTTYPES: TCommentTypeMap = new Map(); // Map<typeId, commentTypeObject>
-const COMMENTS: TCommentMap = new Map(); // Map<cid, commentObject>
-const READBY: TReadByMap = new Map(); // Map<cid, readbyObject[]>
-/// DERIVED DATA
+/// MAIN DATA - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const USERS: UserMap = new Map(); // Map<uid, name>
+const COMMENTS: CommentMap = new Map(); // Map<cid, commentObject>
+const READBY: ReadByMap = new Map(); // Map<cid, readbyObject[]>
+/// DERIVED DATA  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const ROOTS: Map<TCommentCollectionID, TCommentID> = new Map(); // Map<cref, comment_id> Root comment for a given collection_ref
 const REPLY_ROOTS: Map<TCommentID, TCommentID> = new Map(); // Map<comment_id_parent, comment_id> Root comment_id for any given comment. (thread roots)
 const NEXT: Map<TCommentID, TCommentID> = new Map(); // Map<comment_id_previous, comment_id> Next comment_id that follows the requested comment_id
@@ -102,18 +100,17 @@ const NEXT: Map<TCommentID, TCommentID> = new Map(); // Map<comment_id_previous,
 
 /// HELPER FUNCTIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function m_LoadUsers(dbUsers: TUserObject[]) {
   dbUsers.forEach(u => USERS.set(u.id, u.name));
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_LoadCommentTypes(commentTypes: TCommentType[]) {
-  commentTypes.forEach(t => COMMENTTYPES.set(t.slug, t));
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function m_LoadComments(comments: TComment[]) {
   comments.forEach(c => COMMENTS.set(c.comment_id, c));
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function m_LoadReadBy(readby: TReadByObject[]) {
   readby.forEach(r => READBY.set(r.comment_id, r.commenter_ids));
 }
@@ -134,40 +131,44 @@ function Init() {
 function SetData(data: TLokiData) {
   if (DBG) console.log(PR, 'SetData');
   // Load Data!
-  if (data.commenttypes) m_LoadCommentTypes(data.commenttypes);
   if (data.users) m_LoadUsers(data.users);
   if (data.comments) m_LoadComments(data.comments);
   if (data.readby) m_LoadReadBy(data.readby);
   if (DBG) console.log('USERS', USERS);
-  if (DBG) console.log('COMMENTTYPES', COMMENTTYPES);
   if (DBG) console.log('COMMENTS', COMMENTS);
   if (DBG) console.log('READBY', READBY);
   // Derive Secondary Values
   m_UpdateDerivedData();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function GetUser(uid): TUserName {
   return USERS.get(uid);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function GetUserName(uid): TUserName {
   const u = USERS.get(uid);
   return u !== undefined ? u : uid; // fallback to using `uid` if there's no record
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function GetCurrentUser(): TUserName {
   // TODO Placeholder
   return 'Ben32';
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function GetCOMMENTS(): TCommentMap {
+/** */
+function GetCOMMENTS(): CommentMap {
   return COMMENTS;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function GetComment(cid): TComment {
   return COMMENTS.get(cid);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function m_UpdateDerivedData() {
   ROOTS.clear();
   REPLY_ROOTS.clear();
@@ -187,6 +188,7 @@ function m_UpdateDerivedData() {
   if (DBG) console.log('NEXT', NEXT);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function AddComment(data): TComment {
   if (data.cref === undefined)
     throw new Error('Comments must have a collection ref!');
