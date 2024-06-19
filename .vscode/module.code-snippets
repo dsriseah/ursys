@@ -22,38 +22,110 @@
       "",
       "\\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/",
       "",
-      "/* import or require */",
+      "/* imports goe here */",
+      "",
+      "/// TYPE DECLARATIONS /////////////////////////////////////////////////////////",
+      "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
+      "import type { TSomeObject, ISomeInterface } from './type-def.ts';",
+      "type LocalType = any;",
+      "type AnotherLocalType = any;",
       "",
       "/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////",
       "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
-      "",
+      "const DBG = true;",
+      "/// group divider - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
+      "const DATA = {}; // main data object",
       "",
       "/// HELPER METHODS ////////////////////////////////////////////////////////////",
       "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
       "",
-      "",
       "/// API METHODS ///////////////////////////////////////////////////////////////",
       "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
       "",
-      "",
       "/// EXPORTS ///////////////////////////////////////////////////////////////////",
-      "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+      "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
+      ""
     ]
   },
-  "ursys header comment block": {
-    "prefix": "ur-comment-block-header",
-    "description": "a comment block with header",
+  "ursys block h1": {
+    "prefix": "ur-block-head",
+    "description": "level 1 group header for a block of related code",
     "body": [
       "",
       "/// HEADER ////////////////////////////////////////////////////////////////////",
-      "/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:",
-      "    extended comment",
-      ":*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/\n"
+      "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
+      "/// header description line 1",
+      "/// header description line 2",
+      "",
+      "/// HEADER STYLE 2 ////////////////////////////////////////////////////////////",
+      "/** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |",
+      "    alternate format for longer header descriptions",
+      "| - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - **/"
     ]
   },
+  "ursys block h1 extended": {
+    "prefix": "ur-block-head-extended",
+    "description": "Used for longer headers below a block h1",
+    "body": ["", ""]
+  },
+  "ursys function": {
+    "prefix": "ur-function",
+    "description": "Used to separate function bodies, in place of whitespace",
+    "body": [
+      "",
+      "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
+      "/// non-jsdoc comment ...or...",
+      "/** jsdoc comment, multiline OK",
+      " *  second line. use params only for non-typescript functions",
+      " */",
+      "function m_MyHelperFunction() {",
+      "  // function body",
+      "}",
+      ""
+    ]
+  },
+  "ursys subgroup divider": {
+    "prefix": "ur-group-divider",
+    "description": "Used when a group or block has subgroups",
+    "body": [
+      "",
+      "/// GROUP DIVIDER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
+      "/** alternate style  - - - - - - - - - - - - - - - - - - - - - - - - - - - - **/",
+      "/** --- alternate style --- **/",
+      ""
+    ]
+  },
+  "ursys callout": {
+    "prefix": "ur-callout",
+    "description": "Used to create a callout comment in the middle of a block",
+    "body": [
+      "",
+      "/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:",
+      "    extended inline callout comment",
+      ":*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/",
+      ""
+    ]
+  },
+  "ursys callout bold": {
+    "prefix": "ur-callout-bold",
+    "description": "Used to create a bold callout comment in the middle of a block",
+    "body": [
+      "/** An Extended Callout Block ************************************************|",
+      "",
+      "    For longer explanations or in-line documentation.",
+      "    Conveniently expands as you type.",
+      "",
+      "|*****************************************************************************/"
+    ]
+  },
+  "ursys block block info": {
+    "prefix": "ur-inline-block-info",
+    "description": "Used for longer temporary inline comments",
+    "body": ["/*/", "extended comment", "/*/", ""]
+  },
   "ursys function header": {
-    "prefix": "ur-jsdoc-function-block",
-    "description": "JSDOC header for functions",
+    "prefix": "ur-jsdoc",
+    "description": "JSDOC param header for NON-TypeScript functions",
     "body": [
       "",
       "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
@@ -61,17 +133,8 @@
       " *  @param {object} obj - description",
       " *  @oaram {string} obj.name - description",
       " *  @returns {object}",
-      " */"
-    ]
-  },
-  "ursys callout comment block": {
-    "prefix": "ur-comment-block",
-    "description": "comment block",
-    "body": [
-      "",
-      "/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:",
-      "    extended comment",
-      ":*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/\n"
+      " */",
+      ""
     ]
   },
   "ursys module example": {
@@ -79,17 +142,25 @@
     "description": "an example module using ES6 syntax (webpack, parcel)",
     "body": [
       "/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\\",
-      "  ",
-      "    Example of D.Sri's Module Style",
-      "    Designed to be more like C# in its lettercasing conventions",
-      "  ",
-      "  ",
+      "",
+      "    Example of URSYS Module Style",
+      "    - Designed with C#-like lettercasing conventions, using comment formats that have",
+      "      been chosen for typographic visual weight and hierarchy",
+      "    - Assumes ES6 modules, but can be adapted for CJS",
+      "",
+      "    See https://github.com/dsriseah/ursys/wiki/Guide:-Codestyle for more info.",
+      "",
+
       "\\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/",
       "",
-      "/// es6: import MODULEorCLASS from './module';",
-      "///      import { A, B } from './module';",
-      "/// cjs: const MODULEorCLASS = require('./module');",
-      "///      const { A, B } = require('./module');",
+      "/* import MODULEorCLASS from './module'; */",
+      "/* import { A, B } from './module'; */",
+      "",
+      "/// TYPE DECLARATIONS /////////////////////////////////////////////////////////",
+      "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
+      "import type { TSomeObject, ISomeInterface } from './file-with-type-exports.ts';",
+      "type LocalDefinedType = any;",
+      "type AnotherLocalDefinedType = any;",
       "",
       "/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////",
       "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
@@ -98,7 +169,7 @@
       "",
       "/// MODULE HELPERS /////////////////////////////////////////////////////////////",
       "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
-      "/** jsdoc comment",
+      "/** helper: jsdoc short description",
       " *  indent to align with top",
       " */",
       "function m_Method() {",
@@ -107,17 +178,17 @@
       "  return 'hello';",
       "}",
       "",
-      "/** An Extended Comment Block *************************************************\\",
+      "/** An Extended Callout Block ************************************************|",
       "",
       "    For in-line documentation or longer explanations of key classes",
-      "    No need to add/remove comment prefixes for each line. JUST WRITE.",
+      "    Just write stuff.",
       "",
-      "\\*****************************************************************************/",
+      "|*****************************************************************************/",
       "",
       "/// CLASS DECLARATION /////////////////////////////////////////////////////////",
       "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
       "/** jsdoc comment",
-      " *  indent",
+      " *  indent additional lines",
       " */",
       "class MyClass {",
       "  /* for declaring classes, one per file */",
@@ -132,7 +203,7 @@
       "    m_collection.push(this.propertyZ);",
       "  }",
       "}",
-      "// class static declarations",
+      "// class static declarations (old style)",
       "MyClass.StaticMethod = () => {",
       "  /* properties attached to class declaration are class-wide (static) */",
       "  /* and accessible by instances, but can not access instance vars (duh) */",
@@ -142,13 +213,13 @@
       "",
       "/// PUBLIC METHODS ////////////////////////////////////////////////////////////",
       "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
-      "/** jsdoc comment",
-      " *  indent",
+      "/** API: jsdoc short description",
+      " *  indented additional line(s)",
       " */",
       "function PublicA() {}",
       "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
-      "/** jsdoc comment",
-      " *  indent",
+      "/** API: jsdoc short description",
+      " *  indented additional line(s)",
       " */",
       "function PublicB() {}",
       "",
@@ -168,11 +239,9 @@
       "",
       "/// EXPORTS ///////////////////////////////////////////////////////////////////",
       "/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
-      "/// es6: export default MODULEorCLASS;",
-      "///      export { PublicA, PublicB };",
-      "/// cjs: module.exports = MODULEorCLASS;",
-      "///      module.exports = { A, B };",
-      ""
+      "/* export default MyClass */",
+      "/* export { PublicA, PublicB } */",
+      "/* export type { LocalDefinedType, AnotherLocalDefinedType } */"
     ]
   }
 }
