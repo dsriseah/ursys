@@ -102,23 +102,20 @@ const ROOTS: Map<TCommentCollectionID, TCommentID> = new Map(); // root comment 
 const REPLY_ROOTS: Map<TCommentID, TCommentID> = new Map(); // reverse lookup to find collection root
 const NEXT: Map<TCommentID, TCommentID> = new Map(); // map from comment to next comment
 
-/// (PROPOSED) GLOBAL STATE ///////////////////////////////////////////////////
+/// (PROPOSED) URSYS CORE /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** PLACEHOLDER
  *  shouldn't be passing things like isAdmin as parameters
  *  this should be a global state that is set at the beginning of the session
  */
-const APP_STATE = {
+const APP = {
   isAdmin: () => true,
   currentUser: () => 'Ben32'
 };
-
-/// HELPER FUNCTIONS //////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** HELPER: get timestamp for comment */
-function m_GetTimestamp(): number {
-  return new Date().getTime();
-}
+const TIME = {
+  getTimestamp: () => new Date().getTime(),
+  stringFromTimestamp: (ms: number) => new Date(ms).toLocaleString()
+};
 
 /// DATA LIFECYCLE METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -186,7 +183,7 @@ function GetUserName(uid: TUserID): TUserName {
 function GetCurrentUser(): TUserName {
   // TODO: this shouldn't be a forward, as currentUser should be
   // part of appstate, not commentmgr.
-  return APP_STATE.currentUser();
+  return APP.currentUser();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Return a TComment object */
@@ -211,7 +208,7 @@ function AddComment(data: TCommentData): TComment {
     comment_id_parent,
     comment_id_previous,
     comment_type: 'cmt', // default type, no prompts
-    comment_createtime: m_GetTimestamp(),
+    comment_createtime: TIME.getTimestamp(),
     comment_modifytime: null,
     comment_isMarkedDeleted,
     commenter_id,
@@ -227,7 +224,7 @@ function UpdateComment(cobj: TComment, opt?: DeferOptions) {
   const { comment_id } = cobj;
   // use nullish coallescing to check opt for defer value
   const { defer = false } = opt ?? {};
-  const timestamp = m_GetTimestamp();
+  const timestamp = TIME.getTimestamp();
   cobj.comment_modifytime = timestamp;
   COMMENTS.set(comment_id, cobj);
   // update any derived data
@@ -248,7 +245,7 @@ function HandleUpdatedComments(cobjs: TComment[]) {
  */
 function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
   const { collection_ref, comment_id, uid } = selector;
-  const isAdmin = APP_STATE.isAdmin();
+  const isAdmin = APP.isAdmin();
   const queuedActions = [];
 
   // MAIN PROCESS: `xxxToDelete`
