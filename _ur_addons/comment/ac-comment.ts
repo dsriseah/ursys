@@ -51,11 +51,11 @@
       EDITABLECOMMENTS Map<cid, cid>
 
       
-    COMMENTVOBJS
+    COMMENT_VSTATE
     ------------
-    COMMENTVOBJS are a flat array of data sources (cvobj) for CommentThread ojects.
+    COMMENT_VSTATE are a flat array of data sources (cvobj) for CommentThread ojects.
     
-      COMMENTVOBJS Map(cref, cvobj[])
+      COMMENT_VSTATE Map(cref, cvobj[])
 
       
     CommentVObj cvobj
@@ -83,7 +83,9 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import DCCOMMENTS, {
+import * as COMMENTS from './dc-comment.ts';
+import * as TEMPLATES from './dc-template.ts';
+import type {
   TComment,
   TCollectionRef,
   TCommentID,
@@ -91,29 +93,29 @@ import DCCOMMENTS, {
   CType,
   TCommentType,
   TCommentTypeMap,
-  TCommentMap,
-  TCommentQueueActions
-} from './dc-comment.ts';
+  TCommentQueueActions,
+  TCommentData,
+  TDataSet
+} from './types-comment.ts';
 
 const DBG = true;
 const PR = 'ac-comments';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-type TCommentCollection = {
+type CommentCollection = {
   collection_ref: TCollectionRef;
   hasUnreadComments?: boolean;
   hasReadComments?: boolean;
 };
-
-type TCommentUIRef = string; // comment button id, e.g. `n32-isTable`, not just TCollectionRef
-type TCommentOpenState = {
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type CommentUIRef = string; // comment button id, e.g. `n32-isTable`, not just TCollectionRef
+type CommentOpenState = {
   cref: TCollectionRef;
   isOpen: boolean;
 };
-
-type TCommentVisualObject = {
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type CommentVisualState = {
   comment_id: TCommentID;
   createtime_string: string;
   modifytime_string: string;
@@ -126,68 +128,71 @@ type TCommentVisualObject = {
   allowReply: boolean;
   markedRead: boolean;
 };
-
-type TCommentCollectionMap = Map<TCollectionRef, TCommentCollection>;
-type TCommentUIStateMap = Map<TCommentUIRef, TCommentOpenState>;
-type TOpenCommentsMap = Map<TCollectionRef, TCommentUIRef>;
-type TCommentsBeingEditedMap = Map<TCommentID, TCommentID>;
-type TCommentVisualObjectsMap = Map<TCollectionRef, TCommentVisualObject[]>;
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type CommentCollectionMap = Map<TCollectionRef, CommentCollection>;
+type CommentUIStateMap = Map<CommentUIRef, CommentOpenState>;
+type OpenCommentsMap = Map<TCollectionRef, CommentUIRef>;
+type CommentBeingEditedMap = Map<TCommentID, TCommentID>;
+type CommentViewStateMap = Map<TCollectionRef, CommentVisualState[]>;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const COMMENTCOLLECTION: TCommentCollectionMap = new Map(); // Map<cref, ccol>
-const COMMENTUISTATE: TCommentUIStateMap = new Map(); // Map<uiref, {cref, isOpen}>
-const OPENCOMMENTS: TOpenCommentsMap = new Map(); // Map<cref, uiref>
-const COMMENTS_BEING_EDITED: TCommentsBeingEditedMap = new Map(); // Map<cid, cid>
-const COMMENTVOBJS: TCommentVisualObjectsMap = new Map(); // Map<cref, cvobj[]>
+const COMMENTCOLLECTION: CommentCollectionMap = new Map(); // Map<cref, ccol>
+const COMMENTUISTATE: CommentUIStateMap = new Map(); // Map<uiref, {cref, isOpen}>
+const OPENCOMMENTS: OpenCommentsMap = new Map(); // Map<cref, uiref>
+const COMMENTS_BEING_EDITED: CommentBeingEditedMap = new Map(); // Map<cid, cid>
+const COMMENT_VSTATE: CommentViewStateMap = new Map(); // Map<cref, cvobj[]>
 
-/// HELPER FUNCTIONS //////////////////////////////////////////////////////////
+/// (PROPOSED) URSYS CORE /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** PLACEHOLDER
+ *  shouldn't be passing things like isAdmin as parameters
+ *  this should be a global state that is set at the beginning of the session
+ */
+const APP = {
+  isAdmin: () => true,
+  currentUser: () => 'Ben32'
+};
+const TIME = {
+  getTimestamp: () => new Date().getTime(),
+  stringFromTimestamp: (ms: number) => new Date(ms).toLocaleString()
+};
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 function Init() {
   if (DBG) console.log('ac-comments Init');
-  DCCOMMENTS.Init();
+  COMMENTS.Init();
 }
-
-/**
- * @param {any} data JSON data
- */
-function LoadDB(data) {
-  if (DBG) console.log(PR, 'LoadDB', data);
-  DCCOMMENTS.LoadDB(data);
-}
-
-/**
- *  @param {number} ms
- *  @returns string "MM/DD/YY, HH:MM:SS: PM"
- */
-function GetDateString(ms): string {
-  return new Date(ms).toLocaleString();
-}
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// COMMENT COLLECTIONS
+function UpdateData(data: TDataSet) {
+  if (DBG) console.log(PR, 'UpdateData', data);
+  COMMENTS.UpdateData(data);
+}
 
-function GetCommentCollections(): TCommentCollectionMap {
+/// COMMENT COLLECTIONS ///////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
+function GetCommentCollections(): CommentCollectionMap {
   return COMMENTCOLLECTION;
 }
-
-function GetCommentCollection(cref: TCollectionRef): TCommentCollection {
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
+function GetCommentCollection(cref: TCollectionRef): CommentCollection {
   const collection = COMMENTCOLLECTION.get(cref);
   return collection;
 }
-
-function UpdateCommentUIState(uiref: TCommentUIRef, openState: TCommentOpenState) {
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
+function UpdateCommentUIState(uiref: CommentUIRef, openState: CommentOpenState) {
   if (!uiref) throw new Error('UpdateCommentUIState "uiref" must be defined!');
   COMMENTUISTATE.set(uiref, { cref: openState.cref, isOpen: openState.isOpen });
   OPENCOMMENTS.set(openState.cref, uiref);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function CloseCommentCollection(
-  uiref: TCommentUIRef,
+  uiref: CommentUIRef,
   cref: TCollectionRef,
   uid: TUserID
 ) {
@@ -200,13 +205,15 @@ function CloseCommentCollection(
   // Update Derived Lists to update Marked status
   DeriveThreadedViewObjects(cref, uid);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function MarkRead(cref: TCollectionRef, uid: TUserID) {
   // Mark Read
-  const commentVObjs = COMMENTVOBJS.get(cref);
-  commentVObjs.forEach(cvobj => DCCOMMENTS.MarkCommentRead(cvobj.comment_id, uid));
+  const commentVObjs = COMMENT_VSTATE.get(cref);
+  commentVObjs.forEach(cvobj => COMMENTS.MarkCommentRead(cvobj.comment_id, uid));
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function GetCommentStats(uid: TUserID): {
   countRepliesToMe: number;
   countUnread: number;
@@ -216,26 +223,26 @@ function GetCommentStats(uid: TUserID): {
   DeriveAllThreadedViewObjects(uid);
 
   // find replies to me
-  const crefs = DCCOMMENTS.GetCrefs();
+  const crefs = COMMENTS.GetCrefs();
   let rootCidsWithRepliesToMe = [];
   crefs.forEach(cref => {
-    const cvobjs = COMMENTVOBJS.get(cref);
+    const cvobjs = COMMENT_VSTATE.get(cref);
     cvobjs.find(cvobj => {
-      const comment = DCCOMMENTS.GetComment(cvobj.comment_id);
+      const comment = COMMENTS.GetComment(cvobj.comment_id);
       if (comment.commenter_id === uid && comment.comment_id_parent !== '')
         rootCidsWithRepliesToMe.push(comment.comment_id_parent);
     });
   });
 
-  COMMENTVOBJS.forEach(cvobjs => {
+  COMMENT_VSTATE.forEach(cvobjs => {
     cvobjs.forEach(cvobj => {
       if (!cvobj.isMarkedRead) {
         // count unread
         countUnread++;
         // count repliesToMe
-        const comment = DCCOMMENTS.GetComment(cvobj.comment_id);
+        const comment = COMMENTS.GetComment(cvobj.comment_id);
         if (rootCidsWithRepliesToMe.includes(comment.comment_id_parent)) {
-          // HACK: Update cvobj by reference!
+          // HACKY: Update cvobj by reference!
           cvobj.isReplyToMe = true;
           countRepliesToMe++;
         }
@@ -246,93 +253,88 @@ function GetCommentStats(uid: TUserID): {
   return { countRepliesToMe, countUnread };
 }
 
+/// COMMENT UI STATE //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// COMMENT UI STATE
-
-function GetCommentUIState(uiref: TCommentUIRef): TCommentOpenState {
+/** */
+function GetCommentUIState(uiref: CommentUIRef): CommentOpenState {
   return COMMENTUISTATE.get(uiref);
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// OPEN COMMENTS
-
-function GetOpenComments(cref: TCollectionRef): TCommentUIRef {
+/** */
+function GetOpenComments(cref: TCollectionRef): CommentUIRef {
   return OPENCOMMENTS.get(cref);
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// EDITABLE COMMENTS
-
+/** */
 function m_RegisterCommentBeingEdited(cid: TCommentID) {
   COMMENTS_BEING_EDITED.set(cid, cid);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function m_DeRegisterCommentBeingEdited(cid: TCommentID) {
   COMMENTS_BEING_EDITED.delete(cid);
 }
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function GetCommentBeingEdited(cid: TCommentID): TCommentID {
   return COMMENTS_BEING_EDITED.get(cid);
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// UNREAD COMMENTS
-
+/** */
 function GetUnreadRepliesToMe(): TComment[] {
   const comments = [];
-  COMMENTVOBJS.forEach(cvobjs => {
+  COMMENT_VSTATE.forEach(cvobjs => {
     cvobjs.forEach(cvobj => {
-      if (cvobj.isReplyToMe) comments.push(DCCOMMENTS.GetComment(cvobj.comment_id));
+      if (cvobj.isReplyToMe) comments.push(COMMENTS.GetComment(cvobj.comment_id));
     });
   });
   return comments;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function GetUnreadComments(): TComment[] {
   const comments = [];
-  COMMENTVOBJS.forEach(cvobjs => {
+  COMMENT_VSTATE.forEach(cvobjs => {
     cvobjs.forEach(cvobj => {
-      if (!cvobj.isMarkedRead) comments.push(DCCOMMENTS.GetComment(cvobj.comment_id));
+      if (!cvobj.isMarkedRead) comments.push(COMMENTS.GetComment(cvobj.comment_id));
     });
   });
   return comments;
 }
 
+/// THREADED VIEWS OF COMMENTS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// COMMENT THREAD VIEW OBJECTS
-
+/** */
 function DeriveAllThreadedViewObjects(uid: TUserID) {
-  const crefs = DCCOMMENTS.GetCrefs();
+  const crefs = COMMENTS.GetCrefs();
   crefs.forEach(cref => DeriveThreadedViewObjects(cref, uid));
 }
-
-/**
- * Returns flat array of comment view objects
- * @param {string} cref collection_ref id
- * @returns commentVOjb[]
- */
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function DeriveThreadedViewObjects(
   cref: TCollectionRef,
   uid: TUserID
-): TCommentVisualObject[] {
+): CommentVisualState[] {
   if (cref === undefined)
     throw new Error(`m_DeriveThreadedViewObjects cref: "${cref}" must be defined!`);
   const commentVObjs = [];
-  const threadIds = DCCOMMENTS.GetThreadedCommentIds(cref);
+  const threadIds = COMMENTS.GetThreadedCommentIds(cref);
   threadIds.forEach(cid => {
-    const comment = DCCOMMENTS.GetComment(cid);
+    const comment = COMMENTS.GetComment(cid);
     if (comment === undefined)
       console.error('GetThreadedViewObjects for cid not found', cid, 'in', threadIds);
     const level = comment.comment_id_parent === '' ? 0 : 1;
     commentVObjs.push({
       comment_id: cid,
-      createtime_string: GetDateString(comment.comment_createtime),
+      createtime_string: TIME.stringFromTimestamp(comment.comment_createtime),
       modifytime_string: comment.comment_modifytime
-        ? GetDateString(comment.comment_modifytime)
+        ? TIME.stringFromTimestamp(comment.comment_modifytime)
         : '',
       level,
       isSelected: false,
       isBeingEdited: false,
       isEditable: false,
-      isMarkedRead: DCCOMMENTS.IsMarkedRead(cid, uid),
+      isMarkedRead: COMMENTS.IsMarkedRead(cid, uid),
       allowReply: undefined // will be defined next
     });
   });
@@ -352,10 +354,10 @@ function DeriveThreadedViewObjects(
     commentReplyVObjs.push(cvobj);
     prevLevel = cvobj.level;
   });
-  COMMENTVOBJS.set(cref, commentReplyVObjs.reverse());
+  COMMENT_VSTATE.set(cref, commentReplyVObjs.reverse());
 
   // Derive COMMENTCOLLECTION
-  const ccol: TCommentCollection = COMMENTCOLLECTION.get(cref) || {
+  const ccol: CommentCollection = COMMENTCOLLECTION.get(cref) || {
     collection_ref: cref
   };
   const hasReadComments = commentReplyVObjs.length > 0;
@@ -368,51 +370,42 @@ function DeriveThreadedViewObjects(
   COMMENTCOLLECTION.set(cref, ccol);
   return commentReplyVObjs;
 }
-
-/**
- * @param {string} cref
- * @param {string} uid -- User ID is used to determine read/unread status
- */
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function GetThreadedViewObjects(
   cref: TCollectionRef,
   uid: TUserID
-): TCommentVisualObject[] {
-  const commentVObjs = COMMENTVOBJS.get(cref);
+): CommentVisualState[] {
+  const commentVObjs = COMMENT_VSTATE.get(cref);
   return commentVObjs === undefined
     ? DeriveThreadedViewObjects(cref, uid)
     : commentVObjs;
 }
-
-/**
- * @param {string} cref
- * @param {string} uid -- User ID is used to determine read/unread status
- * @returns {number} Returns the number of comments in a collection
- */
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
 function GetThreadedViewObjectsCount(cref: TCollectionRef, uid: TUserID): number {
   return GetThreadedViewObjects(cref, uid).length;
 }
-
-function GetCOMMENTVOBJS(): TCommentVisualObjectsMap {
-  return COMMENTVOBJS;
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
+function GetCOMMENTVOBJS(): CommentViewStateMap {
+  return COMMENT_VSTATE;
 }
-
-function GetCommentVObj(cref: TCollectionRef, cid: TCommentID): TCommentVisualObject {
-  const thread = COMMENTVOBJS.get(cref);
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** */
+function GetCommentVObj(cref: TCollectionRef, cid: TCommentID): CommentVisualState {
+  const thread = COMMENT_VSTATE.get(cref);
   const cvobj = thread.find(c => c.comment_id === cid);
   return cvobj;
 }
 
-/// Add a new comment and trigger COMMENTVOBJS state change
-function AddComment(data: {
-  cref: TCollectionRef;
-  comment_id_parent: TCommentID;
-  comment_id_previous: TCommentID;
-  commenter_id: TUserID;
-}): TComment {
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Add a new comment and trigger COMMENT_VSTATE state change */
+function AddComment(data): TComment {
   if (data.cref === undefined)
     throw new Error('Comments must have a collection ref!');
 
-  const comment = DCCOMMENTS.AddComment(data);
+  const comment = COMMENTS.AddComment(data);
   DeriveThreadedViewObjects(data.cref, data.commenter_id);
 
   // Make it editable
@@ -423,7 +416,7 @@ function AddComment(data: {
       'ac-comment:Could not find CommentVObj',
       comment.collection_ref,
       comment.comment_id,
-      COMMENTVOBJS
+      COMMENT_VSTATE
     );
   cvobj.isBeingEdited = true;
   m_RegisterCommentBeingEdited(comment.comment_id);
@@ -431,57 +424,52 @@ function AddComment(data: {
   commentVObjs = commentVObjs.map(c =>
     c.comment_id === cvobj.comment_id ? cvobj : c
   );
-  COMMENTVOBJS.set(data.cref, commentVObjs);
+  COMMENT_VSTATE.set(data.cref, commentVObjs);
 
   return comment;
 }
-
-/**
- * Add changed comment to DCCOMMENTS and generate derived objects
- * @param {Object} cobj commentObject
- * @param {string} uid ID of the current user for "marked read" status
- */
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Add changed comment to COMMENTS and generate derived objects */
 function UpdateComment(cobj: TComment, uid: TUserID) {
   if (cobj.collection_ref === undefined)
     throw new Error(`UpdateComment cref is undefined ${cobj}`);
 
-  DCCOMMENTS.UpdateComment(cobj);
+  COMMENTS.UpdateComment(cobj);
   DeriveThreadedViewObjects(cobj.collection_ref, uid);
   // Disable editable and update modify time
   let commentVObjs = GetThreadedViewObjects(cobj.collection_ref, uid);
   const cvobj = GetCommentVObj(cobj.collection_ref, cobj.comment_id);
   if (cvobj === undefined)
     throw new Error(
-      `ac-comment.UpdateComment could not find cobj ${cobj.comment_id}.  Maybe it hasn't been created yet? ${COMMENTVOBJS}`
+      `ac-comment.UpdateComment could not find cobj ${cobj.comment_id}.  Maybe it hasn't been created yet? ${COMMENT_VSTATE}`
     );
 
   // mark it unread
   cvobj.isMarkedRead = false; // clear read status
-  DCCOMMENTS.MarkCommentUnread(cvobj.comment_id, uid);
+  COMMENTS.MarkCommentUnread(cvobj.comment_id, uid);
 
   cvobj.isBeingEdited = false;
   m_DeRegisterCommentBeingEdited(cobj.comment_id);
-  cvobj.modifytime_string = GetDateString(cobj.comment_modifytime);
+  cvobj.modifytime_string = TIME.stringFromTimestamp(cobj.comment_modifytime);
   commentVObjs = commentVObjs.map(c =>
     c.comment_id === cvobj.comment_id ? cvobj : c
   );
-  COMMENTVOBJS.set(cobj.collection_ref, commentVObjs);
+  COMMENT_VSTATE.set(cobj.collection_ref, commentVObjs);
 }
-/**
- * Batch updates an array of updated comments
- * This updates the local browser's comment state to match the server.
- * Triggered by COMMENTS_UPDATE network call after someone else on the network removes a comment.
- * Does NOT trigger a database update
- * (Contrast this with UpdateComment above)
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Batch updates an array of updated comments
+ *  This updates the local browser's comment state to match the server.
+ *  Triggered by COMMENTS_UPDATE network call after someone else on the network removes a comment.
+ *  Does NOT trigger a database update
+ *  (Contrast this with UpdateComment above)
  */
 function HandleUpdatedComments(comments: TComment[]) {
-  DCCOMMENTS.HandleUpdatedComments(comments);
+  COMMENTS.HandleUpdatedComments(comments);
 }
-
-/**
- * Processes the comment removal triggered by the local user, including relinking logic
- * This is called BEFORE the database update.
- * (Contrast this with UpdateRemovedComment below)
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Processes the comment removal triggered by the local user, including relinking logic
+ *  This is called BEFORE the database update.
+ *  (Contrast this with UpdateRemovedComment below)
  */
 function RemoveComment(parms: {
   collection_ref: TCollectionRef;
@@ -491,65 +479,74 @@ function RemoveComment(parms: {
 }): TCommentQueueActions[] {
   if (parms.collection_ref === undefined)
     throw new Error(`RemoveComment collection_ref is undefined ${parms}`);
-  const queuedActions = DCCOMMENTS.RemoveComment(parms);
+  const queuedActions = COMMENTS.RemoveComment(parms);
   DeriveThreadedViewObjects(parms.collection_ref, parms.uid);
   // Add an action to update the collection_ref, which forces an update after removal
   // otherwise the comment would have been removed and we no longer have a reference to the cref
   queuedActions.push({ collection_ref: parms.collection_ref });
   return queuedActions;
 }
-/// Processes comment removal triggered by deletion of a source (e.g. node or edge)
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Processes comment removal triggered by deletion of a source (e.g. node or edge)
+ */
 function RemoveAllCommentsForCref(parms: {
   collection_ref: TCollectionRef;
   uid: TUserID;
 }): TCommentQueueActions[] {
   if (parms.collection_ref === undefined)
     throw new Error(`RemoveAllCommentsForCref collection_ref is undefined ${parms}`);
-  const queuedActions = DCCOMMENTS.RemoveAllCommentsForCref(parms);
+  const queuedActions = COMMENTS.RemoveAllCommentsForCref(parms);
   DeriveThreadedViewObjects(parms.collection_ref, parms.uid);
   // Add an action to update the collection_ref, which forces an update after removal
   // otherwise the comment would have been removed and we no longer have a reference to the cref
   queuedActions.push({ collection_ref: parms.collection_ref });
   return queuedActions;
 }
-/**
- * Batch updates a list of removed comment ids
- * This updates the local browser's comment state to match the server.
- * Triggered by COMMENTS_UPDATE network call after someone else on the network removes a comment.
- * This assumes that it is safe to simply delete the comment.  Any relinking
- * should have been handled by UpdateComment
- * Does NOT trigger a database update
- * (Contrast this with RemoveComment above)
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Batch updates a list of removed comment ids
+ *  This updates the local browser's comment state to match the server.
+ *  Triggered by COMMENTS_UPDATE network call after someone else on the network removes a comment.
+ *  This assumes that it is safe to simply delete the comment.  Any relinking
+ *  should have been handled by UpdateComment
+ *  Does NOT trigger a database update
+ *  (Contrast this with RemoveComment above)
  */
 function HandleRemovedComments(comment_ids: TCommentID[]) {
-  DCCOMMENTS.HandleRemovedComments(comment_ids);
+  COMMENTS.HandleRemovedComments(comment_ids);
 }
 
 /// PASS-THROUGH METHODS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetUserName(uid: TCommentID): string {
-  return DCCOMMENTS.GetUserName(uid);
+  return COMMENTS.GetUserName(uid);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetCommentTypes(): TCommentTypeMap {
-  return DCCOMMENTS.GetCommentTypes();
+  return TEMPLATES.TPL_COMMENTS;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetCOMMENTS() {
+  return COMMENTS.COMMENTS;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetCommentType(slug: CType): TCommentType {
-  return DCCOMMENTS.GetCommentType(slug);
+  return TEMPLATES.GetCommentType(slug);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetDefaultCommentType(): TCommentType {
-  return DCCOMMENTS.GetDefaultCommentType();
+  return TEMPLATES.GetDefaultCommentType();
 }
-function GetCOMMENTS(): TCommentMap {
-  return DCCOMMENTS.GetCOMMENTS();
-}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetComment(cid: TCommentID): TComment {
-  return DCCOMMENTS.GetComment(cid);
+  return COMMENTS.GetComment(cid);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetReadby(cid: TCommentID): TUserID[] {
-  return DCCOMMENTS.GetReadby(cid);
+  return COMMENTS.GetReadby(cid);
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetCrefs(): TCollectionRef[] {
-  return DCCOMMENTS.GetCrefs();
+  return COMMENTS.GetCrefs();
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
@@ -557,8 +554,7 @@ function GetCrefs(): TCollectionRef[] {
 export {
   Init,
   // DB
-  LoadDB,
-  GetDateString,
+  UpdateData,
   // Comment Collection
   GetCommentCollections,
   GetCommentCollection,

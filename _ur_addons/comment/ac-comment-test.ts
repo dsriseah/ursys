@@ -25,7 +25,7 @@
 
 import { expect, test } from 'vitest';
 import * as AC from './ac-comment.ts';
-import DC from './dc-comment.ts';
+import * as DC from './dc-comment.ts';
 
 /// IMPORTED TYPES ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,18 +36,15 @@ import type {
   TUserID,
   CType,
   TCommentType,
-  TCommentTypeMap,
-  TCommentMap,
   TCommentQueueActions
-} from './dc-comment.ts';
+} from './types-comment.ts';
 
 /// EXTRACTED METHODS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const {
   Init,
   // DB
-  LoadDB,
-  GetDateString,
+  UpdateData,
   // Comment Collection
   GetCommentCollections,
   GetCommentCollection,
