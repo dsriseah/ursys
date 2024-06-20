@@ -59,8 +59,7 @@ import type {
   TCollectionRef,
   TComment,
   TCommentQueueActions,
-  TCommentTypeMap,
-  TCommentMap
+  TCommentTypeMap
 } from './types-comment.ts';
 
 /// EXTRACTED METHODS /////////////////////////////////////////////////////////
@@ -68,13 +67,13 @@ import type {
 const {
   Init, //
   // DB
-  SetData, // data object => initializes internal data
+  UpdateData, // data object => initializes internal data
   // USERS,
-  GetUser, // id => userdata
+  GetUserData, // id => userdata
   GetUserName, // id => username
   GetCurrentUser, // => current user id ???
   // COMMENTS
-  GetCOMMENTS,
+  COMMENTS,
   GetComment,
   AddComment,
   UpdateComment,
@@ -106,6 +105,4 @@ const {
 } = DTPL;
 
 /// TESTS /////////////////////////////////////////////////////////////////////
-/** - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - |
-  extended comment
-| - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -66,21 +66,28 @@ import DEFAULT_TEMPLATE from './dc-template-default.ts';
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
-  TCommentID,
-  TComment,
-  TCollectionRef,
-  TLokiData,
-  TCommentCollectionID,
-  TCommentQueueActions,
-  TUserID,
-  TUserName,
-  TUserObject,
+  TDataSet, // definition of dataset object
+  //
+  TCommentID, // id of a TComment object
+  TComment, // comment data fields and references
+  TCollectionRef, // unique identifier for a collection of comments
+  TCommentData, // data fields for creating a new comment
+  TCommentSelector, // selector for removing a comment
+  //
+  TCommentCollectionID, // unique identifier for a collection of comments
+  TCommentQueueActions, // ?
+  //
+  TUserID, // unique identifier for a user
+  TUser, // object with user data fields
+  TUserName, // name of a user
+  //
   TReadByObject
 } from './types-comment';
 /** local data structure  - - - - - - - - - - - - - - - - - - - - - - - - - **/
-type UserMap = Map<TUserID, TUserName>;
+type UserMap = Map<TUserID, TUser>;
 type CommentMap = Map<TCommentID, TComment>;
 type ReadByMap = Map<TCommentID, TUserID[]>;
+type DeferOptions = { defer?: boolean };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -91,174 +98,157 @@ const USERS: UserMap = new Map(); // Map<uid, name>
 const COMMENTS: CommentMap = new Map(); // Map<cid, commentObject>
 const READBY: ReadByMap = new Map(); // Map<cid, readbyObject[]>
 /// DERIVED DATA  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const ROOTS: Map<TCommentCollectionID, TCommentID> = new Map(); // Map<cref, comment_id> Root comment for a given collection_ref
-const REPLY_ROOTS: Map<TCommentID, TCommentID> = new Map(); // Map<comment_id_parent, comment_id> Root comment_id for any given comment. (thread roots)
-const NEXT: Map<TCommentID, TCommentID> = new Map(); // Map<comment_id_previous, comment_id> Next comment_id that follows the requested comment_id
+const ROOTS: Map<TCommentCollectionID, TCommentID> = new Map(); // root comment for each collection
+const REPLY_ROOTS: Map<TCommentID, TCommentID> = new Map(); // reverse lookup to find collection root
+const NEXT: Map<TCommentID, TCommentID> = new Map(); // map from comment to next comment
 
-/// DEFAULTS //////////////////////////////////////////////////////////////////
+/// (PROPOSED) GLOBAL STATE ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** PLACEHOLDER
+ *  shouldn't be passing things like isAdmin as parameters
+ *  this should be a global state that is set at the beginning of the session
+ */
+const APP_STATE = {
+  isAdmin: () => true,
+  currentUser: () => 'Ben32'
+};
 
 /// HELPER FUNCTIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
-function m_LoadUsers(dbUsers: TUserObject[]) {
-  dbUsers.forEach(u => USERS.set(u.id, u.name));
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
-function m_LoadComments(comments: TComment[]) {
-  comments.forEach(c => COMMENTS.set(c.comment_id, c));
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
-function m_LoadReadBy(readby: TReadByObject[]) {
-  readby.forEach(r => READBY.set(r.comment_id, r.commenter_ids));
+/** HELPER: get timestamp for comment */
+function m_GetTimestamp(): number {
+  return new Date().getTime();
 }
 
-/// API METHODS ///////////////////////////////////////////////////////////////
+/// DATA LIFECYCLE METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: First time initialization */
 function Init() {
   if (DBG) console.log(PR, 'Init');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/**
- * @param {Object} data
- * @param {Object} data.users
- * @param {Object} data.commenttypes
- * @param {Object} data.comments
- * @param {Object} data.readby
- */
-function SetData(data: TLokiData) {
-  if (DBG) console.log(PR, 'SetData');
-  // Load Data!
-  if (data.users) m_LoadUsers(data.users);
-  if (data.comments) m_LoadComments(data.comments);
-  if (data.readby) m_LoadReadBy(data.readby);
-  if (DBG) console.log('USERS', USERS);
-  if (DBG) console.log('COMMENTS', COMMENTS);
-  if (DBG) console.log('READBY', READBY);
+/** API: Update local core data sets, derive data, and notify */
+function UpdateData(data: TDataSet) {
+  if (DBG) console.log(PR, 'UpdateData');
+  const { users, comments, readby } = data;
+  // update datasets
+  if (users) users.forEach(u => USERS.set(u.id, u));
+  if (comments) comments.forEach(c => COMMENTS.set(c.comment_id, c));
+  if (readby) readby.forEach(r => READBY.set(r.comment_id, r.commenter_ids));
   // Derive Secondary Values
   m_UpdateDerivedData();
+  m_NotifyDataChange();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
-function GetUser(uid): TUserName {
-  return USERS.get(uid);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
-function GetUserName(uid): TUserName {
-  const u = USERS.get(uid);
-  return u !== undefined ? u : uid; // fallback to using `uid` if there's no record
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
-function GetCurrentUser(): TUserName {
-  // TODO Placeholder
-  return 'Ben32';
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
-function GetCOMMENTS(): CommentMap {
-  return COMMENTS;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
-function GetComment(cid): TComment {
-  return COMMENTS.get(cid);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
+/** HELPER: Called after core data is updated to rederive stuff */
 function m_UpdateDerivedData() {
   ROOTS.clear();
   REPLY_ROOTS.clear();
   NEXT.clear();
   COMMENTS.forEach(c => {
-    if (c.comment_id_parent === '' && c.comment_id_previous === '')
-      ROOTS.set(c.collection_ref, c.comment_id);
-    if (c.comment_id_parent !== '' && c.comment_id_previous === '') {
-      REPLY_ROOTS.set(c.comment_id_parent, c.comment_id);
+    const { comment_id_parent, comment_id_previous } = c;
+    const { collection_ref, comment_id } = c;
+    if (comment_id_parent === '' && comment_id_previous === '')
+      ROOTS.set(collection_ref, comment_id);
+    if (comment_id_parent !== '' && comment_id_previous === '') {
+      REPLY_ROOTS.set(comment_id_parent, comment_id);
     }
-    if (c.comment_id_previous !== '') {
-      NEXT.set(c.comment_id_previous, c.comment_id);
+    if (comment_id_previous !== '') {
+      NEXT.set(comment_id_previous, comment_id);
     }
   });
-  if (DBG) console.log('ROOTS', ROOTS);
-  if (DBG) console.log('REPLY_ROOTS', REPLY_ROOTS);
-  if (DBG) console.log('NEXT', NEXT);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
-function AddComment(data): TComment {
-  if (data.cref === undefined)
-    throw new Error('Comments must have a collection ref!');
+/** NOTIFIER: emit data change signal */
+function m_NotifyDataChange() {
+  // defining a data notification standard that embeds the messages dirrectly
+  // in the module would cut down on a lot of bullshit.
+  const fn = 'm_NotifyDataChange';
+  const dataset = { users: USERS, comments: COMMENTS, readby: READBY };
+  console.log(fn, `would emit 'COMMENT_DATA_UPDATED' signal w/`, dataset);
+}
 
-  const comment_id_parent = data.comment_id_parent || '';
-  const comment_id_previous = data.comment_id_previous || '';
-
-  const comment: TComment = {
-    collection_ref: data.cref,
-    comment_id: data.comment_id, // thread
+/// USER ACCESS METHODS ///////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Given a UID, return the related UserObject */
+function GetUserData(uid: TUserID): TUser {
+  return USERS.get(uid);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Given a uid, return a username string */
+function GetUserName(uid: TUserID): TUserName {
+  const u = GetUserData(uid);
+  if (u === undefined) return 'Unknown User';
+  return u.name || `user-${uid}`;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: return the current user */
+function GetCurrentUser(): TUserName {
+  // TODO: this shouldn't be a forward, as currentUser should be
+  // part of appstate, not commentmgr.
+  return APP_STATE.currentUser();
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Return a TComment object */
+function GetComment(cid: TCommentID): TComment {
+  return COMMENTS.get(cid);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Given comment data, create a new comment object and save it*/
+function AddComment(data: TCommentData): TComment {
+  const {
+    cref,
+    comment_id,
+    commenter_id,
+    comment_id_parent = '',
+    comment_id_previous = '',
+    comment_isMarkedDeleted
+  } = data;
+  if (cref === undefined) throw new Error('Comments must have a collection ref!');
+  const newComment: TComment = {
+    collection_ref: cref,
+    comment_id, // thread
     comment_id_parent,
     comment_id_previous,
     comment_type: 'cmt', // default type, no prompts
-    comment_createtime: new Date().getTime(),
+    comment_createtime: m_GetTimestamp(),
     comment_modifytime: null,
-    comment_isMarkedDeleted: data.comment_isMarkedDeleted,
-
-    commenter_id: data.commenter_id,
+    comment_isMarkedDeleted,
+    commenter_id,
     commenter_text: []
   };
-
-  COMMENTS.set(comment.comment_id, comment);
+  COMMENTS.set(comment_id, newComment);
   m_UpdateDerivedData();
-
-  return comment;
+  return newComment;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/**
- * API Call to processes a single update
- * @param {Object} cobj TComment
- */
-function UpdateComment(cobj: TComment) {
-  m_UpdateComment(cobj);
-  m_UpdateDerivedData();
+/** API: Processes a single update */
+function UpdateComment(cobj: TComment, opt?: DeferOptions) {
+  const { comment_id } = cobj;
+  // use nullish coallescing to check opt for defer value
+  const { defer = false } = opt ?? {};
+  const timestamp = m_GetTimestamp();
+  cobj.comment_modifytime = timestamp;
+  COMMENTS.set(comment_id, cobj);
+  // update any derived data
+  if (!defer) m_UpdateDerivedData();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/**
- * Processes a single update
- * @param {Object} cobj TComment
- */
-function m_UpdateComment(cobj: TComment) {
-  // Fake modify date until we get DB roundtrip
-  cobj.comment_modifytime = new Date().getTime();
-  console.log(
-    'REVIEW: UpdateComment...modify time should use loki time???',
-    cobj.comment_modifytime
-  );
-  COMMENTS.set(cobj.comment_id, cobj);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/**
- * API Call to batch updates an array of updated comments
- * @param {Object[]} cobjs TComment[]
+/** MESSAGE API: Call to batch updates an array of updated comments
+ *  Invoked by 'COMMENTS_UPDATE', 'COMMENT_UPDATE'
  */
 function HandleUpdatedComments(cobjs: TComment[]) {
-  cobjs.forEach(cobj => m_UpdateComment(cobj));
+  cobjs.forEach(cobj => UpdateComment(cobj, { defer: true }));
   m_UpdateDerivedData();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/**
- * @param {Object} parms
- * @param {Object} parms.collection_ref
- * @param {Object} parms.comment_id
- * @param {Object} parms.uid
- * @param {Object} parms.isAdmin
- * @returns {(any|Array)} if {comment: cobj} updates the comment
- *                        if {commentID: id} deletes the comment
+/** API: Given selector, delete all references to it and update derived data
+ *  Because threaded comments are implemented as a
+ *  doubly-linked list, this is pretty involved.
  */
-function RemoveComment(parms): TCommentQueueActions[] {
-  const { collection_ref, comment_id, uid, isAdmin } = parms;
+function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
+  const { collection_ref, comment_id, uid } = selector;
+  const isAdmin = APP_STATE.isAdmin();
   const queuedActions = [];
 
   // MAIN PROCESS: `xxxToDelete`
@@ -444,7 +434,7 @@ function RemoveComment(parms): TCommentQueueActions[] {
   return queuedActions;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
+/** API: Remove all comments for a particular collection */
 function RemoveAllCommentsForCref({ collection_ref, uid }): TCommentQueueActions[] {
   const queuedActions = [];
   const cids = COMMENTS.forEach(cobj => {
@@ -457,8 +447,7 @@ function RemoveAllCommentsForCref({ collection_ref, uid }): TCommentQueueActions
   return queuedActions;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Checks if the current root and all children are marked deleted.
- *  Ignores the NEXT root items
+/** HELPER: Checks if the current root and all children are marked deleted.
  *  This is used to determine if we can safely prune the whole thread
  *  because every other comment in the thread has been marked deleted.
  */
@@ -473,7 +462,9 @@ function m_AllAreMarkedDeleted(rootCommentId: TCommentID): boolean {
   return allAreMarkedDeleted;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Batch updates an array of removed comment ids */
+/** MESSAGE API: Remove the provided comment ids.
+ *  associated with 'COMMENTS_UPDATE', 'COMMENT_UPDATE' handlers
+ */
 function HandleRemovedComments(comment_ids: TCommentID[]) {
   comment_ids.forEach(comment_id => {
     if (DBG) console.log('...removing', comment_id);
@@ -481,8 +472,10 @@ function HandleRemovedComments(comment_ids: TCommentID[]) {
   });
   m_UpdateDerivedData();
 }
+
+/// COMMENT MARK/DELETE METHODS ///////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** `uid` can be undefined if user is not logged in */
+/** API: Mark comment as read by user id */
 function MarkCommentRead(cid: TCommentID, uid: TUserID) {
   // Mark the comment read
   const readby = READBY.get(cid) || [];
@@ -490,7 +483,7 @@ function MarkCommentRead(cid: TCommentID, uid: TUserID) {
   READBY.set(cid, readby);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
+/** API: Unmark comment as read by user id */
 function MarkCommentUnread(cid: TCommentID, uid: TUserID) {
   // Mark the comment NOT read
   const readby = READBY.get(cid) || [];
@@ -498,18 +491,20 @@ function MarkCommentUnread(cid: TCommentID, uid: TUserID) {
   READBY.set(cid, updatedReadby);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
+/** API: Return true if comment has been read by a particular user */
 function IsMarkedRead(cid: TCommentID, uid: TUserID): boolean {
   const readby = READBY.get(cid) || [];
   return readby.includes(uid);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
+/** API: Check if a particular comment was marked as "deleted"  */
 function IsMarkedDeleted(cid: TCommentID): boolean {
   return COMMENTS.get(cid).comment_isMarkedDeleted;
 }
+
+/// COMMENT THREAD METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Walk down the next items starting with the current
+/** HELPER: Walk down the next items starting with the current
  *  Ignores child threads
  */
 function m_GetNexts(cid: TCommentID): TCommentID[] {
@@ -520,7 +515,7 @@ function m_GetNexts(cid: TCommentID): TCommentID[] {
   return results;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Gets all the child reply comments under the root
+/** HELPER: Gets all the child reply comments under the root
  *  Does not include the rootCid
  */
 function m_GetReplies(rootCid: TCommentID): TCommentID[] {
@@ -531,7 +526,7 @@ function m_GetReplies(rootCid: TCommentID): TCommentID[] {
   return results;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** recursively add replies and next
+/** HELPER: recursively add replies and next
  *  1. Adds nested children reply threads first
  *  2. Then adds the next younger sibling
  *  Does NOT include the passed cid
@@ -545,18 +540,16 @@ function m_GetRepliesAndNext(cid: TCommentID): TCommentID[] {
     // then recursively find next reply
     results.push(reply_root_id, ...m_GetRepliesAndNext(reply_root_id));
   }
-
   // are there "next" items?
   const nextId = NEXT.get(cid);
   if (nextId) {
     // then recursively find next reply
     results.push(nextId, ...m_GetRepliesAndNext(nextId));
   }
-
   return results;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Get all the comment ids related to a particular collection_ref
+/** API: Get all the comment ids related to a particular collection_ref
  *  based on ROOTS.
  *  DeriveValues needs to be called before this method can be used.
  */
@@ -581,12 +574,12 @@ function GetThreadedCommentData(cref: TCollectionRef): TComment[] {
   return threaded_comments_ids.map(cid => COMMENTS.get(cid));
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
+/** API: Return the array of users who have read a particular comment */
 function GetReadby(cid: TCommentID): TUserID[] {
   return READBY.get(cid);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
+/** API: Return all the TCommentCollectionID */
 function GetCrefs(): TCollectionRef[] {
   return [...ROOTS.keys()];
 }
@@ -596,13 +589,12 @@ function GetCrefs(): TCollectionRef[] {
 export {
   Init,
   // DB
-  SetData,
+  UpdateData,
   // USERS
-  GetUser,
+  GetUserData,
   GetUserName,
   GetCurrentUser,
   // COMMENTS
-  GetCOMMENTS,
   GetComment,
   AddComment,
   UpdateComment,
@@ -621,5 +613,6 @@ export {
   // ROOTS
   GetCrefs,
   // 'protected' data for ac-comment
-  USERS
+  USERS,
+  COMMENTS
 };

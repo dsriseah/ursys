@@ -9,7 +9,7 @@ import DEFAULT_TEMPLATE from './dc-template-default';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { TCommentType, TCommentTypeMap, TLokiData } from './types-comment';
+import type { TCommentType, TCommentTypeMap, TDataSet } from './types-comment';
 
 /// DEBUGGER UTILS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -63,7 +63,7 @@ function Init() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: update from passed LokiData object */
-function UpdateData(data: TLokiData) {
+function UpdateData(data: TDataSet) {
   if (data.comments) m_UpdateTPL_COMMENTS(data.commenttypes);
   m_UpdateDerivedData();
 }

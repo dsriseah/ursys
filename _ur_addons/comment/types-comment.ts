@@ -5,15 +5,49 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-/// USERS /////////////////////////////////////////////////////////////////////
+/// COMMENTS //////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 export type TUserID = string;
 export type TUserName = string;
-export type TUserObject = {
+export type TUser = {
   id: TUserID;
   name: TUserName;
 };
+export type TCommentData = {
+  cref: TCollectionRef;
+  comment_id: TCommentID;
+  comment_id_parent?: TCommentID;
+  comment_id_previous?: TCommentID;
+  comment_isMarkedDeleted?: boolean;
+  commenter_id: TUserID;
+};
+export type TCommentSelector = {
+  collection_ref: TCollectionRef;
+  comment_id: TCommentID;
+  uid: TUserID;
+};
+
+/// USERS /////////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type TCommentID = string;
+export type TComment = {
+  collection_ref: TCollectionRef; // aka 'cref'
+  comment_id: TCommentID;
+  comment_id_parent: any;
+  comment_id_previous: any;
+  comment_type: string;
+  comment_createtime: number;
+  comment_modifytime: number;
+  comment_isMarkedDeleted: boolean;
+  commenter_id: TUserID;
+  commenter_text: string[];
+};
+
+/// COLLECTION REFERENCES /////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type TCollectionType = 'n' | 'p' | 'e';
+export type TCollectionRef = any;
+export type TCommentCollectionID = `${TCollectionType}` | string;
 
 /// COMMENT TEMPLATING ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,7 +61,6 @@ export type CPromptFormat =
   | 'radio'
   | 'likert'
   | 'discrete-slider';
-export type TCommentID = string;
 export type TCommentType = {
   slug: CType;
   label: string;
@@ -40,24 +73,7 @@ export type TCommentPrompt = {
   help: string;
   feedback: string;
 };
-
-/// COLLECTION REFERENCES /////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export type TCollectionRef = any;
-export type TComment = {
-  collection_ref: TCollectionRef; // aka 'cref'
-  comment_id: TCommentID;
-  comment_id_parent: any;
-  comment_id_previous: any;
-  comment_type: string;
-  comment_createtime: number;
-  comment_modifytime: number;
-  comment_isMarkedDeleted: boolean;
-  commenter_id: TUserID;
-  commenter_text: string[];
-};
-export type TCollectionType = 'n' | 'p' | 'e';
-export type TCommentCollectionID = `${TCollectionType}` | string;
+export type TCommentTypeMap = Map<CType, TCommentType>;
 
 /// COMMENT MARKED AS READ ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -68,8 +84,8 @@ export type TReadByObject = {
 
 /// DATA PAYLOAD //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export type TLokiData = {
-  users?: TUserObject[];
+export type TDataSet = {
+  users?: TUser[];
   commenttypes?: TCommentType[];
   comments?: TComment[];
   readby?: TReadByObject[];
