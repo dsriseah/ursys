@@ -4,6 +4,9 @@
 # do not commit code-workspace; leave it up to user to manage
 *.code-workspace
 
+# ignore obsidian files and vaults
+.obsidian
+
 # URSYS apps are built on _ur and _ur_addons, but are submodules
 # that begin with app and app-*
 /app
