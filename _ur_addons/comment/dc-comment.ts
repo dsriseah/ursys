@@ -62,6 +62,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import DEFAULT_TEMPLATE from './dc-template-default.ts';
+import { APP, TIME } from './mock-core.ts';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -101,21 +102,6 @@ const READBY: ReadByMap = new Map(); // Map<cid, readbyObject[]>
 const ROOTS: Map<TCommentCollectionID, TCommentID> = new Map(); // root comment for each collection
 const REPLY_ROOTS: Map<TCommentID, TCommentID> = new Map(); // reverse lookup to find collection root
 const NEXT: Map<TCommentID, TCommentID> = new Map(); // map from comment to next comment
-
-/// (PROPOSED) URSYS CORE /////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** PLACEHOLDER
- *  shouldn't be passing things like isAdmin as parameters
- *  this should be a global state that is set at the beginning of the session
- */
-const APP = {
-  isAdmin: () => true,
-  currentUser: () => 'Ben32'
-};
-const TIME = {
-  getTimestamp: () => new Date().getTime(),
-  stringFromTimestamp: (ms: number) => new Date(ms).toLocaleString()
-};
 
 /// DATA LIFECYCLE METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

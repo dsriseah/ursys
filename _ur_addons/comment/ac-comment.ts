@@ -84,6 +84,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import * as COMMENTS from './dc-comment.ts';
+import { APP, TIME } from './mock-core.ts';
 import * as TEMPLATES from './dc-template.ts';
 import type {
   TComment,
@@ -142,21 +143,6 @@ const COMMENTUISTATE: CommentUIStateMap = new Map(); // Map<uiref, {cref, isOpen
 const OPENCOMMENTS: OpenCommentsMap = new Map(); // Map<cref, uiref>
 const COMMENTS_BEING_EDITED: CommentBeingEditedMap = new Map(); // Map<cid, cid>
 const COMMENT_VSTATE: CommentViewStateMap = new Map(); // Map<cref, cvobj[]>
-
-/// (PROPOSED) URSYS CORE /////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** PLACEHOLDER
- *  shouldn't be passing things like isAdmin as parameters
- *  this should be a global state that is set at the beginning of the session
- */
-const APP = {
-  isAdmin: () => true,
-  currentUser: () => 'Ben32'
-};
-const TIME = {
-  getTimestamp: () => new Date().getTime(),
-  stringFromTimestamp: (ms: number) => new Date(ms).toLocaleString()
-};
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -281,7 +267,7 @@ function GetCommentBeingEdited(cid: TCommentID): TCommentID {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** */
-function GetUnreadRepliesToMe(): TComment[] {
+function GetUnreadRepliesToMe(uid?: TUserID): TComment[] {
   const comments = [];
   COMMENT_VSTATE.forEach(cvobjs => {
     cvobjs.forEach(cvobj => {
@@ -463,7 +449,7 @@ function UpdateComment(cobj: TComment, uid: TUserID) {
  *  Does NOT trigger a database update
  *  (Contrast this with UpdateComment above)
  */
-function HandleUpdatedComments(comments: TComment[]) {
+function HandleUpdatedComments(comments: TComment[], uid?: TUserID) {
   COMMENTS.HandleUpdatedComments(comments);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -511,7 +497,7 @@ function RemoveAllCommentsForCref(parms: {
  *  Does NOT trigger a database update
  *  (Contrast this with RemoveComment above)
  */
-function HandleRemovedComments(comment_ids: TCommentID[]) {
+function HandleRemovedComments(comment_ids: TCommentID[], uid?: TUserID) {
   COMMENTS.HandleRemovedComments(comment_ids);
 }
 

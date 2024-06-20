@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import * as UR from '@ursys/core'; // want phasemachine, but is it available?
+import { APP, TIME } from './mock-core.ts';
 import DEFAULT_TEMPLATE from './dc-template-default';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
