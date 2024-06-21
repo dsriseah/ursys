@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { APP, TIME } from './mock-core.ts';
+import { APPSTATE, TIME } from './mock-core.ts';
 import DEFAULT_TEMPLATE from './dc-template-default';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
@@ -100,6 +100,6 @@ export {
   // template getters
   GetCommentType, //
   GetDefaultCommentType, //
-  // "protected" data for ac-template
+  // 'protected' data for use by ac-template
   TPL_COMMENTS
 };

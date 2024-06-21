@@ -3,9 +3,18 @@
   Base Types for Comment Manager Addon
   includes placeholder Comment Template typers as well
 
+  Annotable - a generic term for an object that can be annotated
+  AnnotableRef - a unique reference id to an annotable object in the system
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-/// COMMENTS //////////////////////////////////////////////////////////////////
+/// CONFIGURATION API /////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type AN_TYPES = 'n' | 'p' | 'e';
+type TAnnotableKeys = `${AN_TYPES[number]}`; // can only be 'n', 'p', or 'e'
+export type TAnnotableRef = `${TAnnotableKeys}-${IDString}`;
+
+/// USERS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type TUserID = string;
 export type TUserName = string;
@@ -13,47 +22,58 @@ export type TUser = {
   id: TUserID;
   name: TUserName;
 };
-export type TCommentData = {
-  cref: TCollectionRef;
-  comment_id: TCommentID;
-  comment_id_parent?: TCommentID;
-  comment_id_previous?: TCommentID;
-  comment_isMarkedDeleted?: boolean;
-  commenter_id: TUserID;
-};
-export type TCommentSelector = {
-  collection_ref: TCollectionRef;
-  comment_id: TCommentID;
-  uid: TUserID;
-};
 
-/// USERS /////////////////////////////////////////////////////////////////////
+/// UNIVERSAL SYSTEM TYPES ////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type AnnotableUUID = string; // unique identifier for an annotable object
+type IDString = string;
+//
+export type URDateTime = number;
+
+/// COMMENTS //////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type TCommentID = string;
 export type TComment = {
-  collection_ref: TCollectionRef; // aka 'cref'
-  comment_id: TCommentID;
-  comment_id_parent: any;
-  comment_id_previous: any;
-  comment_type: string;
-  comment_createtime: number;
-  comment_modifytime: number;
-  comment_isMarkedDeleted: boolean;
-  commenter_id: TUserID;
-  commenter_text: string[];
+  // meta
+  cref: TAnnotableRef; // reference to the object being annotated
+  ctpl: CTemplateRef; // comment "template" type
+  //
+  cid: TCommentID; // model-wide unique comment id
+  cid_root: TCommentID; // parent comment id, if there is one
+  cid_previous: TCommentID; //
+  user_ctime: URDateTime; // creation date time
+  user_mtime: URDateTime; // modification date time
+  user_id: TUserID; // creator of this comment
+  user_text: string[]; // array of strings
+  isDeleted: boolean;
+};
+
+/// UI DATA ///////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type TCommentData = {
+  cref: TAnnotableRef;
+  cid: TCommentID;
+  cid_root?: TCommentID;
+  cid_previous?: TCommentID;
+  isDeleted?: boolean;
+  user_id: TUserID;
+};
+export type TCommentSelector = {
+  cref: TAnnotableRef;
+  cid: TCommentID;
+  uid: TUserID;
 };
 
 /// COLLECTION REFERENCES /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type TCollectionType = 'n' | 'p' | 'e';
-export type TCollectionRef = any;
 export type TCommentCollectionID = `${TCollectionType}` | string;
 
 /// COMMENT TEMPLATING ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// CType needs to be defined after we figure out how to handle templates
+// CTemplateRef needs to be defined after we figure out how to handle templates
 // Eventually we will dynamically define them.
-export type CType = 'cmt' | 'tellmemore' | 'source' | 'demo';
+export type CTemplateRef = 'cmt' | 'tellmemore' | 'source' | 'demo';
 export type CPromptFormat =
   | 'text'
   | 'dropdown'
@@ -62,7 +82,7 @@ export type CPromptFormat =
   | 'likert'
   | 'discrete-slider';
 export type TCommentType = {
-  slug: CType;
+  slug: CTemplateRef;
   label: string;
   prompts: TCommentPrompt[];
 };
@@ -73,12 +93,12 @@ export type TCommentPrompt = {
   help: string;
   feedback: string;
 };
-export type TCommentTypeMap = Map<CType, TCommentType>;
+export type TCommentTypeMap = Map<CTemplateRef, TCommentType>;
 
 /// COMMENT MARKED AS READ ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type TReadByObject = {
-  comment_id: TCommentID;
+  cid: TCommentID;
   commenter_ids: TUserID[];
 };
 
@@ -101,7 +121,7 @@ export type TCommentQueueAction_RemoveCommentID = {
   commentID: TCommentID;
 };
 export type TCommentQueueAction_RemoveCollectionRef = {
-  collection_ref: TCollectionRef;
+  cref: TAnnotableRef;
 };
 export type TCommentQueueAction_Update = {
   comment: TComment;

@@ -23,7 +23,7 @@
 
     Each Comment contains the "commenter id" and their text. The system supports
     a "read by" data structure that consists of an array of ReadBy objects. Each
-    ReadBy object has the comment_id (unique across the system) and an arrar of
+    ReadBy object has the cid (unique across the system) and an arrar of
     commenter ids that have read the comment.
 
   data sets - persisted and pure
@@ -40,7 +40,7 @@
 
   template stuff that has nothing to do with comment objects
 
-    COMMENT_TYPES : Map<CType, TCommentType>
+    COMMENT_TYPES : Map<CTemplateRef, TCommentType>
 
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
@@ -53,10 +53,10 @@ import * as DTPL from './dc-template.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   TUserID,
-  CType,
+  CTemplateRef,
   TCommentID,
   TCommentType,
-  TCollectionRef,
+  TAnnotableRef,
   TComment,
   TCommentQueueActions,
   TCommentTypeMap
@@ -68,10 +68,6 @@ const {
   Init, //
   // DB
   UpdateData, // data object => initializes internal data
-  // USERS,
-  GetUserData, // id => userdata
-  GetUserName, // id => username
-  GetCurrentUser, // => current user id ???
   // COMMENTS
   COMMENTS,
   GetComment,
@@ -91,9 +87,7 @@ const {
   // READBY
   GetReadby,
   // ROOTS
-  GetCrefs,
-  // protected data
-  USERS
+  GetCrefs
 } = DC;
 
 const {

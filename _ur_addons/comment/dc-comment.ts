@@ -25,7 +25,7 @@
 
     Each Comment contains the "commenter id" and their text. The system supports
     a "read by" data structure that consists of an array of ReadBy objects. Each
-    ReadBy object has the comment_id (unique across the system) and an arrar of
+    ReadBy object has the cid (unique across the system) and an arrar of
     commenter ids that have read the comment.
 
   data sets - persisted and pure
@@ -42,7 +42,7 @@
 
   template stuff that has nothing to do with comment objects
 
-    COMMENT_TYPES : Map<CType, TCommentType>
+    COMMENT_TYPES : Map<CTemplateRef, TCommentType>
 
   EXAMPLE
   
@@ -62,7 +62,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import DEFAULT_TEMPLATE from './dc-template-default.ts';
-import { APP, TIME } from './mock-core.ts';
+import { APPSTATE, TIME } from './mock-core.ts';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -71,7 +71,7 @@ import type {
   //
   TCommentID, // id of a TComment object
   TComment, // comment data fields and references
-  TCollectionRef, // unique identifier for a collection of comments
+  TAnnotableRef, // unique identifier for a collection of comments
   TCommentData, // data fields for creating a new comment
   TCommentSelector, // selector for removing a comment
   //
@@ -85,7 +85,6 @@ import type {
   TReadByObject
 } from './types-comment';
 /** local data structure  - - - - - - - - - - - - - - - - - - - - - - - - - **/
-type UserMap = Map<TUserID, TUser>;
 type CommentMap = Map<TCommentID, TComment>;
 type ReadByMap = Map<TCommentID, TUserID[]>;
 type DeferOptions = { defer?: boolean };
@@ -93,13 +92,12 @@ type DeferOptions = { defer?: boolean };
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const PR = 'dc-comments';
+const PR = 'dc-comment';
 /// MAIN DATA - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const USERS: UserMap = new Map(); // Map<uid, name>
 const COMMENTS: CommentMap = new Map(); // Map<cid, commentObject>
 const READBY: ReadByMap = new Map(); // Map<cid, readbyObject[]>
 /// DERIVED DATA  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const ROOTS: Map<TCommentCollectionID, TCommentID> = new Map(); // root comment for each collection
+const ROOTS: Map<TAnnotableRef, TCommentID> = new Map(); // root comment for each collection
 const REPLY_ROOTS: Map<TCommentID, TCommentID> = new Map(); // reverse lookup to find collection root
 const NEXT: Map<TCommentID, TCommentID> = new Map(); // map from comment to next comment
 
@@ -115,9 +113,8 @@ function UpdateData(data: TDataSet) {
   if (DBG) console.log(PR, 'UpdateData');
   const { users, comments, readby } = data;
   // update datasets
-  if (users) users.forEach(u => USERS.set(u.id, u));
-  if (comments) comments.forEach(c => COMMENTS.set(c.comment_id, c));
-  if (readby) readby.forEach(r => READBY.set(r.comment_id, r.commenter_ids));
+  if (comments) comments.forEach(c => COMMENTS.set(c.cid, c));
+  if (readby) readby.forEach(r => READBY.set(r.cid, r.commenter_ids));
   // Derive Secondary Values
   m_UpdateDerivedData();
   m_NotifyDataChange();
@@ -129,15 +126,14 @@ function m_UpdateDerivedData() {
   REPLY_ROOTS.clear();
   NEXT.clear();
   COMMENTS.forEach(c => {
-    const { comment_id_parent, comment_id_previous } = c;
-    const { collection_ref, comment_id } = c;
-    if (comment_id_parent === '' && comment_id_previous === '')
-      ROOTS.set(collection_ref, comment_id);
-    if (comment_id_parent !== '' && comment_id_previous === '') {
-      REPLY_ROOTS.set(comment_id_parent, comment_id);
+    const { cid_root, cid_previous } = c;
+    const { cref, cid } = c;
+    if (cid_root === '' && cid_previous === '') ROOTS.set(cref, cid);
+    if (cid_root !== '' && cid_previous === '') {
+      REPLY_ROOTS.set(cid_root, cid);
     }
-    if (comment_id_previous !== '') {
-      NEXT.set(comment_id_previous, comment_id);
+    if (cid_previous !== '') {
+      NEXT.set(cid_previous, cid);
     }
   });
 }
@@ -147,30 +143,11 @@ function m_NotifyDataChange() {
   // defining a data notification standard that embeds the messages dirrectly
   // in the module would cut down on a lot of bullshit.
   const fn = 'm_NotifyDataChange';
-  const dataset = { users: USERS, comments: COMMENTS, readby: READBY };
+  const dataset = { comments: COMMENTS, readby: READBY };
   console.log(fn, `would emit 'COMMENT_DATA_UPDATED' signal w/`, dataset);
 }
 
-/// USER ACCESS METHODS ///////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Given a UID, return the related UserObject */
-function GetUserData(uid: TUserID): TUser {
-  return USERS.get(uid);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Given a uid, return a username string */
-function GetUserName(uid: TUserID): TUserName {
-  const u = GetUserData(uid);
-  if (u === undefined) return 'Unknown User';
-  return u.name || `user-${uid}`;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: return the current user */
-function GetCurrentUser(): TUserName {
-  // TODO: this shouldn't be a forward, as currentUser should be
-  // part of appstate, not commentmgr.
-  return APP.currentUser();
-}
+/// CRUD API //////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Return a TComment object */
 function GetComment(cid: TCommentID): TComment {
@@ -179,50 +156,35 @@ function GetComment(cid: TCommentID): TComment {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Given comment data, create a new comment object and save it*/
 function AddComment(data: TCommentData): TComment {
-  const {
-    cref,
-    comment_id,
-    commenter_id,
-    comment_id_parent = '',
-    comment_id_previous = '',
-    comment_isMarkedDeleted
-  } = data;
+  const { cref, cid, user_id, cid_root = '', cid_previous = '', isDeleted } = data;
   if (cref === undefined) throw new Error('Comments must have a collection ref!');
   const newComment: TComment = {
-    collection_ref: cref,
-    comment_id, // thread
-    comment_id_parent,
-    comment_id_previous,
-    comment_type: 'cmt', // default type, no prompts
-    comment_createtime: TIME.getTimestamp(),
-    comment_modifytime: null,
-    comment_isMarkedDeleted,
-    commenter_id,
-    commenter_text: []
+    cref: cref,
+    cid, // thread
+    cid_root,
+    cid_previous,
+    ctpl: 'cmt', // default type, no prompts
+    user_ctime: TIME.getTimestamp(),
+    user_mtime: null,
+    isDeleted,
+    user_id,
+    user_text: []
   };
-  COMMENTS.set(comment_id, newComment);
+  COMMENTS.set(cid, newComment);
   m_UpdateDerivedData();
   return newComment;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Processes a single update */
 function UpdateComment(cobj: TComment, opt?: DeferOptions) {
-  const { comment_id } = cobj;
+  const { cid } = cobj;
   // use nullish coallescing to check opt for defer value
   const { defer = false } = opt ?? {};
   const timestamp = TIME.getTimestamp();
-  cobj.comment_modifytime = timestamp;
-  COMMENTS.set(comment_id, cobj);
+  cobj.user_mtime = timestamp;
+  COMMENTS.set(cid, cobj);
   // update any derived data
   if (!defer) m_UpdateDerivedData();
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** MESSAGE API: Call to batch updates an array of updated comments
- *  Invoked by 'COMMENTS_UPDATE', 'COMMENT_UPDATE'
- */
-function HandleUpdatedComments(cobjs: TComment[]) {
-  cobjs.forEach(cobj => UpdateComment(cobj, { defer: true }));
-  m_UpdateDerivedData();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Given selector, delete all references to it and update derived data
@@ -230,8 +192,8 @@ function HandleUpdatedComments(cobjs: TComment[]) {
  *  doubly-linked list, this is pretty involved.
  */
 function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
-  const { collection_ref, comment_id, uid } = selector;
-  const isAdmin = APP.isAdmin();
+  const { cref, cid, uid } = selector;
+  const isAdmin = APPSTATE.isAdmin();
   const queuedActions = [];
 
   // MAIN PROCESS: `xxxToDelete`
@@ -257,9 +219,9 @@ function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
   let markDeleted = false;
   let relinkNext = false;
 
-  const cidToDelete = comment_id;
+  const cidToDelete = cid;
   const cobjToDelete = COMMENTS.get(cidToDelete);
-  const cobjIsRoot = cobjToDelete.comment_id_parent === ''; // does not have parent, so it's a root
+  const cobjIsRoot = cobjToDelete.cid_root === ''; // does not have parent, so it's a root
 
   // I. THINK
   if (isAdmin) {
@@ -296,8 +258,7 @@ function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
     const childThreadIds = [];
     COMMENTS.forEach(cobj => {
       // find child thread ids
-      if (cobj.comment_id_parent === cidToDelete)
-        childThreadIds.push(cobj.comment_id);
+      if (cobj.cid_root === cidToDelete) childThreadIds.push(cobj.cid);
     });
     childThreadIds.forEach(cid => {
       COMMENTS.delete(cid);
@@ -325,10 +286,10 @@ function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
       );
     const nextCid = NEXT.get(cidToDelete);
     const nextCobj = COMMENTS.get(nextCid);
-    const prev = COMMENTS.get(cobjToDelete.comment_id_previous);
+    const prev = COMMENTS.get(cobjToDelete.cid_previous);
     if (nextCobj) {
-      nextCobj.comment_id_previous = prev ? prev.comment_id : ''; // if there's no prev, this is the first root
-      COMMENTS.set(nextCobj.comment_id, nextCobj);
+      nextCobj.cid_previous = prev ? prev.cid : ''; // if there's no prev, this is the first root
+      COMMENTS.set(nextCobj.cid, nextCobj);
       queuedActions.push({ comment: nextCobj });
     }
   }
@@ -343,9 +304,9 @@ function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
     // MARK TARGET DELETED
     if (DBG) console.log('markDeleted', cidToDelete);
     const { comment_types } = DEFAULT_TEMPLATE; // REVIEW this hack
-    cobjToDelete.comment_type = comment_types[0].slug; // revert to default comment type
-    cobjToDelete.comment_isMarkedDeleted = true;
-    COMMENTS.set(cobjToDelete.comment_id, cobjToDelete);
+    cobjToDelete.ctpl = comment_types[0].slug; // revert to default comment type
+    cobjToDelete.isDeleted = true;
+    COMMENTS.set(cobjToDelete.cid, cobjToDelete);
     queuedActions.push({ comment: cobjToDelete });
   }
 
@@ -356,8 +317,8 @@ function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
   // This an odd call because if we're deleting a thread item, we need to pop up a level
   // and also delete and relink the root
   let rootId;
-  if (cobjIsRoot) rootId = comment_id; // get the first reply and the next
-  else rootId = cobjToDelete.comment_id_parent; // is a thread reply, so pop up a level and get the root
+  if (cobjIsRoot) rootId = cid; // get the first reply and the next
+  else rootId = cobjToDelete.cid_root; // is a thread reply, so pop up a level and get the root
   if (m_AllAreMarkedDeleted(rootId)) {
     if (DBG) console.log('delete all!');
     // re-order the next BEFORE deleting
@@ -369,10 +330,10 @@ function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
       // may have already been deleted
       const nextCid = NEXT.get(rootId);
       const nextCobj = COMMENTS.get(nextCid);
-      const prev = COMMENTS.get(rootCobj.comment_id_previous);
+      const prev = COMMENTS.get(rootCobj.cid_previous);
       if (nextCobj) {
-        nextCobj.comment_id_previous = prev ? prev.comment_id : ''; // if there's no prev, this is the first root
-        COMMENTS.set(nextCobj.comment_id, nextCobj);
+        nextCobj.cid_previous = prev ? prev.cid : ''; // if there's no prev, this is the first root
+        COMMENTS.set(nextCobj.cid, nextCobj);
         queuedActions.push({ comment: nextCobj });
       }
     }
@@ -395,17 +356,17 @@ function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
   // IIf. DELETE DANGLING THREADS
   // If we're a thread, the prune any remaining marked deleted from the end
   if (!cobjIsRoot) {
-    const rootId = cobjToDelete.comment_id_parent;
+    const rootId = cobjToDelete.cid_root;
     const replyIds = m_GetReplies(rootId).reverse(); // walk backwards towards undeleted
 
     for (let i = 0; i < replyIds.length; i++) {
       const cid = replyIds[i];
       const cobj = COMMENTS.get(cid);
-      if (cobj && cobj.comment_isMarkedDeleted) {
+      if (cobj && cobj.isDeleted) {
         // is already marked deleted so remove it
         COMMENTS.delete(cid);
         queuedActions.push({ commentID: cid });
-      } else if (cobj && !cobj.comment_isMarkedDeleted) {
+      } else if (cobj && !cobj.isDeleted) {
         // found an undeleted item, stop!
         break;
       }
@@ -416,19 +377,31 @@ function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
   m_UpdateDerivedData();
   return queuedActions;
 }
+
+/// MESSAGE API METHODS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Remove all comments for a particular collection */
-function RemoveAllCommentsForCref({ collection_ref, uid }): TCommentQueueActions[] {
-  const queuedActions = [];
-  const cids = COMMENTS.forEach(cobj => {
-    if (cobj.collection_ref === collection_ref) {
-      COMMENTS.delete(cobj.comment_id);
-      queuedActions.push({ commentID: cobj.comment_id });
-    }
+/** MESSAGE API: Call to batch updates an array of updated comments
+ *  Invoked by 'COMMENTS_UPDATE', 'COMMENT_UPDATE'
+ */
+function HandleUpdatedComments(cobjs: TComment[]) {
+  // REVIEW this is dataflow-breaking invocation from GUI???
+  cobjs.forEach(cobj => UpdateComment(cobj, { defer: true }));
+  m_UpdateDerivedData();
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** MESSAGE API: Remove the provided comment ids.
+ *  associated with 'COMMENTS_UPDATE', 'COMMENT_UPDATE' handlers
+ */
+function HandleRemovedComments(comment_ids: TCommentID[]) {
+  // REVIEW this is dataflow-breaking invocation from GUI???
+  comment_ids.forEach(cid => {
+    if (DBG) console.log('...removing', cid);
+    COMMENTS.delete(cid);
   });
   m_UpdateDerivedData();
-  return queuedActions;
 }
+
+/// COMMENT HELPER METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: Checks if the current root and all children are marked deleted.
  *  This is used to determine if we can safely prune the whole thread
@@ -440,23 +413,12 @@ function m_AllAreMarkedDeleted(rootCommentId: TCommentID): boolean {
   let allAreMarkedDeleted = true;
   allCommentsInThread.forEach(cobj => {
     if (!cobj) return; // was already deleted
-    if (!cobj.comment_isMarkedDeleted) allAreMarkedDeleted = false;
+    if (!cobj.isDeleted) allAreMarkedDeleted = false;
   });
   return allAreMarkedDeleted;
 }
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** MESSAGE API: Remove the provided comment ids.
- *  associated with 'COMMENTS_UPDATE', 'COMMENT_UPDATE' handlers
- */
-function HandleRemovedComments(comment_ids: TCommentID[]) {
-  comment_ids.forEach(comment_id => {
-    if (DBG) console.log('...removing', comment_id);
-    COMMENTS.delete(comment_id);
-  });
-  m_UpdateDerivedData();
-}
 
-/// COMMENT MARK/DELETE METHODS ///////////////////////////////////////////////
+/// COMMENT MARK - DELETE METHODS /////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Mark comment as read by user id */
 function MarkCommentRead(cid: TCommentID, uid: TUserID) {
@@ -482,10 +444,25 @@ function IsMarkedRead(cid: TCommentID, uid: TUserID): boolean {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Check if a particular comment was marked as "deleted"  */
 function IsMarkedDeleted(cid: TCommentID): boolean {
-  return COMMENTS.get(cid).comment_isMarkedDeleted;
+  return COMMENTS.get(cid).isDeleted;
 }
 
-/// COMMENT THREAD METHODS ////////////////////////////////////////////////////
+/// COMMENT COLLECTION METHODS ////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Remove all comments for a particular collection */
+function RemoveAllCommentsForCref({ cref, uid }): TCommentQueueActions[] {
+  const queuedActions = [];
+  const cids = COMMENTS.forEach(cobj => {
+    if (cobj.cref === cref) {
+      COMMENTS.delete(cobj.cid);
+      queuedActions.push({ commentID: cobj.cid });
+    }
+  });
+  m_UpdateDerivedData();
+  return queuedActions;
+}
+
+/// COMMENT THREAD HELPERS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: Walk down the next items starting with the current
  *  Ignores child threads
@@ -531,12 +508,14 @@ function m_GetRepliesAndNext(cid: TCommentID): TCommentID[] {
   }
   return results;
 }
+
+/// COMMENT THREAD METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Get all the comment ids related to a particular collection_ref
+/** API: Get all the comment ids related to a particular cref
  *  based on ROOTS.
  *  DeriveValues needs to be called before this method can be used.
  */
-function GetThreadedCommentIds(cref: TCollectionRef): TCommentID[] {
+function GetThreadedCommentIds(cref: TAnnotableRef): TCommentID[] {
   const all_comments_ids = [];
 
   // 1. Start with Roots
@@ -549,9 +528,9 @@ function GetThreadedCommentIds(cref: TCollectionRef): TCommentID[] {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** [Currently not used]
- *  Get all the comments related to a particular collection_ref
+ *  Get all the comments related to a particular cref
  */
-function GetThreadedCommentData(cref: TCollectionRef): TComment[] {
+function GetThreadedCommentData(cref: TAnnotableRef): TComment[] {
   const threaded_comments_ids = GetThreadedCommentIds(cref);
   // convert ids to comment objects
   return threaded_comments_ids.map(cid => COMMENTS.get(cid));
@@ -563,7 +542,7 @@ function GetReadby(cid: TCommentID): TUserID[] {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Return all the TCommentCollectionID */
-function GetCrefs(): TCollectionRef[] {
+function GetCrefs(): TAnnotableRef[] {
   return [...ROOTS.keys()];
 }
 
@@ -573,29 +552,28 @@ export {
   Init,
   // DB
   UpdateData,
-  // USERS
-  GetUserData,
-  GetUserName,
-  GetCurrentUser,
-  // COMMENTS
+  // COMMENT CRUD API
   GetComment,
   AddComment,
   UpdateComment,
-  HandleUpdatedComments,
   RemoveComment,
-  RemoveAllCommentsForCref,
+  // COMMENT MESSAGE API
+  HandleUpdatedComments,
   HandleRemovedComments,
+  // COMMENT OPERATIONS API
+  RemoveAllCommentsForCref,
   MarkCommentRead,
   MarkCommentUnread,
+  // COMMENT STATUS API
   IsMarkedRead,
   IsMarkedDeleted,
+  // REVIEW: COMMENT VIEW API shouldn't be here?
   GetThreadedCommentIds,
   GetThreadedCommentData,
-  // READBY
+  // COMMENT READ STATUS API
   GetReadby,
-  // ROOTS
+  // COMMENT COLLECTIONS API
   GetCrefs,
-  // 'protected' data for ac-comment
-  USERS,
+  // 'protected' data for use by ac-comment
   COMMENTS
 };

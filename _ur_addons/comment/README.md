@@ -11,7 +11,7 @@
   * has no comments
   * has unread comments
   * has read comments
-  It passes on the collection_ref to the CommentThread components.
+  It passes on the cref to the CommentThread components.
 
 * `COMMENTVOBJS` are a flat array of data sources for CommentThread ojects.
   It handles the UI view state of the each comment in the thread.

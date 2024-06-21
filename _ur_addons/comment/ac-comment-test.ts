@@ -31,10 +31,10 @@ import * as DC from './dc-comment.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   TComment,
-  TCollectionRef,
+  TAnnotableRef,
   TCommentID,
   TUserID,
-  CType,
+  CTemplateRef,
   TCommentType,
   TCommentQueueActions
 } from './types-comment.ts';

@@ -6,8 +6,8 @@
 
 /// (PROPOSED) URSYS CORE /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** APP - mockup of APPLICATION STATE and SESSION */
-const APP = {
+/** APPSTATE - mockup of APPLICATION STATE and SESSION */
+const APPSTATE = {
   isAdmin: () => true,
   currentUser: () => 'Ben32',
   viewMode: () => 'edit'
@@ -48,7 +48,7 @@ const ReactDOM = {
 /// EXPORTED MOCK MODULES /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  APP,
+  APPSTATE,
   TIME,
   // netcreate mocks
   UDATA,

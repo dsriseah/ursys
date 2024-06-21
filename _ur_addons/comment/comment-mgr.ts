@@ -13,7 +13,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
-import { APP, TIME, UDATA } from './mock-core.ts';
+import { APPSTATE, TIME, UDATA } from './mock-core.ts';
 import { ReactDOM, DATASTORE, EDITORTYPE, ARROW_RIGHT } from './mock-core.ts';
 import * as DC from './dc-comment.ts';
 import * as AC from './ac-comment.ts';
@@ -57,16 +57,16 @@ function m_SetAppStateCommentVObjs() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_UpdateComment(comment) {
   const cobj = {
-    collection_ref: comment.collection_ref,
-    comment_id: comment.comment_id,
-    comment_id_parent: comment.comment_id_parent,
-    comment_id_previous: comment.comment_id_previous,
-    comment_type: comment.comment_type,
-    comment_createtime: comment.comment_createtime,
-    comment_modifytime: comment.comment_modifytime,
-    comment_isMarkedDeleted: comment.comment_isMarkedDeleted,
-    commenter_id: comment.commenter_id,
-    commenter_text: comment.commenter_text
+    cref: comment.cref,
+    cid: comment.cid,
+    cid_root: comment.cid_root,
+    cid_previous: comment.cid_previous,
+    ctpl: comment.ctpl,
+    user_ctime: comment.user_ctime,
+    user_mtime: comment.user_mtime,
+    isDeleted: comment.isDeleted,
+    user_id: comment.user_id,
+    user_text: comment.user_text
   };
   const uid = GetCurrentUserId();
   AC.UpdateComment(cobj, uid);
@@ -244,7 +244,7 @@ function GetCommentCollection(uiref) {
 /** Marks a comment as read, and closes the component.
  *  Called by NCCommentBtn when clicking "Close"
  *  @param {Object} uiref comment button id
- *  @param {Object} cref collection_ref
+ *  @param {Object} cref cref
  *  @param {Object} uid user id
  */
 function CloseCommentCollection(uiref, cref, uid) {
@@ -295,7 +295,7 @@ function OKtoClose(cref) {
   const cvobjs = GetThreadedViewObjects(cref);
   let isBeingEdited = false;
   cvobjs.forEach(cvobj => {
-    if (AC.GetCommentBeingEdited(cvobj.comment_id)) isBeingEdited = true;
+    if (AC.GetCommentBeingEdited(cvobj.cid)) isBeingEdited = true;
   });
   return !isBeingEdited;
 }
@@ -340,7 +340,7 @@ function GetUnreadComments() {
 function AddComment(cobj) {
   // This just generates a new ID, but doesn't update the DB
   DATASTORE.PromiseNewCommentID().then(newCommentID => {
-    cobj.comment_id = newCommentID;
+    cobj.cid = newCommentID;
     AC.AddComment(cobj); // creates a comment vobject
     m_SetAppStateCommentVObjs();
   });
@@ -368,8 +368,8 @@ function UpdateComment(cobj) {
  *  1. Show confirmation dialog
  *  2. Execute the remova
  *  @param {Object} parms
- *  @param {string} parms.collection_ref
- *  @param {string} parms.comment_id
+ *  @param {string} parms.cref
+ *  @param {string} parms.cid
  *  @param {string} parms.uid
  *  @param {boolean} parms.showCancelDialog
  *  @param {function} cb CallBack
@@ -378,15 +378,15 @@ function RemoveComment(parms, cb) {
   let confirmMessage, okmessage, cancelmessage;
   if (parms.showCancelDialog) {
     // Are you sure you want to cancel?
-    confirmMessage = `Are you sure you want to cancel editing this comment #${parms.comment_id}?`;
+    confirmMessage = `Are you sure you want to cancel editing this comment #${parms.cid}?`;
     okmessage = 'Cancel Editing and Delete';
     cancelmessage = 'Go Back to Editing';
   } else {
     // Are you sure you want to delete?
-    parms.isAdmin = APP.isAdmin();
+    parms.isAdmin = APPSTATE.isAdmin();
     confirmMessage = parms.isAdmin
-      ? `Are you sure you want to delete this comment #${parms.comment_id} and ALL related replies (admin only)?`
-      : `Are you sure you want to delete this comment #${parms.comment_id}?`;
+      ? `Are you sure you want to delete this comment #${parms.cid} and ALL related replies (admin only)?`
+      : `Are you sure you want to delete this comment #${parms.cid}?`;
     okmessage = 'Delete';
     cancelmessage = "Don't Delete";
   }
@@ -407,8 +407,8 @@ function RemoveComment(parms, cb) {
  *  relinking comments.  The db call is dumb, all the logic is in dc-comments.
  *  @param {Object} event
  *  @param {Object} parms
- *  @param {Object} parms.collection_ref
- *  @param {Object} parms.comment_id
+ *  @param {Object} parms.cref
+ *  @param {Object} parms.cid
  *  @param {Object} parms.uid
  */
 function m_ExecuteRemoveComment(event, parms, cb) {
@@ -429,7 +429,7 @@ function m_CloseRemoveCommentDialog() {
  */
 function RemoveAllCommentsForCref(cref) {
   const uid = GetCurrentUserId();
-  const parms = { uid, collection_ref: cref };
+  const parms = { uid, cref: cref };
   const queuedActions = AC.RemoveAllCommentsForCref(parms);
   m_DBRemoveComment(queuedActions);
   m_SetAppStateCommentVObjs();
@@ -454,10 +454,10 @@ function HandleCOMMENTS_UPDATE(dataArray) {
   dataArray.forEach(data => {
     if (data.comment) {
       updatedComments.push(data.comment);
-      updatedCrefs.set(data.comment.collection_ref, 'flag');
+      updatedCrefs.set(data.comment.cref, 'flag');
     }
     if (data.commentID) removedComments.push(data.commentID);
-    if (data.collection_ref) updatedCrefs.set(data.collection_ref, 'flag');
+    if (data.cref) updatedCrefs.set(data.cref, 'flag');
   });
   const uid = GetCurrentUserId();
   AC.HandleRemovedComments(removedComments, uid);
@@ -502,16 +502,16 @@ function HandleREADBY_UPDATE(data) {
 /// DB CALLS //////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** */
-function LockComment(comment_id) {
-  UDATA.NetCall('SRV_DBLOCKCOMMENT', { commentID: comment_id }).then(() => {
+function LockComment(cid) {
+  UDATA.NetCall('SRV_DBLOCKCOMMENT', { commentID: cid }).then(() => {
     UDATA.NetCall('SRV_REQ_EDIT_LOCK', { editor: EDITORTYPE.AC });
     UDATA.LocalCall('SELECTMGR_SET_MODE', { mode: 'comment_edit' });
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** */
-function UnlockComment(comment_id) {
-  UDATA.NetCall('SRV_DBUNLOCKCOMMENT', { commentID: comment_id }).then(() => {
+function UnlockComment(cid) {
+  UDATA.NetCall('SRV_DBUNLOCKCOMMENT', { commentID: cid }).then(() => {
     UDATA.NetCall('SRV_RELEASE_EDIT_LOCK', { editor: EDITORTYPE.AC });
     UDATA.LocalCall('SELECTMGR_SET_MODE', { mode: 'normal' });
   });
@@ -520,16 +520,16 @@ function UnlockComment(comment_id) {
 /** */
 function m_DBUpdateComment(cobj, cb?) {
   const comment = {
-    collection_ref: cobj.collection_ref,
-    comment_id: cobj.comment_id,
-    comment_id_parent: cobj.comment_id_parent,
-    comment_id_previous: cobj.comment_id_previous,
-    comment_type: cobj.comment_type,
-    comment_createtime: cobj.comment_createtime,
-    comment_modifytime: cobj.comment_modifytime,
-    comment_isMarkedDeleted: cobj.comment_isMarkedDeleted,
-    commenter_id: cobj.commenter_id,
-    commenter_text: cobj.commenter_text
+    cref: cobj.cref,
+    cid: cobj.cid,
+    cid_root: cobj.cid_root,
+    cid_previous: cobj.cid_previous,
+    ctpl: cobj.ctpl,
+    user_ctime: cobj.user_ctime,
+    user_mtime: cobj.user_mtime,
+    isDeleted: cobj.isDeleted,
+    user_id: cobj.user_id,
+    user_text: cobj.user_text
   };
   UDATA.LocalCall('DB_UPDATE', { comment }).then(data => {
     if (typeof cb === 'function') cb(data);
@@ -542,11 +542,11 @@ function m_DBUpdateReadBy(cref, uid, cb?) {
   const cvobjs = AC.GetThreadedViewObjects(cref, uid);
   const readbys = [];
   cvobjs.forEach(cvobj => {
-    const commenter_ids = AC.GetReadby(cvobj.comment_id) || [];
+    const commenter_ids = AC.GetReadby(cvobj.cid) || [];
     // Add uid if it's not already marked
     if (!commenter_ids.includes(uid)) commenter_ids.push(uid);
     const readby = {
-      comment_id: cvobj.comment_id,
+      cid: cvobj.cid,
       commenter_ids
     };
     readbys.push(readby);
