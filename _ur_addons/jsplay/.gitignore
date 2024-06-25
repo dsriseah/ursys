@@ -1,3 +1,4 @@
 # local gitignore for jsplay addon
 
-
+# ignore everything in scripts directory, which are temporary
+scripts/
