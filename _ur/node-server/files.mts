@@ -48,6 +48,19 @@ function DetectedRootDir(rootfile: string = '.nvmrc'): string {
   return undefined;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** when run from an addon directory, return the path to the addon directory
+ *  and the detected addon name */
+function DetectedAddonDir(): string[] {
+  const root = DetectedRootDir();
+  if (!root) return undefined;
+  const adir = PATH.join(root, '_ur_addons');
+  const cwd = process.cwd();
+  if (!cwd.includes(adir)) return undefined;
+  const addon = cwd.slice(adir.length + 1).split(PATH.sep)[0];
+  return [addon, PATH.join(adir, addon)];
+}
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = PROMPT.makeTerminalOut(' FILE', 'TagGreen');
 let DETECTED_DIR; // cached value of DetectedRootDir
 const ERR_UR = 444;
@@ -246,6 +259,7 @@ export {
   EnsureDir,
   RemoveDir,
   DetectedRootDir,
+  DetectedAddonDir,
   AbsLocalPath,
   RelLocalPath,
   ShortPath,
