@@ -13,9 +13,18 @@ import './scripts/_welcome.ts';
 const PR = ConsoleStyler('WebPlay', 'TagPurple');
 const LOG = console.log.bind(console);
 const DBG = false;
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let SERVER_LINK: WebSocket;
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
-  LOG(...PR('this is in _ur_addons/webplay/'));
+  SERVER_LINK = new WebSocket('ws://localhost:8080/webplay-ws');
+  SERVER_LINK.addEventListener('open', async () => {
+    LOG(...PR('connected to server/webplay-ws control server'));
+    SERVER_LINK.addEventListener('message', async event => {
+      const { data } = event;
+      if (data === 'rebuild') location.reload();
+    });
+  });
 })();

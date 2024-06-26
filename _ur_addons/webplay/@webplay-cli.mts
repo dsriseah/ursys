@@ -15,6 +15,7 @@ import express from 'express';
 import serveIndex from 'serve-index';
 import PATH from 'node:path';
 import CHOKIDAR from 'chokidar';
+import { WebSocketServer } from 'ws';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -73,7 +74,13 @@ async function BuildApp() {
         name: 'rebuild-notify',
         setup(build) {
           build.onEnd(() => {
-            LOG('.. rebuild notify');
+            if (WSS.clients.size === 0) return;
+            LOG(`${DIM}rebuild send to ${WSS.clients.size} clients${NRM}`);
+            WSS.clients.forEach(client => {
+              if (client.readyState === 1) {
+                client.send('rebuild');
+              }
+            });
           });
         }
       }
@@ -87,18 +94,28 @@ async function BuildApp() {
   APP.get('/', serveIndex(DST));
   APP.use(express.static(DST));
 
-  // Listen both http & https ports
+  // Listen both http port
   const httpServer = http.createServer(APP);
   const http_port = 8080;
   const http_host = '127.0.0.1';
 
+  // start websocket server
+  const WSS = new WebSocketServer({
+    server: httpServer,
+    path: '/webplay-ws', // requires leading slash
+    clientTracking: true
+  });
+  WSS.on('connection', (client_link, request) => {
+    LOG(`${DIM}client connect ${request.socket.remoteAddress}${NRM}`);
+  });
+
   httpServer.listen(http_port, () => {
-    console.log(`HTTP Server running on ${http_host}:${http_port}`);
+    LOG(`${DIM}starting http/wss servers on ${http_host}:${http_port}${NRM}`);
   });
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-LOG(`${AO_NAME} esbuild, html5`);
+LOG(`${ADDON} Live Reload AppServer`);
 await BuildApp();
-LOG.info('control-c to exit');
+LOG('CTRL-C TO EXIT. PRESS RETURN');
