@@ -34,7 +34,6 @@ const POLL_INTERVAL = 250; // ms
 let CHANGE_TIMER: NodeJS.Timeout;
 let WATCHER: CHOKIDAR.FSWatcher;
 let WATCHER_SUSPEND = false;
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const [AO_NAME, AO_DIR] = FILE.DetectedAddonDir();
 const ADDON = AO_NAME.toUpperCase();
@@ -170,7 +169,7 @@ LOG(`${DIM}-${NRM}`);
 // create WATCHER
 WATCHER = CHOKIDAR.watch('./scripts', {
   ignored: [
-    /\/_.*/,
+    /\/_.*/, // ignore files starting with underscore
     /.*-.*\.ts/ // ignore files with dashes in them
   ],
   persistent: true
