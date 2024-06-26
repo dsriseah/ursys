@@ -15,6 +15,7 @@ import TEXT from '../common/util-text.js';
 // typescript classes
 import OpSequencer from '../common/class-op-seq.ts';
 import StateMgr from '../common/class-state-mgr.ts';
+import * as UID from '../common/lib-uid.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,6 +23,9 @@ const PR = makeStyleFormatter('UR', 'TagCyan');
 const CLASS = {
   OpSequencer,
   StateMgr
+};
+const LIB = {
+  UID
 };
 
 /// TEST METHODS //////////////////////////////////////////////////////////////
@@ -34,13 +38,15 @@ function ClientTest(): void {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  // classes
-  TEXT,
-  CLASS,
+  // cjs modules
   PROMPTS,
-  StateMgr,
+  TEXT,
+  // typescript classes, libraries
+  CLASS,
+  LIB,
   // formatting
   makeStyleFormatter as ConsoleStyler, // style formatter for browser
-  // test
+  // temporary test exports
+  StateMgr,
   ClientTest
 };

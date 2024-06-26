@@ -22,6 +22,9 @@ import PROMPTS from '../common/util-prompts.js';
 import UrModule from './class-urmodule.mts';
 import OpSequencer from '../common/class-op-seq.ts';
 import StateMgr from '../common/class-state-mgr.ts';
+// typescript library modules
+import * as UID from '../common/lib-uid.ts';
+
 const { makeTerminalOut } = PROMPTS;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -30,6 +33,9 @@ const CLASS = {
   OpSequencer,
   StateMgr,
   UrModule
+};
+const LIB = {
+  UID
 };
 
 /// RUNTIME API ///////////////////////////////////////////////////////////////
@@ -49,7 +55,8 @@ export {
   // MAIN MODULES
   APPSERV, // application server
   ADDONMGR, // ur module manager
-  CLASS,
+  CLASS, // typescript classes
+  LIB, // typescript libraries
   ENV, // environment utilities and constants
   FILE, // file utilities
   PROC, // interprocess communication utils
