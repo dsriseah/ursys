@@ -23,6 +23,7 @@ import CHOKIDAR from 'chokidar';
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
+const BLU = '\x1b[34;1m';
 const DIM = '\x1b[2m';
 const NRM = '\x1b[0m';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -79,7 +80,7 @@ async function m_StartTSNode() {
     const fp = FILES.shift();
     const fname = PATH.basename(fp);
     const date = new Date().toLocaleTimeString();
-    LOG(`${DIM}${date} running '${fname}'${NRM}`);
+    LOG(`${DIM}${date} running ${BLU}${fname}${NRM}`);
     PROCS.push(PROCESS.spawn('ts-node', [fp], { stdio: 'inherit' }));
   }
   await m_TSNodeStarted();
@@ -169,7 +170,7 @@ LOG(`${DIM}-${NRM}`);
 // create WATCHER
 WATCHER = CHOKIDAR.watch('./scripts', {
   ignored: [
-    /(^|[/\\])\../, // ignore files starting with _
+    /\/_.*/,
     /.*-.*\.ts/ // ignore files with dashes in them
   ],
   persistent: true
