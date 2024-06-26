@@ -88,27 +88,32 @@ async function BuildApp() {
   });
   // activate rebuild on change
   await context.watch();
-
-  // add express
+  // configure express middleware
   const APP = express();
   APP.get('/', serveIndex(DST));
   APP.use(express.static(DST));
-
-  // Listen both http port
+  // create http server with express middleware
   const httpServer = http.createServer(APP);
   const http_port = 8080;
   const http_host = '127.0.0.1';
-
-  // start websocket server
+  // configure websocket server
   const WSS = new WebSocketServer({
     server: httpServer,
     path: '/webplay-ws', // requires leading slash
     clientTracking: true
   });
+  // handle websocket client connections
   WSS.on('connection', (client_link, request) => {
-    LOG(`${DIM}client connect ${request.socket.remoteAddress}${NRM}`);
+    if (DBG) LOG(`${DIM}client connect ${request.socket.remoteAddress}${NRM}`);
+    client_link.on('message', message => {
+      if (DBG) LOG(`${DIM}client message ${message}${NRM}`);
+    });
+    client_link.on('close', () => {
+      if (DBG) LOG(`${DIM}client disconnect${NRM}`);
+    });
+    client_link.send('connect');
   });
-
+  // start appserver
   httpServer.listen(http_port, () => {
     LOG(`${DIM}starting http/wss servers on ${http_host}:${http_port}${NRM}`);
   });
