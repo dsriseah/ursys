@@ -12,10 +12,12 @@ import { ConsoleStyler } from '@ursys/core';
 const PR = ConsoleStyler('WELCOME', 'TagBlue');
 const LOG = console.log.bind(console);
 
-/// API METHODS ///////////////////////////////////////////////////////////////
+/// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let out = '';
-out += 'Put your scripts into the webplay/scripts folder and import them';
-out += ' into the webplay-init.ts file. All other files than this one';
-out += ' are gitignored.';
-LOG(...PR(out));
+(async () => {
+  let out = '';
+  out += 'Put your scripts into the webplay/scripts folder and import them';
+  out += ' into the webplay-init.ts file. All other files than this one';
+  out += ' are gitignored.';
+  LOG(...PR(out));
+})();
