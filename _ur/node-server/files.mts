@@ -25,7 +25,7 @@ import * as url from 'url';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return the directory name of the current module */
 function m_Dirname() {
-  if (import.meta) return url.fileURLToPath(new URL('.', import.meta.url));
+  if (import.meta?.url) return url.fileURLToPath(new URL('.', import.meta.url));
   return __dirname;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
