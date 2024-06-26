@@ -16,5 +16,6 @@ const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let out = '';
 out += 'Put your scripts into the webplay/scripts folder and import them';
-out += ' into the webplay-init.ts file.';
+out += ' into the webplay-init.ts file. All other files than this one';
+out += ' are gitignored.';
 LOG(...PR(out));
