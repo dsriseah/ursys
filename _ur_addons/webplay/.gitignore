@@ -1,0 +1,4 @@
+# local gitignore for webplay addon
+
+# ignore everything in scripts directory, which are temporary
+scripts/

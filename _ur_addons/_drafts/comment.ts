@@ -18,10 +18,10 @@ type GroupId = string; // part of authentication system
     a comment thread
 /*/
 type Comment = {
-  comment_id: UObjectID;
+  cid: UObjectID;
   parent_id: UObjectID;
-  comment_createtime: CC_DateTimeString;
-  comment_modifytime: CC_DateTimeString;
+  user_ctime: CC_DateTimeString;
+  user_mtime: CC_DateTimeString;
   commentor_group: GroupId;
   commentor_name: string;
   commentor_text: string;
