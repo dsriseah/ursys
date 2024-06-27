@@ -284,13 +284,12 @@ function UpdateCommentUIState(uiref, openState) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// Open Comments
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
+/** passthrough for appcore */
 function GetOpenComments(cref) {
   return AC.GetOpenComments(cref);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
-/// Editable Comments (comments being ddited)
+/** Editable Comments (comments being ddited) */
 function OKtoClose(cref) {
   const cvobjs = GetThreadedViewObjects(cref);
   let isBeingEdited = false;
@@ -300,8 +299,7 @@ function OKtoClose(cref) {
   return !isBeingEdited;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Threaded View Objects */
-///
+/** passthrough for appcore */
 function GetThreadedViewObjects(cref, uid?) {
   return AC.GetThreadedViewObjects(cref, uid);
 }
