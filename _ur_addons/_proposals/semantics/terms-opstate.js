@@ -1,7 +1,5 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  All declare modules are dependency-free so can be imported by anyone
-
   This is a set of names that could be used to define types of
   operational states and the actions that change it.
   These are more general ideas than in declare-actions.js (maybe)

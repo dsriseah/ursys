@@ -1,7 +1,5 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  All declare modules are dependency-free so can be imported by anyone
-
   This is a set of names that you can use to name functions descriptively.
   (WIP) will update as module APIs are further defined.
 

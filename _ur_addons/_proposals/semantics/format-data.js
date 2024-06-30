@@ -1,7 +1,5 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  All declare modules are dependency-free so can be imported by anyone
-
   We want to define several kinds of data streams that can be passed
   between modules. Currently we'll use either JSON or our upcoming
   "ursys exchange format".

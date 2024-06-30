@@ -13,7 +13,7 @@ const IS_MOBILE =
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
   );
-const D_CONSOLE = require('./declare-console.js');
+const D_CONSOLE = require('./declare-colors.js');
 const { TERM_COLORS, CSS_COLORS } = D_CONSOLE;
 
 const DEFAULT_PADDING = IS_NODE

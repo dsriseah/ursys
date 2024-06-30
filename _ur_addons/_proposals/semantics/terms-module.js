@@ -1,7 +1,5 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  All declare modules are dependency-free so can be imported by anyone
-
   These are the model for the MAIN FUNCTIONAL SCOPE of a module. Ideally
   I think each module would have only one such scope; if there is a need for
   multiple things then a higher-level aggregating manager would do that.
