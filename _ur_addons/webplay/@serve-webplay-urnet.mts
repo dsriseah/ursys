@@ -189,7 +189,8 @@ async function Watch() {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
-  LOG(`${ADDON} Live Reload AppServer`);
+  LOG(`${ADDON} URNET Live Reload Playground for Browsers`);
+  LOG(`${BLU}QUICKSTART: import source file(s) in 'scripts/_welcome.ts'${NRM}`);
   await BuildApp();
   await Listen();
   await Watch();

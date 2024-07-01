@@ -3,6 +3,7 @@
   Main Entry Point for WebPlay Browser Client
   see @webplay-cli.mts for build and serve code
 
+  QUICK START:
   Put your files into the scripts directory and import them to test in
   the browser. Changes to source files will trigger a rebuild and reload.
 
@@ -10,7 +11,6 @@
 
 import { ConsoleStyler, CLASS, CONSTANT } from '@ursys/core';
 import './scripts/_welcome.ts';
-import './scripts/test.ts';
 //
 const { NetEndpoint, NetSocket } = CLASS;
 
