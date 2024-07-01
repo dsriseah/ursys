@@ -27,7 +27,7 @@ import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetPacket from '../common/class-urnet-packet.ts';
 // typescript library modules
 import * as UID from '../common/lib-uid.ts';
-import * as URNET_CONSTANTS from '../common/constants-urnet.ts';
+import * as CONSTANTS from '../common/constants-urnet.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -41,11 +41,22 @@ const CLASS = {
   NetEndpoint,
   NetPacket
 };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LIB = {
   UID
 };
-const CONSTANTS = {
-  URNET: URNET_CONSTANTS
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { UDS_INFO, WSS_INFO, HTTP_INFO } = CONSTANTS;
+const { ESBUILD_INFO } = CONSTANTS;
+const CONSTANT = {
+  URNET: {
+    UDS_INFO,
+    WSS_INFO,
+    HTTP_INFO
+  },
+  BUILD: {
+    ESBUILD_INFO
+  }
 };
 
 /// RUNTIME API ///////////////////////////////////////////////////////////////
@@ -62,7 +73,7 @@ export {
   // ursys control
   Initialize,
   // common typescript classes, libraries
-  CONSTANTS,
+  CONSTANT,
   CLASS,
   LIB,
   // basic server modules

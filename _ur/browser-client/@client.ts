@@ -19,11 +19,15 @@ import * as UID from '../common/lib-uid.ts';
 import NetSocket from '../common/class-urnet-socket.ts';
 import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetPacket from '../common/class-urnet-packet.ts';
-import * as URNET from '../common/constants-urnet-web.ts';
+import {
+  HTTP_CLIENT_INFO,
+  GetClientInfoFromWindowLocation
+} from '../common/constants-urnet-web.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const PR = makeStyleFormatter('UR', 'TagCyan');
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const CLASS = {
   OpSequencer,
   StateMgr,
@@ -31,11 +35,13 @@ const CLASS = {
   NetEndpoint,
   NetPacket
 };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LIB = {
   UID
 };
-const CONSTANTS = {
-  urnet: URNET
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const CONSTANT = {
+  URNET: { ...HTTP_CLIENT_INFO, GetClientInfoFromWindowLocation }
 };
 
 /// TEST METHODS //////////////////////////////////////////////////////////////
@@ -52,7 +58,7 @@ export {
   PROMPTS,
   TEXT,
   // typescript classes, libraries
-  CONSTANTS,
+  CONSTANT,
   CLASS,
   LIB,
   // formatting
