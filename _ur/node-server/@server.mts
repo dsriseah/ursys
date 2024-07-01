@@ -22,20 +22,30 @@ import PROMPTS from '../common/util-prompts.js';
 import UrModule from './class-urmodule.mts';
 import OpSequencer from '../common/class-op-seq.ts';
 import StateMgr from '../common/class-state-mgr.ts';
+import NetSocket from '../common/class-urnet-socket.ts';
+import NetEndpoint from '../common/class-urnet-endpoint.ts';
+import NetPacket from '../common/class-urnet-packet.ts';
 // typescript library modules
 import * as UID from '../common/lib-uid.ts';
-
-const { makeTerminalOut } = PROMPTS;
+import * as URNET_CONSTANTS from '../common/constants-urnet.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { makeTerminalOut } = PROMPTS;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const CLASS = {
   OpSequencer,
   StateMgr,
-  UrModule
+  UrModule,
+  NetSocket,
+  NetEndpoint,
+  NetPacket
 };
 const LIB = {
   UID
+};
+const CONSTANTS = {
+  URNET: URNET_CONSTANTS
 };
 
 /// RUNTIME API ///////////////////////////////////////////////////////////////
@@ -48,20 +58,21 @@ function Initialize(options: UR_InitOptions): void {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { makeStyleFormatter } = PROMPTS;
 export {
-  // URSYS CONTROL
+  // ursys control
   Initialize,
-  // MAIN MODULES
+  // common typescript classes, libraries
+  CONSTANTS,
+  CLASS,
+  LIB,
+  // basic server modules
+  ENV,
+  FILE,
+  PROC,
+  TEXT,
+  // server-based services
   APPSERV, // application server
   ADDONMGR, // ur module manager
-  CLASS, // typescript classes
-  LIB, // typescript libraries
-  ENV, // environment utilities and constants
-  FILE, // file utilities
-  PROC, // interprocess communication utils
-  // UTILITIES
-  TEXT,
-  // COMMON UTILS
+  // formatting
   makeTerminalOut as PR // prompt style formatter
 };

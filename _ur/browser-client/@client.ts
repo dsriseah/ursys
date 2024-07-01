@@ -16,16 +16,26 @@ import TEXT from '../common/util-text.js';
 import OpSequencer from '../common/class-op-seq.ts';
 import StateMgr from '../common/class-state-mgr.ts';
 import * as UID from '../common/lib-uid.ts';
+import NetSocket from '../common/class-urnet-socket.ts';
+import NetEndpoint from '../common/class-urnet-endpoint.ts';
+import NetPacket from '../common/class-urnet-packet.ts';
+import * as URNET from '../common/constants-urnet-web.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const PR = makeStyleFormatter('UR', 'TagCyan');
 const CLASS = {
   OpSequencer,
-  StateMgr
+  StateMgr,
+  NetSocket,
+  NetEndpoint,
+  NetPacket
 };
 const LIB = {
   UID
+};
+const CONSTANTS = {
+  urnet: URNET
 };
 
 /// TEST METHODS //////////////////////////////////////////////////////////////
@@ -42,6 +52,7 @@ export {
   PROMPTS,
   TEXT,
   // typescript classes, libraries
+  CONSTANTS,
   CLASS,
   LIB,
   // formatting
