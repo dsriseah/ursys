@@ -4,17 +4,16 @@ var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
-// _ur/_dist/client-esm.js
+// _dist/client-esm.js
 var client_esm_exports = {};
 __export(client_esm_exports, {
   CLASS: () => CLASS,
+  CONSTANTS: () => CONSTANTS,
   ClientTest: () => ClientTest,
   ConsoleStyler: () => makeStyleFormatter,
+  LIB: () => LIB,
   PROMPTS: () => export_PROMPTS,
   StateMgr: () => class_state_mgr_default,
   TEXT: () => export_TEXT
@@ -28,6 +27,10 @@ var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __defNormalProp2 = (obj, key, value) => key in obj ? __defProp2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
+var __export2 = (target, all) => {
+  for (var name in all)
+    __defProp2(target, name, { get: all[name], enumerable: true });
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -45,12 +48,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp2(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
-var __publicField2 = (obj, key, value) => {
-  __defNormalProp2(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
-var require_declare_console = __commonJS({
-  "_ur/common/declare-console.js"(exports, module) {
+var __publicField2 = (obj, key, value) => __defNormalProp2(obj, typeof key !== "symbol" ? key + "" : key, value);
+var require_declare_colors = __commonJS({
+  "common/declare-colors.js"(exports, module) {
     var TERM_COLORS = {
       // TOUT = makeTerminalOut(str); TOUT('hi')
       Reset: "\x1B[0m",
@@ -185,12 +185,12 @@ var require_declare_console = __commonJS({
   }
 });
 var require_util_prompts = __commonJS({
-  "_ur/common/util-prompts.js"(exports, module) {
+  "common/util-prompts.js"(exports, module) {
     var IS_NODE = typeof window === "undefined";
     var IS_MOBILE = !IS_NODE && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     );
-    var D_CONSOLE = require_declare_console();
+    var D_CONSOLE = require_declare_colors();
     var { TERM_COLORS, CSS_COLORS } = D_CONSOLE;
     var DEFAULT_PADDING = IS_NODE ? 10 : 8;
     var DEFAULT_SPACE = IS_NODE ? " ".padStart(DEFAULT_PADDING, " ") : " ".padStart(DEFAULT_PADDING + 4, " ");
@@ -209,27 +209,20 @@ var require_util_prompts = __commonJS({
     function padString(str, padding = DEFAULT_PADDING) {
       let len = str.length;
       const nbsp = String.fromCharCode(160);
-      if (IS_NODE)
-        return `${str.padEnd(padding, " ")}`;
-      if (padding === 0)
-        return `${str}`;
-      if (len >= padding)
-        str = str.substr(0, padding);
-      else
-        str = str.padEnd(padding, nbsp);
+      if (IS_NODE) return `${str.padEnd(padding, " ")}`;
+      if (padding === 0) return `${str}`;
+      if (len >= padding) str = str.substr(0, padding);
+      else str = str.padEnd(padding, nbsp);
       return `${str}`;
     }
     function m_SetPromptColors(match, color = DEFAULT_COLOR) {
-      if (typeof match !== "string")
-        throw Error("match prompt must be string");
+      if (typeof match !== "string") throw Error("match prompt must be string");
       match = match.trim();
-      if (match === "")
-        throw Error("match prompt cannot be empty");
+      if (match === "") throw Error("match prompt cannot be empty");
       let colorTable = IS_NODE ? TERM_COLORS : CSS_COLORS;
       let validColor = false;
       validColor = colorTable[color] !== void 0;
-      if (!validColor)
-        colorTable = IS_NODE ? CSS_COLORS : TERM_COLORS;
+      if (!validColor) colorTable = IS_NODE ? CSS_COLORS : TERM_COLORS;
       validColor = colorTable[color] !== void 0;
       if (!validColor)
         throw Error(`prompt color ${color} is not defined in either table`);
@@ -247,30 +240,26 @@ var require_util_prompts = __commonJS({
     }
     function m_MakeColorArray(prompt, colorName) {
       const [dbg, color, reset] = m_GetEnvColor(prompt, colorName);
-      if (!(dbg || IS_NODE))
-        return [];
+      if (!(dbg || IS_NODE)) return [];
       return IS_NODE ? [`${color}${padString(prompt)}${reset}   `] : [`%c${padString(prompt)}%c `, color, reset];
     }
     function m_MakeColorPromptFunction(prompt, colorName, opt = {}) {
       const textColor = opt.color || "Reset";
       const dim = opt.dim || false;
       return IS_NODE ? (str, ...args) => {
-        if (args === void 0)
-          args = "";
+        if (args === void 0) args = "";
         let TAG = TERM_COLORS[colorName];
         let TEXT2 = TERM_COLORS[textColor];
         let RST = TERM_COLORS.Reset;
-        let PR22 = padString(prompt);
-        if (dim)
-          TEXT2 += TERM_COLORS.Dim;
-        console.log(`${RST}${TAG}${PR22}${RST}${TEXT2}    ${str}`, ...args);
+        let PR52 = padString(prompt);
+        if (dim) TEXT2 += TERM_COLORS.Dim;
+        console.log(`${RST}${TAG}${PR52}${RST}${TEXT2}    ${str}`, ...args, RST);
       } : (str, ...args) => {
-        if (args === void 0)
-          args = "";
+        if (args === void 0) args = "";
         let TEXT2 = TERM_COLORS[textColor];
         let RST = CSS_COLORS.Reset;
-        let PR22 = padString(prompt);
-        console.log(`%c${PR22}%c%c ${str}`, RST, TEXT2, ...args);
+        let PR52 = padString(prompt);
+        console.log(`%c${PR52}%c%c ${str}`, RST, TEXT2, ...args);
       };
     }
     function m_GetDivText(id) {
@@ -290,31 +279,27 @@ var require_util_prompts = __commonJS({
     }
     function m_HTMLTextJumpRow(row, lineBuffer, id) {
       const { element, text } = m_GetDivText(id);
-      if (text === void 0)
-        return lineBuffer;
+      if (text === void 0) return lineBuffer;
       if (lineBuffer.length === 0) {
         console.log(`initializing linebuffer from element id='${id}'`);
         lineBuffer = text.split("\n");
       }
       if (row > lineBuffer.length - 1) {
         const count = row + 1 - lineBuffer.length;
-        for (let i = count; i > 0; i--)
-          lineBuffer.push("");
+        for (let i = count; i > 0; i--) lineBuffer.push("");
       }
       return lineBuffer;
     }
     function m_HTMLTextPrint(str = "", lineBuffer, id) {
       const { element, text } = m_GetDivText(id);
-      if (!text)
-        return lineBuffer;
+      if (!text) return lineBuffer;
       lineBuffer.push(str);
       element.textContent = lineBuffer.join("\n");
       return lineBuffer;
     }
     function m_HTMLTextPlot(str = "", lineBuffer, id, row = 0, col = 0) {
       const { element, text } = m_GetDivText(id);
-      if (!element)
-        return lineBuffer;
+      if (!element) return lineBuffer;
       if (text === void 0) {
         console.log(`HTMLTextOut: element ${id} does not have textContent`);
         return lineBuffer;
@@ -326,8 +311,7 @@ var require_util_prompts = __commonJS({
         return lineBuffer;
       }
       if (col + str.length > line.length + str.length) {
-        for (let i = 0; i < col + str.length - line.length; i++)
-          line += " ";
+        for (let i = 0; i < col + str.length - line.length; i++) line += " ";
       }
       let p1 = line.substr(0, col);
       let p3 = line.substr(col + str.length, line.length - (col + str.length));
@@ -336,13 +320,10 @@ var require_util_prompts = __commonJS({
       return lineBuffer;
     }
     function makeStyleFormatter2(prompt, tagColor) {
-      if (prompt.startsWith("UR") && tagColor === void 0)
-        tagColor = "TagUR";
+      if (prompt.startsWith("UR") && tagColor === void 0) tagColor = "TagUR";
       let outArray = m_MakeColorArray(prompt, tagColor);
-      if (outArray.length === 0)
-        return () => [];
-      if (IS_MOBILE)
-        outArray = [`${prompt}:`];
+      if (outArray.length === 0) return () => [];
+      if (IS_MOBILE) outArray = [`${prompt}:`];
       const f = (str, ...args) => [...outArray, str, ...args];
       f._ = `
 ${DEFAULT_SPACE}`;
@@ -395,8 +376,7 @@ ${DEFAULT_SPACE}`;
     function makeHTMLConsole(divId, row = 0, col = 0) {
       const ERP = makeStyleFormatter2("makeHTMLConsole", "Red");
       let buffer = [];
-      if (typeof divId !== "string")
-        throw Error("bad id");
+      if (typeof divId !== "string") throw Error("bad id");
       if (!document.getElementById(divId)) {
         console.warn(...ERP(`id '${divId}' doesn't exist`));
         return {
@@ -438,15 +418,13 @@ ${DEFAULT_SPACE}`;
       const colors = Object.keys(colortable).filter((element) => element.includes("Tag"));
       const reset = colortable.Reset;
       const out = "dbg_colors";
-      if (!IS_NODE)
-        console.groupCollapsed(out);
+      if (!IS_NODE) console.groupCollapsed(out);
       colors.forEach((key) => {
         const color = colortable[key];
         const items = IS_NODE ? [`${padString(out)} - (node) ${color}${key}${reset}`] : [`(browser) %c${key}%c`, color, reset];
         console.log(...items);
       });
-      if (!IS_NODE)
-        console.groupEnd();
+      if (!IS_NODE) console.groupEnd();
     }
     module.exports = {
       TERM: TERM_COLORS,
@@ -464,7 +442,7 @@ ${DEFAULT_SPACE}`;
   }
 });
 var require_util_text = __commonJS({
-  "_ur/common/util-text.js"(exports, module) {
+  "common/util-text.js"(exports, module) {
     function PreprocessDataText(str) {
       let normalizedStr = str.replace(/\r\n|\r/g, "\n");
       normalizedStr = normalizedStr.split("\n").map((line) => line.replace(/\s+$/, "")).map((line) => line.replace(/^\s+/, "")).join("\n");
@@ -496,36 +474,26 @@ var OPSEQS = /* @__PURE__ */ new Map();
 function m_ValidateSeqName(sn) {
   const fn = "m_ValidateSeqName";
   const pcErr = "name must be PascalCase string";
-  if (sn === "")
-    throw Error(`${fn}: ${pcErr}`);
-  if (sn === void 0)
-    throw Error(`${fn}: ${pcErr}`);
-  if (typeof sn !== "string")
-    throw Error(`${fn}: ${pcErr}`);
-  if (sn !== sn[0].toUpperCase() + sn.slice(1))
-    throw Error(`${fn}: ${pcErr}`);
+  if (sn === "") throw Error(`${fn}: ${pcErr}`);
+  if (sn === void 0) throw Error(`${fn}: ${pcErr}`);
+  if (typeof sn !== "string") throw Error(`${fn}: ${pcErr}`);
+  if (sn !== sn[0].toUpperCase() + sn.slice(1)) throw Error(`${fn}: ${pcErr}`);
   if (sn.trim() !== sn)
     throw Error(`${fn}: name must not have leading/trailing spaces`);
 }
 function m_ValidateActiveSeq(seq) {
   if (seq instanceof OpSequencer) {
-    if (seq._disposed)
-      throw Error(`sequencer ${seq.seqName} is disposed`);
-    else
-      return;
+    if (seq._disposed) throw Error(`sequencer ${seq.seqName} is disposed`);
+    else return;
   }
   throw Error("not a sequence instance or undefined");
 }
 function m_ValidateNodeName(nn) {
   const fn = "m_ValidateNodeName";
-  if (nn === "")
-    throw Error(`${fn}: name must be lc string`);
-  if (nn === void 0)
-    throw Error(`${fn}: name must be lc string`);
-  if (typeof nn !== "string")
-    throw Error(`${fn}: name must be lc string`);
-  if (nn !== nn.toLowerCase())
-    throw Error(`${fn}: name must be lc`);
+  if (nn === "") throw Error(`${fn}: name must be lc string`);
+  if (nn === void 0) throw Error(`${fn}: name must be lc string`);
+  if (typeof nn !== "string") throw Error(`${fn}: name must be lc string`);
+  if (nn !== nn.toLowerCase()) throw Error(`${fn}: name must be lc`);
   if (nn.trim() !== nn)
     throw Error(`${fn}: name must not have leading/trailing spaces`);
 }
@@ -562,25 +530,18 @@ var OpSequencer = class _OpSequencer {
   /** given nodeName and a source TOpNode, add a clone of the source node to the sequencer */
   addOp(name, data, opt) {
     const fn = "addOp";
-    if (data === void 0)
-      throw Error(`${fn}: arg2 must be TOpNode`);
-    if (typeof name !== "string")
-      throw Error(`${fn}: arg1 must be name:string`);
-    if (typeof data._name === "string")
-      throw Error(`${fn}: node ${name} reused`);
-    if (data._index !== void 0)
-      throw Error(`${fn}: node ${name} reused`);
+    if (data === void 0) throw Error(`${fn}: arg2 must be TOpNode`);
+    if (typeof name !== "string") throw Error(`${fn}: arg1 must be name:string`);
+    if (typeof data._name === "string") throw Error(`${fn}: node ${name} reused`);
+    if (data._index !== void 0) throw Error(`${fn}: node ${name} reused`);
     m_ValidateActiveSeq(this);
     m_ValidateNodeName(name);
-    if (this.opIndex !== -1)
-      throw Error(`${fn}: sequencer already started`);
-    if (this.hasOp(name))
-      throw Error(`${fn}: node '${name}' already exists`);
+    if (this.opIndex !== -1) throw Error(`${fn}: sequencer already started`);
+    if (this.hasOp(name)) throw Error(`${fn}: node '${name}' already exists`);
     const index = this.ops.length;
     this.opsMap.set(name, index);
     const newData = { ...data };
-    if (opt == null ? void 0 : opt.mutable)
-      Object.freeze(newData);
+    if (opt == null ? void 0 : opt.mutable) Object.freeze(newData);
     const newNode = {
       _opIndex: index,
       _seqName: this.seqName,
@@ -597,8 +558,7 @@ var OpSequencer = class _OpSequencer {
   /* --- access operations --- */
   data(key) {
     m_ValidateActiveSeq(this);
-    if (typeof key === "string")
-      return this.currentOp.data[key];
+    if (typeof key === "string") return this.currentOp.data[key];
     return this.currentOp.data;
   }
   length() {
@@ -609,10 +569,8 @@ var OpSequencer = class _OpSequencer {
   start() {
     const fn = "start";
     m_ValidateActiveSeq(this);
-    if (this.opIndex !== -1)
-      throw Error(`${fn}: sequencer already started`);
-    if (this.ops.length === 0)
-      throw Error(`${fn}: no operations to run`);
+    if (this.opIndex !== -1) throw Error(`${fn}: sequencer already started`);
+    if (this.ops.length === 0) throw Error(`${fn}: no operations to run`);
     this.opIndex = 0;
     this._update();
     this._notifyChange();
@@ -621,8 +579,7 @@ var OpSequencer = class _OpSequencer {
   current() {
     const fn = "current";
     m_ValidateActiveSeq(this);
-    if (this.opIndex === -1)
-      throw Error(`${fn}: sequencer not started`);
+    if (this.opIndex === -1) throw Error(`${fn}: sequencer not started`);
     this._update();
     this._notifyChange();
     return this.ops[this.opIndex];
@@ -630,8 +587,7 @@ var OpSequencer = class _OpSequencer {
   stop() {
     const fn = "stop";
     m_ValidateActiveSeq(this);
-    if (this.opIndex === -1)
-      throw Error("stop: sequencer not started");
+    if (this.opIndex === -1) throw Error("stop: sequencer not started");
     this.opIndex = -1;
     this._update();
     this._notifyChange();
@@ -639,11 +595,9 @@ var OpSequencer = class _OpSequencer {
   }
   next() {
     const fn = "next";
-    if (this.opIndex === -1)
-      return this.start();
+    if (this.opIndex === -1) return this.start();
     m_ValidateActiveSeq(this);
-    if (this.opIndex === this.ops.length - 1)
-      return void 0;
+    if (this.opIndex === this.ops.length - 1) return void 0;
     ++this.opIndex;
     this._update();
     this._notifyChange();
@@ -652,10 +606,8 @@ var OpSequencer = class _OpSequencer {
   previous() {
     const fn = "previous";
     m_ValidateActiveSeq(this);
-    if (this.opIndex === -1)
-      throw Error(`${fn}: sequencer not started`);
-    if (this.opIndex === 0)
-      return void 0;
+    if (this.opIndex === -1) throw Error(`${fn}: sequencer not started`);
+    if (this.opIndex === 0) return void 0;
     --this.opIndex;
     this._update();
     this._notifyChange();
@@ -666,21 +618,17 @@ var OpSequencer = class _OpSequencer {
     const fn = "onEnter";
     m_ValidateActiveSeq(this);
     m_ValidateNodeName(opName);
-    if (!this.hasOp(opName))
-      throw Error(`${fn}: node '${opName}' does not exist`);
-    if (!this.subs.has(opName))
-      this.subs.set(opName, /* @__PURE__ */ new Set());
+    if (!this.hasOp(opName)) throw Error(`${fn}: node '${opName}' does not exist`);
+    if (!this.subs.has(opName)) this.subs.set(opName, /* @__PURE__ */ new Set());
     this.subs.get(opName).add(subf);
   }
   unsubscribe(name, subf) {
     const fn = "onEnter";
     m_ValidateActiveSeq(this);
     m_ValidateNodeName(name);
-    if (!this.hasOp(name))
-      throw Error(`${fn}: node '${name}' does not exist`);
+    if (!this.hasOp(name)) throw Error(`${fn}: node '${name}' does not exist`);
     const subs = this.subs.get(name);
-    if (subs.has(subf))
-      subs.delete(subf);
+    if (subs.has(subf)) subs.delete(subf);
   }
   _update() {
     const fn = "_update";
@@ -692,8 +640,7 @@ var OpSequencer = class _OpSequencer {
     const fn = "_notifyChange";
     m_ValidateActiveSeq(this);
     const subs = this.subs.get(this.currentOp._opName);
-    if (subs)
-      subs.forEach((subf) => subf(this.currentOp, this.lastOp, this));
+    if (subs) subs.forEach((subf) => subf(this.currentOp, this.lastOp, this));
   }
   /* --- node utilities --- */
   hasOp(opName) {
@@ -705,8 +652,7 @@ var OpSequencer = class _OpSequencer {
     const fn = "matchOp";
     m_ValidateActiveSeq(this);
     m_ValidateNodeName(opName);
-    if (!this.hasOp(opName))
-      throw Error(`${fn}: node '${opName}' does not exist`);
+    if (!this.hasOp(opName)) throw Error(`${fn}: node '${opName}' does not exist`);
     return opName === this.ops[this.opIndex]._opName;
   }
   /** remove all nodes and subscribers */
@@ -742,8 +688,7 @@ var StateMgr = class _StateMgr {
     __publicField2(this, "queue");
     __publicField2(this, "taps");
     __publicField2(this, "effects");
-    if (typeof groupName !== "string")
-      throw Error("groupName must be a string");
+    if (typeof groupName !== "string") throw Error("groupName must be a string");
     groupName = groupName.trim().toUpperCase();
     if (GROUPS.has(groupName)) {
       console.warn(
@@ -780,8 +725,7 @@ var StateMgr = class _StateMgr {
   /** Return a COPY of the current clonedEvent */
   state(key) {
     const state = this._derefProps({ ...VM_STATE[this.name] });
-    if (typeof key === "string" && key.length > 0)
-      return state[key];
+    if (typeof key === "string" && key.length > 0) return state[key];
     return state;
   }
   /** Handle a clonedEvent update from a subscribing module. The incoming
@@ -796,17 +740,14 @@ var StateMgr = class _StateMgr {
       this.taps.forEach((tap) => tap(clonedEvent));
       const action = { stateEvent: clonedEvent, callback };
       this._enqueue(action);
-    } else
-      throw Error("SendState: invalid vmState update received, got:");
+    } else throw Error("SendState: invalid vmState update received, got:");
   }
   /** Subscribe to state. The subscriber function looks like:
    *  ( vmStateEvent, currentState ) => void
    */
   subscribeState(subFunc) {
-    if (typeof subFunc !== "function")
-      throw Error("subscriber must be function");
-    if (this.subs.has(subFunc))
-      console.warn("duplicate subscriber function");
+    if (typeof subFunc !== "function") throw Error("subscriber must be function");
+    if (this.subs.has(subFunc)) console.warn("duplicate subscriber function");
     this.subs.add(subFunc);
   }
   /** Unsubscribe state */
@@ -819,8 +760,7 @@ var StateMgr = class _StateMgr {
    *  is stable
    */
   queueEffect(effectFunc) {
-    if (typeof effectFunc !== "function")
-      throw Error("effect must be a function");
+    if (typeof effectFunc !== "function") throw Error("effect must be a function");
     this.effects.push(effectFunc);
     this._doEffect();
   }
@@ -843,17 +783,14 @@ var StateMgr = class _StateMgr {
     });
     if (VM_STATE[this.name]) {
       Object.keys(stateObj).forEach((k) => {
-        if (k === "_group")
-          return;
+        if (k === "_group") return;
         const assTo = USED_PROPS.get(k);
-        if (assTo !== void 0)
-          throw Error(`${k} already assigned to ${assTo}`);
+        if (assTo !== void 0) throw Error(`${k} already assigned to ${assTo}`);
         USED_PROPS.set(k, this.name);
       });
       VM_STATE[this.name] = stateObj;
       this.init = true;
-    } else
-      throw Error(`${this.name} does't exist in VM_STATE`);
+    } else throw Error(`${this.name} does't exist in VM_STATE`);
   }
   /** In some cases, we want to update state but not trigger subscribers
    *  related to it. Alias for _mergeState()
@@ -867,8 +804,7 @@ var StateMgr = class _StateMgr {
    *  @param {function} tapFunc - receive stateEvent to mutate or act-on
    */
   _interceptState(tapFunc) {
-    if (typeof tapFunc !== "function")
-      throw Error(`'${tapFunc}' is not a function`);
+    if (typeof tapFunc !== "function") throw Error(`'${tapFunc}' is not a function`);
     this.taps.push(tapFunc);
   }
   /** Allow synthesis of a state event by adding to queue without
@@ -884,8 +820,7 @@ var StateMgr = class _StateMgr {
     let keysOk = true;
     Object.keys(stateObj).forEach((k) => {
       const keyTest = keysOk && curState[k] !== void 0;
-      if (keyTest === false)
-        console.warn(`isValidState: '${k}' not a valid key`);
+      if (keyTest === false) console.warn(`isValidState: '${k}' not a valid key`);
       keysOk = keysOk && keyTest;
     });
     return keysOk;
@@ -896,8 +831,7 @@ var StateMgr = class _StateMgr {
    */
   _derefProps(stateObj) {
     Object.keys(stateObj).forEach((k) => {
-      if (Array.isArray(stateObj[k]))
-        stateObj[k] = [...stateObj[k]];
+      if (Array.isArray(stateObj[k])) stateObj[k] = [...stateObj[k]];
     });
     return stateObj;
   }
@@ -912,8 +846,7 @@ var StateMgr = class _StateMgr {
    *  its property values. This creates an entirely new state object
    */
   _mergeState(stateObj) {
-    if (!this._isValidState(stateObj))
-      return void 0;
+    if (!this._isValidState(stateObj)) return void 0;
     const newState = this._derefProps({
       ...VM_STATE[this.name],
       ...stateObj
@@ -959,8 +892,7 @@ var StateMgr = class _StateMgr {
       const { vmStateEvent, callback } = action;
       this._mergeState(vmStateEvent);
       this._notifySubs(vmStateEvent);
-      if (typeof callback === "function")
-        callbacks.push(callback);
+      if (typeof callback === "function") callbacks.push(callback);
       action = this.queue.shift();
     }
     callbacks.forEach((f) => f());
@@ -970,8 +902,7 @@ var StateMgr = class _StateMgr {
    *  are no pending state changes
    */
   _doEffect() {
-    if (this.queue.length > 0)
-      return;
+    if (this.queue.length > 0) return;
     setTimeout(() => {
       let effect = this.effects.shift();
       while (effect !== void 0) {
@@ -985,8 +916,7 @@ var StateMgr = class _StateMgr {
   /** Return a state manager instance if it exists, undefined if not. Throws
    *  errors if there are issues with the name */
   static GetStateManager(groupName) {
-    if (typeof groupName !== "string")
-      throw Error(`${groupName} is not a string`);
+    if (typeof groupName !== "string") throw Error(`${groupName} is not a string`);
     const bucket = groupName.trim().toUpperCase();
     if (bucket !== groupName)
       throw Error(`groupNames should be all uppercase, not ${bucket}`);
@@ -997,14 +927,12 @@ var StateMgr = class _StateMgr {
    *  Unlike GetStateManager, this returns just the data object.
    */
   static GetStateData(groupName) {
-    if (typeof groupName !== "string")
-      throw Error(`${groupName} is not a string`);
+    if (typeof groupName !== "string") throw Error(`${groupName} is not a string`);
     const bucket = groupName.trim().toUpperCase();
     if (bucket !== groupName)
       throw Error(`groupNames should be all uppercase, not ${bucket}`);
     const state = VM_STATE[bucket];
-    if (!state)
-      throw Error(`stateGroup ${bucket} is not defined`);
+    if (!state) throw Error(`stateGroup ${bucket} is not defined`);
     const readOnlyState = { ...state };
     for (const prop of Object.keys(readOnlyState)) {
       Object.defineProperty(readOnlyState, prop, {
@@ -1023,19 +951,123 @@ var StateMgr = class _StateMgr {
   }
 };
 var class_state_mgr_default = StateMgr;
-var { makeStyleFormatter } = import_util_prompts.default;
-var PR = makeStyleFormatter("UR", "TagCyan");
-var CLASS = {
-  OpSequencer: class_op_seq_default,
-  StateMgr: class_state_mgr_default
+var lib_uid_exports = {};
+__export2(lib_uid_exports, {
+  DecodeID: () => DecodeID,
+  GetDefaultSchema: () => GetDefaultSchema,
+  IsValidFormat: () => IsValidFormat,
+  IsValidPrefix: () => IsValidPrefix,
+  IsValidSchema: () => IsValidSchema,
+  NewFullID: () => NewFullID,
+  NewID: () => NewID,
+  PrefixShortID: () => PrefixShortID,
+  SetDefaultSchema: () => SetDefaultSchema
+});
+var SCHEMAS = {
+  "meme": {
+    "n": "node",
+    "e": "edge",
+    "p": "project"
+  }
 };
-function ClientTest() {
-  console.log(...PR("System Integration of new URSYS module successful!"));
+var DEFAULT_SCHEMA = "";
+var ID_COUNTER = 0;
+function DecodeID(uid) {
+  if (!IsValidFormat(uid)) return [];
+  let bits = uid.split(":");
+  if (bits.length < 1 || bits.length > 2) return [];
+  if (bits.length === 1) bits.unshift("");
+  const [schema, prefix] = bits;
+  bits = prefix.split("-");
+  if (bits.length !== 2) return [];
+  return [schema, ...bits];
 }
-var export_PROMPTS = import_util_prompts.default;
-var export_TEXT = import_util_text.default;
-
-// _ur_addons/net/urnet-types.ts
+function NewID(prefix, int) {
+  const fn = "ShortID:";
+  if (int !== void 0) {
+    if (typeof int !== "number") throw new Error(`${fn} invalid id ${int}`);
+    if (int < 0) throw new Error(`${fn} negative id ${int}`);
+    if (int % 1 !== 0) throw new Error(`${fn} non-integer id ${int}`);
+  } else {
+    int = ID_COUNTER++;
+  }
+  const uid = `${prefix}-${int}`;
+  return uid;
+}
+function NewFullID(schema, prefix, int) {
+  const fn = "EncodeID:";
+  const shortUID = NewID(prefix, int);
+  if (!IsValidSchema(schema)) throw new Error(`${fn} unknown schema ${schema}`);
+  if (!IsValidPrefix(`${schema}:${prefix}`))
+    throw new Error(`${fn} unknown prefix ${prefix}`);
+  const uid = `${schema}:${prefix}-${int}`;
+  return uid;
+}
+function PrefixShortID(uid, prefix) {
+  const [_, id] = DecodeID(uid);
+  return NewID(prefix, parseInt(id));
+}
+function IsValidFormat(uid) {
+  const isLowerCase = uid === uid.toLowerCase();
+  const isFullForm = /^[\w]+:[\w]+-[\d]+$/.test(uid);
+  const isShortForm = /^[\w]+-[\d]+$/.test(uid);
+  return isLowerCase && (isFullForm || isShortForm);
+}
+function IsValidSchema(schema) {
+  return Object.keys(SCHEMAS).includes(schema);
+}
+function IsValidPrefix(sch_pre) {
+  const fn = "IsValidPrefix:";
+  const bits = sch_pre.split(":");
+  if (bits.length > 2) throw new Error(`${fn} Invalid schema prefix ${sch_pre}`);
+  if (bits.length === 1) bits.unshift("");
+  const [schema, prefix] = bits;
+  const isValidSchema = IsValidSchema(schema);
+  const isValidPrefix = Object.keys(SCHEMAS[schema]).includes(prefix);
+  return isValidSchema && isValidPrefix;
+}
+function SetDefaultSchema(schema) {
+  const fn = "SetDefaultSchema:";
+  if (!IsValidSchema(schema)) throw new Error(`${fn} Invalid schema ${schema}`);
+  DEFAULT_SCHEMA = schema;
+}
+function GetDefaultSchema() {
+  return DEFAULT_SCHEMA;
+}
+var PR = typeof process !== "undefined" ? "Socket".padEnd(13) : "Socket:";
+var NetSocket = class {
+  // name of the socket-ish object
+  constructor(connectObj, io) {
+    __publicField2(this, "connector");
+    __publicField2(this, "sendFunc");
+    __publicField2(this, "closeFunc");
+    __publicField2(this, "onDataFunc");
+    __publicField2(this, "uaddr");
+    __publicField2(this, "auth");
+    __publicField2(this, "msglist");
+    __publicField2(this, "age");
+    __publicField2(this, "label");
+    this.connector = connectObj;
+    const { send, onData, close } = io;
+    this.sendFunc = send.bind(connectObj);
+    this.closeFunc = close.bind(connectObj);
+    this.onDataFunc = onData.bind(connectObj);
+  }
+  send(pkt) {
+    this.sendFunc(pkt);
+  }
+  close() {
+    this.closeFunc();
+  }
+  getConnector() {
+    return this.connector;
+  }
+  authenticated() {
+    let a = this.auth !== void 0;
+    return a;
+  }
+};
+var class_urnet_socket_default = NetSocket;
 var VALID_MSG_CHANNELS = ["NET", "SRV", "LOCAL", ""];
 var VALID_PKT_TYPES = [
   "ping",
@@ -1049,6 +1081,7 @@ var VALID_PKT_TYPES = [
   "_decl"
   // special packet
 ];
+var SKIP_SELF_PKT_TYPES = ["call", "send"];
 var VALID_ADDR_PREFIX = ["???", "UR_", "WSS", "UDS", "MQT", "SRV"];
 var UADDR_DIGITS = 3;
 var USED_ADDRS = /* @__PURE__ */ new Set();
@@ -1057,12 +1090,14 @@ var UADDR_NONE = `???${zeroPad}`;
 function IsValidType(msg_type) {
   return VALID_PKT_TYPES.includes(msg_type);
 }
+function SkipOriginType(msg_type) {
+  return SKIP_SELF_PKT_TYPES.includes(msg_type);
+}
 function IsValidChannel(msg_chan) {
   return VALID_MSG_CHANNELS.includes(msg_chan);
 }
 function IsValidAddress(addr) {
-  if (typeof addr !== "string")
-    return false;
+  if (typeof addr !== "string") return false;
   let prelen = 0;
   if (!VALID_ADDR_PREFIX.some((pre) => {
     prelen = pre.length;
@@ -1070,8 +1105,7 @@ function IsValidAddress(addr) {
   }))
     return false;
   const num = parseInt(addr.slice(prelen));
-  if (isNaN(num))
-    return false;
+  if (isNaN(num)) return false;
   return true;
 }
 function IsValidMessage(msg) {
@@ -1099,35 +1133,28 @@ function AllocateAddress(opt) {
   return addr;
 }
 function DecodeMessage(msg) {
-  if (typeof msg !== "string")
-    throw Error(`message must be string: ${msg}`);
-  if (msg !== msg.toUpperCase())
-    throw Error(`message must be uppercase: ${msg}`);
+  if (typeof msg !== "string") throw Error(`message must be string: ${msg}`);
+  if (msg !== msg.toUpperCase()) throw Error(`message must be uppercase: ${msg}`);
   const bits = msg.split(":");
-  if (bits.length === 0)
-    throw Error(`invalid empty message`);
-  if (bits.length > 2)
-    throw Error(`invalid channel:message format ${msg}`);
+  if (bits.length === 0) throw Error(`invalid empty message`);
+  if (bits.length > 2) throw Error(`invalid channel:message format ${msg}`);
   let [chan, name] = bits;
   if (bits.length === 1) {
     name = chan;
     chan = "LOCAL";
   }
-  if (chan === "")
-    chan = "LOCAL";
+  if (chan === "") chan = "LOCAL";
   if (!IsValidChannel(chan))
     throw Error(`prefix must be ${VALID_MSG_CHANNELS.join(" ").trim()} not ${chan}`);
   return [chan, name];
 }
 function NormalizeMessage(msg) {
   let [chan, name] = DecodeMessage(msg);
-  if (chan === "LOCAL")
-    chan = "";
+  if (chan === "LOCAL") chan = "";
   return `${chan}:${name}`;
 }
 function NormalizeData(data) {
-  if (Array.isArray(data) && data.length == 1)
-    return data[0];
+  if (Array.isArray(data) && data.length == 1) return data[0];
   return data;
 }
 function IsLocalMessage(msg) {
@@ -1141,34 +1168,22 @@ function IsNetMessage(msg) {
 function GetPacketHashString(pkt) {
   return `${pkt.src_addr}:${pkt.id}`;
 }
-
-// _ur_addons/net/class-urnet-packet.ts
 var PR2 = typeof process !== "undefined" ? "Packet".padEnd(13) : "Packet:";
 var LOG = (...args) => console.log(PR2, ...args);
 var NetPacket = class {
   // returned error message
   constructor(msg, data) {
-    __publicField(this, "id");
-    // network-wide unique id for this packet
-    __publicField(this, "msg_type");
-    // ping, signal, send, call
-    __publicField(this, "msg");
-    // name of the URNET message
-    __publicField(this, "data");
-    // payload of the URNET message
-    __publicField(this, "auth");
-    // authentication token
-    __publicField(this, "src_addr");
-    // URNET address of the sender
-    __publicField(this, "hop_seq");
-    // URNET addresses that have seen this packet
-    __publicField(this, "hop_log");
-    // log of debug messages by hop
-    __publicField(this, "hop_dir");
-    // direction of the packet 'req' or 'res'
-    __publicField(this, "hop_rsvp");
-    // whether the packet is a response to a request
-    __publicField(this, "err");
+    __publicField2(this, "id");
+    __publicField2(this, "msg_type");
+    __publicField2(this, "msg");
+    __publicField2(this, "data");
+    __publicField2(this, "auth");
+    __publicField2(this, "src_addr");
+    __publicField2(this, "hop_seq");
+    __publicField2(this, "hop_log");
+    __publicField2(this, "hop_dir");
+    __publicField2(this, "hop_rsvp");
+    __publicField2(this, "err");
     this.id = void 0;
     this.src_addr = void 0;
     this.hop_rsvp = false;
@@ -1176,11 +1191,9 @@ var NetPacket = class {
     this.hop_log = [];
     this.auth = void 0;
     this.err = void 0;
-    if (data !== void 0)
-      this.data = data;
+    if (data !== void 0) this.data = data;
     if (typeof msg === "string") {
-      if (!IsValidMessage(msg))
-        throw Error(`invalid msg format: ${msg}`);
+      if (!IsValidMessage(msg)) throw Error(`invalid msg format: ${msg}`);
       this.msg = msg;
     }
   }
@@ -1188,23 +1201,20 @@ var NetPacket = class {
    *  meta used for routing and return packets
    */
   setMeta(msg_type, opt) {
-    if (!IsValidType(msg_type))
-      throw Error(`invalid msg_type: ${msg_type}`);
+    if (!IsValidType(msg_type)) throw Error(`invalid msg_type: ${msg_type}`);
     this.msg_type = msg_type;
     this.hop_dir = (opt == null ? void 0 : opt.dir) || "req";
     this.hop_rsvp = (opt == null ? void 0 : opt.rsvp) || false;
   }
   /** add hop to the hop sequence */
   addHop(hop) {
-    if (!IsValidAddress(hop))
-      throw Error(`invalid hop: ${hop}`);
+    if (!IsValidAddress(hop)) throw Error(`invalid hop: ${hop}`);
     this.hop_seq.push(hop);
   }
   /** utility setters w/ checks - - - - - - - - - - - - - - - - - - - - - - **/
   /** manually set the source address, with check */
   setSrcAddr(s_addr) {
-    if (!IsValidAddress(s_addr))
-      throw Error(`invalid src_addr: ${s_addr}`);
+    if (!IsValidAddress(s_addr)) throw Error(`invalid src_addr: ${s_addr}`);
     if (this.hop_seq.length > 0 && this.hop_seq[0] !== s_addr)
       throw Error(`src_addr ${s_addr} != ${this.hop_seq[0]}`);
     this.src_addr = s_addr;
@@ -1212,8 +1222,7 @@ var NetPacket = class {
   }
   /** manually set direction */
   setDir(dir) {
-    if (dir !== "req" && dir !== "res")
-      throw Error(`invalid dir: ${dir}`);
+    if (dir !== "req" && dir !== "res") throw Error(`invalid dir: ${dir}`);
     this.hop_dir = dir;
     return this;
   }
@@ -1276,15 +1285,54 @@ var NetPacket = class {
   }
   /** packet transport  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
   /** rsvp required? */
-  isRsvp() {
+  hasRsvp() {
     return this.hop_rsvp;
   }
   lastHop() {
     return this.hop_seq[this.hop_seq.length - 1];
   }
-  /** types that begin with _ are protocol messages that bypass pktReceive() */
-  isProtocol() {
+  hasAuth() {
+    return this.auth !== void 0;
+  }
+  /** types that begin with _ are protocol messages that bypass dispatchPacket() */
+  isSpecialPkt() {
     return this.msg_type.startsWith("_");
+  }
+  /** authorization packets are the first packet sent on a client connection to
+   *  the message gateway server. They must not have a src_addr aassigned, using
+   *  the special UADDR_NONE value instead.
+   */
+  isBadAuthPkt() {
+    let error = "";
+    let a = this.msg_type === "_auth";
+    let b = this.msg === "SRV:AUTH";
+    let c = this.src_addr === UADDR_NONE;
+    if (!a) error += `msg_type ${this.msg_type} not _auth. `;
+    if (!b) error += `msg ${this.msg} not SRV:AUTH. `;
+    if (!c) error += `src_addr ${this.src_addr} not ${UADDR_NONE} `;
+    if (error.length > 0) return `isBadAuthPkt: ${error}`;
+    return void 0;
+  }
+  /** registration packets are sent on a client connection after
+   *  authentication. They must have a src_addr assigned, which was returned
+   *  by the server in the response to the auth packet, and this must match
+   *  the server's stored uaddr for the client connection.
+   */
+  isBadRegPkt(socket) {
+    let error = "";
+    let a = this.msg_type === "_reg";
+    let b = this.msg === "SRV:REG";
+    let c = this.src_addr === socket.uaddr;
+    if (!a) error += `msg_type ${this.msg_type} not _reg. `;
+    if (!b) error += `msg ${this.msg} not SRV:REG. `;
+    if (!c) error += `src_addr ${this.src_addr} not ${socket.uaddr}. `;
+    if (error.length > 0) return `isBadRegPkt: ${error}`;
+    return void 0;
+  }
+  authenticate(socket) {
+    const { msg, src_addr, hop_dir, hop_seq } = this;
+    if (!this.isResponse()) LOG(PR2, `would auth ${src_addr} '${msg}'`);
+    return true;
   }
   isRequest() {
     return this.hop_dir === "req";
@@ -1317,8 +1365,7 @@ var NetPacket = class {
   /** debugging - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - **/
   /** add error string to packet error */
   error(msg) {
-    if (!this.err)
-      this.err = "";
+    if (!this.err) this.err = "";
     this.err += msg;
     return msg;
   }
@@ -1331,154 +1378,143 @@ var NetPacket = class {
     return msg;
   }
 };
-
-// _ur_addons/net/class-urnet-endpoint.ts
-var DBG = false;
-var PR3 = typeof process !== "undefined" ? "EndPoint".padEnd(13) : "EndPoint:";
-var LOG2 = (...args) => DBG && console.log(PR3, ...args);
+var class_urnet_packet_default = NetPacket;
+var PR3 = typeof process !== "undefined" ? "EndPoint".padEnd(13) : "EndPoint".padEnd(11);
+var LOG2 = console.log.bind(console);
 var AGE_INTERVAL = 1e3;
 var AGE_MAX = 60 * 30;
-function _PKT(ep, fn, text, pkt) {
-  let { id, msg, msg_type } = pkt;
-  if (id === void 0 && msg_type === "_reg")
-    id = `pkt[${UADDR_NONE}:0]`;
-  let out = `${ep.urnet_addr} ${text} '${msg}' `.padEnd(40, "~");
-  out += ` ${id.padEnd(12)} ${fn}`;
-  return out;
-}
 var NetEndpoint = class {
   // client registration status
   constructor() {
-    __publicField(this, "urnet_addr");
-    // the address for this endpoint
-    //
-    __publicField(this, "cli_gateway");
-    // gateway to server
-    __publicField(this, "srv_socks");
-    // uaddr->I_NetSocket
-    __publicField(this, "srv_msgs");
-    // msg->uaddr[]
-    __publicField(this, "msg_handlers");
-    // msg->handlers[]
-    __publicField(this, "transactions");
-    // hash->resolver
-    //
-    __publicField(this, "cli_counter");
-    // counter for generating unique uaddr
-    __publicField(this, "pkt_counter");
-    // counter for generating packet ids
-    //
-    __publicField(this, "cli_sck_timer");
-    // timer for checking socket age
-    __publicField(this, "cli_ident");
-    // client credentials to request authentication
-    __publicField(this, "cli_auth");
-    // client access token for
-    __publicField(this, "cli_reg");
-    this.urnet_addr = void 0;
+    __publicField2(this, "handled_msgs");
+    __publicField2(this, "uaddr");
+    __publicField2(this, "client_socks");
+    __publicField2(this, "remoted_msgs");
+    __publicField2(this, "transactions");
+    __publicField2(this, "cli_counter");
+    __publicField2(this, "pkt_counter");
+    __publicField2(this, "cli_gateway");
+    __publicField2(this, "cli_sck_timer");
+    __publicField2(this, "cli_ident");
+    __publicField2(this, "cli_auth");
+    __publicField2(this, "cli_reg");
+    this.uaddr = void 0;
     this.cli_ident = void 0;
     this.cli_auth = void 0;
     this.cli_reg = void 0;
     this.cli_gateway = void 0;
-    this.srv_socks = void 0;
-    this.srv_msgs = void 0;
-    this.msg_handlers = /* @__PURE__ */ new Map();
+    this.client_socks = void 0;
+    this.remoted_msgs = void 0;
+    this.handled_msgs = /* @__PURE__ */ new Map();
     this.transactions = /* @__PURE__ */ new Map();
     this.pkt_counter = 0;
     this.cli_counter = 0;
     this.cli_sck_timer = null;
   }
-  /** client connection management  - - - - - - - - - - - - - - - - - - - - **/
-  /** return true if this endpoint is managing connections */
+  /** API: initialize this endpoint's client server, providing a hardcoded
+   *  server UADDR that is distinct from those used by client pools
+   */
   configAsServer(srv_addr) {
     const fn = "configAsServer:";
-    if (!IsValidAddress(srv_addr))
-      throw Error(`${fn} invalid srv_addr ${srv_addr}`);
-    if (this.urnet_addr && this.urnet_addr !== srv_addr) {
-      let err = `${fn} urnet_addr ${this.urnet_addr} already set.`;
-      err += `currently, `;
+    if (!IsValidAddress(srv_addr)) throw Error(`${fn} invalid srv_addr ${srv_addr}`);
+    if (this.uaddr && this.uaddr !== srv_addr) {
+      let err = `${fn} uaddr ${this.uaddr} already set.`;
       throw Error(err);
     }
-    this.urnet_addr = srv_addr;
-    if (this.srv_socks !== void 0)
-      LOG2(this.urnet_addr, `already configured`, [...this.srv_socks.keys()]);
-    this.srv_socks = /* @__PURE__ */ new Map();
-    if (this.srv_msgs !== void 0)
-      LOG2(this.urnet_addr, `already configured`, [...this.srv_msgs.keys()]);
-    this.srv_msgs = /* @__PURE__ */ new Map();
-    this.registerMessage("SRV:REFLECT", (data) => {
-      return { memo: "defaults defined in Endpoint.configAsServer" };
+    this.uaddr = srv_addr;
+    if (this.client_socks !== void 0)
+      LOG2(PR3, this.uaddr, `already configured`, [...this.client_socks.keys()]);
+    this.client_socks = /* @__PURE__ */ new Map();
+    if (this.remoted_msgs !== void 0)
+      LOG2(PR3, this.uaddr, `already configured`, [...this.remoted_msgs.keys()]);
+    this.remoted_msgs = /* @__PURE__ */ new Map();
+    this.addMessageHandler("SRV:REFLECT", (data) => {
+      data.info = `built-in service`;
+      return data;
     });
   }
-  /** return true if this endpoint is managing connections */
-  isServer() {
-    return this.srv_socks !== void 0 && this.srv_msgs !== void 0;
-  }
-  /** socket utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
-  /** given a socket, see if it's already registered */
-  isNewSocket(socket) {
-    const fn = "isNewSocket:";
-    if (typeof socket !== "object")
-      return false;
-    return socket.uaddr === void 0;
-  }
-  /** client endpoints need to have an authentication token to
-   *  access URNET beyond registration
-   */
-  authorizeSocket(auth) {
-    const fn = "authorizeSocket:";
-    LOG2(this.urnet_addr, "would check auth token");
-  }
-  /** return true if this socket passes authentication status */
-  isAuthorizedSocket(socket) {
-    const fn = "authorizeSocket:";
-    LOG2(fn, "would check JWT in socket.auth");
-    LOG2(this.urnet_addr, "would check JWT in socket.auth");
-    if (!socket.auth)
-      return false;
-    return true;
-  }
-  /** endpoint client management  - - - - - - - - - - - - - - - - - - - - - **/
-  /** Server data event handler for incoming data from a client connection.
-   *  This is the mirror to _serverDataIngest() function used by client endpoints.
-   * This is the entry point for incoming data from clients */
-  _clientDataIngest(jsonData, socket) {
+  /** API: Server data event handler for incoming data from a client connection.
+   *  This is the mirror to _ingestServerPacket() function used by client endpoints.
+   *  This is the entry point for incoming data from clients */
+  _ingestClientPacket(jsonData, socket) {
     let pkt = this.newPacket().deserialize(jsonData);
     let retPkt;
-    retPkt = this.handleClientAuth(pkt, socket);
-    if (retPkt)
-      return retPkt;
-    retPkt = this.handleClientReg(pkt, socket);
-    if (retPkt)
-      return retPkt;
-    retPkt = this.handleClientDeclare(pkt, socket);
-    if (retPkt)
-      return retPkt;
-    if (pkt.auth) {
-      LOG2(".. would check authentication token");
-      this.pktReceive(pkt);
+    retPkt = this._handleAuthRequest(pkt, socket);
+    if (retPkt) return retPkt;
+    retPkt = this._handleRegRequest(pkt, socket);
+    if (retPkt) return retPkt;
+    retPkt = this._handleDeclRequest(pkt, socket);
+    if (retPkt) return retPkt;
+    this.dispatchPacket(pkt);
+  }
+  /** API: when a client connects to this endpoint, register it as a socket and
+   *  allocate a uaddr for it */
+  addClient(socket) {
+    const fn = "addClient:";
+    if (typeof socket !== "object") throw Error(`${fn} invalid socket`);
+    if (socket.uaddr !== void 0) throw Error(`${fn} socket already added`);
+    const new_uaddr = AllocateAddress({ prefix: "UR_" });
+    socket.uaddr = new_uaddr;
+    socket.age = 0;
+    socket.auth = void 0;
+    socket.msglist = void 0;
+    this.client_socks.set(new_uaddr, socket);
+    return new_uaddr;
+  }
+  /** API: when a client disconnects from this endpoint, delete its socket and
+   *  remove all message forwarding */
+  removeClient(uaddr_obj) {
+    const fn = "removeClient:";
+    let uaddr = typeof uaddr_obj === "string" ? uaddr_obj : uaddr_obj.uaddr;
+    if (typeof uaddr !== "string") {
+      LOG2(PR3, `${fn} invalid uaddr ${typeof uaddr}`);
+      return void 0;
+    }
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    this._deleteRemoteMessagesForAddress(uaddr);
+    this.client_socks.delete(uaddr);
+    return uaddr;
+  }
+  /** API: given a uaddr, return the socket */
+  getClient(uaddr) {
+    const fn = "getClient:";
+    if (this.client_socks === void 0) return void 0;
+    return this.client_socks.get(uaddr);
+  }
+  /** API: start a timer to check for dead sockets */
+  enableClientAging(activate) {
+    const fn = "enableClientAging:";
+    if (activate) {
+      if (this.cli_sck_timer) clearInterval(this.cli_sck_timer);
+      this.cli_sck_timer = setInterval(() => {
+        this.client_socks.forEach((socket, uaddr) => {
+          socket.age += AGE_INTERVAL;
+          if (socket.age > AGE_MAX) {
+            LOG2(PR3, this.uaddr, `socket ${uaddr} expired`);
+          }
+        });
+      }, AGE_INTERVAL);
       return;
     }
-    pkt.setDir("res");
-    pkt.addHop(this.urnet_addr);
-    pkt.data = { error: "unauthorized packet rejected" };
-    return pkt;
+    if (this.cli_sck_timer) clearInterval(this.cli_sck_timer);
+    this.cli_sck_timer = null;
+    LOG2(PR3, this.uaddr, `timer stopped`);
   }
-  /** handle auth packet */
-  handleClientAuth(pkt, socket) {
-    if (socket.auth === void 0) {
+  /** support: handle auth packet if the session.auth is not defined */
+  _handleAuthRequest(pkt, socket) {
+    if (!socket.authenticated()) {
       pkt.setDir("res");
-      pkt.addHop(this.urnet_addr);
-      if (pkt.msg_type === "_auth") {
-        if (pkt.msg !== "SRV:AUTH") {
-          pkt.data = { error: `invalid auth packet ${pkt.msg}` };
-          return pkt;
-        }
+      pkt.addHop(this.uaddr);
+      const error = pkt.isBadAuthPkt();
+      if (error) {
+        console.error(PR3, error);
+        pkt.data = { error };
+        return pkt;
       }
-      const { identity } = pkt.data;
+      const { identity, secret } = pkt.data;
       if (identity) {
         socket.auth = identity;
-        pkt.data = { uaddr: socket.uaddr, cli_auth: "AnAuthToken" };
+        pkt.data = { uaddr: socket.uaddr, cli_auth: "ServerProvidedAuthToken" };
       } else {
         pkt.data = { error: "invalid identity" };
       }
@@ -1486,17 +1522,17 @@ var NetEndpoint = class {
     }
     return void 0;
   }
-  /** handle registration packet */
-  handleClientReg(pkt, socket) {
-    if (pkt.msg_type === "_reg") {
+  /** support: handle registration packet */
+  _handleRegRequest(pkt, socket) {
+    if (!pkt.isBadRegPkt(socket)) {
       pkt.setDir("res");
-      pkt.addHop(this.urnet_addr);
+      pkt.addHop(this.uaddr);
       if (pkt.msg !== "SRV:REG") {
         pkt.data = { error: `invalid reg packet ${pkt.msg}` };
         return pkt;
       }
       if (pkt.src_addr !== socket.uaddr) {
-        LOG2("src address mismatch", pkt.src_addr, "!= sock", socket.uaddr);
+        LOG2(PR3, "src address mismatch", pkt.src_addr, "!= sock", socket.uaddr);
         pkt.data = { error: "address mismatch" };
         return pkt;
       }
@@ -1511,12 +1547,13 @@ var NetEndpoint = class {
     }
     return void 0;
   }
-  /** handle client dynamic definitions */
-  handleClientDeclare(pkt, socket) {
+  /** support: handle client dynamic definitions */
+  _handleDeclRequest(pkt, socket) {
     if (pkt.msg_type === "_decl") {
       pkt.setDir("res");
-      pkt.addHop(this.urnet_addr);
+      pkt.addHop(this.uaddr);
       if (pkt.msg !== "SRV:DEF") {
+        console.log("invalid def packet", pkt.msg);
         pkt.data = { error: `invalid def packet ${pkt.msg}` };
         return pkt;
       }
@@ -1524,7 +1561,7 @@ var NetEndpoint = class {
       const { msg_list } = pkt.data;
       const { uaddr } = socket;
       if (Array.isArray(msg_list)) {
-        this.registerRemoteMessages(uaddr, msg_list);
+        this.registerRemoteMessagesToAddress(uaddr, msg_list);
         pkt.data.status.push(`registered ${msg_list.length} messages`);
       }
       if (pkt.data.status.length === 0) {
@@ -1534,433 +1571,136 @@ var NetEndpoint = class {
     }
     return void 0;
   }
-  /** when a client connects to this endpoint, register it as a socket and
-   *  allocate a uaddr for it */
-  addClient(socket) {
-    const fn = "addClient:";
-    if (typeof socket !== "object")
-      throw Error(`${fn} invalid socket`);
-    if (socket.uaddr !== void 0)
-      throw Error(`${fn} socket already added`);
-    const new_uaddr = AllocateAddress({ prefix: "UR_" });
-    socket.uaddr = new_uaddr;
-    socket.age = 0;
-    socket.auth = void 0;
-    socket.msglist = void 0;
-    this.srv_socks.set(new_uaddr, socket);
-    return new_uaddr;
-  }
-  /** given a uaddr, return the socket */
-  getClient(uaddr) {
-    const fn = "getClient:";
-    if (this.srv_socks === void 0)
-      return void 0;
-    return this.srv_socks.get(uaddr);
-  }
-  /** when a client disconnects from this endpoint, delete its socket and
-   *  remove all message forwarding */
-  removeClient(uaddr_obj) {
-    const fn = "removeClient:";
-    let uaddr = typeof uaddr_obj === "string" ? uaddr_obj : uaddr_obj.uaddr;
-    if (typeof uaddr !== "string") {
-      LOG2(`${fn} invalid uaddr ${typeof uaddr}`);
-      return void 0;
-    }
-    if (!this.srv_socks.has(uaddr))
-      throw Error(`${fn} unknown uaddr ${uaddr}`);
-    this._delRemoteMessages(uaddr);
-    this.srv_socks.delete(uaddr);
-    return uaddr;
-  }
-  /** start a timer to check for dead sockets */
-  enableClientAging(activate) {
-    const fn = "enableClientAging:";
-    if (activate) {
-      if (this.cli_sck_timer)
-        clearInterval(this.cli_sck_timer);
-      this.cli_sck_timer = setInterval(() => {
-        this.srv_socks.forEach((socket, uaddr) => {
-          socket.age += AGE_INTERVAL;
-          if (socket.age > AGE_MAX) {
-            if (DBG)
-              LOG2(this.urnet_addr, `socket ${uaddr} expired`);
-          }
-        });
-      }, AGE_INTERVAL);
-      return;
-    }
-    if (this.cli_sck_timer)
-      clearInterval(this.cli_sck_timer);
-    this.cli_sck_timer = null;
-    if (DBG)
-      LOG2(this.urnet_addr, `timer stopped`);
-  }
   /** client connection handshaking - - - - - - - - - - - - - - - - - - - - **/
-  /** Client data event handler for incoming data from the gateway.
-   *  This is the mirror to _clientDataIngest() function that is used by servers.
-   *  This is entry point for incoming data from server */
-  _serverDataIngest(jsonData, socket) {
-    const fn = "_serverDataIngest:";
-    const pkt = this.newPacket().deserialize(jsonData);
-    if (this.cli_gateway) {
-      if (this.handleAuthResponse(pkt))
-        return;
-      if (this.handleRegResponse(pkt))
-        return;
-    }
-    this.pktReceive(pkt);
-  }
-  /** client endpoints need to have an "address" assigned to them, otherwise
-   *  the endpoint will not work */
+  /** API: client endpoints need to have an "address" assigned to them,
+   *  otherwise the endpoint will not work */
   async connectAsClient(gateway, auth) {
     const fn = "connectAsClient:";
     if (gateway && typeof gateway.send === "function") {
       this.cli_gateway = gateway;
-    } else
-      throw Error(`${fn} invalid gateway`);
+    } else throw Error(`${fn} invalid gateway`);
     if (auth) {
       const pkt = this.newAuthPacket(auth);
       const { msg } = pkt;
-      const requestAuth = new Promise((resolve, reject) => {
-        const hash = GetPacketHashString(pkt);
-        if (this.transactions.has(hash))
-          throw Error(`${fn} duplicate hash ${hash}`);
-        const meta = { msg, uaddr: this.urnet_addr };
-        this.transactions.set(hash, { resolve, reject, ...meta });
-        try {
-          this.cli_gateway.send(pkt);
-        } catch (err) {
-          reject(err);
-        }
-      });
-      let authData = await requestAuth;
+      let authData = await this._queueTransaction(pkt, gateway);
       const { uaddr, cli_auth, error } = authData;
       if (error) {
-        LOG2(`${fn} error:`, error);
+        LOG2(PR3, `${fn} error:`, error);
         return false;
       }
-      if (!IsValidAddress(uaddr))
-        throw Error(`${fn} invalid uaddr ${uaddr}`);
-      this.urnet_addr = uaddr;
-      if (cli_auth === void 0)
-        throw Error(`${fn} invalid cli_auth`);
+      if (!IsValidAddress(uaddr)) throw Error(`${fn} invalid uaddr ${uaddr}`);
+      this.uaddr = uaddr;
+      if (cli_auth === void 0) throw Error(`${fn} invalid cli_auth`);
       this.cli_auth = cli_auth;
-      LOG2("** AUTHENTICATED **", uaddr, cli_auth);
+      LOG2(PR3, "AUTHENTICATED", uaddr, cli_auth);
       this.cli_auth = cli_auth;
       return authData;
     }
     throw Error(`${fn} arg must be identity`);
   }
-  /** create a authentication packet, which is the first packet that must be sent
-   *  after connecting to the server */
-  newAuthPacket(authObj) {
-    const pkt = this.newPacket("SRV:AUTH", { ...authObj });
-    pkt.setMeta("_auth", { rsvp: true });
-    pkt.setSrcAddr(UADDR_NONE);
-    this.assignPacketId(pkt);
-    return pkt;
+  /** API: Client data event handler for incoming data from the gateway. This is
+   *  the mirror to _ingestClientPacket() function that is used by servers. This
+   *  is entry point for incoming data from server
+   */
+  _ingestServerPacket(jsonData, socket) {
+    const fn = "_ingestServerPacket:";
+    const pkt = this.newPacket().deserialize(jsonData);
+    if (this.cli_gateway) {
+      if (this._handleAuthResponse(pkt)) return;
+      if (this._handleRegResponse(pkt)) return;
+      if (this._handleDeclResponse(pkt)) return;
+    }
+    this.dispatchPacket(pkt);
   }
-  /** handle authentication response packet directly rather than through
-   *  the netcall interface in pktReceive() */
-  handleAuthResponse(pkt) {
-    const fn = "handleAuthResponse:";
-    if (pkt.msg_type !== "_auth")
-      return false;
-    if (pkt.hop_dir !== "res")
-      return false;
-    this.pktResolveRequest(pkt);
-    return true;
-  }
-  /** register client with client endpoint info */
-  async registerClient(info) {
-    const fn = "registerClient:";
-    if (!this.cli_gateway)
-      throw Error(`${fn} no gateway`);
+  /** API: register client with client endpoint info */
+  async declareClientProperties(info) {
+    const fn = "declareClientProperties:";
+    if (!this.cli_gateway) throw Error(`${fn} no gateway`);
     const pkt = this.newRegPacket();
     pkt.data = { ...info };
-    const { msg } = pkt;
-    const requestReg = new Promise((resolve, reject) => {
-      const hash = GetPacketHashString(pkt);
-      if (this.transactions.has(hash))
-        throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.urnet_addr };
-      this.transactions.set(hash, { resolve, reject, ...meta });
-      try {
-        this.cli_gateway.send(pkt);
-      } catch (err) {
-        reject(err);
-      }
-    });
-    let regData = await requestReg;
+    let regData = await this._queueTransaction(pkt, this.cli_gateway);
     const { ok, status, error } = regData;
     if (error) {
-      LOG2(`${fn} error:`, error);
+      LOG2(PR3, `${fn} error:`, error);
       return regData;
     }
     if (ok) {
-      LOG2("** REGISTERED **", status);
+      LOG2(PR3, "REGISTERED", status);
       this.cli_reg = info;
       return regData;
     }
     throw Error(`${fn} unexpected response`, regData);
   }
-  /** create a registration packet */
-  newRegPacket() {
-    const pkt = this.newPacket("SRV:REG");
-    pkt.setMeta("_reg", { rsvp: true });
-    return pkt;
-  }
-  /** handle registration response packet directly rather than through
-   *  the netcall interface in pktReceive() */
-  handleRegResponse(pkt) {
-    const fn = "handleRegResponse:";
-    if (pkt.msg_type !== "_reg")
-      return false;
-    if (pkt.hop_dir !== "res")
-      return false;
-    if (pkt.src_addr !== this.urnet_addr)
-      throw Error(`${fn} misaddressed packet???`);
-    this.pktResolveRequest(pkt);
-    return true;
-  }
-  /** declare client messages */
-  async clientDeclare() {
-    const msg_list = this.listNetMessages();
-    return await this.clientDeclareServices({ msg_list });
-  }
-  /** declare client attributes */
-  async clientDeclareServices(def) {
-    const fn = "clientDeclareServices:";
-    if (!this.cli_gateway)
-      throw Error(`${fn} no gateway`);
-    const pkt = this.newDeclPacket();
-    pkt.data = { ...def };
-    const { msg } = pkt;
-    const decSvcs = new Promise((resolve, reject) => {
-      const hash = GetPacketHashString(pkt);
-      if (this.transactions.has(hash))
-        throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.urnet_addr };
-      this.transactions.set(hash, { resolve, reject, ...meta });
-      try {
-        this.cli_gateway.send(pkt);
-      } catch (err) {
-        reject(err);
-      }
-    });
-    let declared = await decSvcs;
-    const { error, status } = declared;
+  /** API: declare client messages */
+  async declareClientMessages() {
+    const fn = "declareClientMessages:";
+    const msg_list = this.getNetMessageNames();
+    const response = await this._declareClientServices({ msg_list });
+    const { msg_list: rmsg_list, error } = response;
     if (error) {
-      LOG2(`${fn} error:`, error);
-      return declared;
+      LOG2(PR3, `${fn} error:`, error);
+    } else {
+      LOG2(PR3, `DECLARED ${rmsg_list.length} messages`);
+      rmsg_list.forEach((msg) => LOG2(PR3, `  '${msg}'`));
     }
-    if (status) {
-      LOG2("** DECLARED **", status);
-      return declared;
-    }
-    throw Error(`${fn} unexpected response`, declared);
+    return response;
   }
-  /** create a definition packet */
-  newDeclPacket() {
-    const pkt = this.newPacket("SRV:DEF");
-    pkt.setMeta("_decl", { rsvp: true });
-    return pkt;
-  }
-  handleDeclResponse(pkt) {
-    const fn = "handleDeclResponse:";
-    if (pkt.msg_type !== "_decl")
-      return false;
-    if (pkt.hop_dir !== "res")
-      return false;
-    if (pkt.src_addr !== this.urnet_addr)
-      throw Error(`${fn} misaddressed packet???`);
-    this.pktResolveRequest(pkt);
+  /** support: handle authentication response packet directly rather than through
+   *  the netcall interface in dispatchPacket() */
+  _handleAuthResponse(pkt) {
+    const fn = "_handleAuthResponse:";
+    if (pkt.msg_type !== "_auth") return false;
+    if (pkt.hop_dir !== "res") return false;
+    this.resolveTransaction(pkt);
     return true;
   }
-  /** disables down the gateway */
-  disconnectAsClient() {
-    this.cli_gateway = void 0;
+  /** support: handle registration response packet directly rather than through
+   *  the netcall interface in dispatchPacket() */
+  _handleRegResponse(pkt) {
+    const fn = "_handleRegResponse:";
+    if (pkt.msg_type !== "_reg") return false;
+    if (pkt.hop_dir !== "res") return false;
+    if (pkt.src_addr !== this.uaddr) throw Error(`${fn} misaddressed packet???`);
+    this.resolveTransaction(pkt);
+    return true;
   }
-  /** endpoint lookup tables - - - - - - - - - - - - - - - - - - - -  - - - **/
-  /** get list of messages allocated to a uaddr */
-  getMessagesForAddress(uaddr) {
-    const fn = "getMessagesForAddress:";
-    if (!this.isServer())
-      return [];
-    if (typeof uaddr !== "string")
-      throw Error(`${fn} invalid uaddr`);
-    if (!this.srv_socks.has(uaddr))
-      throw Error(`${fn} unknown uaddr ${uaddr}`);
-    const msg_list = [];
-    this.srv_msgs.forEach((addr_set, msg) => {
-      if (addr_set.has(uaddr))
-        msg_list.push(msg);
-    });
-    return msg_list;
-  }
-  /** get list of UADDRs that a message is forwarded to */
-  getAddressesForMessage(msg) {
-    const fn = "getAddressesForMessage:";
-    if (!this.isServer())
-      return [];
-    if (typeof msg !== "string")
-      throw Error(`${fn} invalid msg`);
-    const key = NormalizeMessage(msg);
-    if (!this.srv_msgs.has(key))
-      this.srv_msgs.set(key, /* @__PURE__ */ new Set());
-    const addr_set = this.srv_msgs.get(key);
-    const addr_list = Array.from(addr_set);
-    return addr_list;
-  }
-  /** return list of local handlers for given message */
-  getHandlersForMessage(msg) {
-    const fn = "getHandlersForMessage:";
-    if (typeof msg !== "string")
-      throw Error(`${fn} invalid msg`);
-    const key = NormalizeMessage(msg);
-    if (!this.msg_handlers.has(key))
-      this.msg_handlers.set(key, /* @__PURE__ */ new Set());
-    const handler_set = this.msg_handlers.get(key);
-    if (!handler_set)
-      throw Error(`${fn} unexpected empty set '${key}'`);
-    const handler_list = Array.from(handler_set);
-    return handler_list;
-  }
-  /** informational routing information - - - - - - - - - - - - - - - - - - **/
-  /** return handler list for this endpoint */
-  listMessages() {
-    const list = [];
-    this.msg_handlers.forEach((handler_set, key) => {
-      list.push(key);
-    });
-    return list;
-  }
-  /** return only net messages */
-  listNetMessages() {
-    const list = [];
-    this.msg_handlers.forEach((handler_set, key) => {
-      if (IsNetMessage(key))
-        list.push(key);
-    });
-    return list;
-  }
-  /** return list of active transactions for this endpoint */
-  listTransactions() {
-    const fn = "listTransactions:";
-    const list = [];
-    this.transactions.forEach((transaction, hash) => {
-      const { msg, uaddr } = transaction;
-      list.push({ hash, msg, uaddr });
-    });
-    return list;
-  }
-  /** server endpoints manage list of messages in clients  - - - - -  - - - **/
-  /** register a message handler for a given message to passed uaddr */
-  registerRemoteMessages(uaddr, msgList) {
-    const fn = "registerRemoteMessages:";
-    if (typeof uaddr !== "string")
-      throw Error(`${fn} invalid uaddr`);
-    if (!this.srv_socks.has(uaddr))
-      throw Error(`${fn} unknown uaddr ${uaddr}`);
-    this._setRemoteMessages(uaddr, msgList);
-  }
-  /** secret utility function for registerRemoteMessages */
-  _setRemoteMessages(uaddr, msgList) {
-    const fn = "_setRemoteMessages:";
-    msgList.forEach((msg) => {
-      if (typeof msg !== "string")
-        throw Error(`${fn} invalid msg`);
-      if (msg !== msg.toUpperCase())
-        throw Error(`${fn} msg must be uppercase`);
-      const key = NormalizeMessage(msg);
-      if (!this.srv_msgs.has(key))
-        this.srv_msgs.set(key, /* @__PURE__ */ new Set());
-      const msg_set = this.srv_msgs.get(key);
-      msg_set.add(uaddr);
-    });
-  }
-  /** unregister message handlers for a given message to passed uaddr */
-  _delRemoteMessages(uaddr) {
-    const fn = "_delRemoteMessages:";
-    if (typeof uaddr !== "string")
-      throw Error(`${fn} invalid uaddr`);
-    if (!this.srv_socks.has(uaddr))
-      throw Error(`${fn} unknown uaddr ${uaddr}`);
-    const removed = [];
-    this.srv_msgs.forEach((msg_set, key) => {
-      if (msg_set.has(uaddr))
-        removed.push(key);
-      msg_set.delete(uaddr);
-    });
-    return removed;
-  }
-  /** packet utility - - - - - - - - - - - - - - - - - - - - - - - - - - - -**/
-  assignPacketId(pkt) {
-    if (pkt.src_addr === void 0)
-      pkt.src_addr = this.urnet_addr;
-    const count = ++this.pkt_counter;
-    pkt.id = `pkt[${pkt.src_addr}:${count}]`;
-    return pkt.id;
-  }
-  /** convert JSON to packet and return */
-  packetFromJSON(json) {
-    const pkt = new NetPacket();
-    pkt.setFromJSON(json);
-    return pkt;
-  }
-  /** create a new packet with proper address */
-  newPacket(msg, data) {
-    const fn = "newPacket:";
-    const pkt = new NetPacket(msg, data);
-    pkt.setSrcAddr(this.urnet_addr || UADDR_NONE);
-    if (this.cli_auth)
-      pkt.setAuth(this.cli_auth);
-    pkt.id = this.assignPacketId(pkt);
-    return pkt;
-  }
-  /** clone a packet with new id */
-  clonePacket(pkt) {
-    const clone = this.newPacket(pkt.msg, pkt.data);
-    clone.setFromJSON(pkt.serialize());
-    clone.src_addr = this.urnet_addr;
-    clone.id = this.assignPacketId(clone);
-    return clone;
+  /** support: handle declaration packet */
+  _handleDeclResponse(pkt) {
+    const fn = "_handleDeclResponse:";
+    if (pkt.msg_type !== "_decl") return false;
+    if (pkt.hop_dir !== "res") return false;
+    if (pkt.src_addr !== this.uaddr) throw Error(`${fn} misaddressed packet???`);
+    this.resolveTransaction(pkt);
+    return true;
   }
   /** message declaration and invocation - - - - - - - - - - - - - - - - - -**/
-  /** declare a message handler for a given message */
-  registerMessage(msg, handler) {
-    const fn = "registerMessage:";
-    if (typeof msg !== "string")
-      throw Error(`${fn} invalid msg`);
-    if (msg !== msg.toUpperCase())
-      throw Error(`${fn} msg must be uppercase`);
-    if (typeof handler !== "function")
-      throw Error(`${fn} invalid handler`);
+  /** API: declare a message handler for a given message */
+  addMessageHandler(msg, handler) {
+    const fn = "addMessageHandler:";
+    if (typeof msg !== "string") throw Error(`${fn} invalid msg`);
+    if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
+    if (typeof handler !== "function") throw Error(`${fn} invalid handler`);
     const key = NormalizeMessage(msg);
-    if (!this.msg_handlers.has(key))
-      this.msg_handlers.set(key, /* @__PURE__ */ new Set());
-    const handler_set = this.msg_handlers.get(key);
+    if (!this.handled_msgs.has(key))
+      this.handled_msgs.set(key, /* @__PURE__ */ new Set());
+    const handler_set = this.handled_msgs.get(key);
     handler_set.add(handler);
   }
-  /** remove a previously declared message handler for a given message */
-  removeHandler(msg, handler) {
-    const fn = "removeHandler:";
-    if (typeof msg !== "string")
-      throw Error(`${fn} invalid msg`);
-    if (typeof handler !== "function")
-      throw Error(`${fn} invalid handler`);
+  /** API: remove a previously declared message handler for a given message */
+  deleteMessageHandler(msg, handler) {
+    const fn = "deleteMessageHandler:";
+    if (typeof msg !== "string") throw Error(`${fn} invalid msg`);
+    if (typeof handler !== "function") throw Error(`${fn} invalid handler`);
     const key = NormalizeMessage(msg);
-    const handler_set = this.msg_handlers.get(key);
-    if (!handler_set)
-      throw Error(`${fn} unexpected empty set '${key}'`);
+    const handler_set = this.handled_msgs.get(key);
+    if (!handler_set) throw Error(`${fn} unexpected empty set '${key}'`);
     handler_set.delete(handler);
   }
-  /** call local message registered on this endPoint only */
+  /** API: call local message registered on this endPoint only */
   async call(msg, data) {
     const fn = "call:";
-    if (!IsLocalMessage(msg))
-      throw Error(`${fn} '${msg}' not local (drop prefix)`);
-    const handlers = this.getHandlersForMessage(msg);
+    if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
+    const handlers = this.getMessageHandlers(msg);
     const promises = [];
     handlers.forEach((handler) => {
       promises.push(
@@ -1978,12 +1718,11 @@ var NetEndpoint = class {
     const resData = await Promise.all(promises);
     return resData;
   }
-  /** send local message registered on this endPoint only, returning no data */
+  /** API: send local message registered on this endPoint only, returning no data */
   async send(msg, data) {
     const fn = "send:";
-    if (!IsLocalMessage(msg))
-      throw Error(`${fn} '${msg}' not local (drop prefix)`);
-    const handlers = this.getHandlersForMessage(msg);
+    if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
+    const handlers = this.getMessageHandlers(msg);
     if (handlers.length === 0)
       return Promise.resolve({ error: `no handler for '${msg}'` });
     handlers.forEach((handler) => {
@@ -1991,124 +1730,242 @@ var NetEndpoint = class {
     });
     return Promise.resolve(true);
   }
-  /** signal local message registered on this endPoint only, returning no data.
+  /** API: signal local message registered on this endPoint only, returning no data.
    */
-  async signal(msg, data) {
+  signal(msg, data) {
     const fn = "signal:";
-    if (!IsLocalMessage(msg))
-      throw Error(`${fn} '${msg}' not local (drop prefix)`);
-    const handlers = this.getHandlersForMessage(msg);
+    if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
+    const handlers = this.getMessageHandlers(msg);
     if (handlers.length === 0)
       return Promise.resolve({ error: `no handler for '${msg}'` });
     handlers.forEach((handler) => {
       handler({ ...data });
     });
-    return Promise.resolve(true);
   }
-  /** ping local message, return with number of handlers */
+  /** API: ping local message, return with number of handlers */
   async ping(msg) {
     const fn = "ping:";
-    if (!IsLocalMessage(msg))
-      throw Error(`${fn} '${msg}' not local (drop prefix)`);
-    const handlers = this.getHandlersForMessage(msg);
+    if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
+    const handlers = this.getMessageHandlers(msg);
     return Promise.resolve(handlers.length);
   }
-  /** call net message, resolves when packet returns from server with data */
+  /** API: call net message, resolves when packet returns from server with data */
   async netCall(msg, data) {
     const fn = "netCall:";
-    if (!IsNetMessage(msg))
-      throw Error(`${fn} '${msg}' missing NET prefix`);
+    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
     const pkt = this.newPacket(msg, data);
     pkt.setMeta("call", {
       dir: "req",
       rsvp: true
     });
-    const p = new Promise((resolve, reject) => {
+    let resData = await new Promise((resolve, reject) => {
+      const meta = { msg, uaddr: this.uaddr };
       const hash = GetPacketHashString(pkt);
-      if (this.transactions.has(hash))
-        throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.urnet_addr };
+      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
-        this.pktSendRequest(pkt);
+        this.initialSend(pkt);
       } catch (err) {
         reject(err);
       }
     });
-    let resData = await p;
     return resData;
   }
-  /** send net message, returning promise that will resolve when the server has
+  /** API: send net message, returning promise that will resolve when the server has
    *  received and processed/forwarded the message */
   async netSend(msg, data) {
     const fn = "netSend:";
-    if (!IsNetMessage(msg))
-      throw Error(`${fn} '${msg}' missing NET prefix`);
-    const p = new Promise((resolve, reject) => {
-      const pkt = this.newPacket(msg, data);
-      pkt.setMeta("send", {
-        dir: "req",
-        rsvp: true
-      });
+    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
+    const pkt = this.newPacket(msg, data);
+    pkt.setMeta("send", {
+      dir: "req",
+      rsvp: true
+    });
+    let resData = await new Promise((resolve, reject) => {
       const hash = GetPacketHashString(pkt);
-      if (this.transactions.has(hash))
-        throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.urnet_addr };
+      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+      const meta = { msg, uaddr: this.uaddr };
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
-        this.pktSendRequest(pkt);
+        this.initialSend(pkt);
       } catch (err) {
         reject(err);
       }
     });
-    let resData = await p;
     return resData;
   }
-  /** signal net message, returning void (not promise)
+  /** API: signal net message, returning void (not promise)
    *  used for the idea of 'raising signals' as opposed to 'sending data'. It
    *  resolves immediately when the signal is sent, and does not check with the
    *  server  */
   netSignal(msg, data) {
     const fn = "netSignal:";
-    if (!IsNetMessage(msg))
-      throw Error(`${fn} '${msg}' missing NET prefix`);
+    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
     const pkt = this.newPacket(msg, data);
     pkt.setMeta("signal", {
       dir: "req",
       rsvp: false
     });
-    this.pktSendRequest(pkt);
+    this.initialSend(pkt);
   }
-  /** returns with a list of uaddr from the server which is the uaddr of the
+  /** API: returns with a list of uaddr from the server which is the uaddr of the
    *  all clients that have registered for the message */
   async netPing(msg) {
     const fn = "netPing:";
-    if (!IsNetMessage(msg))
-      throw Error(`${fn} '${msg}' missing NET prefix`);
+    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
     const pkt = this.newPacket(msg);
     pkt.setMeta("ping", {
       dir: "req",
       rsvp: true
     });
-    const p = new Promise((resolve, reject) => {
+    let resData = await new Promise((resolve, reject) => {
       const hash = GetPacketHashString(pkt);
-      if (this.transactions.has(hash))
-        throw Error(`${fn} duplicate hash ${hash}`);
-      const meta = { msg, uaddr: this.urnet_addr };
+      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+      const meta = { msg, uaddr: this.uaddr };
       this.transactions.set(hash, { resolve, reject, ...meta });
       try {
-        this.pktSendRequest(pkt);
+        this.initialSend(pkt);
       } catch (err) {
         reject(err);
       }
     });
-    let resData = await p;
     return resData;
   }
+  /** packet utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+  /** declare client attributes is a generic declaration packet that can contain
+   *  any number of attributes that the client wants to declare to the server.
+   *  for example, see declareClientMessages() */
+  async _declareClientServices(def) {
+    const fn = "_declareClientServices:";
+    if (!this.cli_gateway) throw Error(`${fn} no gateway`);
+    const pkt = this.newDeclPacket();
+    pkt.data = { ...def };
+    const { msg } = pkt;
+    let declared = await this._queueTransaction(pkt, this.cli_gateway);
+    const { error, status } = declared;
+    if (error) {
+      LOG2(PR3, `${fn} error:`, error);
+      return declared;
+    }
+    if (status) return declared;
+    throw Error(`${fn} unexpected response`, declared);
+  }
+  /** shuts down the gateway to server, forcing close
+   *  Chrome 125.0.6422.77 doesn't seem to send a close frame on reload
+   *  Firefox 126.0 doesn't fire beforeunload
+   */
+  disconnectAsClient() {
+    if (this.cli_gateway === void 0) return;
+    if (typeof this.cli_gateway.close === "function") {
+      this.cli_gateway.close();
+    }
+    this.cli_gateway = void 0;
+  }
+  /** endpoint lookup tables - - - - - - - - - - - - - - - - - - - -  - - - **/
+  /** return true if the message is handled anywhere */
+  packetHasHandler(pkt) {
+    const fn = "messageHasHandler:";
+    const a = this.getMessageHandlers(pkt.msg).length > 0;
+    const b = this.isServer() && this.getMessageAddresses(pkt.msg).length > 0;
+    return a || b;
+  }
+  /** get list of messages allocated to a uaddr */
+  getMessagesForAddress(uaddr) {
+    const fn = "getMessagesForAddress:";
+    if (!this.isServer()) return [];
+    if (typeof uaddr !== "string") throw Error(`${fn} invalid uaddr`);
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    const msg_list = [];
+    this.remoted_msgs.forEach((addr_set, msg) => {
+      if (addr_set.has(uaddr)) msg_list.push(msg);
+    });
+    return msg_list;
+  }
+  /** get list of UADDRs that a message is forwarded to */
+  getMessageAddresses(msg) {
+    const fn = "getMessageAddresses:";
+    if (!this.isServer()) return [];
+    if (typeof msg !== "string") throw Error(`${fn} invalid msg`);
+    const key = NormalizeMessage(msg);
+    if (!this.remoted_msgs.has(key))
+      this.remoted_msgs.set(key, /* @__PURE__ */ new Set());
+    const addr_set = this.remoted_msgs.get(key);
+    const addr_list = Array.from(addr_set);
+    return addr_list;
+  }
+  /** return list of local handlers for given message */
+  getMessageHandlers(msg) {
+    const fn = "getMessageHandlers:";
+    if (this.handled_msgs === void 0) return [];
+    if (typeof msg !== "string") throw Error(`${fn} invalid msg`);
+    const key = NormalizeMessage(msg);
+    if (!this.handled_msgs.has(key))
+      this.handled_msgs.set(key, /* @__PURE__ */ new Set());
+    const handler_set = this.handled_msgs.get(key);
+    if (!handler_set) throw Error(`${fn} unexpected empty set '${key}'`);
+    const handler_list = Array.from(handler_set);
+    return handler_list;
+  }
+  /** informational routing information - - - - - - - - - - - - - - - - - - **/
+  /** return handler list for this endpoint */
+  getMessageNames() {
+    const list = [];
+    this.handled_msgs.forEach((handler_set, key) => {
+      list.push(key);
+    });
+    return list;
+  }
+  /** return only net messages */
+  getNetMessageNames() {
+    const list = [];
+    this.handled_msgs.forEach((handler_set, key) => {
+      if (IsNetMessage(key)) list.push(key);
+    });
+    return list;
+  }
+  /** return list of active transactions for this endpoint */
+  getPendingTransactions() {
+    const fn = "getPendingTransactions:";
+    const list = [];
+    this.transactions.forEach((transaction, hash) => {
+      const { msg, uaddr } = transaction;
+      list.push({ hash, msg, uaddr });
+    });
+    return list;
+  }
+  /** server endpoints manage list of messages in clients  - - - - -  - - - **/
+  /** register a message handler for a given message to passed uaddr */
+  registerRemoteMessagesToAddress(uaddr, msgList) {
+    const fn = "registerRemoteMessagesToAddress:";
+    if (typeof uaddr !== "string") throw Error(`${fn} invalid uaddr`);
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    msgList.forEach((msg) => {
+      if (typeof msg !== "string") throw Error(`${fn} invalid msg`);
+      if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
+      const key = NormalizeMessage(msg);
+      if (!this.remoted_msgs.has(key))
+        this.remoted_msgs.set(key, /* @__PURE__ */ new Set());
+      const msg_set = this.remoted_msgs.get(key);
+      msg_set.add(uaddr);
+    });
+  }
+  /** unregister message handlers for a given message to passed uaddr */
+  _deleteRemoteMessagesForAddress(uaddr) {
+    const fn = "_deleteRemoteMessagesForAddress:";
+    if (typeof uaddr !== "string") throw Error(`${fn} invalid uaddr`);
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    const removed = [];
+    this.remoted_msgs.forEach((msg_set, key) => {
+      if (msg_set.has(uaddr)) removed.push(key);
+      msg_set.delete(uaddr);
+    });
+    return removed;
+  }
   /** packet interface  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
-  /** Receive a single packet from the wire, and determine
-   *  what to do with it. The packet has several possible
-   *  processing options!
+  /** Receive a single packet from the wire, and determine what to do with it.
+   *  It's assumed that _ingestClientPacket() has already handled
+   *  authentication for clients before this method is received.
+   *  The packet has several possible processing options!
    *  - packet is response to an outgoing transaction
    *  - packet is a message that we handle
    *  - packet is a message that we forward
@@ -2116,199 +1973,80 @@ var NetEndpoint = class {
    *  If the packet has the rsvp flag set, we need to return
    *  it to the source address in the packet with any data
    */
-  async pktReceive(pkt) {
-    try {
-      const fn = "pktReceive:";
-      if (pkt.isResponse()) {
-        if (pkt.src_addr === this.urnet_addr)
-          this.pktResolveRequest(pkt);
-        else
-          this.pktSendResponse(pkt);
-        return;
-      }
-      if (!pkt.isRequest()) {
-        LOG2(this.urnet_addr, fn, `invalid packet`, pkt);
-        return;
-      }
-      if (pkt.msg_type === "ping") {
-        const addrs = this.getAddressesForMessage(pkt.msg);
-        const handlers = this.getHandlersForMessage(pkt.msg);
-        if (handlers.length > 0)
-          addrs.push(this.urnet_addr);
-        pkt.setData(addrs);
-        this.pktSendResponse(pkt);
-        return;
-      }
-      if (pkt.msg_type === "signal") {
-        if (DBG)
-          LOG2(_PKT(this, fn, "-recv-sig-", pkt), pkt.data);
-        LOG2("would handle signal", pkt.msg);
-      }
-      const { msg } = pkt;
-      let retData;
-      if (this.msg_handlers.has(msg)) {
-        retData = await this.pktAwaitHandlers(pkt);
-      } else if (this.srv_msgs.has(msg)) {
-        retData = await this.pktAwaitRequest(pkt);
+  async dispatchPacket(pkt) {
+    const fn = "dispatchPacket:";
+    if (pkt.isResponse()) {
+      if (pkt.src_addr === this.uaddr) {
+        this.resolveTransaction(pkt);
       } else {
-        LOG2(this.urnet_addr, fn, `unknown message '${msg}'`, pkt);
-        retData = { error: `unknown message '${msg}'` };
+        this.returnToSender(pkt);
       }
-      if (!pkt.isRsvp())
-        return;
-      if (pkt.msg_type !== "call")
-        pkt.data = true;
-      else {
-        retData = NormalizeData(retData);
-        pkt.setData(retData);
-      }
-      this.pktSendResponse(pkt);
-    } catch (err) {
-      LOG2(err.message);
-      LOG2(err.stack.split("\n").slice(1).join("\n").trim());
-    }
-  }
-  /** Send a single packet on all available interfaces based on the
-   *  message. And endpoint can be a client (with gateway) or a server
-   *  (with clients). Use for initial outgoing packets only.
-   */
-  pktSendRequest(pkt) {
-    const fn = "pktSendRequest:";
-    if (pkt.src_addr === void 0)
-      throw Error(`${fn}src_addr undefined`);
-    if (this.urnet_addr === void 0)
-      throw Error(`${fn} urnet_addr undefined`);
-    if (pkt.hop_seq.length !== 0)
-      throw Error(`${fn} pkt must have no hops yet`);
-    if (pkt.msg_type !== "ping" && pkt.data === void 0)
-      throw Error(`${fn} data undefined`);
-    if (DBG)
-      LOG2(_PKT(this, fn, "-send-req-", pkt), pkt.data);
-    const { gateway, clients } = this.pktGetSocketRouting(pkt);
-    pkt.addHop(this.urnet_addr);
-    if (gateway) {
-      if (this.cli_reg === void 0)
-        throw Error(`${fn} endpoint not registered`);
-      gateway.send(pkt);
-    }
-    if (Array.isArray(clients)) {
-      clients.forEach((sock) => sock.send(pkt));
-    }
-  }
-  /** Given a packet and a socket, clone it and then return a
-   *  promise that sends it out on all network interfaces. This
-   *  is used by server endpoints as a utility to send a clone
-   *  packet on a particular socket to a particular address.
-   */
-  pktQueueRequest(pkt, sock) {
-    const fn = "pktQueueRequest:";
-    const clone = this.clonePacket(pkt);
-    clone.id = this.assignPacketId(clone);
-    const hash = GetPacketHashString(clone);
-    if (this.transactions.has(hash))
-      throw Error(`${fn} duplicate hash ${hash}`);
-    const p = new Promise((resolve, reject) => {
-      const meta = { msg: pkt.msg, uaddr: pkt.src_addr };
-      this.transactions.set(hash, { resolve, reject, ...meta });
-      sock.send(clone);
-    });
-    return p;
-  }
-  /** Resolve a transaction when a packet is returned to it through
-   *  pktReceive(pkt) which determines that it is a returning transaction
-   */
-  pktResolveRequest(pkt) {
-    const fn = "pktResolveRequest:";
-    if (pkt.hop_rsvp !== true)
-      throw Error(`${fn} packet is not RSVP`);
-    if (pkt.hop_dir !== "res")
-      throw Error(`${fn} packet is not a response`);
-    if (pkt.hop_seq.length < 2 && !pkt.isProtocol())
-      throw Error(`${fn} packet has no hops`);
-    const hash = GetPacketHashString(pkt);
-    const resolver = this.transactions.get(hash);
-    if (!resolver)
-      throw Error(`${fn} no resolver for hash ${hash}`);
-    const { resolve, reject } = resolver;
-    const { data } = pkt;
-    if (DBG)
-      LOG2(_PKT(this, fn, "-recv-res-", pkt), pkt.data);
-    if (pkt.err)
-      reject(pkt.err);
-    else
-      resolve(data);
-    this.transactions.delete(hash);
-  }
-  /** Return a packet to its source address. If this endpoint is a server,
-   *  then it might have the socket stored. Otherwise, if this endpoint is
-   *  also a client of another server, pass the back through the gateway.
-   *  This is used by server endpoints to return packets to clients.
-   */
-  pktSendResponse(pkt) {
-    const fn = "pktSendResponse:";
-    if (pkt.hop_rsvp !== true)
-      throw Error(`${fn} packet is not RSVP`);
-    if (pkt.hop_seq.length < 1)
-      throw Error(`${fn} packet has no hops`);
-    pkt.setDir("res");
-    pkt.addHop(this.urnet_addr);
-    if (DBG)
-      LOG2(_PKT(this, fn, "-send-res-", pkt), pkt.data);
-    const { gateway, src_addr } = this.pktGetSocketRouting(pkt);
-    if (this.isServer()) {
-      const socket = this.getClient(src_addr);
-      if (socket)
-        socket.send(pkt);
       return;
     }
-    if (gateway) {
-      gateway.send(pkt);
+    if (!pkt.isRequest()) {
+      LOG2(PR3, this.uaddr, fn, `invalid packet`, pkt);
       return;
     }
-    if (DBG)
-      LOG2(`${fn} unroutable packet`, pkt);
+    if (pkt.msg_type === "ping") {
+      const pingArr = this.getMessageAddresses(pkt.msg);
+      const pingHandlers = this.getMessageHandlers(pkt.msg);
+      if (pingHandlers.length > 0) pingArr.push(this.uaddr);
+      pkt.setData(pingArr);
+      this.returnToSender(pkt);
+      return;
+    }
+    if (pkt.msg_type === "signal") {
+      await this.awaitHandlers(pkt);
+      if (this.isServer()) await this.awaitRemoteHandlers(pkt);
+      return;
+    }
+    let retData;
+    if (this.packetHasHandler(pkt)) {
+      retData = await this.awaitHandlers(pkt);
+      if (this.isServer()) retData = await this.awaitRemoteHandlers(pkt);
+    } else {
+      LOG2(PR3, this.uaddr, fn, `unknown message`, pkt);
+      retData = { error: `unknown message '${pkt.msg}'` };
+    }
+    if (!pkt.hasRsvp()) return;
+    if (pkt.msg_type === "call") {
+      pkt.data = NormalizeData(retData);
+    } else if (pkt.msg_type === "send") {
+      pkt.data = true;
+    }
+    this.returnToSender(pkt);
   }
   /** Start a transaction, which returns promises to await. This method
    *  is a queue that uses Promises to wait for the return, which is
-   *  triggered by a returning packet in pktReceive(pkt).
+   *  triggered by a returning packet in dispatchPacket(pkt).
    */
-  async pktAwaitRequest(pkt) {
-    const fn = "pktAwaitRequest:";
-    if (pkt.hop_dir !== "req")
-      throw Error(`${fn} packet is not a request`);
-    const { gateway, clients } = this.pktGetSocketRouting(pkt);
+  async awaitRemoteHandlers(pkt) {
+    const fn = "awaitRemoteHandlers:";
+    if (pkt.hop_dir !== "req") throw Error(`${fn} packet is not a request`);
+    const { gateway, clients } = this.getRoutingInformation(pkt);
     const promises = [];
     if (gateway) {
-      if (DBG)
-        LOG2(_PKT(this, fn, "-wait-req-", pkt), pkt.data);
-      promises.push(this.pktQueueRequest(pkt, gateway));
+      const p = this.awaitTransaction(pkt, gateway);
+      if (p) promises.push(p);
     }
     if (Array.isArray(clients)) {
-      if (DBG)
-        LOG2(_PKT(this, fn, "-wait-req-", pkt), pkt.data);
       clients.forEach((sock) => {
-        promises.push(this.pktQueueRequest(pkt, sock));
+        const p = this.awaitTransaction(pkt, sock);
+        if (p) promises.push(p);
       });
     }
     let data = await Promise.all(promises);
-    if (Array.isArray(data) && data.length === 1)
-      data = data[0];
-    if (DBG)
-      LOG2(_PKT(this, fn, "-retn-req-", pkt), pkt.data);
     return data;
   }
   /** Start a handler call, which might have multiple implementors.
    *  Returns data from all handlers as an array or a single item
    */
-  async pktAwaitHandlers(pkt) {
-    const fn = "pktAwaitHandlers:";
+  async awaitHandlers(pkt) {
+    const fn = "awaitHandlers:";
     const { msg } = pkt;
-    const handlers = this.getHandlersForMessage(msg);
-    if (handlers.length === 0)
-      return Promise.resolve({ error: `no handler for '${msg}'` });
+    const handlers = this.getMessageHandlers(msg);
+    if (handlers.length === 0) return Promise.resolve([]);
     const promises = [];
-    if (DBG)
-      LOG2(_PKT(this, fn, "-wait-hnd-", pkt), pkt.data);
     handlers.forEach((handler) => {
       promises.push(
         new Promise((resolve, reject) => {
@@ -2321,31 +2059,111 @@ var NetEndpoint = class {
       );
     });
     let data = await Promise.all(promises);
-    if (Array.isArray(data) && data.length === 1)
-      data = data[0];
-    if (DBG)
-      LOG2(_PKT(this, fn, "-retn-hnd-", pkt), pkt.data);
     return data;
+  }
+  /** Send a single packet on all available interfaces based on the
+   *  message. Use for initial outgoing packets only from the
+   *  netCall, netSend, netSignal, and netPing methods.
+   */
+  initialSend(pkt) {
+    const fn = "initialSend:";
+    if (pkt.src_addr === void 0) throw Error(`${fn}src_addr undefined`);
+    if (this.uaddr === void 0) throw Error(`${fn} uaddr undefined`);
+    if (pkt.hop_seq.length !== 0) throw Error(`${fn} pkt must have no hops yet`);
+    if (pkt.msg_type !== "ping" && pkt.data === void 0)
+      throw Error(`${fn} data undefined`);
+    const { gateway, clients } = this.getRoutingInformation(pkt);
+    pkt.addHop(this.uaddr);
+    if (gateway) {
+      if (this.cli_reg === void 0) throw Error(`${fn} endpoint not registered`);
+      gateway.send(pkt);
+    }
+    if (Array.isArray(clients)) {
+      clients.forEach((sock) => sock.send(pkt));
+    }
+  }
+  /** Used to forward a transaction from server to a remote client
+   */
+  awaitTransaction(pkt, sock) {
+    const clone = this.clonePacket(pkt);
+    clone.id = this.assignPacketId(clone);
+    if (pkt.src_addr === sock.uaddr && SkipOriginType(pkt.msg_type)) return;
+    return this._queueTransaction(clone, sock);
+  }
+  /** Used to resolve a forwarded transaction received by server from
+   *  a remote client
+   */
+  resolveTransaction(pkt) {
+    const fn = "resolveTransaction:";
+    if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
+    if (pkt.hop_dir !== "res") throw Error(`${fn} packet is not a response`);
+    if (pkt.hop_seq.length < 2 && !pkt.isSpecialPkt())
+      throw Error(`${fn} packet has no hops`);
+    this._dequeueTransaction(pkt);
+  }
+  /** utility method for conducting transactions */
+  _queueTransaction(pkt, sock) {
+    const fn = "_queueTransaction:";
+    const hash = GetPacketHashString(pkt);
+    if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+    const { src_addr } = pkt;
+    const { uaddr: dst_addr } = sock;
+    return new Promise((resolve, reject) => {
+      const meta = { msg: pkt.msg, uaddr: pkt.src_addr };
+      this.transactions.set(hash, { resolve, reject, ...meta });
+      sock.send(pkt);
+    });
+  }
+  /** utility method for completing transactions */
+  _dequeueTransaction(pkt) {
+    const fn = "_finishTransaction:";
+    const hash = GetPacketHashString(pkt);
+    const resolver = this.transactions.get(hash);
+    if (!resolver) throw Error(`${fn} no resolver for hash ${hash}`);
+    const { resolve, reject } = resolver;
+    const { data } = pkt;
+    if (pkt.err) reject(pkt.err);
+    else resolve(data);
+    this.transactions.delete(hash);
+  }
+  /** Return a packet to its source address. If this endpoint is a server,
+   *  then it might have the socket stored. Otherwise, if this endpoint is
+   *  also a client of another server, pass the back through the gateway.
+   *  This is used by server endpoints to return packets to clients.
+   */
+  returnToSender(pkt) {
+    const fn = "returnToSender:";
+    if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
+    if (pkt.hop_seq.length < 1) throw Error(`${fn} packet has no hops`);
+    pkt.setDir("res");
+    pkt.addHop(this.uaddr);
+    const { gateway, src_addr } = this.getRoutingInformation(pkt);
+    if (this.isServer()) {
+      const socket = this.getClient(src_addr);
+      if (socket) socket.send(pkt);
+      return;
+    }
+    if (gateway) {
+      gateway.send(pkt);
+      return;
+    }
+    LOG2(PR3, `${fn} unroutable packet`, pkt);
   }
   /** return array of sockets to use for sending packet,
    *  based on pkt.msg and pkt.src_addr
    */
-  pktGetSocketRouting(pkt) {
-    const fn = "pktGetSocketRouting:";
+  getRoutingInformation(pkt) {
+    const fn = "getRoutingInformation:";
     const { msg, src_addr } = pkt;
-    if (!IsNetMessage(msg))
-      throw Error(`${fn} '${msg}' is invalid message`);
+    if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' is invalid message`);
     const gateway = this.cli_gateway;
-    const self_addr = this.urnet_addr;
-    const msg_list = this.getAddressesForMessage(msg);
+    const self_addr = this.uaddr;
+    const msg_list = this.getMessageAddresses(msg);
     const clients = [];
     msg_list.forEach((uaddr) => {
-      LOG2("uaddr", uaddr);
-      if (uaddr === this.urnet_addr)
-        return;
+      if (uaddr === this.uaddr) return;
       const socket = this.getClient(uaddr);
-      if (socket)
-        clients.push(socket);
+      if (socket) clients.push(socket);
     });
     return {
       msg,
@@ -2355,17 +2173,1347 @@ var NetEndpoint = class {
       clients
     };
   }
+  /** packet utility - - - - - - - - - - - - - - - - - - - - - - - - - - - -**/
+  assignPacketId(pkt) {
+    if (pkt.src_addr === void 0) pkt.src_addr = this.uaddr;
+    const count = ++this.pkt_counter;
+    pkt.id = `pkt[${pkt.src_addr}:${count}]`;
+    return pkt.id;
+  }
+  /** convert JSON to packet and return */
+  packetFromJSON(json) {
+    const pkt = new class_urnet_packet_default();
+    pkt.setFromJSON(json);
+    return pkt;
+  }
+  /** create a new packet with proper address */
+  newPacket(msg, data) {
+    const fn = "newPacket:";
+    const pkt = new class_urnet_packet_default(msg, data);
+    pkt.setSrcAddr(this.uaddr || UADDR_NONE);
+    if (this.cli_auth) pkt.setAuth(this.cli_auth);
+    pkt.id = this.assignPacketId(pkt);
+    return pkt;
+  }
+  /** clone a packet with new id */
+  clonePacket(pkt) {
+    const clone = this.newPacket(pkt.msg, pkt.data);
+    clone.setFromJSON(pkt.serialize());
+    clone.src_addr = this.uaddr;
+    clone.id = this.assignPacketId(clone);
+    return clone;
+  }
+  /** create an authentication packet, which is the first packet that must be sent
+   *  after connecting to the server */
+  newAuthPacket(authObj) {
+    const pkt = this.newPacket("SRV:AUTH", { ...authObj });
+    pkt.setMeta("_auth", { rsvp: true });
+    pkt.setSrcAddr(UADDR_NONE);
+    this.assignPacketId(pkt);
+    return pkt;
+  }
+  /** create a registration packet */
+  newRegPacket() {
+    const pkt = this.newPacket("SRV:REG");
+    pkt.setMeta("_reg", { rsvp: true });
+    return pkt;
+  }
+  /** create a declaration packet shell */
+  newDeclPacket() {
+    const pkt = this.newPacket("SRV:DEF");
+    pkt.setMeta("_decl", { rsvp: true });
+    return pkt;
+  }
+  /** environment utilities - - - - - - - - - - - - - - - - - - - - - - - - **/
+  /** return true if this endpoint is managing connections */
+  isServer() {
+    return this.client_socks !== void 0 && this.remoted_msgs !== void 0;
+  }
+  /** socket utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+  /** given a socket, see if it's already registered */
+  isNewSocket(socket) {
+    const fn = "isNewSocket:";
+    if (typeof socket !== "object") return false;
+    return socket.uaddr === void 0;
+  }
+  /** client endpoints need to have an authentication token to
+   *  access URNET beyond registration
+   */
+  authorizeSocket(auth) {
+    const fn = "authorizeSocket:";
+    LOG2(PR3, this.uaddr, "would check auth token");
+  }
+};
+var class_urnet_endpoint_default = NetEndpoint;
+var constants_urnet_web_exports = {};
+__export2(constants_urnet_web_exports, {
+  GetClientInfoFromWindowLocation: () => GetClientInfoFromWindowLocation,
+  HTTP_CLIENT_INFO: () => HTTP_CLIENT_INFO
+});
+var http_host = "127.0.0.1";
+var http_port = 8080;
+var wss_path = "urnet-http";
+var HTTP_CLIENT_INFO = {
+  http_host,
+  http_port,
+  http_url: `http://${http_host}:${http_port}`,
+  //
+  wss_path,
+  wss_url: `ws://${http_host}:${http_port}/${wss_path}`
+};
+function GetClientInfoFromWindowLocation(winLocation) {
+  const { host, pathname, protocol } = winLocation;
+  const { http_port: http_port2, wss_path: wss_path2 } = HTTP_CLIENT_INFO;
+  const tls = protocol === "https:";
+  const hostpath = host + pathname;
+  const http_url = tls ? `https://${hostpath}` : `http://${hostpath}`;
+  const wss_url = tls ? `wss://${hostpath}/${wss_path2}` : `ws://${hostpath}${wss_path2}`;
+  let new_info = {
+    ...HTTP_CLIENT_INFO,
+    http_host: hostpath,
+    http_url,
+    wss_url
+  };
+  HTTP_CLIENT_INFO = new_info;
+  return new_info;
+}
+var { makeStyleFormatter } = import_util_prompts.default;
+var PR4 = makeStyleFormatter("UR", "TagCyan");
+var CLASS = {
+  OpSequencer: class_op_seq_default,
+  StateMgr: class_state_mgr_default,
+  NetSocket: class_urnet_socket_default,
+  NetEndpoint: class_urnet_endpoint_default,
+  NetPacket: class_urnet_packet_default
+};
+var LIB = {
+  UID: lib_uid_exports
+};
+var CONSTANTS = {
+  urnet: constants_urnet_web_exports
+};
+function ClientTest() {
+  console.log(...PR4("System Integration of new URSYS module successful!"));
+}
+var export_PROMPTS = import_util_prompts.default;
+var export_TEXT = import_util_text.default;
+
+// ../_ur_addons/net/urnet-types.ts
+var VALID_MSG_CHANNELS2 = ["NET", "SRV", "LOCAL", ""];
+var VALID_PKT_TYPES2 = [
+  "ping",
+  "signal",
+  "send",
+  "call",
+  "_auth",
+  // special packet
+  "_reg",
+  // special packet
+  "_decl"
+  // special packet
+];
+var SKIP_SELF_PKT_TYPES2 = ["call", "send"];
+var VALID_ADDR_PREFIX2 = ["???", "UR_", "WSS", "UDS", "MQT", "SRV"];
+var UADDR_DIGITS2 = 3;
+var USED_ADDRS2 = /* @__PURE__ */ new Set();
+var zeroPad2 = `0`.padStart(UADDR_DIGITS2, "0");
+var UADDR_NONE2 = `???${zeroPad2}`;
+function IsValidType2(msg_type) {
+  return VALID_PKT_TYPES2.includes(msg_type);
+}
+function SkipOriginType2(msg_type) {
+  return SKIP_SELF_PKT_TYPES2.includes(msg_type);
+}
+function IsValidChannel2(msg_chan) {
+  return VALID_MSG_CHANNELS2.includes(msg_chan);
+}
+function IsValidAddress2(addr) {
+  if (typeof addr !== "string") return false;
+  let prelen = 0;
+  if (!VALID_ADDR_PREFIX2.some((pre) => {
+    prelen = pre.length;
+    return addr.startsWith(pre);
+  }))
+    return false;
+  const num = parseInt(addr.slice(prelen));
+  if (isNaN(num)) return false;
+  return true;
+}
+function IsValidMessage2(msg) {
+  try {
+    return DecodeMessage2(msg);
+  } catch (err) {
+    console.log(err.message);
+    console.log(err.stack.split("\n").slice(1).join("\n").trim());
+    return void 0;
+  }
+}
+var ADDR_MAX_ID2 = 0;
+function AllocateAddress2(opt) {
+  const fn = "AllocateAddress";
+  let addr = opt == null ? void 0 : opt.addr;
+  let pre = (opt == null ? void 0 : opt.prefix) || "UA";
+  if (addr === void 0) {
+    let id = ++ADDR_MAX_ID2;
+    let padId = `${id}`.padStart(UADDR_DIGITS2, "0");
+    addr = `${pre}${padId}`;
+  } else if (USED_ADDRS2.has(addr)) {
+    throw Error(`${fn} - address ${addr} already allocated`);
+  }
+  USED_ADDRS2.add(addr);
+  return addr;
+}
+function DecodeMessage2(msg) {
+  if (typeof msg !== "string") throw Error(`message must be string: ${msg}`);
+  if (msg !== msg.toUpperCase()) throw Error(`message must be uppercase: ${msg}`);
+  const bits = msg.split(":");
+  if (bits.length === 0) throw Error(`invalid empty message`);
+  if (bits.length > 2) throw Error(`invalid channel:message format ${msg}`);
+  let [chan, name] = bits;
+  if (bits.length === 1) {
+    name = chan;
+    chan = "LOCAL";
+  }
+  if (chan === "") chan = "LOCAL";
+  if (!IsValidChannel2(chan))
+    throw Error(`prefix must be ${VALID_MSG_CHANNELS2.join(" ").trim()} not ${chan}`);
+  return [chan, name];
+}
+function NormalizeMessage2(msg) {
+  let [chan, name] = DecodeMessage2(msg);
+  if (chan === "LOCAL") chan = "";
+  return `${chan}:${name}`;
+}
+function NormalizeData2(data) {
+  if (Array.isArray(data) && data.length == 1) return data[0];
+  return data;
+}
+function IsLocalMessage2(msg) {
+  const [chan] = DecodeMessage2(msg);
+  return chan === "LOCAL";
+}
+function IsNetMessage2(msg) {
+  const [chan] = DecodeMessage2(msg);
+  return chan === "NET" || chan === "SRV";
+}
+function GetPacketHashString2(pkt) {
+  return `${pkt.src_addr}:${pkt.id}`;
+}
+
+// ../_ur_addons/net/class-urnet-packet.ts
+var PR5 = typeof process !== "undefined" ? "Packet".padEnd(13) : "Packet:";
+var LOG3 = (...args) => console.log(PR5, ...args);
+var NetPacket2 = class {
+  // returned error message
+  constructor(msg, data) {
+    __publicField(this, "id");
+    // network-wide unique id for this packet
+    __publicField(this, "msg_type");
+    // ping, signal, send, call
+    __publicField(this, "msg");
+    // name of the URNET message
+    __publicField(this, "data");
+    // payload of the URNET message
+    __publicField(this, "auth");
+    // authentication token
+    __publicField(this, "src_addr");
+    // URNET address of the sender
+    __publicField(this, "hop_seq");
+    // URNET addresses that have seen this packet
+    __publicField(this, "hop_log");
+    // log of debug messages by hop
+    __publicField(this, "hop_dir");
+    // direction of the packet 'req' or 'res'
+    __publicField(this, "hop_rsvp");
+    // whether the packet is a response to a request
+    __publicField(this, "err");
+    this.id = void 0;
+    this.src_addr = void 0;
+    this.hop_rsvp = false;
+    this.hop_seq = [];
+    this.hop_log = [];
+    this.auth = void 0;
+    this.err = void 0;
+    if (data !== void 0) this.data = data;
+    if (typeof msg === "string") {
+      if (!IsValidMessage2(msg)) throw Error(`invalid msg format: ${msg}`);
+      this.msg = msg;
+    }
+  }
+  /** after creating a new packet, use setMeta() to assign id and envelope
+   *  meta used for routing and return packets
+   */
+  setMeta(msg_type, opt) {
+    if (!IsValidType2(msg_type)) throw Error(`invalid msg_type: ${msg_type}`);
+    this.msg_type = msg_type;
+    this.hop_dir = (opt == null ? void 0 : opt.dir) || "req";
+    this.hop_rsvp = (opt == null ? void 0 : opt.rsvp) || false;
+  }
+  /** add hop to the hop sequence */
+  addHop(hop) {
+    if (!IsValidAddress2(hop)) throw Error(`invalid hop: ${hop}`);
+    this.hop_seq.push(hop);
+  }
+  /** utility setters w/ checks - - - - - - - - - - - - - - - - - - - - - - **/
+  /** manually set the source address, with check */
+  setSrcAddr(s_addr) {
+    if (!IsValidAddress2(s_addr)) throw Error(`invalid src_addr: ${s_addr}`);
+    if (this.hop_seq.length > 0 && this.hop_seq[0] !== s_addr)
+      throw Error(`src_addr ${s_addr} != ${this.hop_seq[0]}`);
+    this.src_addr = s_addr;
+    return this;
+  }
+  /** manually set direction */
+  setDir(dir) {
+    if (dir !== "req" && dir !== "res") throw Error(`invalid dir: ${dir}`);
+    this.hop_dir = dir;
+    return this;
+  }
+  /** set the authorization token */
+  setAuth(auth) {
+    if (typeof auth !== "string") {
+      LOG3("setAuth: invalid auth", auth);
+      throw Error(`invalid auth: ${auth}`);
+    }
+    this.auth = auth;
+    return this;
+  }
+  /** set message and data */
+  setMsgData(msg, data) {
+    this.setMsg(msg);
+    this.setData(data);
+    return this;
+  }
+  /** set message */
+  setMsg(msg) {
+    this.msg = msg;
+    return this;
+  }
+  /** set data */
+  setData(data) {
+    this.data = data;
+    return this;
+  }
+  /** merge data */
+  mergeData(data) {
+    this.data = { ...this.data, ...data };
+    return this;
+  }
+  /** packet reconstruction - - - - - - - - - - - - - - - - - - - - - - - - **/
+  /** make a packet from existing JSON */
+  setFromJSON(json) {
+    if (typeof json !== "string")
+      throw Error(`invalid json: ${json}, is ${typeof json}`);
+    return this.deserialize(json);
+  }
+  /** make a packet from existing object */
+  setFromObject(pktObj) {
+    const fn = "setFromObject";
+    if (typeof pktObj !== "object")
+      throw Error(`invalid pktObj: ${pktObj}, is ${typeof pktObj}`);
+    this.id = pktObj.id;
+    this.msg = pktObj.msg;
+    if (pktObj.data === void 0)
+      LOG3(fn, `... pktObj${pktObj.id} .data is undefined`);
+    this.data = pktObj.data;
+    this.src_addr = pktObj.src_addr;
+    this.hop_log = pktObj.hop_log;
+    this.msg_type = pktObj.msg_type;
+    this.hop_seq = pktObj.hop_seq;
+    this.hop_dir = pktObj.hop_dir;
+    this.hop_rsvp = pktObj.hop_rsvp;
+    this.err = pktObj.err;
+    this.auth = pktObj.auth;
+    return this;
+  }
+  /** packet transport  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+  /** rsvp required? */
+  hasRsvp() {
+    return this.hop_rsvp;
+  }
+  lastHop() {
+    return this.hop_seq[this.hop_seq.length - 1];
+  }
+  hasAuth() {
+    return this.auth !== void 0;
+  }
+  /** types that begin with _ are protocol messages that bypass dispatchPacket() */
+  isSpecialPkt() {
+    return this.msg_type.startsWith("_");
+  }
+  /** authorization packets are the first packet sent on a client connection to
+   *  the message gateway server. They must not have a src_addr aassigned, using
+   *  the special UADDR_NONE value instead.
+   */
+  isBadAuthPkt() {
+    let error = "";
+    let a = this.msg_type === "_auth";
+    let b = this.msg === "SRV:AUTH";
+    let c = this.src_addr === UADDR_NONE2;
+    if (!a) error += `msg_type ${this.msg_type} not _auth. `;
+    if (!b) error += `msg ${this.msg} not SRV:AUTH. `;
+    if (!c) error += `src_addr ${this.src_addr} not ${UADDR_NONE2} `;
+    if (error.length > 0) return `isBadAuthPkt: ${error}`;
+    return void 0;
+  }
+  /** registration packets are sent on a client connection after
+   *  authentication. They must have a src_addr assigned, which was returned
+   *  by the server in the response to the auth packet, and this must match
+   *  the server's stored uaddr for the client connection.
+   */
+  isBadRegPkt(socket) {
+    let error = "";
+    let a = this.msg_type === "_reg";
+    let b = this.msg === "SRV:REG";
+    let c = this.src_addr === socket.uaddr;
+    if (!a) error += `msg_type ${this.msg_type} not _reg. `;
+    if (!b) error += `msg ${this.msg} not SRV:REG. `;
+    if (!c) error += `src_addr ${this.src_addr} not ${socket.uaddr}. `;
+    if (error.length > 0) return `isBadRegPkt: ${error}`;
+    return void 0;
+  }
+  authenticate(socket) {
+    const { msg, src_addr, hop_dir, hop_seq } = this;
+    if (!this.isResponse()) LOG3(PR5, `would auth ${src_addr} '${msg}'`);
+    return true;
+  }
+  isRequest() {
+    return this.hop_dir === "req";
+  }
+  isResponse() {
+    return this.hop_dir === "res";
+  }
+  /** serialization - - - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+  serialize() {
+    return JSON.stringify(this);
+  }
+  deserialize(data) {
+    try {
+      let obj = JSON.parse(data);
+      return this.setFromObject(obj);
+    } catch (err) {
+      LOG3("NetPacket.deserialize failed", data);
+    }
+  }
+  /** information utilities - - - - - - - - - - - - - - - - - - - - - - - - **/
+  isValidType(type) {
+    return IsValidType2(type);
+  }
+  isValidMessage(msg) {
+    return IsValidMessage2(msg) !== void 0;
+  }
+  decodeMessage(msg) {
+    return DecodeMessage2(msg);
+  }
+  /** debugging - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+  /** add error string to packet error */
+  error(msg) {
+    if (!this.err) this.err = "";
+    this.err += msg;
+    return msg;
+  }
+  /** manually add a transport-related message eto the hog log. this is not
+   *  the same as hop_seq which is used to track the routing of the packet.
+   */
+  hopLog(msg) {
+    const info = `${this.id} ${this.hop_dir}`;
+    this.hop_log.push(`${info}: ${msg}`);
+    return msg;
+  }
 };
 
-// _ur_addons/net/class-urnet-socket.ts
-var PR4 = typeof process !== "undefined" ? "Socket".padEnd(13) : "Socket:";
-var NetSocket = class {
+// ../_ur_addons/net/class-urnet-endpoint.ts
+var PR6 = typeof process !== "undefined" ? "EndPoint".padEnd(13) : "EndPoint".padEnd(11);
+var LOG4 = console.log.bind(console);
+var AGE_INTERVAL2 = 1e3;
+var AGE_MAX2 = 60 * 30;
+var NetEndpoint2 = class {
+  // client registration status
+  constructor() {
+    __publicField(this, "handled_msgs");
+    // msg->handlers[]
+    //
+    __publicField(this, "uaddr");
+    // the address for this endpoint
+    __publicField(this, "client_socks");
+    // uaddr->I_NetSocket
+    __publicField(this, "remoted_msgs");
+    // msg->uaddr[]
+    __publicField(this, "transactions");
+    // hash->resolver
+    //
+    __publicField(this, "cli_counter");
+    // counter for generating unique uaddr
+    __publicField(this, "pkt_counter");
+    // counter for generating packet ids
+    //
+    __publicField(this, "cli_gateway");
+    // gateway to server
+    __publicField(this, "cli_sck_timer");
+    // timer for checking socket age
+    __publicField(this, "cli_ident");
+    // client credentials to request authentication
+    __publicField(this, "cli_auth");
+    // client access token for
+    __publicField(this, "cli_reg");
+    this.uaddr = void 0;
+    this.cli_ident = void 0;
+    this.cli_auth = void 0;
+    this.cli_reg = void 0;
+    this.cli_gateway = void 0;
+    this.client_socks = void 0;
+    this.remoted_msgs = void 0;
+    this.handled_msgs = /* @__PURE__ */ new Map();
+    this.transactions = /* @__PURE__ */ new Map();
+    this.pkt_counter = 0;
+    this.cli_counter = 0;
+    this.cli_sck_timer = null;
+  }
+  /** API: initialize this endpoint's client server, providing a hardcoded
+   *  server UADDR that is distinct from those used by client pools
+   */
+  configAsServer(srv_addr) {
+    const fn = "configAsServer:";
+    if (!IsValidAddress2(srv_addr)) throw Error(`${fn} invalid srv_addr ${srv_addr}`);
+    if (this.uaddr && this.uaddr !== srv_addr) {
+      let err = `${fn} uaddr ${this.uaddr} already set.`;
+      throw Error(err);
+    }
+    this.uaddr = srv_addr;
+    if (this.client_socks !== void 0)
+      LOG4(PR6, this.uaddr, `already configured`, [...this.client_socks.keys()]);
+    this.client_socks = /* @__PURE__ */ new Map();
+    if (this.remoted_msgs !== void 0)
+      LOG4(PR6, this.uaddr, `already configured`, [...this.remoted_msgs.keys()]);
+    this.remoted_msgs = /* @__PURE__ */ new Map();
+    this.addMessageHandler("SRV:REFLECT", (data) => {
+      data.info = `built-in service`;
+      return data;
+    });
+  }
+  /** API: Server data event handler for incoming data from a client connection.
+   *  This is the mirror to _ingestServerPacket() function used by client endpoints.
+   *  This is the entry point for incoming data from clients */
+  _ingestClientPacket(jsonData, socket) {
+    let pkt = this.newPacket().deserialize(jsonData);
+    let retPkt;
+    retPkt = this._handleAuthRequest(pkt, socket);
+    if (retPkt) return retPkt;
+    retPkt = this._handleRegRequest(pkt, socket);
+    if (retPkt) return retPkt;
+    retPkt = this._handleDeclRequest(pkt, socket);
+    if (retPkt) return retPkt;
+    this.dispatchPacket(pkt);
+  }
+  /** API: when a client connects to this endpoint, register it as a socket and
+   *  allocate a uaddr for it */
+  addClient(socket) {
+    const fn = "addClient:";
+    if (typeof socket !== "object") throw Error(`${fn} invalid socket`);
+    if (socket.uaddr !== void 0) throw Error(`${fn} socket already added`);
+    const new_uaddr = AllocateAddress2({ prefix: "UR_" });
+    socket.uaddr = new_uaddr;
+    socket.age = 0;
+    socket.auth = void 0;
+    socket.msglist = void 0;
+    this.client_socks.set(new_uaddr, socket);
+    return new_uaddr;
+  }
+  /** API: when a client disconnects from this endpoint, delete its socket and
+   *  remove all message forwarding */
+  removeClient(uaddr_obj) {
+    const fn = "removeClient:";
+    let uaddr = typeof uaddr_obj === "string" ? uaddr_obj : uaddr_obj.uaddr;
+    if (typeof uaddr !== "string") {
+      LOG4(PR6, `${fn} invalid uaddr ${typeof uaddr}`);
+      return void 0;
+    }
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    this._deleteRemoteMessagesForAddress(uaddr);
+    this.client_socks.delete(uaddr);
+    return uaddr;
+  }
+  /** API: given a uaddr, return the socket */
+  getClient(uaddr) {
+    const fn = "getClient:";
+    if (this.client_socks === void 0) return void 0;
+    return this.client_socks.get(uaddr);
+  }
+  /** API: start a timer to check for dead sockets */
+  enableClientAging(activate) {
+    const fn = "enableClientAging:";
+    if (activate) {
+      if (this.cli_sck_timer) clearInterval(this.cli_sck_timer);
+      this.cli_sck_timer = setInterval(() => {
+        this.client_socks.forEach((socket, uaddr) => {
+          socket.age += AGE_INTERVAL2;
+          if (socket.age > AGE_MAX2) {
+            LOG4(PR6, this.uaddr, `socket ${uaddr} expired`);
+          }
+        });
+      }, AGE_INTERVAL2);
+      return;
+    }
+    if (this.cli_sck_timer) clearInterval(this.cli_sck_timer);
+    this.cli_sck_timer = null;
+    LOG4(PR6, this.uaddr, `timer stopped`);
+  }
+  /** support: handle auth packet if the session.auth is not defined */
+  _handleAuthRequest(pkt, socket) {
+    if (!socket.authenticated()) {
+      pkt.setDir("res");
+      pkt.addHop(this.uaddr);
+      const error = pkt.isBadAuthPkt();
+      if (error) {
+        console.error(PR6, error);
+        pkt.data = { error };
+        return pkt;
+      }
+      const { identity, secret } = pkt.data;
+      if (identity) {
+        socket.auth = identity;
+        pkt.data = { uaddr: socket.uaddr, cli_auth: "ServerProvidedAuthToken" };
+      } else {
+        pkt.data = { error: "invalid identity" };
+      }
+      return pkt;
+    }
+    return void 0;
+  }
+  /** support: handle registration packet */
+  _handleRegRequest(pkt, socket) {
+    if (!pkt.isBadRegPkt(socket)) {
+      pkt.setDir("res");
+      pkt.addHop(this.uaddr);
+      if (pkt.msg !== "SRV:REG") {
+        pkt.data = { error: `invalid reg packet ${pkt.msg}` };
+        return pkt;
+      }
+      if (pkt.src_addr !== socket.uaddr) {
+        LOG4(PR6, "src address mismatch", pkt.src_addr, "!= sock", socket.uaddr);
+        pkt.data = { error: "address mismatch" };
+        return pkt;
+      }
+      const { name, type } = pkt.data;
+      if (name) {
+        const { uaddr } = socket;
+        pkt.data = { ok: true, status: `registered name:${name} type:${type}` };
+        return pkt;
+      }
+      pkt.data = { error: "registration failed" };
+      return pkt;
+    }
+    return void 0;
+  }
+  /** support: handle client dynamic definitions */
+  _handleDeclRequest(pkt, socket) {
+    if (pkt.msg_type === "_decl") {
+      pkt.setDir("res");
+      pkt.addHop(this.uaddr);
+      if (pkt.msg !== "SRV:DEF") {
+        console.log("invalid def packet", pkt.msg);
+        pkt.data = { error: `invalid def packet ${pkt.msg}` };
+        return pkt;
+      }
+      pkt.data.status = [];
+      const { msg_list } = pkt.data;
+      const { uaddr } = socket;
+      if (Array.isArray(msg_list)) {
+        this.registerRemoteMessagesToAddress(uaddr, msg_list);
+        pkt.data.status.push(`registered ${msg_list.length} messages`);
+      }
+      if (pkt.data.status.length === 0) {
+        pkt.data = { error: "no definitions" };
+        return pkt;
+      }
+    }
+    return void 0;
+  }
+  /** client connection handshaking - - - - - - - - - - - - - - - - - - - - **/
+  /** API: client endpoints need to have an "address" assigned to them,
+   *  otherwise the endpoint will not work */
+  async connectAsClient(gateway, auth) {
+    const fn = "connectAsClient:";
+    if (gateway && typeof gateway.send === "function") {
+      this.cli_gateway = gateway;
+    } else throw Error(`${fn} invalid gateway`);
+    if (auth) {
+      const pkt = this.newAuthPacket(auth);
+      const { msg } = pkt;
+      let authData = await this._queueTransaction(pkt, gateway);
+      const { uaddr, cli_auth, error } = authData;
+      if (error) {
+        LOG4(PR6, `${fn} error:`, error);
+        return false;
+      }
+      if (!IsValidAddress2(uaddr)) throw Error(`${fn} invalid uaddr ${uaddr}`);
+      this.uaddr = uaddr;
+      if (cli_auth === void 0) throw Error(`${fn} invalid cli_auth`);
+      this.cli_auth = cli_auth;
+      LOG4(PR6, "AUTHENTICATED", uaddr, cli_auth);
+      this.cli_auth = cli_auth;
+      return authData;
+    }
+    throw Error(`${fn} arg must be identity`);
+  }
+  /** API: Client data event handler for incoming data from the gateway. This is
+   *  the mirror to _ingestClientPacket() function that is used by servers. This
+   *  is entry point for incoming data from server
+   */
+  _ingestServerPacket(jsonData, socket) {
+    const fn = "_ingestServerPacket:";
+    const pkt = this.newPacket().deserialize(jsonData);
+    if (this.cli_gateway) {
+      if (this._handleAuthResponse(pkt)) return;
+      if (this._handleRegResponse(pkt)) return;
+      if (this._handleDeclResponse(pkt)) return;
+    }
+    this.dispatchPacket(pkt);
+  }
+  /** API: register client with client endpoint info */
+  async declareClientProperties(info) {
+    const fn = "declareClientProperties:";
+    if (!this.cli_gateway) throw Error(`${fn} no gateway`);
+    const pkt = this.newRegPacket();
+    pkt.data = { ...info };
+    let regData = await this._queueTransaction(pkt, this.cli_gateway);
+    const { ok, status, error } = regData;
+    if (error) {
+      LOG4(PR6, `${fn} error:`, error);
+      return regData;
+    }
+    if (ok) {
+      LOG4(PR6, "REGISTERED", status);
+      this.cli_reg = info;
+      return regData;
+    }
+    throw Error(`${fn} unexpected response`, regData);
+  }
+  /** API: declare client messages */
+  async declareClientMessages() {
+    const fn = "declareClientMessages:";
+    const msg_list = this.getNetMessageNames();
+    const response = await this._declareClientServices({ msg_list });
+    const { msg_list: rmsg_list, error } = response;
+    if (error) {
+      LOG4(PR6, `${fn} error:`, error);
+    } else {
+      LOG4(PR6, `DECLARED ${rmsg_list.length} messages`);
+      rmsg_list.forEach((msg) => LOG4(PR6, `  '${msg}'`));
+    }
+    return response;
+  }
+  /** support: handle authentication response packet directly rather than through
+   *  the netcall interface in dispatchPacket() */
+  _handleAuthResponse(pkt) {
+    const fn = "_handleAuthResponse:";
+    if (pkt.msg_type !== "_auth") return false;
+    if (pkt.hop_dir !== "res") return false;
+    this.resolveTransaction(pkt);
+    return true;
+  }
+  /** support: handle registration response packet directly rather than through
+   *  the netcall interface in dispatchPacket() */
+  _handleRegResponse(pkt) {
+    const fn = "_handleRegResponse:";
+    if (pkt.msg_type !== "_reg") return false;
+    if (pkt.hop_dir !== "res") return false;
+    if (pkt.src_addr !== this.uaddr) throw Error(`${fn} misaddressed packet???`);
+    this.resolveTransaction(pkt);
+    return true;
+  }
+  /** support: handle declaration packet */
+  _handleDeclResponse(pkt) {
+    const fn = "_handleDeclResponse:";
+    if (pkt.msg_type !== "_decl") return false;
+    if (pkt.hop_dir !== "res") return false;
+    if (pkt.src_addr !== this.uaddr) throw Error(`${fn} misaddressed packet???`);
+    this.resolveTransaction(pkt);
+    return true;
+  }
+  /** message declaration and invocation - - - - - - - - - - - - - - - - - -**/
+  /** API: declare a message handler for a given message */
+  addMessageHandler(msg, handler) {
+    const fn = "addMessageHandler:";
+    if (typeof msg !== "string") throw Error(`${fn} invalid msg`);
+    if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
+    if (typeof handler !== "function") throw Error(`${fn} invalid handler`);
+    const key = NormalizeMessage2(msg);
+    if (!this.handled_msgs.has(key))
+      this.handled_msgs.set(key, /* @__PURE__ */ new Set());
+    const handler_set = this.handled_msgs.get(key);
+    handler_set.add(handler);
+  }
+  /** API: remove a previously declared message handler for a given message */
+  deleteMessageHandler(msg, handler) {
+    const fn = "deleteMessageHandler:";
+    if (typeof msg !== "string") throw Error(`${fn} invalid msg`);
+    if (typeof handler !== "function") throw Error(`${fn} invalid handler`);
+    const key = NormalizeMessage2(msg);
+    const handler_set = this.handled_msgs.get(key);
+    if (!handler_set) throw Error(`${fn} unexpected empty set '${key}'`);
+    handler_set.delete(handler);
+  }
+  /** API: call local message registered on this endPoint only */
+  async call(msg, data) {
+    const fn = "call:";
+    if (!IsLocalMessage2(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
+    const handlers = this.getMessageHandlers(msg);
+    const promises = [];
+    handlers.forEach((handler) => {
+      promises.push(
+        new Promise((resolve, reject) => {
+          try {
+            resolve(handler({ ...data }));
+          } catch (err) {
+            reject(err);
+          }
+        })
+      );
+    });
+    if (promises.length === 0)
+      return Promise.resolve({ error: `no handler for '${msg}'` });
+    const resData = await Promise.all(promises);
+    return resData;
+  }
+  /** API: send local message registered on this endPoint only, returning no data */
+  async send(msg, data) {
+    const fn = "send:";
+    if (!IsLocalMessage2(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
+    const handlers = this.getMessageHandlers(msg);
+    if (handlers.length === 0)
+      return Promise.resolve({ error: `no handler for '${msg}'` });
+    handlers.forEach((handler) => {
+      handler({ ...data });
+    });
+    return Promise.resolve(true);
+  }
+  /** API: signal local message registered on this endPoint only, returning no data.
+   */
+  signal(msg, data) {
+    const fn = "signal:";
+    if (!IsLocalMessage2(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
+    const handlers = this.getMessageHandlers(msg);
+    if (handlers.length === 0)
+      return Promise.resolve({ error: `no handler for '${msg}'` });
+    handlers.forEach((handler) => {
+      handler({ ...data });
+    });
+  }
+  /** API: ping local message, return with number of handlers */
+  async ping(msg) {
+    const fn = "ping:";
+    if (!IsLocalMessage2(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
+    const handlers = this.getMessageHandlers(msg);
+    return Promise.resolve(handlers.length);
+  }
+  /** API: call net message, resolves when packet returns from server with data */
+  async netCall(msg, data) {
+    const fn = "netCall:";
+    if (!IsNetMessage2(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
+    const pkt = this.newPacket(msg, data);
+    pkt.setMeta("call", {
+      dir: "req",
+      rsvp: true
+    });
+    let resData = await new Promise((resolve, reject) => {
+      const meta = { msg, uaddr: this.uaddr };
+      const hash = GetPacketHashString2(pkt);
+      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+      this.transactions.set(hash, { resolve, reject, ...meta });
+      try {
+        this.initialSend(pkt);
+      } catch (err) {
+        reject(err);
+      }
+    });
+    return resData;
+  }
+  /** API: send net message, returning promise that will resolve when the server has
+   *  received and processed/forwarded the message */
+  async netSend(msg, data) {
+    const fn = "netSend:";
+    if (!IsNetMessage2(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
+    const pkt = this.newPacket(msg, data);
+    pkt.setMeta("send", {
+      dir: "req",
+      rsvp: true
+    });
+    let resData = await new Promise((resolve, reject) => {
+      const hash = GetPacketHashString2(pkt);
+      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+      const meta = { msg, uaddr: this.uaddr };
+      this.transactions.set(hash, { resolve, reject, ...meta });
+      try {
+        this.initialSend(pkt);
+      } catch (err) {
+        reject(err);
+      }
+    });
+    return resData;
+  }
+  /** API: signal net message, returning void (not promise)
+   *  used for the idea of 'raising signals' as opposed to 'sending data'. It
+   *  resolves immediately when the signal is sent, and does not check with the
+   *  server  */
+  netSignal(msg, data) {
+    const fn = "netSignal:";
+    if (!IsNetMessage2(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
+    const pkt = this.newPacket(msg, data);
+    pkt.setMeta("signal", {
+      dir: "req",
+      rsvp: false
+    });
+    this.initialSend(pkt);
+  }
+  /** API: returns with a list of uaddr from the server which is the uaddr of the
+   *  all clients that have registered for the message */
+  async netPing(msg) {
+    const fn = "netPing:";
+    if (!IsNetMessage2(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
+    const pkt = this.newPacket(msg);
+    pkt.setMeta("ping", {
+      dir: "req",
+      rsvp: true
+    });
+    let resData = await new Promise((resolve, reject) => {
+      const hash = GetPacketHashString2(pkt);
+      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+      const meta = { msg, uaddr: this.uaddr };
+      this.transactions.set(hash, { resolve, reject, ...meta });
+      try {
+        this.initialSend(pkt);
+      } catch (err) {
+        reject(err);
+      }
+    });
+    return resData;
+  }
+  /** packet utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+  /** declare client attributes is a generic declaration packet that can contain
+   *  any number of attributes that the client wants to declare to the server.
+   *  for example, see declareClientMessages() */
+  async _declareClientServices(def) {
+    const fn = "_declareClientServices:";
+    if (!this.cli_gateway) throw Error(`${fn} no gateway`);
+    const pkt = this.newDeclPacket();
+    pkt.data = { ...def };
+    const { msg } = pkt;
+    let declared = await this._queueTransaction(pkt, this.cli_gateway);
+    const { error, status } = declared;
+    if (error) {
+      LOG4(PR6, `${fn} error:`, error);
+      return declared;
+    }
+    if (status) return declared;
+    throw Error(`${fn} unexpected response`, declared);
+  }
+  /** shuts down the gateway to server, forcing close
+   *  Chrome 125.0.6422.77 doesn't seem to send a close frame on reload
+   *  Firefox 126.0 doesn't fire beforeunload
+   */
+  disconnectAsClient() {
+    if (this.cli_gateway === void 0) return;
+    if (typeof this.cli_gateway.close === "function") {
+      this.cli_gateway.close();
+    }
+    this.cli_gateway = void 0;
+  }
+  /** endpoint lookup tables - - - - - - - - - - - - - - - - - - - -  - - - **/
+  /** return true if the message is handled anywhere */
+  packetHasHandler(pkt) {
+    const fn = "messageHasHandler:";
+    const a = this.getMessageHandlers(pkt.msg).length > 0;
+    const b = this.isServer() && this.getMessageAddresses(pkt.msg).length > 0;
+    return a || b;
+  }
+  /** get list of messages allocated to a uaddr */
+  getMessagesForAddress(uaddr) {
+    const fn = "getMessagesForAddress:";
+    if (!this.isServer()) return [];
+    if (typeof uaddr !== "string") throw Error(`${fn} invalid uaddr`);
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    const msg_list = [];
+    this.remoted_msgs.forEach((addr_set, msg) => {
+      if (addr_set.has(uaddr)) msg_list.push(msg);
+    });
+    return msg_list;
+  }
+  /** get list of UADDRs that a message is forwarded to */
+  getMessageAddresses(msg) {
+    const fn = "getMessageAddresses:";
+    if (!this.isServer()) return [];
+    if (typeof msg !== "string") throw Error(`${fn} invalid msg`);
+    const key = NormalizeMessage2(msg);
+    if (!this.remoted_msgs.has(key))
+      this.remoted_msgs.set(key, /* @__PURE__ */ new Set());
+    const addr_set = this.remoted_msgs.get(key);
+    const addr_list = Array.from(addr_set);
+    return addr_list;
+  }
+  /** return list of local handlers for given message */
+  getMessageHandlers(msg) {
+    const fn = "getMessageHandlers:";
+    if (this.handled_msgs === void 0) return [];
+    if (typeof msg !== "string") throw Error(`${fn} invalid msg`);
+    const key = NormalizeMessage2(msg);
+    if (!this.handled_msgs.has(key))
+      this.handled_msgs.set(key, /* @__PURE__ */ new Set());
+    const handler_set = this.handled_msgs.get(key);
+    if (!handler_set) throw Error(`${fn} unexpected empty set '${key}'`);
+    const handler_list = Array.from(handler_set);
+    return handler_list;
+  }
+  /** informational routing information - - - - - - - - - - - - - - - - - - **/
+  /** return handler list for this endpoint */
+  getMessageNames() {
+    const list = [];
+    this.handled_msgs.forEach((handler_set, key) => {
+      list.push(key);
+    });
+    return list;
+  }
+  /** return only net messages */
+  getNetMessageNames() {
+    const list = [];
+    this.handled_msgs.forEach((handler_set, key) => {
+      if (IsNetMessage2(key)) list.push(key);
+    });
+    return list;
+  }
+  /** return list of active transactions for this endpoint */
+  getPendingTransactions() {
+    const fn = "getPendingTransactions:";
+    const list = [];
+    this.transactions.forEach((transaction, hash) => {
+      const { msg, uaddr } = transaction;
+      list.push({ hash, msg, uaddr });
+    });
+    return list;
+  }
+  /** server endpoints manage list of messages in clients  - - - - -  - - - **/
+  /** register a message handler for a given message to passed uaddr */
+  registerRemoteMessagesToAddress(uaddr, msgList) {
+    const fn = "registerRemoteMessagesToAddress:";
+    if (typeof uaddr !== "string") throw Error(`${fn} invalid uaddr`);
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    msgList.forEach((msg) => {
+      if (typeof msg !== "string") throw Error(`${fn} invalid msg`);
+      if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
+      const key = NormalizeMessage2(msg);
+      if (!this.remoted_msgs.has(key))
+        this.remoted_msgs.set(key, /* @__PURE__ */ new Set());
+      const msg_set = this.remoted_msgs.get(key);
+      msg_set.add(uaddr);
+    });
+  }
+  /** unregister message handlers for a given message to passed uaddr */
+  _deleteRemoteMessagesForAddress(uaddr) {
+    const fn = "_deleteRemoteMessagesForAddress:";
+    if (typeof uaddr !== "string") throw Error(`${fn} invalid uaddr`);
+    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
+    const removed = [];
+    this.remoted_msgs.forEach((msg_set, key) => {
+      if (msg_set.has(uaddr)) removed.push(key);
+      msg_set.delete(uaddr);
+    });
+    return removed;
+  }
+  /** packet interface  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+  /** Receive a single packet from the wire, and determine what to do with it.
+   *  It's assumed that _ingestClientPacket() has already handled
+   *  authentication for clients before this method is received.
+   *  The packet has several possible processing options!
+   *  - packet is response to an outgoing transaction
+   *  - packet is a message that we handle
+   *  - packet is a message that we forward
+   *  - packet is unknown message so we return it with error
+   *  If the packet has the rsvp flag set, we need to return
+   *  it to the source address in the packet with any data
+   */
+  async dispatchPacket(pkt) {
+    const fn = "dispatchPacket:";
+    if (pkt.isResponse()) {
+      if (pkt.src_addr === this.uaddr) {
+        this.resolveTransaction(pkt);
+      } else {
+        this.returnToSender(pkt);
+      }
+      return;
+    }
+    if (!pkt.isRequest()) {
+      LOG4(PR6, this.uaddr, fn, `invalid packet`, pkt);
+      return;
+    }
+    if (pkt.msg_type === "ping") {
+      const pingArr = this.getMessageAddresses(pkt.msg);
+      const pingHandlers = this.getMessageHandlers(pkt.msg);
+      if (pingHandlers.length > 0) pingArr.push(this.uaddr);
+      pkt.setData(pingArr);
+      this.returnToSender(pkt);
+      return;
+    }
+    if (pkt.msg_type === "signal") {
+      await this.awaitHandlers(pkt);
+      if (this.isServer()) await this.awaitRemoteHandlers(pkt);
+      return;
+    }
+    let retData;
+    if (this.packetHasHandler(pkt)) {
+      retData = await this.awaitHandlers(pkt);
+      if (this.isServer()) retData = await this.awaitRemoteHandlers(pkt);
+    } else {
+      LOG4(PR6, this.uaddr, fn, `unknown message`, pkt);
+      retData = { error: `unknown message '${pkt.msg}'` };
+    }
+    if (!pkt.hasRsvp()) return;
+    if (pkt.msg_type === "call") {
+      pkt.data = NormalizeData2(retData);
+    } else if (pkt.msg_type === "send") {
+      pkt.data = true;
+    }
+    this.returnToSender(pkt);
+  }
+  /** Start a transaction, which returns promises to await. This method
+   *  is a queue that uses Promises to wait for the return, which is
+   *  triggered by a returning packet in dispatchPacket(pkt).
+   */
+  async awaitRemoteHandlers(pkt) {
+    const fn = "awaitRemoteHandlers:";
+    if (pkt.hop_dir !== "req") throw Error(`${fn} packet is not a request`);
+    const { gateway, clients } = this.getRoutingInformation(pkt);
+    const promises = [];
+    if (gateway) {
+      const p = this.awaitTransaction(pkt, gateway);
+      if (p) promises.push(p);
+    }
+    if (Array.isArray(clients)) {
+      clients.forEach((sock) => {
+        const p = this.awaitTransaction(pkt, sock);
+        if (p) promises.push(p);
+      });
+    }
+    let data = await Promise.all(promises);
+    return data;
+  }
+  /** Start a handler call, which might have multiple implementors.
+   *  Returns data from all handlers as an array or a single item
+   */
+  async awaitHandlers(pkt) {
+    const fn = "awaitHandlers:";
+    const { msg } = pkt;
+    const handlers = this.getMessageHandlers(msg);
+    if (handlers.length === 0) return Promise.resolve([]);
+    const promises = [];
+    handlers.forEach((handler) => {
+      promises.push(
+        new Promise((resolve, reject) => {
+          try {
+            resolve(handler({ ...pkt.data }));
+          } catch (err) {
+            reject(err);
+          }
+        })
+      );
+    });
+    let data = await Promise.all(promises);
+    return data;
+  }
+  /** Send a single packet on all available interfaces based on the
+   *  message. Use for initial outgoing packets only from the
+   *  netCall, netSend, netSignal, and netPing methods.
+   */
+  initialSend(pkt) {
+    const fn = "initialSend:";
+    if (pkt.src_addr === void 0) throw Error(`${fn}src_addr undefined`);
+    if (this.uaddr === void 0) throw Error(`${fn} uaddr undefined`);
+    if (pkt.hop_seq.length !== 0) throw Error(`${fn} pkt must have no hops yet`);
+    if (pkt.msg_type !== "ping" && pkt.data === void 0)
+      throw Error(`${fn} data undefined`);
+    const { gateway, clients } = this.getRoutingInformation(pkt);
+    pkt.addHop(this.uaddr);
+    if (gateway) {
+      if (this.cli_reg === void 0) throw Error(`${fn} endpoint not registered`);
+      gateway.send(pkt);
+    }
+    if (Array.isArray(clients)) {
+      clients.forEach((sock) => sock.send(pkt));
+    }
+  }
+  /** Used to forward a transaction from server to a remote client
+   */
+  awaitTransaction(pkt, sock) {
+    const clone = this.clonePacket(pkt);
+    clone.id = this.assignPacketId(clone);
+    if (pkt.src_addr === sock.uaddr && SkipOriginType2(pkt.msg_type)) return;
+    return this._queueTransaction(clone, sock);
+  }
+  /** Used to resolve a forwarded transaction received by server from
+   *  a remote client
+   */
+  resolveTransaction(pkt) {
+    const fn = "resolveTransaction:";
+    if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
+    if (pkt.hop_dir !== "res") throw Error(`${fn} packet is not a response`);
+    if (pkt.hop_seq.length < 2 && !pkt.isSpecialPkt())
+      throw Error(`${fn} packet has no hops`);
+    this._dequeueTransaction(pkt);
+  }
+  /** utility method for conducting transactions */
+  _queueTransaction(pkt, sock) {
+    const fn = "_queueTransaction:";
+    const hash = GetPacketHashString2(pkt);
+    if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
+    const { src_addr } = pkt;
+    const { uaddr: dst_addr } = sock;
+    return new Promise((resolve, reject) => {
+      const meta = { msg: pkt.msg, uaddr: pkt.src_addr };
+      this.transactions.set(hash, { resolve, reject, ...meta });
+      sock.send(pkt);
+    });
+  }
+  /** utility method for completing transactions */
+  _dequeueTransaction(pkt) {
+    const fn = "_finishTransaction:";
+    const hash = GetPacketHashString2(pkt);
+    const resolver = this.transactions.get(hash);
+    if (!resolver) throw Error(`${fn} no resolver for hash ${hash}`);
+    const { resolve, reject } = resolver;
+    const { data } = pkt;
+    if (pkt.err) reject(pkt.err);
+    else resolve(data);
+    this.transactions.delete(hash);
+  }
+  /** Return a packet to its source address. If this endpoint is a server,
+   *  then it might have the socket stored. Otherwise, if this endpoint is
+   *  also a client of another server, pass the back through the gateway.
+   *  This is used by server endpoints to return packets to clients.
+   */
+  returnToSender(pkt) {
+    const fn = "returnToSender:";
+    if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
+    if (pkt.hop_seq.length < 1) throw Error(`${fn} packet has no hops`);
+    pkt.setDir("res");
+    pkt.addHop(this.uaddr);
+    const { gateway, src_addr } = this.getRoutingInformation(pkt);
+    if (this.isServer()) {
+      const socket = this.getClient(src_addr);
+      if (socket) socket.send(pkt);
+      return;
+    }
+    if (gateway) {
+      gateway.send(pkt);
+      return;
+    }
+    LOG4(PR6, `${fn} unroutable packet`, pkt);
+  }
+  /** return array of sockets to use for sending packet,
+   *  based on pkt.msg and pkt.src_addr
+   */
+  getRoutingInformation(pkt) {
+    const fn = "getRoutingInformation:";
+    const { msg, src_addr } = pkt;
+    if (!IsNetMessage2(msg)) throw Error(`${fn} '${msg}' is invalid message`);
+    const gateway = this.cli_gateway;
+    const self_addr = this.uaddr;
+    const msg_list = this.getMessageAddresses(msg);
+    const clients = [];
+    msg_list.forEach((uaddr) => {
+      if (uaddr === this.uaddr) return;
+      const socket = this.getClient(uaddr);
+      if (socket) clients.push(socket);
+    });
+    return {
+      msg,
+      src_addr,
+      self_addr,
+      gateway,
+      clients
+    };
+  }
+  /** packet utility - - - - - - - - - - - - - - - - - - - - - - - - - - - -**/
+  assignPacketId(pkt) {
+    if (pkt.src_addr === void 0) pkt.src_addr = this.uaddr;
+    const count = ++this.pkt_counter;
+    pkt.id = `pkt[${pkt.src_addr}:${count}]`;
+    return pkt.id;
+  }
+  /** convert JSON to packet and return */
+  packetFromJSON(json) {
+    const pkt = new NetPacket2();
+    pkt.setFromJSON(json);
+    return pkt;
+  }
+  /** create a new packet with proper address */
+  newPacket(msg, data) {
+    const fn = "newPacket:";
+    const pkt = new NetPacket2(msg, data);
+    pkt.setSrcAddr(this.uaddr || UADDR_NONE2);
+    if (this.cli_auth) pkt.setAuth(this.cli_auth);
+    pkt.id = this.assignPacketId(pkt);
+    return pkt;
+  }
+  /** clone a packet with new id */
+  clonePacket(pkt) {
+    const clone = this.newPacket(pkt.msg, pkt.data);
+    clone.setFromJSON(pkt.serialize());
+    clone.src_addr = this.uaddr;
+    clone.id = this.assignPacketId(clone);
+    return clone;
+  }
+  /** create an authentication packet, which is the first packet that must be sent
+   *  after connecting to the server */
+  newAuthPacket(authObj) {
+    const pkt = this.newPacket("SRV:AUTH", { ...authObj });
+    pkt.setMeta("_auth", { rsvp: true });
+    pkt.setSrcAddr(UADDR_NONE2);
+    this.assignPacketId(pkt);
+    return pkt;
+  }
+  /** create a registration packet */
+  newRegPacket() {
+    const pkt = this.newPacket("SRV:REG");
+    pkt.setMeta("_reg", { rsvp: true });
+    return pkt;
+  }
+  /** create a declaration packet shell */
+  newDeclPacket() {
+    const pkt = this.newPacket("SRV:DEF");
+    pkt.setMeta("_decl", { rsvp: true });
+    return pkt;
+  }
+  /** environment utilities - - - - - - - - - - - - - - - - - - - - - - - - **/
+  /** return true if this endpoint is managing connections */
+  isServer() {
+    return this.client_socks !== void 0 && this.remoted_msgs !== void 0;
+  }
+  /** socket utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+  /** given a socket, see if it's already registered */
+  isNewSocket(socket) {
+    const fn = "isNewSocket:";
+    if (typeof socket !== "object") return false;
+    return socket.uaddr === void 0;
+  }
+  /** client endpoints need to have an authentication token to
+   *  access URNET beyond registration
+   */
+  authorizeSocket(auth) {
+    const fn = "authorizeSocket:";
+    LOG4(PR6, this.uaddr, "would check auth token");
+  }
+};
+
+// ../_ur_addons/net/class-urnet-socket.ts
+var PR7 = typeof process !== "undefined" ? "Socket".padEnd(13) : "Socket:";
+var NetSocket2 = class {
   // name of the socket-ish object
   constructor(connectObj, io) {
     __publicField(this, "connector");
     // the original connection object
     __publicField(this, "sendFunc");
     // the outgoing send function for this socket
+    __publicField(this, "closeFunc");
+    // function to disconnect
     __publicField(this, "onDataFunc");
     // the incoming data function for this socket
     //
@@ -2379,25 +3527,33 @@ var NetSocket = class {
     // number of seconds since this socket was used
     __publicField(this, "label");
     this.connector = connectObj;
-    const { send, onData } = io;
+    const { send, onData, close } = io;
     this.sendFunc = send.bind(connectObj);
+    this.closeFunc = close.bind(connectObj);
     this.onDataFunc = onData.bind(connectObj);
   }
   send(pkt) {
     this.sendFunc(pkt);
   }
+  close() {
+    this.closeFunc();
+  }
   getConnector() {
     return this.connector;
   }
+  authenticated() {
+    let a = this.auth !== void 0;
+    return a;
+  }
 };
 
-// _ur_addons/@addons-client.ts
+// ../_ur_addons/@addons-client.ts
 var { ConsoleStyler } = client_esm_exports;
 var PF = ConsoleStyler("UR/ADD", "TagPink");
 var CLASS2 = {
-  NetEndpoint,
-  NetSocket,
-  NetPacket
+  NetEndpoint: NetEndpoint2,
+  NetSocket: NetSocket2,
+  NetPacket: NetPacket2
 };
 function AddonClientTest() {
   console.log(...PF("System Integration of new URSYS addon successful!"));

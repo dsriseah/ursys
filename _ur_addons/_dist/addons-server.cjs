@@ -16,7 +16,7 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// _ur_addons/@addons-server.mts
+// ../_ur_addons/@addons-server.mts
 var addons_server_exports = {};
 __export(addons_server_exports, {
   ModuleServerTest: () => ModuleServerTest
