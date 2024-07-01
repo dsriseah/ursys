@@ -36,6 +36,12 @@ function m_Sleep(ms: number, resolve?: Function): Promise<void> {
     }, ms)
   );
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** called when the browser window is closed or forced disconnect */
+function m_DisconnectListener() {
+  EP.disconnectAsClient();
+}
+
 /// CLIENT API ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** create a client connection to the HTTP/WS server */
@@ -57,9 +63,7 @@ function Connect(): Promise<boolean> {
         EP.disconnectAsClient();
       });
       // needed on chrome, which doesn't appear to send a websocket closeframe
-      window.addEventListener('beforeunload', () => {
-        EP.disconnectAsClient();
-      });
+      window.addEventListener('beforeunload', m_DisconnectListener);
       // 2. start client; EP handles the rest
       const auth = { identity: 'my_voice_is_my_passport', secret: 'crypty' };
       const resdata = await EP.connectAsClient(client_sock, auth);
@@ -101,6 +105,7 @@ async function RegisterMessages() {
 function Disconnect(seconds = TIMEOUT) {
   return new Promise((resolve, reject) => {
     LOG(...PR(`waiting for ${seconds} seconds...`));
+    window.removeEventListener('beforeunload', m_DisconnectListener);
     m_Sleep(seconds * 1000, () => {
       resolve(true);
       SERVER_LINK.close();
