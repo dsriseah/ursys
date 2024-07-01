@@ -4,9 +4,9 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { FILE } from '@ursys/core';
-import * as CLIENT_CONSTANTS from './constants-urnet-web.ts';
-const { HTTP_CLIENT_INFO, GetClientInfoFromWindowLocation } = CLIENT_CONSTANTS;
+import * as FILE from './files.mts';
+// typescript imports as default
+import * as CLIENT_CONSTANTS from '../common/constants-urnet-web.ts';
 
 /// TYPES & INTERFACES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,6 +40,10 @@ type T_HTTP = {
   wss_url: string; // wss connection string
 };
 type TESBUILD = { es_target: string };
+
+/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { HTTP_CLIENT_INFO } = CLIENT_CONSTANTS;
 
 /// RUNTIME CONTROL ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

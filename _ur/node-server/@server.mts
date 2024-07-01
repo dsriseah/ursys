@@ -15,6 +15,7 @@ import * as APPSERV from './appserver.mts';
 import * as ENV from './env-node.mts';
 import * as FILE from './files.mts';
 import * as PROC from './processes.mts';
+import * as SERVER_EP from './urnet-node.mts';
 // cjs-style modules
 import TEXT from '../common/util-text.js';
 import PROMPTS from '../common/util-prompts.js';
@@ -27,7 +28,7 @@ import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetPacket from '../common/class-urnet-packet.ts';
 // typescript library modules
 import * as UID from '../common/lib-uid.ts';
-import * as CONSTANTS from '../common/constants-urnet.ts';
+import * as CONSTANTS from './constants-urnet.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -81,6 +82,8 @@ export {
   FILE,
   PROC,
   TEXT,
+  // URNET server modules
+  SERVER_EP, // urnet endpoint for server
   // server-based services
   APPSERV, // application server
   ADDONMGR, // ur module manager
