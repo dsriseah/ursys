@@ -58,20 +58,19 @@ fi
 # note: Use --max-old-space-size to limit memory (values are in MB, so 128 is 128MB)
 #
 DEBUG="--inspect-brk" # use --inspect-brk to break on first line
-OPTS="--trace-warnings" # use --trace-warnings to show deprecation warnings
 TSOPTS="--transpile-only" # use --no-cache to force a full rebuild tsnode (disables typecheck)
 case "$1" in
     build)
         # (1) always build library first
-        node $OPTS $CLI_BUILD/@build-core.cjs 2>&1 | cat
+        npx ts-node-esm $TSOPTS $CLI_BUILD/@build-core.mts 2>&1 | cat
         # (2) add additional tasks here (eventually can be command args)
-        node $OPTS $CLI_BUILD/@build-addons.cjs 2>&1 | cat
+        npx ts-node-esm $TSOPTS $CLI_BUILD/@build-addons.mts 2>&1 | cat
         exit 0;
         ;;
 
     test)
         # get additional argument after 'test' into $option
-        node $OPTS $CLI_BUILD/@build-core.cjs 2>&1 | cat
+        npx ts-node-esm $TSOPTS  $CLI_BUILD/@build-core.mts 2>&1 | cat
         PROMPT="${BGBLUE} UR TEST ${RESET}"
         if [ "$2" = "core" ]; then
             prln "${PROMPT} running ${BRITE}ursys core tests${RESET}"
@@ -94,6 +93,6 @@ esac
 # if we got this far, assuming that $1 is a directory and we are going
 # to pass arguments to a special script
 #
-node $OPTS $CLI_BUILD/@build-core.cjs 2>&1 | cat
+npx ts-node-esm $TSOPTS $CLI_BUILD/@build-core.mts 2>&1 | cat
 # to debug the addon loader, remove the TSOPTS (--transpile-only)
 npx ts-node-esm $TSOPTS $ADDONS_LIB/@load-addon.mts "$@"

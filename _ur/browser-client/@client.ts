@@ -8,7 +8,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 // note: cjs-style modules in 'common' can not be destructured on import
-import PROMPTS from '../common/util-prompts.js';
+import PROMPTS from '../common/util-prompts.ts';
 // cjs-style modules
 import TEXT from '../common/util-text.js';
 // typescript classes

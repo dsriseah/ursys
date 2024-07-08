@@ -5,11 +5,11 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import express from 'express';
-import { serveIndex } from 'serve-index';
+import serveIndex from 'serve-index';
 import { WebSocketServer } from 'ws';
 import http from 'node:http';
 import * as FILE from './files.mts';
-import { makeTerminalOut } from '../common/util-prompts.js';
+import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 import { NetEndpoint } from '../common/class-urnet-endpoint.ts';
 import { NetSocket } from '../common/class-urnet-socket.ts';
 import { NetPacket } from '../common/class-urnet-packet.ts';
@@ -34,9 +34,7 @@ type WSOptions = {
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const BLU = '\x1b[34;1m';
-const DIM = '\x1b[2m';
-const NRM = '\x1b[0m';
+const { DIM, NRM } = ANSI;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = makeTerminalOut('UR', 'TagBlue');
 

@@ -17,8 +17,8 @@ import * as FILE from './files.mts';
 import * as PROC from './processes.mts';
 import * as SERVER_EP from './urnet-node.mts';
 // cjs-style modules
-import TEXT from '../common/util-text.js';
-import PROMPTS from '../common/util-prompts.js';
+import TEXT from '../common/util-text.ts';
+import * as PROMPTS from '../common/util-prompts.ts';
 // typescript classes
 import UrModule from './class-urmodule.mts';
 import OpSequencer from '../common/class-op-seq.ts';

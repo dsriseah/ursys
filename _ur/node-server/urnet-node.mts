@@ -16,7 +16,7 @@ import chokidar from 'chokidar';
 import { WebSocketServer } from 'ws';
 // ursys modules
 import * as FILE from './files.mts';
-import PROMPT from '../common/util-prompts.js';
+import * as PROMPT from '../common/util-prompts.ts';
 import { HTTP_INFO } from './constants-urnet.mts';
 // typescript classes from common import default
 import { NetEndpoint } from '../common/class-urnet-endpoint.ts';
