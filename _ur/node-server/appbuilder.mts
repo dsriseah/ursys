@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  App Builder and Watcher
+  AppBuilder with Live Reload and WatchExtra services
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -46,9 +46,9 @@ let INDEX_FILE: string; // default index file for the app
 import { ANSI_COLORS } from '../common/declare-colors.ts';
 const { DIM, NRM } = ANSI_COLORS;
 
-/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// CONFIGURATION /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** cache the build options to use throughout build process */
+/** API: cache the build options to use throughout build process */
 function GetBuildOptions(): BuildOptions {
   const fn = 'm_SavedBuildOptions:';
   const valid = SRC_JS && SRC_ASSETS && PUBLIC;
@@ -67,7 +67,7 @@ function GetBuildOptions(): BuildOptions {
   };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return build options if they have been saved */
+/** API: return build options if they have been saved */
 function SetBuildOptions(opts: BuildOptions) {
   const fn = 'SetBuildOptions:';
   const {
@@ -93,8 +93,8 @@ function SetBuildOptions(opts: BuildOptions) {
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Use ESBUILD to build a webapp from source files, also copying assets from
- *  a separate asset directory to the output directory.
+/** API: Use ESBUILD to build a webapp from source files, also copying assets
+ *  from a separate asset directory to the output directory.
  */
 async function BuildApp(opts: BuildOptions) {
   const fn = 'BuildApp:';
@@ -140,9 +140,9 @@ async function BuildApp(opts: BuildOptions) {
   await context.watch();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Watch for changes with chokidar, rebuilding app with esbuild when a change
- *  to any source file is detected. This used for catching changes outside of
- *  the source directory, such as changes to assets.
+/** API: Watch for changes with chokidar, rebuilding app with esbuild when a
+ *  change to any source file is detected. This used for catching changes
+ *  outside of the source directory, such as changes to assets.
  */
 async function WatchExtra(opts: WatchOptions) {
   const { watch_dirs, notify_cb } = opts;
@@ -163,6 +163,7 @@ async function WatchExtra(opts: WatchOptions) {
 export {
   SetBuildOptions, // save the build options for later use
   GetBuildOptions, // return the saved build options
+  //
   BuildApp, // build a webapp from source/assets, watching for changes
   WatchExtra // watch for changes outside of the source directory
 };

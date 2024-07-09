@@ -7,17 +7,13 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-/* added for pull request #81 so 'npm run lint' test appears clean */
-/* eslint-disable no-unused-vars */
-
-import * as ADDONMGR from './ur-addon-mgr.mts';
+import * as ADDON from './ur-addon-mgr.mts';
 import * as APPSERV from './appserver.mts';
-import * as ENV from './env-node.mts';
+import * as APPBUILD from './appbuilder.mts';
+import * as ENV from './env-node.mts'; /* might be deprecated in future */
 import * as FILE from './files.mts';
 import * as PROC from './processes.mts';
-import * as SERVER_EP from './urnet-node.mts';
-// cjs-style modules
-import TEXT from '../common/util-text.ts';
+import * as TEXT from '../common/util-text.ts';
 import * as PROMPTS from '../common/util-prompts.ts';
 // typescript classes
 import UrModule from './class-urmodule.mts';
@@ -29,6 +25,13 @@ import NetPacket from '../common/class-urnet-packet.ts';
 // typescript library modules
 import * as UID from '../common/lib-uid.ts';
 import * as CONSTANTS from './constants-urnet.mts';
+
+/// TYPES /////////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** used for runtime initialization of the server-side URSYS library */
+type InitOptions = {
+  rootDir: string;
+};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -63,7 +66,7 @@ const CONSTANT = {
 /// RUNTIME API ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** first time initialization */
-function Initialize(options: UR_InitOptions): void {
+function Initialize(options: InitOptions): void {
   const { rootDir } = options;
   ENV.SetRootPaths(rootDir);
 }
@@ -82,11 +85,11 @@ export {
   FILE,
   PROC,
   TEXT,
-  // URNET server modules
-  SERVER_EP, // urnet endpoint for server
   // server-based services
   APPSERV, // application server
-  ADDONMGR, // ur module manager
+  APPBUILD, // application builder
+  //
+  ADDON, // ur module manager
   // formatting
   makeTerminalOut as PR // prompt style formatter
 };

@@ -29,8 +29,8 @@ const LOG = console.log;
   UR.Initialize({
     rootDir: ROOT
   });
-  UR.ADDONMGR.ProcTest();
-  UR.ADDONMGR.UR_Fork('parse', { cwd: DIR_URADDS });
+  UR.ADDON.ProcTest();
+  UR.ADDON.UR_Fork('parse', { cwd: DIR_URADDS });
   // there is an error somewhere that is causing
   // process.exit(0);
 })();

@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  description
+  Text and String Processing Utilities
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -9,18 +9,12 @@
 
 /// PARSER INPUT NORMALIZER ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** This function takes a multi-line string and performs the following operations:
- *  - Makes sure all newline types with '\n'
- *  - Removes all tab characters
- *  - Processes comma and colon delimited sequences in each line:
- *  - Removes whitespace around each delimiter except when inside quotes
- *  - Collapses all internal whitespace to a single space
- *  - Ensures that there is a trailing newline
- * (written, with effort, by ChatGPT4)
- * @param {string} str - The input string to be normalized.
- * @return {string} - The normalized string.
+/** Format a multi-line string to make parsing operations easier. It
+ *  conforms newlines, replaces tabs. It removes whitespace around
+ *  delimiters and collapses quoted whitespace to a single space.
+ *  Finally, it ensures that there is a trailing newline.
  */
-function PreprocessDataText(str) {
+function PreprocessDataText(str: string): string {
   let normalizedStr = str.replace(/\r\n|\r/g, '\n'); // conform newlines
   normalizedStr = normalizedStr // remove trailing/preserve leading whitespace
     .split('\n')
@@ -48,6 +42,6 @@ function PreprocessDataText(str) {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module.exports = {
-  PreprocessDataText
+export {
+  PreprocessDataText // process a multi-line string for parsing
 };

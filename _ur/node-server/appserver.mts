@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  AppServer with WebSocket Module
+  AppServer with URNET WebSocket support
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -48,7 +48,7 @@ let EP: NetEndpoint; // server endpoint, init by ListenWSS
 
 /// SERVER INIT ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Start the HTTP server. The WebSocket server uses the same
+/** API: Start the HTTP server. The WebSocket server uses the same
  *  http server instance, which allows it to tunnel websocket traffic after
  *  the initial handshake. This allows nginx (if running) to proxy forward
  *  http traffic as https.
@@ -79,7 +79,7 @@ function ListenHTTP(opt: HTOptions) {
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Start the websocket server. Must be called after the http server is started
+/** API: Start the websocket server. Must be called after the http server is started
  *  to use the same server instance's address and port.
  */
 function ListenWSS(opt: WSOptions) {
@@ -140,13 +140,13 @@ function ListenWSS(opt: WSOptions) {
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Convenience method to start HTTP and WS servers */
+/** API: Convenience method to start HTTP and WS servers */
 async function StartAll(opt: HTOptions & WSOptions) {
   await ListenHTTP(opt);
   await ListenWSS(opt);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Stop the HTTP server */
+/** API: Stop the HTTP server */
 function StopHTTP() {
   return new Promise<void>((resolve, reject) => {
     if (SERVER === undefined) reject(`${SERVER_NAME} HTTP not started`);
@@ -158,7 +158,7 @@ function StopHTTP() {
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Stop the WebSocket server */
+/** API: Stop the WebSocket server */
 function StopWSS() {
   return new Promise<void>((resolve, reject) => {
     if (SERVER === undefined) reject(`${SERVER_NAME} HTTP not started`);
@@ -171,7 +171,7 @@ function StopWSS() {
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Convenience method to stop HTTP and WS servers */
+/** API: Convenience method to stop HTTP and WS servers */
 async function StopAll() {
   await StopWSS();
   await StopHTTP();
@@ -188,7 +188,7 @@ function AddPacketHandler(message: NP_Msg, pktHandler: PacketHandler) {
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** To remove a service, remove the packet handler from the endpoint.
+/** API: To remove a service, remove the packet handler from the endpoint.
  *  If the handler is not provided, all handlers for the message are removed.
  */
 function RemovePacketHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
@@ -199,12 +199,12 @@ function RemovePacketHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Get the APP instance for adding middleware */
+/** API: Get the APP instance for adding middleware */
 function GetAppInstance(): express.Application {
   return APP;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Get the ENDPOINT instance for inspection */
+/** API: Get the ENDPOINT instance for inspection */
 function GetServerEndpoint(): NetEndpoint {
   return EP;
 }
