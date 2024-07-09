@@ -13,7 +13,6 @@ import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 import { NetEndpoint } from '../common/class-urnet-endpoint.ts';
 import { NetSocket } from '../common/class-urnet-socket.ts';
 import { NetPacket } from '../common/class-urnet-packet.ts';
-import * as BUILD from './lib-esbuild.mts';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
