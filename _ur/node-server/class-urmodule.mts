@@ -6,8 +6,6 @@
 
 import { EventEmitter } from 'node:events';
 import { Readable, Writable, Duplex, Transform } from 'node:stream';
-import D_ASYNC from '../common/declare-async.ts';
-const { URDEX } = D_ASYNC.UR_EVENTS;
 import { ChildProcess } from 'node:child_process';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

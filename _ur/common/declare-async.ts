@@ -96,7 +96,7 @@ const EMITTER = {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module.exports = {
-  APP_LIFECYCLE,
-  UR_EVENTS
+export {
+  APP_LIFECYCLE, //
+  UR_EVENTS //
 };

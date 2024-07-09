@@ -98,7 +98,7 @@ m_DetectModuleSystem(); // set the INFO object
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-module.exports = {
+export {
   IsBrowser, // return true if browser env detected
   IsNode, // return true if nodejs env deteted
   IsNodeCJS, // return true if nodejs CJS module system detected
