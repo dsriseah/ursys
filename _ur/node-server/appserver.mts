@@ -13,6 +13,7 @@ import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 import { NetEndpoint } from '../common/class-urnet-endpoint.ts';
 import { NetSocket } from '../common/class-urnet-socket.ts';
 import { NetPacket } from '../common/class-urnet-packet.ts';
+import * as BUILD from './lib-esbuild.mts';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,7 +26,7 @@ type HTOptions = {
   http_port?: number; // default is 8080
   http_host?: string; // default is localhost
   http_docs: string; // path to serve files
-  show_index: boolean; // flag to display directory listing in browser
+  index_file?: string; // use if set, otherwise show directory listing
 };
 type WSOptions = {
   wss_path?: string; // default is 'urnet-ws'
@@ -54,7 +55,8 @@ let EP: NetEndpoint; // server endpoint, init by ListenWSS
  *  http traffic as https.
  */
 function ListenHTTP(opt: HTOptions) {
-  const { http_port, http_host, http_docs, show_index, server_name } = opt;
+  const fn = 'ListenHTTP:';
+  const { http_port, http_host, http_docs, index_file, server_name } = opt;
   if (typeof server_name === 'string') SERVER_NAME = server_name;
   return new Promise<void>((resolve, reject) => {
     // sanity checks
@@ -62,7 +64,14 @@ function ListenHTTP(opt: HTOptions) {
     if (!FILE.DirExists(http_docs)) reject('HTTP docs directory not found');
     // configure HTTP server
     APP = express();
-    if (show_index) APP.get('/', serveIndex(http_docs));
+    // serve index or directory listing
+    if (index_file === undefined) APP.get('/', serveIndex(http_docs));
+    else {
+      const file = `${http_docs}/${index_file}`;
+      if (!FILE.FileExists(file)) reject(`${fn} index ${file} not found`);
+      APP.get('/', (req, res) => res.sendFile(file));
+    }
+    // serve static files
     APP.use(express.static(http_docs));
     SERVER = APP.listen(http_port, http_host, () => {
       LOG.info(`${SERVER_NAME} started on http://${http_host}:${http_port}`);
