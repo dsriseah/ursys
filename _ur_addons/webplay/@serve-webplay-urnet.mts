@@ -31,7 +31,7 @@ const HT_DOCS = FILE.AbsLocalPath('_ur_addons/_public');
     const { changed } = payload || {};
     if (DBG && changed) LOG(`${DIM}notify change: ${JSON.stringify(changed)}${NRM}`);
     const EP = APPSERV.GetServerEndpoint();
-    EP.netSend('NET:UR_HOT_RELOAD_APP', { changed });
+    EP.netSignal('NET:UR_HOT_RELOAD_APP', { changed });
   };
   const buildOpts = APPBUILD.SetBuildOptions({
     source_dir: SRC,
