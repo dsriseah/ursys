@@ -1,10 +1,10 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   ServiceMap manages a list of named services and their associated
-  addresses. It's used as a support class for NetEndpoint, providing
-  these lookups:
-
-  A service name is generally the same as an URNET message name.
+  handlers and addresses. 
+  It's used as a support class for NetEndpoint. A service name is
+  the same as an URNET message of form `CHAN:MESSAGE` with payload of
+  NP_Data.
 
   Additionally, it enforces the categoziation of services into groups, and
   knows how to recognize and decode service names.
@@ -67,8 +67,6 @@ class ServiceMap {
   addServiceHandler(msg: NP_Msg, handler: HandlerFunc) {
     const fn = 'addServiceHandler:';
     // LOG(PR,this.uaddr, `reg handler '${msg}'`);
-    if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
-    if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
     if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
     const key = NormalizeMessage(msg);
     if (!this.handled_svcs.has(key))
@@ -80,7 +78,6 @@ class ServiceMap {
   /** API: remove a previously declared service handler for a given service name */
   deleteServiceHandler(msg: NP_Msg, handler: HandlerFunc) {
     const fn = 'deleteServiceHandler:';
-    if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
     if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
     const key = NormalizeMessage(msg);
     const handler_set = this.handled_svcs.get(key);
@@ -92,7 +89,6 @@ class ServiceMap {
   getServiceHandlers(msg: NP_Msg): HandlerFunc[] {
     const fn = 'getServiceHandlers:';
     if (this.handled_svcs === undefined) return [];
-    if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
     const key = NormalizeMessage(msg);
     if (!this.handled_svcs.has(key))
       this.handled_svcs.set(key, new Set<HandlerFunc>());
@@ -112,7 +108,7 @@ class ServiceMap {
     return list;
   }
 
-  /** return only net messages */
+  /** return only net services */
   getNetServiceNames(): NP_Msg[] {
     const list = [];
     this.handled_svcs.forEach((handler_set, key) => {
@@ -121,13 +117,13 @@ class ServiceMap {
     return list;
   }
 
-  /// REMOTES MESSAGES are handled by ADDRESS OF REMOTE ENDPOINTS ///
+  /// PROXIED SERVICES are handled by REMOTE ADDRESSES ///
 
-  /** get list of messages allocated to a uaddr */
+  /** get list of services allocated to a uaddr */
   getServicesForAddress(uaddr: NP_Address): NP_Msg[] {
     const fn = 'getServicesForAddress:';
     if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
-    // proxied_svcs is msg->set of uaddr, so iterate over all messages
+    // proxied_svcs is msg->set of uaddr, so iterate over all services
     const msg_list: NP_Msg[] = [];
     if (this.proxied_svcs === undefined) return msg_list;
     this.proxied_svcs.forEach((addr_set, msg) => {
@@ -139,7 +135,6 @@ class ServiceMap {
   /** get list of UADDRs that a service name is forwarded to */
   getServiceAddress(msg: NP_Msg): NP_Address[] {
     const fn = 'getServiceAddress:';
-    if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
     const key = NormalizeMessage(msg);
     if (this.proxied_svcs === undefined) return [];
     if (!this.proxied_svcs.has(key))
@@ -154,8 +149,6 @@ class ServiceMap {
     const fn = 'proxyServiceToAddress:';
     if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
     msgList.forEach(msg => {
-      if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
-      if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
       const key = NormalizeMessage(msg);
       if (this.proxied_svcs === undefined) {
         LOG(PR, `${fn} auto-enabling proxies`);
@@ -181,13 +174,13 @@ class ServiceMap {
     return removed;
   }
 
-  /** utility: return true if this service map has remotes */
+  /** utility: return true if this service map has proxies */
   hasProxies(): boolean {
     if (this.proxied_svcs === undefined) return false;
     return this.proxied_svcs.size > 0;
   }
 
-  /** utility: return array of remote messages */
+  /** utility: return array of proxied services */
   proxiesList(): NP_Msg[] {
     if (this.proxied_svcs === undefined) return [];
     return [...Object.keys(this.proxied_svcs)];
@@ -198,7 +191,7 @@ class ServiceMap {
     if (this.handled_svcs === undefined) return false;
     return this.handled_svcs.size > 0;
   }
-  /** utility: return array of handled messages */
+  /** utility: return array of handled service names */
   handlersList(): NP_Msg[] {
     if (this.handled_svcs === undefined) return [];
     return [...Object.keys(this.handled_svcs)];

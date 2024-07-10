@@ -196,6 +196,7 @@ export function AllocateAddress(opt?: AllocateOptions): NP_Address {
 export function DecodeMessage(msg: NP_Msg): [NP_Chan, string] {
   if (typeof msg !== 'string') throw Error(`message must be string: ${msg}`);
   if (msg !== msg.toUpperCase()) throw Error(`message must be uppercase: ${msg}`);
+  if (msg.endsWith('_')) throw Error(`message can not end with _: ${msg}`);
   const bits = msg.split(':');
   if (bits.length === 0) throw Error(`invalid empty message`);
   if (bits.length > 2) throw Error(`invalid channel:message format ${msg}`);
@@ -210,7 +211,9 @@ export function DecodeMessage(msg: NP_Msg): [NP_Chan, string] {
   return [chan as NP_Chan, name];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** make sure that the message is always consistent */
+/** make sure that the message is always consistent. Officially, a local
+ *  message begins with : and a network message begins with NET:
+ */
 export function NormalizeMessage(msg: NP_Msg): NP_Msg {
   let [chan, name] = DecodeMessage(msg);
   if (chan === 'LOCAL') chan = '';

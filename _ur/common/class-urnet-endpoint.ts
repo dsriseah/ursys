@@ -120,7 +120,7 @@ function _PKT(ep: NetEndpoint, fn: string, text: string, pkt: NetPacket) {
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class NetEndpoint {
-  service_map: ServiceMap; // message handlers
+  svc_map: ServiceMap; // service handler map (include proxies)
   //
   uaddr: NP_Address; // the address for this endpoint
   client_socks: SocketMap; // uaddr->I_NetSocket
@@ -145,7 +145,7 @@ class NetEndpoint {
     this.cli_gateway = undefined; // client gateway
     // endpoint as server
     this.client_socks = undefined;
-    this.service_map = undefined;
+    this.svc_map = undefined;
     this.transactions = new Map<NP_Hash, PktResolver>();
     // runtime packet, socket counters
     this.pkt_counter = 0;
@@ -164,14 +164,14 @@ class NetEndpoint {
       throw Error(err);
     }
     this.uaddr = srv_addr;
-    this.service_map = new ServiceMap(srv_addr);
+    this.svc_map = new ServiceMap(srv_addr);
     // make sure we don't nuke
     if (this.client_socks !== undefined)
       LOG(PR, this.uaddr, `already configured`, [...this.client_socks.keys()]);
     this.client_socks = new Map<NP_Address, I_NetSocket>();
-    if (this.service_map.hasProxies())
-      LOG(PR, this.uaddr, `already configured`, this.service_map.proxiesList());
-    this.service_map.enableProxies();
+    if (this.svc_map.hasProxies())
+      LOG(PR, this.uaddr, `already configured`, this.svc_map.proxiesList());
+    this.svc_map.enableProxies();
     // add default service message handlers here
     this.addMessageHandler('SRV:REFLECT', data => {
       data.info = `built-in service`;
@@ -373,7 +373,7 @@ class NetEndpoint {
       }
       if (!IsValidAddress(uaddr)) throw Error(`${fn} invalid uaddr ${uaddr}`);
       this.uaddr = uaddr;
-      this.service_map = new ServiceMap(uaddr);
+      this.svc_map = new ServiceMap(uaddr);
       if (cli_auth === undefined) throw Error(`${fn} invalid cli_auth`);
       this.cli_auth = cli_auth;
       LOG(PR, 'AUTHENTICATED', uaddr, cli_auth);
@@ -484,12 +484,12 @@ class NetEndpoint {
 
   /** API: declare a message handler for a given message */
   addMessageHandler(msg: NP_Msg, handler: THandlerFunc) {
-    this.service_map.addServiceHandler(msg, handler);
+    this.svc_map.addServiceHandler(msg, handler);
   }
 
   /** API: remove a previously declared message handler for a given message */
   deleteMessageHandler(msg: NP_Msg, handler: THandlerFunc) {
-    this.service_map.deleteServiceHandler(msg, handler);
+    this.svc_map.deleteServiceHandler(msg, handler);
   }
 
   /** API: call local message registered on this endPoint only */
@@ -698,29 +698,29 @@ class NetEndpoint {
 
   /** get list of messages allocated to a uaddr */
   getMessagesForAddress(uaddr: NP_Address): NP_Msg[] {
-    return this.service_map.getServicesForAddress(uaddr);
+    return this.svc_map.getServicesForAddress(uaddr);
   }
 
   /** get list of UADDRs that a message is forwarded to */
   getMessageAddresses(msg: NP_Msg): NP_Address[] {
-    return this.service_map.getServiceAddress(msg);
+    return this.svc_map.getServiceAddress(msg);
   }
 
   /** return list of local handlers for given message */
   getMessageHandlers(msg: NP_Msg): THandlerFunc[] {
-    return this.service_map.getServiceHandlers(msg);
+    return this.svc_map.getServiceHandlers(msg);
   }
 
   /** informational routing information - - - - - - - - - - - - - - - - - - **/
 
   /** return handler list for this endpoint */
   getMessageNames(): NP_Msg[] {
-    return this.service_map.getServiceNames();
+    return this.svc_map.getServiceNames();
   }
 
   /** return only net messages */
   getNetMessageNames(): NP_Msg[] {
-    return this.service_map.getNetServiceNames();
+    return this.svc_map.getNetServiceNames();
   }
 
   /** return list of active transactions for this endpoint */
@@ -739,12 +739,12 @@ class NetEndpoint {
 
   /** register a message handler for a given message to passed uaddr */
   registerRemoteMessagesToAddress(uaddr: NP_Address, msgList: NP_Msg[]) {
-    return this.service_map.proxyServiceToAddress(uaddr, msgList);
+    return this.svc_map.proxyServiceToAddress(uaddr, msgList);
   }
 
   /** unregister message handlers for a given message to passed uaddr */
   _deleteRemoteMessagesForAddress(uaddr: NP_Address): NP_Msg[] {
-    return this.service_map._deleteProxiesForAddress(uaddr);
+    return this.svc_map._deleteProxiesForAddress(uaddr);
   }
 
   /** packet interface  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
@@ -1075,7 +1075,7 @@ class NetEndpoint {
 
   /** return true if this endpoint is managing connections */
   isServer() {
-    const hasRemotes = this.service_map.hasProxies();
+    const hasRemotes = this.svc_map.hasProxies();
     return this.client_socks !== undefined && hasRemotes;
   }
 
