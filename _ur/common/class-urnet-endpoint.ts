@@ -16,7 +16,7 @@
   - _ingestServerPacket(jsonData: string, socket: I_NetSocket): void
 
   Shared API
-  - addMessageHandler(msg: NP_Msg, handler: HandlerFunc): void
+  - addMessageHandler(msg: NP_Msg, handler: THandlerFunc): void
   - call(msg: NP_Msg, data: NP_Data): Promise<NP_Data>
   - send(msg: NP_Msg, data: NP_Data): Promise<NP_Data>
   - signal(msg: NP_Msg, data: NP_Data): void
@@ -48,15 +48,17 @@
 
 import { PR } from '@ursys/core';
 import NetPacket from './class-urnet-packet.ts';
+import ServiceMap from './class-urnet-servicemap.ts';
 import { GetPacketHashString, SkipOriginType } from './types-urnet.ts';
 import { IsLocalMessage, IsNetMessage, IsValidAddress } from './types-urnet.ts';
 import { UADDR_NONE, AllocateAddress } from './types-urnet.ts';
-import { NormalizeMessage, NormalizeData } from './types-urnet.ts';
+import { NormalizeData } from './types-urnet.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { NP_ID, NP_Address, NP_Msg, NP_Data, NP_Hash } from './types-urnet.ts';
 import type { I_NetSocket } from './class-urnet-socket.ts';
+import type { THandlerFunc } from './class-urnet-servicemap.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -72,14 +74,7 @@ let AGE_MAX = 60 * 30; // 30 minutes
 
 /// LOCAL TYPES ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type HandlerFunc = (data: NP_Data) => NP_Data | void;
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type HandlerSet = Set<HandlerFunc>; // set(handler1, handler2, ...)
-type AddressSet = Set<NP_Address>; // ['UA001', 'UA002', ...]
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SocketMap = Map<NP_Address, I_NetSocket>; //
-type ForwardMap = Map<NP_Msg, AddressSet>; // msg->set of uaddr
-type HandlerMap = Map<NP_Msg, HandlerSet>; // msg->handler functions
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** transactions store promises for resolving sent packet with return values */
 type TransactionMap = Map<NP_Hash, PktResolver>; // hash->resolver
@@ -125,11 +120,10 @@ function _PKT(ep: NetEndpoint, fn: string, text: string, pkt: NetPacket) {
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class NetEndpoint {
-  handled_msgs: HandlerMap; // msg->handlers[]
+  service_map: ServiceMap; // message handlers
   //
   uaddr: NP_Address; // the address for this endpoint
   client_socks: SocketMap; // uaddr->I_NetSocket
-  remoted_msgs: ForwardMap; // msg->uaddr[]
   transactions: TransactionMap; // hash->resolver
   //
   cli_counter: number; // counter for generating unique uaddr
@@ -151,9 +145,7 @@ class NetEndpoint {
     this.cli_gateway = undefined; // client gateway
     // endpoint as server
     this.client_socks = undefined;
-    this.remoted_msgs = undefined;
-    // endpoint message handling support
-    this.handled_msgs = new Map<NP_Msg, HandlerSet>();
+    this.service_map = undefined;
     this.transactions = new Map<NP_Hash, PktResolver>();
     // runtime packet, socket counters
     this.pkt_counter = 0;
@@ -172,13 +164,14 @@ class NetEndpoint {
       throw Error(err);
     }
     this.uaddr = srv_addr;
+    this.service_map = new ServiceMap(srv_addr);
     // make sure we don't nuke
     if (this.client_socks !== undefined)
       LOG(PR, this.uaddr, `already configured`, [...this.client_socks.keys()]);
     this.client_socks = new Map<NP_Address, I_NetSocket>();
-    if (this.remoted_msgs !== undefined)
-      LOG(PR, this.uaddr, `already configured`, [...this.remoted_msgs.keys()]);
-    this.remoted_msgs = new Map<NP_Msg, AddressSet>();
+    if (this.service_map.hasProxies())
+      LOG(PR, this.uaddr, `already configured`, this.service_map.proxiesList());
+    this.service_map.enableProxies();
     // add default service message handlers here
     this.addMessageHandler('SRV:REFLECT', data => {
       data.info = `built-in service`;
@@ -380,6 +373,7 @@ class NetEndpoint {
       }
       if (!IsValidAddress(uaddr)) throw Error(`${fn} invalid uaddr ${uaddr}`);
       this.uaddr = uaddr;
+      this.service_map = new ServiceMap(uaddr);
       if (cli_auth === undefined) throw Error(`${fn} invalid cli_auth`);
       this.cli_auth = cli_auth;
       LOG(PR, 'AUTHENTICATED', uaddr, cli_auth);
@@ -489,28 +483,13 @@ class NetEndpoint {
   /** message declaration and invocation - - - - - - - - - - - - - - - - - -**/
 
   /** API: declare a message handler for a given message */
-  addMessageHandler(msg: NP_Msg, handler: HandlerFunc) {
-    const fn = 'addMessageHandler:';
-    // LOG(PR,this.uaddr, `reg handler '${msg}'`);
-    if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
-    if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
-    if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
-    const key = NormalizeMessage(msg);
-    if (!this.handled_msgs.has(key))
-      this.handled_msgs.set(key, new Set<HandlerFunc>());
-    const handler_set = this.handled_msgs.get(key);
-    handler_set.add(handler);
+  addMessageHandler(msg: NP_Msg, handler: THandlerFunc) {
+    this.service_map.addServiceHandler(msg, handler);
   }
 
   /** API: remove a previously declared message handler for a given message */
-  deleteMessageHandler(msg: NP_Msg, handler: HandlerFunc) {
-    const fn = 'deleteMessageHandler:';
-    if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
-    if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
-    const key = NormalizeMessage(msg);
-    const handler_set = this.handled_msgs.get(key);
-    if (!handler_set) throw Error(`${fn} unexpected empty set '${key}'`);
-    handler_set.delete(handler);
+  deleteMessageHandler(msg: NP_Msg, handler: THandlerFunc) {
+    this.service_map.deleteServiceHandler(msg, handler);
   }
 
   /** API: call local message registered on this endPoint only */
@@ -719,64 +698,29 @@ class NetEndpoint {
 
   /** get list of messages allocated to a uaddr */
   getMessagesForAddress(uaddr: NP_Address): NP_Msg[] {
-    const fn = 'getMessagesForAddress:';
-    if (!this.isServer()) return []; // invalid for client-only endpoints
-    if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
-    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
-    // remoted_msgs is msg->set of uaddr, so iterate over all messages
-    const msg_list: NP_Msg[] = [];
-    this.remoted_msgs.forEach((addr_set, msg) => {
-      if (addr_set.has(uaddr)) msg_list.push(msg);
-    });
-    return msg_list;
+    return this.service_map.getServicesForAddress(uaddr);
   }
 
   /** get list of UADDRs that a message is forwarded to */
   getMessageAddresses(msg: NP_Msg): NP_Address[] {
-    const fn = 'getMessageAddresses:';
-    if (!this.isServer()) return []; // invalid for client-only endpoints
-    if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
-    const key = NormalizeMessage(msg);
-    if (!this.remoted_msgs.has(key))
-      this.remoted_msgs.set(key, new Set<NP_Address>());
-    const addr_set = this.remoted_msgs.get(key);
-    const addr_list = Array.from(addr_set);
-    return addr_list;
+    return this.service_map.getServiceAddress(msg);
   }
 
   /** return list of local handlers for given message */
-  getMessageHandlers(msg: NP_Msg): HandlerFunc[] {
-    const fn = 'getMessageHandlers:';
-    if (this.handled_msgs === undefined) return [];
-    if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
-    const key = NormalizeMessage(msg);
-    if (!this.handled_msgs.has(key))
-      this.handled_msgs.set(key, new Set<HandlerFunc>());
-    const handler_set = this.handled_msgs.get(key);
-    if (!handler_set) throw Error(`${fn} unexpected empty set '${key}'`);
-    const handler_list = Array.from(handler_set);
-    return handler_list;
+  getMessageHandlers(msg: NP_Msg): THandlerFunc[] {
+    return this.service_map.getServiceHandlers(msg);
   }
 
   /** informational routing information - - - - - - - - - - - - - - - - - - **/
 
   /** return handler list for this endpoint */
   getMessageNames(): NP_Msg[] {
-    // get message keys from handled_msgs
-    const list = [];
-    this.handled_msgs.forEach((handler_set, key) => {
-      list.push(key);
-    });
-    return list;
+    return this.service_map.getServiceNames();
   }
 
   /** return only net messages */
   getNetMessageNames(): NP_Msg[] {
-    const list = [];
-    this.handled_msgs.forEach((handler_set, key) => {
-      if (IsNetMessage(key)) list.push(key);
-    });
-    return list;
+    return this.service_map.getNetServiceNames();
   }
 
   /** return list of active transactions for this endpoint */
@@ -795,32 +739,12 @@ class NetEndpoint {
 
   /** register a message handler for a given message to passed uaddr */
   registerRemoteMessagesToAddress(uaddr: NP_Address, msgList: NP_Msg[]) {
-    const fn = 'registerRemoteMessagesToAddress:';
-    if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
-    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
-    msgList.forEach(msg => {
-      if (typeof msg !== 'string') throw Error(`${fn} invalid msg`);
-      if (msg !== msg.toUpperCase()) throw Error(`${fn} msg must be uppercase`);
-      const key = NormalizeMessage(msg);
-      if (!this.remoted_msgs.has(key))
-        this.remoted_msgs.set(key, new Set<NP_Address>());
-      const msg_set = this.remoted_msgs.get(key);
-      msg_set.add(uaddr);
-      // LOG(PR,this.uaddr, `reg remote ${key} for ${uaddr}`);
-    });
+    return this.service_map.proxyServiceToAddress(uaddr, msgList);
   }
 
   /** unregister message handlers for a given message to passed uaddr */
   _deleteRemoteMessagesForAddress(uaddr: NP_Address): NP_Msg[] {
-    const fn = '_deleteRemoteMessagesForAddress:';
-    if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
-    if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
-    const removed = [];
-    this.remoted_msgs.forEach((msg_set, key) => {
-      if (msg_set.has(uaddr)) removed.push(key);
-      msg_set.delete(uaddr);
-    });
-    return removed;
+    return this.service_map._deleteProxiesForAddress(uaddr);
   }
 
   /** packet interface  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
@@ -1151,7 +1075,8 @@ class NetEndpoint {
 
   /** return true if this endpoint is managing connections */
   isServer() {
-    return this.client_socks !== undefined && this.remoted_msgs !== undefined;
+    const hasRemotes = this.service_map.hasProxies();
+    return this.client_socks !== undefined && hasRemotes;
   }
 
   /** socket utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
