@@ -9,12 +9,9 @@
 
 import NET from 'node:net';
 import PATH from 'node:path';
-import { PR, PROC, FILE } from '@ursys/core';
+import { PR, PROC, FILE, CLASS } from '@ursys/core';
 import { UDS_INFO } from './urnet-constants.mts';
-import CLASS_EP from './class-urnet-endpoint.ts';
-import CLASS_NS from './class-urnet-socket.ts';
-const { NetEndpoint } = CLASS_EP;
-const { NetSocket } = CLASS_NS;
+const { NetEndpoint, NetSocket } = CLASS;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -112,7 +109,9 @@ function Stop() {
       const clients = Array.from(EP.client_socks.values());
       if (
         clients.every(client => {
+          // @ts-ignore
           const test = client.connector.destroyed;
+          // @ts-ignore
           if (!test) LOG(`client ${client.uaddr} still active`);
           return test;
         })

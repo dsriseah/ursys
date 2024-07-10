@@ -4,13 +4,10 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR, FILE, PROC } from '@ursys/core';
+import { PR, FILE, PROC, CLASS } from '@ursys/core';
 import { UDS_INFO } from './urnet-constants.mts';
 import NET from 'node:net';
-import EP_DEFAULT from './class-urnet-endpoint.ts';
-import NS_DEFAULT, { I_NetSocket } from './class-urnet-socket.ts';
-const { NetEndpoint } = EP_DEFAULT;
-const { NetSocket } = NS_DEFAULT;
+const { NetEndpoint, NetSocket } = CLASS;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

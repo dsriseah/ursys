@@ -8,11 +8,8 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { WebSocketServer } from 'ws';
-import { PR, PROC } from '@ursys/core';
-import CLASS_EP from './class-urnet-endpoint.ts';
-import CLASS_NS from './class-urnet-socket.ts';
-const { NetEndpoint } = CLASS_EP;
-const { NetSocket } = CLASS_NS;
+import { PR, PROC, CLASS } from '@ursys/core';
+const { NetEndpoint, NetSocket } = CLASS;
 import { WSS_INFO } from './urnet-constants.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
