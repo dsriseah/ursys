@@ -9,10 +9,8 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler, CLASS, CONSTANT } from '@ursys/core';
+import { ConsoleStyler, CLASS } from '@ursys/core';
 import './scripts/_welcome.ts';
-//
-const { NetEndpoint, NetSocket } = CLASS;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -20,8 +18,8 @@ const PR = ConsoleStyler('WebPlay', 'TagPurple');
 const LOG = console.log.bind(console);
 const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { NetEndpoint, NetSocket } = CLASS;
 const EP = new NetEndpoint();
-let EP_UADDR = EP.uaddr;
 let SERVER_LINK: WebSocket;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const TIMEOUT = 360; // seconds before client closes connection
@@ -74,7 +72,7 @@ function Connect(): Promise<boolean> {
         return;
       }
       // 3. register client with server
-      const info = { name: 'UDSClient', type: 'client' };
+      const info = { name: 'WebClient', type: 'client' };
       const regdata = await EP.declareClientProperties(info);
       if (DBG) LOG(...PR('EP.declareClientProperties returned', regdata));
       if (regdata.error) {
@@ -82,8 +80,6 @@ function Connect(): Promise<boolean> {
         resolve(false);
         return;
       }
-      // 4. save global uaddr
-      EP_UADDR = EP.uaddr;
       resolve(true);
     }); // end createConnection
   });
@@ -119,7 +115,7 @@ function Disconnect(seconds = TIMEOUT) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
   await Connect();
-  EP.addMessageHandler('NET:HOT_RELOAD_APP', data => {
+  EP.addMessageHandler('NET:UR_HOT_RELOAD_APP', data => {
     LOG(...PR(`HOT_RELOAD_APP`));
     window.location.reload();
   });

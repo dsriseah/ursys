@@ -60,7 +60,7 @@ import type { I_NetSocket } from './class-urnet-socket.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = true;
+const DBG = false;
 const PR =
   typeof process !== 'undefined'
     ? 'EndPoint'.padEnd(13) // nodejs
@@ -445,8 +445,9 @@ class NetEndpoint {
     if (error) {
       LOG(PR, `${fn} error:`, error);
     } else {
-      LOG(PR, `DECLARED ${rmsg_list.length} messages`);
-      rmsg_list.forEach(msg => LOG(PR, `  '${msg}'`));
+      console.groupCollapsed(PR, `DECLARED ${rmsg_list.length} messages`);
+      rmsg_list.forEach((msg, i) => LOG(`${i + 1}\t'${msg}'`));
+      console.groupEnd();
     }
     return response;
   }
@@ -1174,4 +1175,6 @@ class NetEndpoint {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default NetEndpoint;
-export { NetEndpoint };
+export {
+  NetEndpoint // the class
+};

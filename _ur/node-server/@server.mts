@@ -89,7 +89,8 @@ export {
   APPSERV, // application server
   APPBUILD, // application builder
   //
-  ADDON, // ur module manager
+  ADDON, // ur module manager,
+  PROMPTS,
   // formatting
   makeTerminalOut as PR // prompt style formatter
 };

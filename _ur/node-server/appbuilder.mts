@@ -4,12 +4,12 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { watch } from 'chokidar';
 import fse from 'fs-extra';
 import path from 'node:path';
 import chokidar from 'chokidar';
 import esbuild from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
+import { makeTerminalOut } from '../common/util-prompts.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -45,6 +45,7 @@ let INDEX_FILE: string; // default index file for the app
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import { ANSI_COLORS } from '../common/declare-colors.ts';
 const { DIM, NRM } = ANSI_COLORS;
+const LOG = makeTerminalOut('UR.BUILD', 'TagBlue');
 
 /// CONFIGURATION /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -105,6 +106,7 @@ async function BuildApp(opts: BuildOptions) {
 
   // ensure the output directory exists
   fse.ensureDir(PUBLIC);
+
   // build the webapp and stuff it into public
   const context = await esbuild.context({
     entryPoints: [`${SRC_JS}/${entry_file}`],
@@ -123,14 +125,14 @@ async function BuildApp(opts: BuildOptions) {
             to: [`${PUBLIC}/`]
           }
         ],
-        watch: true // should copy on change
+        watch: true
       }),
       {
         name: 'rebuild-notify',
         setup(build) {
           build.onEnd(() => {
             if (notify_cb) notify_cb();
-            if (DBG) console.log('Build complete');
+            if (DBG) LOG.info(`${DIM}Build complete.${NRM}`);
           });
         }
       }

@@ -8,9 +8,9 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 // note: cjs-style modules in 'common' can not be destructured on import
-import PROMPTS from '../common/util-prompts.ts';
+import * as PROMPTS from '../common/util-prompts.ts';
 // cjs-style modules
-import TEXT from '../common/util-text.js';
+import * as TEXT from '../common/util-text.js';
 // typescript classes
 import OpSequencer from '../common/class-op-seq.ts';
 import StateMgr from '../common/class-state-mgr.ts';
@@ -55,7 +55,7 @@ function ClientTest(): void {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  // cjs modules
+  //
   PROMPTS,
   TEXT,
   // typescript classes, libraries
