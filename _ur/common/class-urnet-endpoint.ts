@@ -49,6 +49,7 @@
 import { PR } from '@ursys/core';
 import NetPacket from './class-urnet-packet.ts';
 import ServiceMap from './class-urnet-servicemap.ts';
+import TransactionMgr from './class-urnet-transaction.ts';
 import { GetPacketHashString, SkipOriginType } from './types-urnet.ts';
 import { IsLocalMessage, IsNetMessage, IsValidAddress } from './types-urnet.ts';
 import { UADDR_NONE, AllocateAddress } from './types-urnet.ts';
@@ -77,7 +78,6 @@ let AGE_MAX = 60 * 30; // 30 minutes
 type SocketMap = Map<NP_Address, I_NetSocket>; //
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** transactions store promises for resolving sent packet with return values */
-type TransactionMap = Map<NP_Hash, PktResolver>; // hash->resolver
 type PktResolver = {
   msg: NP_Msg;
   uaddr: NP_Address;
@@ -121,10 +121,10 @@ function _PKT(ep: NetEndpoint, fn: string, text: string, pkt: NetPacket) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class NetEndpoint {
   svc_map: ServiceMap; // service handler map (include proxies)
+  trx_mgr: TransactionMgr; // hash->resolver
   //
   uaddr: NP_Address; // the address for this endpoint
   client_socks: SocketMap; // uaddr->I_NetSocket
-  transactions: TransactionMap; // hash->resolver
   //
   cli_counter: number; // counter for generating unique uaddr
   pkt_counter: number; // counter for generating packet ids
@@ -144,9 +144,9 @@ class NetEndpoint {
     this.cli_reg = undefined; // client registration status
     this.cli_gateway = undefined; // client gateway
     // endpoint as server
-    this.client_socks = undefined;
-    this.svc_map = undefined;
-    this.transactions = new Map<NP_Hash, PktResolver>();
+    this.client_socks = undefined; // client sockets
+    this.svc_map = undefined; // service handlers
+    this.trx_mgr = new TransactionMgr(); // transaction manager
     // runtime packet, socket counters
     this.pkt_counter = 0;
     this.cli_counter = 0;
@@ -361,7 +361,7 @@ class NetEndpoint {
 
       /** MAGIC **/
       /** await promise, which resolves when server responds to the auth packet */
-      let authData: NP_Data = await this._queueTransaction(pkt, gateway);
+      let authData: NP_Data = await this._proxySend(pkt, gateway);
       /** resumes when _handleAuthResponse() resolves the transaction **/
       /** END MAGIC **/
 
@@ -413,7 +413,7 @@ class NetEndpoint {
 
     /** MAGIC **/
     /** suspend through transaction **/
-    let regData: NP_Data = await this._queueTransaction(pkt, this.cli_gateway);
+    let regData: NP_Data = await this._proxySend(pkt, this.cli_gateway);
     /** resumes when _handleAuthResponse() resolves the transaction **/
     /** END MAGIC **/
 
@@ -452,7 +452,7 @@ class NetEndpoint {
     const fn = '_handleAuthResponse:';
     if (pkt.msg_type !== '_auth') return false;
     if (pkt.hop_dir !== 'res') return false;
-    this.resolveTransaction(pkt);
+    this.resolveRemoteHandler(pkt);
     // auth resumes in connectAsClient() magical await requestAuth
     return true;
   }
@@ -465,7 +465,7 @@ class NetEndpoint {
     if (pkt.hop_dir !== 'res') return false;
     if (pkt.src_addr !== this.uaddr) throw Error(`${fn} misaddressed packet???`);
     // resuming from declareClientProperties() await requestReg
-    this.resolveTransaction(pkt);
+    this.resolveRemoteHandler(pkt);
     return true;
   }
 
@@ -476,7 +476,7 @@ class NetEndpoint {
     if (pkt.hop_dir !== 'res') return false;
     if (pkt.src_addr !== this.uaddr) throw Error(`${fn} misaddressed packet???`);
     // resuming from _declareClientServices() await requestReg
-    this.resolveTransaction(pkt);
+    this.resolveRemoteHandler(pkt);
     return true;
   }
 
@@ -562,10 +562,8 @@ class NetEndpoint {
     /** MAGIC **/
     let resData = await new Promise((resolve, reject) => {
       const meta = { msg, uaddr: this.uaddr }; // this is transaction meta, not pkt meta
-      // note: this is similar to _queueTransaction() but without the extra checks
       const hash = GetPacketHashString(pkt);
-      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-      this.transactions.set(hash, { resolve, reject, ...meta });
+      this.trx_mgr.setTransaction(hash, { resolve, reject, ...meta });
       try {
         this.initialSend(pkt);
       } catch (err) {
@@ -588,11 +586,10 @@ class NetEndpoint {
     });
     /** MAGIC **/
     let resData = await new Promise((resolve, reject) => {
-      // note: this is similar to _queueTransaction() but without the extra checks
+      // note: this is similar to _proxySend() but without the extra checks
       const hash = GetPacketHashString(pkt);
-      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
       const meta = { msg, uaddr: this.uaddr }; // this is transaction meta, not pkt meta
-      this.transactions.set(hash, { resolve, reject, ...meta });
+      this.trx_mgr.setTransaction(hash, { resolve, reject, ...meta });
       try {
         this.initialSend(pkt);
       } catch (err) {
@@ -631,11 +628,10 @@ class NetEndpoint {
     });
     /** MAGIC **/
     let resData = await new Promise((resolve, reject) => {
-      // note: this is similar to _queueTransaction() but without the extra checks
+      // note: this is similar to _proxySend() but without the extra checks
       const hash = GetPacketHashString(pkt);
-      if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
       const meta = { msg, uaddr: this.uaddr }; // this is transaction meta, not pkt meta
-      this.transactions.set(hash, { resolve, reject, ...meta });
+      this.trx_mgr.setTransaction(hash, { resolve, reject, ...meta });
       try {
         this.initialSend(pkt);
       } catch (err) {
@@ -660,7 +656,7 @@ class NetEndpoint {
 
     /** MAGIC **/
     /** suspend through transaction **/
-    let declared: NP_Data = await this._queueTransaction(pkt, this.cli_gateway);
+    let declared: NP_Data = await this._proxySend(pkt, this.cli_gateway);
     /** resumes when _handleAuthResponse() resolves the transaction **/
     /** END MAGIC **/
 
@@ -723,18 +719,6 @@ class NetEndpoint {
     return this.svc_map.getNetServiceNames();
   }
 
-  /** return list of active transactions for this endpoint */
-  getPendingTransactions(): { hash: NP_Hash; msg: NP_Msg; uaddr: NP_Address }[] {
-    // return array of objects { hash, msg, uaddr }
-    const fn = 'getPendingTransactions:';
-    const list = [];
-    this.transactions.forEach((transaction, hash) => {
-      const { msg, uaddr } = transaction;
-      list.push({ hash, msg, uaddr });
-    });
-    return list;
-  }
-
   /** server endpoints manage list of messages in clients  - - - - -  - - - **/
 
   /** register a message handler for a given message to passed uaddr */
@@ -767,7 +751,7 @@ class NetEndpoint {
     if (pkt.isResponse()) {
       if (pkt.src_addr === this.uaddr) {
         // this is a returning packet that originated from this endpoint
-        this.resolveTransaction(pkt);
+        this.resolveRemoteHandler(pkt);
       } else {
         // otherwise, it's a response packet to a downstream client
         this.returnToSender(pkt);
@@ -794,7 +778,7 @@ class NetEndpoint {
     // handle signal packets
     if (pkt.msg_type === 'signal') {
       await this.awaitHandlers(pkt);
-      if (this.isServer()) await this.awaitRemoteHandlers(pkt);
+      if (this.isServer()) await this.awaitProxiedHandlers(pkt);
       return;
     }
 
@@ -803,7 +787,7 @@ class NetEndpoint {
     if (this.packetHasHandler(pkt)) {
       // handle send and call, which do not reflect back to sender
       retData = await this.awaitHandlers(pkt);
-      if (this.isServer()) retData = await this.awaitRemoteHandlers(pkt);
+      if (this.isServer()) retData = await this.awaitProxiedHandlers(pkt);
     } else {
       LOG(PR, this.uaddr, fn, `unknown message`, pkt);
       retData = { error: `unknown message '${pkt.msg}'` };
@@ -828,22 +812,22 @@ class NetEndpoint {
    *  is a queue that uses Promises to wait for the return, which is
    *  triggered by a returning packet in dispatchPacket(pkt).
    */
-  async awaitRemoteHandlers(pkt: NetPacket) {
-    const fn = 'awaitRemoteHandlers:';
+  async awaitProxiedHandlers(pkt: NetPacket) {
+    const fn = 'awaitProxiedHandlers:';
     if (pkt.hop_dir !== 'req') throw Error(`${fn} packet is not a request`);
     // prep for return
     const { gateway, clients } = this.getRoutingInformation(pkt);
     const promises = [];
     if (gateway) {
       // LOG(PR,_PKT(this, fn, '-wait-req-', pkt), pkt.data);
-      const p = this.awaitTransaction(pkt, gateway);
+      const p = this.awaitRemoteHandler(pkt, gateway);
       if (p) promises.push(p);
     }
     if (Array.isArray(clients)) {
       // LOG(PR,_PKT(this, fn, '-wait-req-', pkt), pkt.data);
       clients.forEach(sock => {
         // LOG(PR,fn,this.uaddr, 'await remote', pkt.msg, sock.uaddr);
-        const p = this.awaitTransaction(pkt, sock);
+        const p = this.awaitRemoteHandler(pkt, sock);
         if (p) promises.push(p);
       });
     }
@@ -904,53 +888,49 @@ class NetEndpoint {
 
   /** Used to forward a transaction from server to a remote client
    */
-  awaitTransaction(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
+  awaitRemoteHandler(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
+    const fn = 'awaitRemoteHandler:';
     const clone = this.clonePacket(pkt);
     clone.id = this.assignPacketId(clone);
     if (pkt.src_addr === sock.uaddr && SkipOriginType(pkt.msg_type)) return;
-    return this._queueTransaction(clone, sock);
+    return this._proxySend(clone, sock);
   }
 
   /** Used to resolve a forwarded transaction received by server from
    *  a remote client
    */
-  resolveTransaction(pkt: NetPacket) {
-    const fn = 'resolveTransaction:';
+  resolveRemoteHandler(pkt: NetPacket) {
+    const fn = 'resolveRemoteHandler:';
     // LOG(PR, fn, this.uaddr, 'resolving', pkt.msg);
     if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
     if (pkt.hop_dir !== 'res') throw Error(`${fn} packet is not a response`);
     if (pkt.hop_seq.length < 2 && !pkt.isSpecialPkt())
       throw Error(`${fn} packet has no hops`);
-    this._dequeueTransaction(pkt);
+    this._proxyReceive(pkt);
   }
 
   /** utility method for conducting transactions */
-  _queueTransaction(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
-    const fn = '_queueTransaction:';
+  _proxySend(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
+    const fn = '_proxySend:';
     const hash = GetPacketHashString(pkt);
-    if (this.transactions.has(hash)) throw Error(`${fn} duplicate hash ${hash}`);
-    const { src_addr } = pkt;
-    const { uaddr: dst_addr } = sock;
-    // LOG(PR, fn, `${pkt.msg} dst:${dst_addr} src:${src_addr}`);
     return new Promise((resolve, reject) => {
       const meta = { msg: pkt.msg, uaddr: pkt.src_addr };
-      this.transactions.set(hash, { resolve, reject, ...meta });
+      this.trx_mgr.setTransaction(hash, { resolve, reject, ...meta });
       sock.send(pkt);
     });
   }
 
   /** utility method for completing transactions */
-  _dequeueTransaction(pkt: NetPacket) {
-    const fn = '_finishTransaction:';
+  _proxyReceive(pkt: NetPacket) {
+    const fn = '_proxyReceive:';
     const hash = GetPacketHashString(pkt);
-    const resolver = this.transactions.get(hash);
+    const resolver = this.trx_mgr.resolveTransaction(hash);
     if (!resolver) throw Error(`${fn} no resolver for hash ${hash}`);
     const { resolve, reject } = resolver;
     const { data } = pkt;
     // LOG(PR,_PKT(this, fn, '-recv-res-', pkt), pkt.data);
     if (pkt.err) reject(pkt.err);
     else resolve(data);
-    this.transactions.delete(hash);
   }
 
   /** Return a packet to its source address. If this endpoint is a server,
