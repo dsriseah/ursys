@@ -77,14 +77,6 @@ let AGE_MAX = 60 * 30; // 30 minutes
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SocketMap = Map<NP_Address, I_NetSocket>; //
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** transactions store promises for resolving sent packet with return values */
-type PktResolver = {
-  msg: NP_Msg;
-  uaddr: NP_Address;
-  resolve: (value?: unknown) => void;
-  reject: (reason?: any) => void;
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** returned by getRoutingInfo() for external users of this class */
 type PktRoutingInfo = {
   msg: NP_Msg;
@@ -156,7 +148,7 @@ class NetEndpoint {
   /** API: initialize this endpoint's client server, providing a hardcoded
    *  server UADDR that is distinct from those used by client pools
    */
-  configAsServer(srv_addr: NP_Address) {
+  public configAsServer(srv_addr: NP_Address) {
     const fn = 'configAsServer:';
     if (!IsValidAddress(srv_addr)) throw Error(`${fn} invalid srv_addr ${srv_addr}`);
     if (this.uaddr && this.uaddr !== srv_addr) {
@@ -182,7 +174,7 @@ class NetEndpoint {
   /** API: Server data event handler for incoming data from a client connection.
    *  This is the mirror to _ingestServerPacket() function used by client endpoints.
    *  This is the entry point for incoming data from clients */
-  _ingestClientPacket(jsonData: string, socket: I_NetSocket): NetPacket {
+  public _ingestClientPacket(jsonData: string, socket: I_NetSocket): NetPacket {
     let pkt = this.newPacket().deserialize(jsonData);
     let retPkt: NetPacket;
 
@@ -206,7 +198,7 @@ class NetEndpoint {
 
   /** API: when a client connects to this endpoint, register it as a socket and
    *  allocate a uaddr for it */
-  addClient(socket: I_NetSocket): NP_Address {
+  public addClient(socket: I_NetSocket): NP_Address {
     const fn = 'addClient:';
     if (typeof socket !== 'object') throw Error(`${fn} invalid socket`);
     if (socket.uaddr !== undefined) throw Error(`${fn} socket already added`);
@@ -222,7 +214,7 @@ class NetEndpoint {
 
   /** API: when a client disconnects from this endpoint, delete its socket and
    *  remove all message forwarding */
-  removeClient(uaddr_obj: NP_Address | I_NetSocket): NP_Address {
+  public removeClient(uaddr_obj: NP_Address | I_NetSocket): NP_Address {
     const fn = 'removeClient:';
     let uaddr = typeof uaddr_obj === 'string' ? uaddr_obj : uaddr_obj.uaddr;
     if (typeof uaddr !== 'string') {
@@ -231,7 +223,7 @@ class NetEndpoint {
     }
     if (!this.client_socks.has(uaddr)) throw Error(`${fn} unknown uaddr ${uaddr}`);
     // remoted_msgs is msg->set of uaddr, so iterate over all messages
-    this._deleteRemoteMessagesForAddress(uaddr);
+    this.deleteMessageForAddress(uaddr);
     // delete the socket
     this.client_socks.delete(uaddr);
     // LOG(PR,this.uaddr, `socket ${uaddr} deleted`);
@@ -239,14 +231,14 @@ class NetEndpoint {
   }
 
   /** API: given a uaddr, return the socket */
-  getClient(uaddr: NP_Address): I_NetSocket {
+  public getClient(uaddr: NP_Address): I_NetSocket {
     const fn = 'getClient:';
     if (this.client_socks === undefined) return undefined;
     return this.client_socks.get(uaddr);
   }
 
   /** API: start a timer to check for dead sockets */
-  enableClientAging(activate: boolean) {
+  public enableClientAging(activate: boolean) {
     const fn = 'enableClientAging:';
     if (activate) {
       if (this.cli_sck_timer) clearInterval(this.cli_sck_timer);
@@ -267,7 +259,7 @@ class NetEndpoint {
   }
 
   /** support: handle auth packet if the session.auth is not defined */
-  _handleAuthRequest(pkt: NetPacket, socket: I_NetSocket): NetPacket {
+  private _handleAuthRequest(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     if (!socket.authenticated()) {
       pkt.setDir('res');
       pkt.addHop(this.uaddr);
@@ -292,7 +284,7 @@ class NetEndpoint {
   }
 
   /** support: handle registration packet */
-  _handleRegRequest(pkt: NetPacket, socket: I_NetSocket): NetPacket {
+  private _handleRegRequest(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     if (!pkt.isBadRegPkt(socket)) {
       pkt.setDir('res');
       pkt.addHop(this.uaddr);
@@ -318,7 +310,7 @@ class NetEndpoint {
   }
 
   /** support: handle client dynamic definitions */
-  _handleDeclRequest(pkt: NetPacket, socket: I_NetSocket): NetPacket {
+  private _handleDeclRequest(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     if (pkt.msg_type === '_decl') {
       pkt.setDir('res');
       pkt.addHop(this.uaddr);
@@ -350,7 +342,10 @@ class NetEndpoint {
 
   /** API: client endpoints need to have an "address" assigned to them,
    *  otherwise the endpoint will not work */
-  async connectAsClient(gateway: I_NetSocket, auth: TClientAuth): Promise<NP_Data> {
+  public async connectAsClient(
+    gateway: I_NetSocket,
+    auth: TClientAuth
+  ): Promise<NP_Data> {
     const fn = 'connectAsClient:';
     if (gateway && typeof gateway.send === 'function') {
       this.cli_gateway = gateway;
@@ -387,7 +382,7 @@ class NetEndpoint {
    *  the mirror to _ingestClientPacket() function that is used by servers. This
    *  is entry point for incoming data from server
    */
-  _ingestServerPacket(jsonData: string, socket: I_NetSocket): void {
+  public _ingestServerPacket(jsonData: string, socket: I_NetSocket): void {
     const fn = '_ingestServerPacket:';
     const pkt = this.newPacket().deserialize(jsonData);
     // 1. is this connection handshaking for clients?
@@ -405,7 +400,7 @@ class NetEndpoint {
   }
 
   /** API: register client with client endpoint info */
-  async declareClientProperties(info: TClientReg): Promise<NP_Data> {
+  public async declareClientProperties(info: TClientReg): Promise<NP_Data> {
     const fn = 'declareClientProperties:';
     if (!this.cli_gateway) throw Error(`${fn} no gateway`);
     const pkt = this.newRegPacket();
@@ -431,7 +426,7 @@ class NetEndpoint {
   }
 
   /** API: declare client messages */
-  async declareClientMessages() {
+  public async declareClientMessages() {
     const fn = 'declareClientMessages:';
     const msg_list = this.getNetMessageNames();
     const response = await this._declareClientServices({ msg_list });
@@ -448,7 +443,7 @@ class NetEndpoint {
 
   /** support: handle authentication response packet directly rather than through
    *  the netcall interface in dispatchPacket() */
-  _handleAuthResponse(pkt: NetPacket): boolean {
+  private _handleAuthResponse(pkt: NetPacket): boolean {
     const fn = '_handleAuthResponse:';
     if (pkt.msg_type !== '_auth') return false;
     if (pkt.hop_dir !== 'res') return false;
@@ -459,7 +454,7 @@ class NetEndpoint {
 
   /** support: handle registration response packet directly rather than through
    *  the netcall interface in dispatchPacket() */
-  _handleRegResponse(pkt: NetPacket): boolean {
+  private _handleRegResponse(pkt: NetPacket): boolean {
     const fn = '_handleRegResponse:';
     if (pkt.msg_type !== '_reg') return false;
     if (pkt.hop_dir !== 'res') return false;
@@ -470,7 +465,7 @@ class NetEndpoint {
   }
 
   /** support: handle declaration packet */
-  _handleDeclResponse(pkt: NetPacket): boolean {
+  private _handleDeclResponse(pkt: NetPacket): boolean {
     const fn = '_handleDeclResponse:';
     if (pkt.msg_type !== '_decl') return false;
     if (pkt.hop_dir !== 'res') return false;
@@ -483,17 +478,17 @@ class NetEndpoint {
   /** message declaration and invocation - - - - - - - - - - - - - - - - - -**/
 
   /** API: declare a message handler for a given message */
-  addMessageHandler(msg: NP_Msg, handler: THandlerFunc) {
+  public addMessageHandler(msg: NP_Msg, handler: THandlerFunc) {
     this.svc_map.addServiceHandler(msg, handler);
   }
 
   /** API: remove a previously declared message handler for a given message */
-  deleteMessageHandler(msg: NP_Msg, handler: THandlerFunc) {
+  public deleteMessageHandler(msg: NP_Msg, handler: THandlerFunc) {
     this.svc_map.deleteServiceHandler(msg, handler);
   }
 
   /** API: call local message registered on this endPoint only */
-  async call(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
+  public async call(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
     const fn = 'call:';
     if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
     const handlers = this.getMessageHandlers(msg);
@@ -517,7 +512,7 @@ class NetEndpoint {
   }
 
   /** API: send local message registered on this endPoint only, returning no data */
-  async send(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
+  public async send(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
     const fn = 'send:';
     if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
     const handlers = this.getMessageHandlers(msg);
@@ -531,7 +526,7 @@ class NetEndpoint {
 
   /** API: signal local message registered on this endPoint only, returning no data.
    */
-  signal(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
+  public signal(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
     const fn = 'signal:';
     if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
     const handlers = this.getMessageHandlers(msg);
@@ -543,7 +538,7 @@ class NetEndpoint {
   }
 
   /** API: ping local message, return with number of handlers */
-  async ping(msg: NP_Msg): Promise<NP_Data> {
+  public async ping(msg: NP_Msg): Promise<NP_Data> {
     const fn = 'ping:';
     if (!IsLocalMessage(msg)) throw Error(`${fn} '${msg}' not local (drop prefix)`);
     const handlers = this.getMessageHandlers(msg);
@@ -551,7 +546,7 @@ class NetEndpoint {
   }
 
   /** API: call net message, resolves when packet returns from server with data */
-  async netCall(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
+  public async netCall(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
     const fn = 'netCall:';
     if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
     const pkt = this.newPacket(msg, data);
@@ -576,7 +571,7 @@ class NetEndpoint {
 
   /** API: send net message, returning promise that will resolve when the server has
    *  received and processed/forwarded the message */
-  async netSend(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
+  public async netSend(msg: NP_Msg, data: NP_Data): Promise<NP_Data> {
     const fn = 'netSend:';
     if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
     const pkt = this.newPacket(msg, data);
@@ -604,7 +599,7 @@ class NetEndpoint {
    *  used for the idea of 'raising signals' as opposed to 'sending data'. It
    *  resolves immediately when the signal is sent, and does not check with the
    *  server  */
-  netSignal(msg: NP_Msg, data: NP_Data): void {
+  public netSignal(msg: NP_Msg, data: NP_Data): void {
     const fn = 'netSignal:';
     if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
     const pkt = this.newPacket(msg, data);
@@ -618,7 +613,7 @@ class NetEndpoint {
 
   /** API: returns with a list of uaddr from the server which is the uaddr of the
    *  all clients that have registered for the message */
-  async netPing(msg: NP_Msg): Promise<NP_Data> {
+  public async netPing(msg: NP_Msg): Promise<NP_Data> {
     const fn = 'netPing:';
     if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' missing NET prefix`);
     const pkt = this.newPacket(msg);
@@ -647,7 +642,7 @@ class NetEndpoint {
   /** declare client attributes is a generic declaration packet that can contain
    *  any number of attributes that the client wants to declare to the server.
    *  for example, see declareClientMessages() */
-  async _declareClientServices(def: TClientDeclare): Promise<NP_Data> {
+  private async _declareClientServices(def: TClientDeclare): Promise<NP_Data> {
     const fn = '_declareClientServices:';
     if (!this.cli_gateway) throw Error(`${fn} no gateway`);
     const pkt = this.newDeclPacket();
@@ -674,7 +669,7 @@ class NetEndpoint {
    *  Chrome 125.0.6422.77 doesn't seem to send a close frame on reload
    *  Firefox 126.0 doesn't fire beforeunload
    */
-  disconnectAsClient() {
+  public disconnectAsClient() {
     if (this.cli_gateway === undefined) return;
     if (typeof this.cli_gateway.close === 'function') {
       this.cli_gateway.close();
@@ -685,7 +680,7 @@ class NetEndpoint {
   /** endpoint lookup tables - - - - - - - - - - - - - - - - - - - -  - - - **/
 
   /** return true if the message is handled anywhere */
-  packetHasHandler(pkt: NetPacket): boolean {
+  protected packetHasHandler(pkt: NetPacket): boolean {
     const fn = 'messageHasHandler:';
     const a = this.getMessageHandlers(pkt.msg).length > 0;
     const b = this.isServer() && this.getMessageAddresses(pkt.msg).length > 0;
@@ -693,42 +688,43 @@ class NetEndpoint {
   }
 
   /** get list of messages allocated to a uaddr */
-  getMessagesForAddress(uaddr: NP_Address): NP_Msg[] {
+  protected getMessagesForAddress(uaddr: NP_Address): NP_Msg[] {
     return this.svc_map.getServicesForAddress(uaddr);
   }
 
   /** get list of UADDRs that a message is forwarded to */
-  getMessageAddresses(msg: NP_Msg): NP_Address[] {
+  protected getMessageAddresses(msg: NP_Msg): NP_Address[] {
     return this.svc_map.getServiceAddress(msg);
   }
 
   /** return list of local handlers for given message */
-  getMessageHandlers(msg: NP_Msg): THandlerFunc[] {
+  protected getMessageHandlers(msg: NP_Msg): THandlerFunc[] {
     return this.svc_map.getServiceHandlers(msg);
   }
 
   /** informational routing information - - - - - - - - - - - - - - - - - - **/
 
   /** return handler list for this endpoint */
-  getMessageNames(): NP_Msg[] {
+  protected getMessageNames(): NP_Msg[] {
     return this.svc_map.getServiceNames();
   }
 
   /** return only net messages */
-  getNetMessageNames(): NP_Msg[] {
-    return this.svc_map.getNetServiceNames();
+  protected getNetMessageNames(): NP_Msg[] {
+    const list = this.svc_map.getServiceNames();
+    return list.filter(msg => IsNetMessage(msg));
   }
 
   /** server endpoints manage list of messages in clients  - - - - -  - - - **/
 
   /** register a message handler for a given message to passed uaddr */
-  registerRemoteMessagesToAddress(uaddr: NP_Address, msgList: NP_Msg[]) {
-    return this.svc_map.proxyServiceToAddress(uaddr, msgList);
+  protected registerRemoteMessagesToAddress(uaddr: NP_Address, msgList: NP_Msg[]) {
+    return this.svc_map.registerServiceToAddress(uaddr, msgList);
   }
 
   /** unregister message handlers for a given message to passed uaddr */
-  _deleteRemoteMessagesForAddress(uaddr: NP_Address): NP_Msg[] {
-    return this.svc_map._deleteProxiesForAddress(uaddr);
+  protected deleteMessageForAddress(uaddr: NP_Address): NP_Msg[] {
+    return this.svc_map.deleteServicesForAddress(uaddr);
   }
 
   /** packet interface  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
@@ -744,7 +740,7 @@ class NetEndpoint {
    *  If the packet has the rsvp flag set, we need to return
    *  it to the source address in the packet with any data
    */
-  async dispatchPacket(pkt: NetPacket): Promise<void> {
+  private async dispatchPacket(pkt: NetPacket): Promise<void> {
     const fn = 'dispatchPacket:';
 
     // filter out response packets
@@ -812,7 +808,7 @@ class NetEndpoint {
    *  is a queue that uses Promises to wait for the return, which is
    *  triggered by a returning packet in dispatchPacket(pkt).
    */
-  async awaitProxiedHandlers(pkt: NetPacket) {
+  private async awaitProxiedHandlers(pkt: NetPacket) {
     const fn = 'awaitProxiedHandlers:';
     if (pkt.hop_dir !== 'req') throw Error(`${fn} packet is not a request`);
     // prep for return
@@ -838,7 +834,7 @@ class NetEndpoint {
   /** Start a handler call, which might have multiple implementors.
    *  Returns data from all handlers as an array or a single item
    */
-  async awaitHandlers(pkt: NetPacket) {
+  private async awaitHandlers(pkt: NetPacket) {
     const fn = 'awaitHandlers:';
     const { msg } = pkt;
     const handlers = this.getMessageHandlers(msg);
@@ -864,7 +860,7 @@ class NetEndpoint {
    *  message. Use for initial outgoing packets only from the
    *  netCall, netSend, netSignal, and netPing methods.
    */
-  initialSend(pkt: NetPacket) {
+  private initialSend(pkt: NetPacket) {
     const fn = 'initialSend:';
     // sanity checks
     if (pkt.src_addr === undefined) throw Error(`${fn}src_addr undefined`);
@@ -888,7 +884,7 @@ class NetEndpoint {
 
   /** Used to forward a transaction from server to a remote client
    */
-  awaitRemoteHandler(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
+  private awaitRemoteHandler(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
     const fn = 'awaitRemoteHandler:';
     const clone = this.clonePacket(pkt);
     clone.id = this.assignPacketId(clone);
@@ -899,7 +895,7 @@ class NetEndpoint {
   /** Used to resolve a forwarded transaction received by server from
    *  a remote client
    */
-  resolveRemoteHandler(pkt: NetPacket) {
+  private resolveRemoteHandler(pkt: NetPacket) {
     const fn = 'resolveRemoteHandler:';
     // LOG(PR, fn, this.uaddr, 'resolving', pkt.msg);
     if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
@@ -910,7 +906,7 @@ class NetEndpoint {
   }
 
   /** utility method for conducting transactions */
-  _proxySend(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
+  private _proxySend(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
     const fn = '_proxySend:';
     const hash = GetPacketHashString(pkt);
     return new Promise((resolve, reject) => {
@@ -921,7 +917,7 @@ class NetEndpoint {
   }
 
   /** utility method for completing transactions */
-  _proxyReceive(pkt: NetPacket) {
+  private _proxyReceive(pkt: NetPacket) {
     const fn = '_proxyReceive:';
     const hash = GetPacketHashString(pkt);
     const resolver = this.trx_mgr.resolveTransaction(hash);
@@ -938,7 +934,7 @@ class NetEndpoint {
    *  also a client of another server, pass the back through the gateway.
    *  This is used by server endpoints to return packets to clients.
    */
-  returnToSender(pkt: NetPacket) {
+  private returnToSender(pkt: NetPacket) {
     const fn = 'returnToSender:';
     // check for validity
     if (pkt.hop_rsvp !== true) throw Error(`${fn} packet is not RSVP`);
@@ -968,7 +964,7 @@ class NetEndpoint {
   /** return array of sockets to use for sending packet,
    *  based on pkt.msg and pkt.src_addr
    */
-  getRoutingInformation(pkt: NetPacket): PktRoutingInfo {
+  private getRoutingInformation(pkt: NetPacket): PktRoutingInfo {
     const fn = 'getRoutingInformation:';
     const { msg, src_addr } = pkt;
     if (!IsNetMessage(msg)) throw Error(`${fn} '${msg}' is invalid message`);
@@ -994,7 +990,7 @@ class NetEndpoint {
 
   /** packet utility - - - - - - - - - - - - - - - - - - - - - - - - - - - -**/
 
-  assignPacketId(pkt: NetPacket): NP_ID {
+  private assignPacketId(pkt: NetPacket): NP_ID {
     if (pkt.src_addr === undefined) pkt.src_addr = this.uaddr;
     const count = ++this.pkt_counter;
     pkt.id = `pkt[${pkt.src_addr}:${count}]`;
@@ -1002,14 +998,14 @@ class NetEndpoint {
   }
 
   /** convert JSON to packet and return */
-  packetFromJSON(json: string): NetPacket {
+  private packetFromJSON(json: string): NetPacket {
     const pkt = new NetPacket();
     pkt.setFromJSON(json);
     return pkt;
   }
 
   /** create a new packet with proper address */
-  newPacket(msg?: NP_Msg, data?: NP_Data): NetPacket {
+  private newPacket(msg?: NP_Msg, data?: NP_Data): NetPacket {
     const fn = 'newPacket:';
     const pkt = new NetPacket(msg, data);
     pkt.setSrcAddr(this.uaddr || UADDR_NONE);
@@ -1019,7 +1015,7 @@ class NetEndpoint {
   }
 
   /** clone a packet with new id */
-  clonePacket(pkt: NetPacket): NetPacket {
+  private clonePacket(pkt: NetPacket): NetPacket {
     const clone = this.newPacket(pkt.msg, pkt.data);
     clone.setFromJSON(pkt.serialize());
     clone.src_addr = this.uaddr;
@@ -1029,7 +1025,7 @@ class NetEndpoint {
 
   /** create an authentication packet, which is the first packet that must be sent
    *  after connecting to the server */
-  newAuthPacket(authObj: TClientAuth): NetPacket {
+  private newAuthPacket(authObj: TClientAuth): NetPacket {
     const pkt = this.newPacket('SRV:AUTH', { ...authObj });
     pkt.setMeta('_auth', { rsvp: true });
     pkt.setSrcAddr(UADDR_NONE); // provide null address
@@ -1038,14 +1034,14 @@ class NetEndpoint {
   }
 
   /** create a registration packet */
-  newRegPacket(): NetPacket {
+  private newRegPacket(): NetPacket {
     const pkt = this.newPacket('SRV:REG');
     pkt.setMeta('_reg', { rsvp: true });
     return pkt;
   }
 
   /** create a declaration packet shell */
-  newDeclPacket(): NetPacket {
+  private newDeclPacket(): NetPacket {
     const pkt = this.newPacket('SRV:DEF');
     pkt.setMeta('_decl', { rsvp: true });
     return pkt;
@@ -1054,7 +1050,7 @@ class NetEndpoint {
   /** environment utilities - - - - - - - - - - - - - - - - - - - - - - - - **/
 
   /** return true if this endpoint is managing connections */
-  isServer() {
+  private isServer() {
     const hasRemotes = this.svc_map.hasProxies();
     return this.client_socks !== undefined && hasRemotes;
   }
@@ -1062,7 +1058,7 @@ class NetEndpoint {
   /** socket utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
 
   /** given a socket, see if it's already registered */
-  isNewSocket(socket: I_NetSocket): boolean {
+  private isNewSocket(socket: I_NetSocket): boolean {
     const fn = 'isNewSocket:';
     if (typeof socket !== 'object') return false;
     return socket.uaddr === undefined;
@@ -1071,7 +1067,7 @@ class NetEndpoint {
   /** client endpoints need to have an authentication token to
    *  access URNET beyond registration
    */
-  authorizeSocket(auth: any) {
+  private authorizeSocket(auth: any) {
     const fn = 'authorizeSocket:';
     LOG(PR, this.uaddr, 'would check auth token');
   }

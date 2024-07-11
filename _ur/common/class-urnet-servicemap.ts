@@ -40,9 +40,9 @@ const LOG = console.log.bind(console);
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class ServiceMap {
-  service_addr: string; // unique identifier for this map
-  handled_svcs: HandlerMap; // msg->handlers[]
-  proxied_svcs: AddressMap; // msg->uaddr[] (if set, then this is a proxy)
+  service_addr: NP_Address; // unique identifier for this map
+  handled_svcs: HandlerMap; // map of services with local handler functions
+  proxied_svcs: AddressMap; // map of services forwarded to other addresses
 
   /** constructor: identifier is generally the same as the endpoint UADDR
    *  when used by NetEndpoint e.g. SRV01, SRV02, etc.
@@ -108,15 +108,6 @@ class ServiceMap {
     return list;
   }
 
-  /** return only net services */
-  getNetServiceNames(): NP_Msg[] {
-    const list = [];
-    this.handled_svcs.forEach((handler_set, key) => {
-      if (IsNetMessage(key)) list.push(key);
-    });
-    return list;
-  }
-
   /// PROXIED SERVICES are handled by REMOTE ADDRESSES ///
 
   /** get list of services allocated to a uaddr */
@@ -145,8 +136,8 @@ class ServiceMap {
   }
 
   /** register a service handler for a given service name to passed uaddr */
-  proxyServiceToAddress(uaddr: NP_Address, msgList: NP_Msg[]) {
-    const fn = 'proxyServiceToAddress:';
+  registerServiceToAddress(uaddr: NP_Address, msgList: NP_Msg[]) {
+    const fn = 'registerServiceToAddress:';
     if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
     msgList.forEach(msg => {
       const key = NormalizeMessage(msg);
@@ -163,8 +154,8 @@ class ServiceMap {
   }
 
   /** unregister service handlers for a given service name to passed uaddr */
-  _deleteProxiesForAddress(uaddr: NP_Address): NP_Msg[] {
-    const fn = '_deleteProxiesForAddress:';
+  deleteServicesForAddress(uaddr: NP_Address): NP_Msg[] {
+    const fn = 'deleteServicesForAddress:';
     if (typeof uaddr !== 'string') throw Error(`${fn} invalid uaddr`);
     const removed = [];
     this.proxied_svcs.forEach((msg_set, key) => {

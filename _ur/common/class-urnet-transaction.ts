@@ -7,6 +7,7 @@
   A transaction consists of a 'message' and a 'hash' that is used to identify
   the transaction. To create a transaction entry, the following must be
   provided by the caller:
+  
   - hash: NP_Hash - a unique identifier for the transaction
   - msg: NP_Msg - the message identifier/service that is being sent
   - resolve: (value?: unknown) => void - resolve the transaction
