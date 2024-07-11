@@ -12,7 +12,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { PR } from '@ursys/core';
-import { IsNetMessage, NormalizeMessage } from './types-urnet.ts';
+import { NormalizeMessage, DecodeMessage } from './types-urnet.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,9 +33,31 @@ const PR =
     ? 'ServiceMap'.padEnd(13) // nodejs
     : 'ServiceMap'.padEnd(11); // browser
 const LOG = console.log.bind(console);
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const PROTOCOLS = {
+  'APP': ['HOT_RELOAD']
+};
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** helper: decode a protocol name into a normalized form. A protocol
+ *  name is a special formatted message name that is used to identify.
+ *  If it begins with _, then it is a protocol message. The protocol
+ *  is defined as the first part of the message name and is delimited
+ *  by another underscore
+ */
+function m_DecodeProtocolName(msg: NP_Msg) {
+  const fn = 'm_DecodeProtocolName:';
+  let [channel, tmp_msg] = DecodeMessage(msg);
+  // example protocol message: _UR_HOT_RELOAD
+  if (!tmp_msg.startsWith('_')) return [undefined, tmp_msg];
+  tmp_msg = tmp_msg.slice(1); // remove leading underscore
+  let [protocol, message] = tmp_msg.split('_');
+  // look up protocol in protocol map
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** add a protocol to the protocol map */
+function m_AddProtocol(protoName: string, protoMsgs: NP_Msg[]) {}
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -61,7 +83,18 @@ class ServiceMap {
     this.proxied_svcs = new Map<NP_Msg, AddressSet>();
   }
 
-  /// HANDLED MESSAGES are LOCAL FUNCTIONS ///
+  /// UTILITIES FOR SPECIAL SERVICES ///
+
+  /** API: add a protocol handler for a given service name, which
+   *  are reserved for special services */
+  addProtocolHandler(pmsg: NP_Msg, handler: HandlerFunc) {
+    const fn = 'addProtocolHandler:';
+    if (typeof pmsg !== 'string') throw Error(`${fn} invalid pmsg`);
+    if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
+    const key = NormalizeMessage(pmsg);
+  }
+
+  /// HANDLED SERVICES are LOCAL FUNCTIONS ///
 
   /** API: declare a service handler for a given service name */
   addServiceHandler(msg: NP_Msg, handler: HandlerFunc) {
