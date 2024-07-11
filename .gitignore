@@ -20,6 +20,7 @@
 # and are exposed by package.json as importable libraries
 # so it must be committed
 _dist
+_ur_addons/_dist
 
 # don't commit _public or _nocommit files or directories
 _public

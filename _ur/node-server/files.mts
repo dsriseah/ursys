@@ -17,7 +17,7 @@
 import NDIR from 'node-dir';
 import FSE from 'fs-extra';
 import PATH from 'node:path';
-import PROMPT from '../common/util-prompts.js';
+import PROMPT from '../common/util-prompts.ts';
 import { ShortPath } from '@ursys/core';
 import * as url from 'url';
 

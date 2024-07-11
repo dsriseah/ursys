@@ -10,7 +10,8 @@
 /* eslint-disable no-unused-vars */
 
 import { readFileSync } from 'node:fs';
-const { generate } = require('peggy'); // CJS library on node can do this
+// const { generate } = require('peggy'); // CJS library on node can do this
+import { generate } from 'peggy';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

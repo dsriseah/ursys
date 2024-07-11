@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../@addons-server.mts"],
-  "sourcesContent": ["/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\\\n\n  entrypoint for modules\n\n  modules can import from ursys\n\n\\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/\n\n/* added for pull request #81 so 'npm run lint' test appears clean */\n/* eslint-disable no-unused-vars */\n\n// cjs-style modules\nimport * as UR from '@ursys/core';\n\n/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////\n/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n// const PR = PROMPT.makeStyleFormatter('UR', 'TagCyan');\n\n/// TEST METHODS //////////////////////////////////////////////////////////////\n/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\nfunction ModuleServerTest() {\n  console.log('modules.ts test');\n}\n\n/// EXPORTS ///////////////////////////////////////////////////////////////////\n/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\nexport { ModuleServerTest };\n"],
-  "mappings": ";AAoBA,SAAS,mBAAmB;AAC1B,UAAQ,IAAI,iBAAiB;AAC/B;",
-  "names": []
-}

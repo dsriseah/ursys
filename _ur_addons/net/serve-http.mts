@@ -17,11 +17,9 @@ import chokidar from 'chokidar';
 import esbuild from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
 import { WebSocketServer } from 'ws';
-import { PR, PROC, FILE } from '@ursys/core';
-import CLASS_EP from './class-urnet-endpoint.ts';
-import CLASS_NS from './class-urnet-socket.ts';
-const { NetEndpoint } = CLASS_EP;
-const { NetSocket } = CLASS_NS;
+//
+import { PR, PROC, FILE, CLASS } from '@ursys/core';
+const { NetEndpoint, NetSocket } = CLASS;
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

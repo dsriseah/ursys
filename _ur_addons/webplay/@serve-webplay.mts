@@ -121,6 +121,9 @@ async function BuildApp() {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-LOG(`${ADDON} Live Reload AppServer`);
-await BuildApp();
-LOG('CTRL-C TO EXIT. PRESS RETURN');
+(async () => {
+  LOG(`${ADDON} Simple Live Reload Playground for Browsers`);
+  LOG(`${BLU}QUICKSTART: import source file(s) in 'scripts/_welcome.ts'${NRM}`);
+  await BuildApp();
+  LOG('CTRL-C TO EXIT. PRESS RETURN');
+})();
