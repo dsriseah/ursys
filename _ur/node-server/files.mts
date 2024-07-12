@@ -2,45 +2,84 @@
 
   Base File System Helpers
 
-  note: this has not been extensively bullet-proofed
+  Conventions (see 
+  directories should end with a slash
 
-  TODO: ensure that most routines are synchronous, and label async functions
-  as such
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
-/* added for pull request #81 so 'npm run lint' test appears clean */
-/* eslint-disable no-unused-vars */
-
-/// SYSTEM LIBRARIES //////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import NDIR from 'node-dir';
 import FSE from 'fs-extra';
 import PATH from 'node:path';
 import PROMPT from '../common/util-prompts.ts';
-import { ShortPath } from '@ursys/core';
 import * as url from 'url';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const LOG = PROMPT.makeTerminalOut(' FILE', 'TagGreen');
+const DBG = false;
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let ROOT: string; // root of the project
+let DIR_PUBLIC: string; // path to PUBLIC directory for webapp
+let DIR_UR: string; // path to _ur directory
+let DIR_UR_DIST: string; // path to browser client code
+let DIR_BDL_BROWSER: string; // path to node server code
+let DIR_BDL_NODE: string; // path to _ur/dist directory for library out
+let DIR_UR_ADDS: string; // path to _ur_mod directory
+let DIR_UR_ADDS_DIST: string; // path to _ur_mod/_dist directory
+
+/// PATH UTILITIES ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return the directory name of the current module */
-function m_Dirname() {
+function u_dirname() {
   if (import.meta?.url) return url.fileURLToPath(new URL('.', import.meta.url));
   return __dirname;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** initialize the ROOT and other root-relative paths for use by
+ *  u_path and u_short */
+function u_init_roots() {
+  const fn = 'u_init_roots:';
+  ROOT = DetectedRootDir();
+  if (!ROOT) throw Error(`${fn} could not find project root`);
+  DIR_PUBLIC = u_path('/public');
+  DIR_UR = u_path('/_ur');
+  DIR_UR_DIST = u_path('/_ur/_dist');
+  DIR_BDL_BROWSER = u_path('/_ur/browser-client');
+  DIR_BDL_NODE = u_path('/_ur/node-server');
+  DIR_UR_ADDS = u_path('/_ur_addons');
+  DIR_UR_ADDS_DIST = u_path('/_ur_addons/_dist');
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return an absolute path string from root-relative path */
+const u_path = (p = '') => {
+  if (ROOT === undefined) u_init_roots();
+  if (p.length === 0) return ROOT;
+  p = PATH.normalize(PATH.join(ROOT, p));
+  if (p.endsWith('/')) p = p.slice(0, -1);
+  return p; // return normalized path
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** remove ROOT prefix to return shortname */
+const u_short = p => {
+  if (ROOT === undefined) u_init_roots();
+  if (p.startsWith(ROOT)) return p.slice(ROOT.length);
+  return p; // return path as is if not in ROOT
+};
+
+/// DETECTION METHODS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** scan for parent directory that contains a file that uniquely appears in the
  *  root directory of the project. It defaults to `.nvmrc`
  */
 function DetectedRootDir(rootfile: string = '.nvmrc'): string {
-  if (typeof DETECTED_DIR === 'string') return DETECTED_DIR;
-  let currentDir = m_Dirname();
+  if (typeof ROOT === 'string') return ROOT;
+  let currentDir = u_dirname();
   const check_dir = dir => FSE.existsSync(PATH.join(dir, rootfile));
   // walk through parent directories until root is reached
   while (currentDir !== PATH.parse(currentDir).root) {
     if (check_dir(currentDir)) {
-      DETECTED_DIR = currentDir;
-      return DETECTED_DIR;
+      ROOT = currentDir;
+      return ROOT;
     }
     currentDir = PATH.resolve(currentDir, '..');
   }
@@ -59,14 +98,23 @@ function DetectedAddonDir(): string[] {
   const addon = cwd.slice(adir.length + 1).split(PATH.sep)[0];
   return [addon, PATH.join(adir, addon)];
 }
-
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PROMPT.makeTerminalOut(' FILE', 'TagGreen');
-let DETECTED_DIR; // cached value of DetectedRootDir
-const ERR_UR = 444;
-const DBG = false;
+/** return all paths defined by the root detection */
+function GetRootDirs() {
+  if (ROOT === undefined) u_init_roots();
+  return {
+    ROOT,
+    DIR_PUBLIC,
+    DIR_UR,
+    DIR_UR_DIST,
+    DIR_BDL_BROWSER,
+    DIR_BDL_NODE,
+    DIR_UR_ADDS,
+    DIR_UR_ADDS_DIST
+  };
+}
 
-/// SYNCHRONOUS FILE METHODS //////////////////////////////////////////////////
+/// SYNCHRONOUS FILE AND DIR METHODS //////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function FileExists(filepath): boolean {
   try {
@@ -132,28 +180,18 @@ function RemoveDir(dirpath): boolean {
     throw new Error(err);
   }
 }
-//
+
+/// PATH UTILITIES ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Make a string relative to the project root, returning a normalized path */
 function AbsLocalPath(subdir: string): string {
-  const root = DetectedRootDir();
-  if (!root) throw Error('AbsLocalPath: could not find project root');
-  return PATH.normalize(PATH.join(root, subdir));
+  return u_path(subdir);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Make a string that removes the DetectedRootDir() portion of the path */
 function RelLocalPath(subdir: string): string {
-  const root = DetectedRootDir();
-  if (!root) throw Error('AbsLocalPath: could not find project root');
-  const path = PATH.normalize(PATH.join(root, subdir));
-  return path.slice(root.length);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return the short path name with project root removed */
-function ShortPath(path: string): string {
-  const root = DetectedRootDir();
-  if (!root) throw Error('ShortPath: could not find project root');
-  return path.slice(root.length);
+  const p = u_path(subdir);
+  return u_short(p);
 }
 
 /// ASYNC DIRECTORY METHODS ///////////////////////////////////////////////////
@@ -252,17 +290,23 @@ function Test() {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
+  // micro utilities
+  u_path,
+  u_short,
+  u_dirname,
+  // file and directory existence
   FileExists,
   DirExists,
   IsDir,
   IsFile,
   EnsureDir,
   RemoveDir,
+  // path detection and normalization
+  GetRootDirs,
   DetectedRootDir,
   DetectedAddonDir,
   AbsLocalPath,
   RelLocalPath,
-  ShortPath,
   Files,
   Subdirs,
   //

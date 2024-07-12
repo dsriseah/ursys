@@ -15,13 +15,14 @@ import FSE from 'fs-extra';
 // build-core can not use URSYS library because it's BUILDING it!
 // so we yoink the routines out of the source directly
 import PROMPT from '../common/util-prompts.ts';
+import { GetRootDirs } from '../node-server/files.mts';
 
 /// CONSTANTS AND DECLARATIONS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { ROOT, DIR_UR_DIST } from './env-build.mts';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const LOG = PROMPT.makeTerminalOut('BuildCore', 'TagSystem');
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { ROOT, DIR_UR_DIST } = GetRootDirs();
 
 /// ESBUILD API ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -13,9 +13,8 @@
 import { fork } from 'node:child_process';
 import { join } from 'node:path';
 // MTS
-import { DirExists, Files } from './files.mts';
+import { DirExists, Files, GetRootDirs, u_short } from './files.mts';
 import UrModule from './class-urmodule.mts';
-import { DIR_UR_ADDS, ShortPath as u_short } from './env-node.mts';
 // JS imports are assumed to be CJS and cannot be destructured
 import { DIE } from '../common/util-error-mgr.ts';
 import * as PROMPT from '../common/util-prompts.ts';
@@ -26,6 +25,8 @@ const LOG = PROMPT.makeTerminalOut(' UPROC', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LAUNCH_PREFIX = '@';
+const { DIR_UR_ADDS } = GetRootDirs();
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let URDIR = '';
 
 /// API METHODS ///////////////////////////////////////////////////////////////

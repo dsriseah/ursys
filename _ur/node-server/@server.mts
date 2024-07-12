@@ -10,7 +10,6 @@
 import * as ADDON from './ur-addon-mgr.mts';
 import * as APPSERV from './appserver.mts';
 import * as APPBUILD from './appbuilder.mts';
-import * as ENV from './env-node.mts'; /* might be deprecated in future */
 import * as FILE from './files.mts';
 import * as PROC from './processes.mts';
 import * as TEXT from '../common/util-text.ts';
@@ -29,9 +28,7 @@ import * as CONSTANTS from './constants-urnet.mts';
 /// TYPES /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** used for runtime initialization of the server-side URSYS library */
-type InitOptions = {
-  rootDir: string;
-};
+type InitOptions = {};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -66,10 +63,7 @@ const CONSTANT = {
 /// RUNTIME API ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** first time initialization */
-function Initialize(options: InitOptions): void {
-  const { rootDir } = options;
-  ENV.SetRootPaths(rootDir);
-}
+function Initialize(options: InitOptions): void {}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -81,7 +75,6 @@ export {
   CLASS,
   LIB,
   // basic server modules
-  ENV,
   FILE,
   PROC,
   TEXT,
