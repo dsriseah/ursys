@@ -87,3 +87,6 @@ export {
   // formatting
   makeTerminalOut as PR // prompt style formatter
 };
+// export types
+export type { BuildOptions, WatchOptions, NotifyCallback } from './appbuilder.mts';
+export type { InitOptions };

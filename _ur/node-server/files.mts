@@ -29,12 +29,6 @@ let DIR_UR_ADDS_DIST: string; // path to _ur_mod/_dist directory
 
 /// PATH UTILITIES ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return the directory name of the current module */
-function u_dirname() {
-  if (import.meta?.url) return url.fileURLToPath(new URL('.', import.meta.url));
-  return __dirname;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** initialize the ROOT and other root-relative paths for use by
  *  u_path and u_short */
 function u_init_roots() {
@@ -73,7 +67,7 @@ const u_short = p => {
  */
 function DetectedRootDir(rootfile: string = '.nvmrc'): string {
   if (typeof ROOT === 'string') return ROOT;
-  let currentDir = u_dirname();
+  let currentDir = url.fileURLToPath(new URL('.', import.meta.url));
   const check_dir = dir => FSE.existsSync(PATH.join(dir, rootfile));
   // walk through parent directories until root is reached
   while (currentDir !== PATH.parse(currentDir).root) {
@@ -293,7 +287,6 @@ export {
   // micro utilities
   u_path,
   u_short,
-  u_dirname,
   // file and directory existence
   FileExists,
   DirExists,

@@ -99,14 +99,12 @@ function SetBuildOptions(opts: BuildOptions) {
  */
 async function BuildApp(opts: BuildOptions) {
   const fn = 'BuildApp:';
-  // save options for later
+  // save options for later. these are NOT esbuild-specific options
   let { bundle_name, entry_file, notify_cb } = SetBuildOptions(opts);
   // option: default bundle name to entry file name if not set
   if (!bundle_name) bundle_name = path.basename(entry_file);
-
   // ensure the output directory exists
   fse.ensureDir(PUBLIC);
-
   // build the webapp and stuff it into public
   const context = await esbuild.context({
     entryPoints: [`${SRC_JS}/${entry_file}`],
@@ -116,7 +114,7 @@ async function BuildApp(opts: BuildOptions) {
     platform: 'browser',
     format: 'iife',
     sourcemap: true,
-    outfile: `${PUBLIC}/js/${bundle_name}-bundle.js`,
+    outfile: `${PUBLIC}/js/${bundle_name}.js`,
     plugins: [
       copy({
         assets: [
@@ -169,3 +167,4 @@ export {
   BuildApp, // build a webapp from source/assets, watching for changes
   WatchExtra // watch for changes outside of the source directory
 };
+export type { BuildOptions, WatchOptions, NotifyCallback };
