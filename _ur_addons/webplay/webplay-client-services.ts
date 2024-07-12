@@ -1,11 +1,18 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  Webplay client Services
+  Webplay Client Services
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler, CLASS } from '@ursys/core';
 const { NetEndpoint, NetSocket } = CLASS;
+
+/// TYPE DECLARATIONS /////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type EventType = 'connect' | 'disconnect';
+type EventCallback = (data: any) => void;
+type EventHandlers = Set<EventCallback>;
+type EventMap = Map<EventType, EventHandlers>;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -13,13 +20,28 @@ const PR = ConsoleStyler('URNET', 'TagPurple');
 const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const EP = new NetEndpoint();
+const EVENT_MAP: EventMap = new Map();
 const TIMEOUT = 360; // seconds before client closes connection
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let SERVER_LINK: WebSocket;
-let CB_CONNECT: Function;
-let CB_DISCONNECT: Function;
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function m_AddEventListener(event: EventType, callback: EventCallback) {
+  if (!EVENT_MAP.has(event)) EVENT_MAP.set(event, new Set());
+  EVENT_MAP.get(event).add(callback);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function m_RemoveEventListener(event: EventType, callback?: EventCallback) {
+  if (!EVENT_MAP.has(event)) return;
+  if (callback) EVENT_MAP.get(event).delete(callback);
+  else EVENT_MAP.get(event).clear();
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function m_DispatchEvent(event: EventType, data: any) {
+  if (!EVENT_MAP.has(event)) return;
+  EVENT_MAP.get(event).forEach(cb => cb(data));
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_Sleep(ms: number, resolve?: Function): Promise<void> {
   return new Promise(localResolve =>
@@ -89,8 +111,10 @@ async function RegisterMessages() {
 function Disconnect(seconds = TIMEOUT) {
   return new Promise((resolve, reject) => {
     window.removeEventListener('beforeunload', m_DisconnectListener);
+    m_RemoveEventListener('connect');
     m_Sleep(seconds * 1000, () => {
       resolve(true);
+      m_DispatchEvent('disconnect', EP);
       SERVER_LINK.close();
     });
   });
@@ -106,15 +130,15 @@ function Initialize() {
   const fn = 'Initialize:';
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function OnConnect(callback: (endpoint) => void) {
-  if (typeof callback === 'function') CB_CONNECT = callback;
+function OnConnect(cb: EventCallback) {
+  m_AddEventListener('connect', cb);
 }
 
 /// RUNTIME INIT //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
   await Connect();
-  if (typeof CB_CONNECT === 'function') CB_CONNECT(EP);
+  m_DispatchEvent('connect', EP);
   EP.addMessageHandler('NET:UR_HOT_RELOAD_APP', data => {
     LOG(...PR(`UR_OT_RELOAD_APP`));
     window.location.reload();
