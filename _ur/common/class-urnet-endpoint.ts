@@ -1050,7 +1050,7 @@ class NetEndpoint {
   /** environment utilities - - - - - - - - - - - - - - - - - - - - - - - - **/
 
   /** return true if this endpoint is managing connections */
-  private isServer() {
+  public isServer() {
     const hasRemotes = this.svc_map.hasProxies();
     return this.client_socks !== undefined && hasRemotes;
   }
@@ -1058,7 +1058,7 @@ class NetEndpoint {
   /** socket utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
 
   /** given a socket, see if it's already registered */
-  private isNewSocket(socket: I_NetSocket): boolean {
+  public isNewSocket(socket: I_NetSocket): boolean {
     const fn = 'isNewSocket:';
     if (typeof socket !== 'object') return false;
     return socket.uaddr === undefined;
@@ -1067,7 +1067,7 @@ class NetEndpoint {
   /** client endpoints need to have an authentication token to
    *  access URNET beyond registration
    */
-  private authorizeSocket(auth: any) {
+  public authorizeSocket(auth: any) {
     const fn = 'authorizeSocket:';
     LOG(PR, this.uaddr, 'would check auth token');
   }
