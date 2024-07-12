@@ -1,8 +1,8 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   Welcome Message for WebPlay Addon Scripts
-  imported into the webplay-init.ts file
-
+  imported into the webplay-client-entry.ts file
+  
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler } from '@ursys/core';

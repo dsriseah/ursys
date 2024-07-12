@@ -1,7 +1,7 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   Main Entry Point for WebPlay Browser Client
-  see @webplay-cli.mts for build and serve code
+  see @webplay-server.mts for build and serve code
 
   QUICK START:
   Put your files into the scripts directory and import them to test in
@@ -11,6 +11,7 @@
 
 import { ConsoleStyler, CLASS } from '@ursys/core';
 import './scripts/_welcome.ts';
+/** import additional client scripts here **/
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
