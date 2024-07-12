@@ -371,7 +371,7 @@ class NetEndpoint {
       this.svc_map = new ServiceMap(uaddr);
       if (cli_auth === undefined) throw Error(`${fn} invalid cli_auth`);
       this.cli_auth = cli_auth;
-      LOG(PR, 'AUTHENTICATED', uaddr, cli_auth);
+      if (DBG) LOG(PR, 'AUTHENTICATED', uaddr, cli_auth);
       this.cli_auth = cli_auth;
       return authData;
     }
@@ -418,7 +418,7 @@ class NetEndpoint {
       return regData;
     }
     if (ok) {
-      LOG(PR, 'REGISTERED', status);
+      if (DBG) LOG(PR, 'REGISTERED', status);
       this.cli_reg = info; // save registration info
       return regData;
     }
@@ -433,7 +433,7 @@ class NetEndpoint {
     const { msg_list: rmsg_list, error } = response;
     if (error) {
       LOG(PR, `${fn} error:`, error);
-    } else {
+    } else if (DBG) {
       console.groupCollapsed(PR, `DECLARED ${rmsg_list.length} messages`);
       rmsg_list.forEach((msg, i) => LOG(`${i + 1}\t'${msg}'`));
       console.groupEnd();
