@@ -62,7 +62,7 @@ const u_path = (p = '') => {
 /** remove ROOT prefix to return shortname */
 const u_short = p => {
   if (ROOT === undefined) u_init_roots();
-  if (p.startsWith(ROOT)) return p.slice(ROOT.length);
+  if (p.startsWith(ROOT)) return p.slice(ROOT.length + 1); // +1 for the slash
   return p; // return path as is if not in ROOT
 };
 

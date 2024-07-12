@@ -200,11 +200,11 @@ function ListenWSS(opt: WSOptions) {
       client_link.on('message', onData);
       client_link.on('end', () => {
         const uaddr = EP.removeClient(client_sock);
-        if (DBG) LOG(`${uaddr} client 'end' disconnect`);
+        if (DBG) LOG(`${uaddr} client disconnect (ended)`);
       });
       client_link.on('close', () => {
         const uaddr = EP.removeClient(client_sock);
-        if (DBG) LOG(`${uaddr} client 'close' disconnect`);
+        if (DBG) LOG(`${uaddr} client disconnect (closed)`);
       });
       client_link.on('error', err => {
         LOG.error(`.. socket error: ${err}`);

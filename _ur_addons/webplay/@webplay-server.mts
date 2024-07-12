@@ -23,7 +23,7 @@ const LOG = PR(ADDON, 'TagCyan');
 const SRC = AO_DIR; // point to addon dir
 const HT_ASSETS = PATH.join(SRC, 'assets');
 const HT_DOCS = FILE.AbsLocalPath('_ur_addons/_public');
-const CLIENT_ENTRY_FILE = PATH.join(SRC, 'webplay-client-entry.ts');
+const CLIENT_ENTRY_FILE = 'webplay-client-entry.ts';
 const CLIENT_BUNDLE_NAME = 'client-bundle';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
@@ -36,7 +36,6 @@ const CLIENT_BUNDLE_NAME = 'client-bundle';
     const EP = APPSERV.GetServerEndpoint();
     EP.netSignal('NET:UR_HOT_RELOAD_APP', { changed });
   };
-
   // A build consists of (1) building js bundle from CLIENT_ENTRY, and copying the
   // output to HT_DOCS/js followed by (2) copying assets from HT_ASSETS to HT_DOCS,
   // which includes an index.html file that loads the js bundle. You have to write
@@ -50,11 +49,10 @@ const CLIENT_BUNDLE_NAME = 'client-bundle';
     //
     notify_cb // hot reload callback, added to esbuild events
   });
-  const htdocs_short = FILE.ShortenPath(HT_DOCS);
-  LOG(`Using esbuild to build website in ${BLU}${HT_DOCS}${NRM}`);
+  LOG(`Using esbuild to assemble website -> ${BLU}${HT_DOCS}${NRM}`);
   await APPBUILD.BuildApp(buildOpts);
-  // to support hot reload,
-  LOG('Watching for changes in ${}...');
+  const htdocs_short = FILE.u_short(HT_DOCS);
+  LOG(`Watching for changes in ${htdocs_short}...`);
   await APPBUILD.WatchExtra({ watch_dirs: [`${SRC}/**`], notify_cb });
   const serverOpts = {
     http_port: 8080,
