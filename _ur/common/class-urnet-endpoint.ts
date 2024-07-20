@@ -783,7 +783,8 @@ class NetEndpoint {
     if (this.packetHasHandler(pkt)) {
       // handle send and call, which do not reflect back to sender
       retData = await this.awaitHandlers(pkt);
-      if (this.isServer()) retData = await this.awaitProxiedHandlers(pkt);
+    } else if (this.isServer()) {
+      retData = await this.awaitProxiedHandlers(pkt);
     } else {
       LOG(PR, this.uaddr, fn, `unknown message`, pkt);
       retData = { error: `unknown message '${pkt.msg}'` };
