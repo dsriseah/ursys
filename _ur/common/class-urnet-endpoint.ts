@@ -845,7 +845,7 @@ class NetEndpoint {
       promises.push(
         new Promise((resolve, reject) => {
           try {
-            resolve(handler({ ...pkt.data })); // copy of data
+            resolve(handler({ ...pkt.data }, pkt)); // copy of data and original pkt
           } catch (err) {
             reject(err);
           }

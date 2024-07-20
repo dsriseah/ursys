@@ -91,6 +91,9 @@ export interface I_NetMessage {
   hop_log: string[];
   err?: string;
 }
+/** NM_Handler is a function that processes a NetMessage */
+export type NM_Handler = (data: NP_Data, pkt?: I_NetMessage) => NP_Data | void;
+
 /// LOCAL TYPES ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** the function that sends a packet to the wire */

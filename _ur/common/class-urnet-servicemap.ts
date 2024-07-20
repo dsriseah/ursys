@@ -16,11 +16,16 @@ import { NormalizeMessage, DecodeMessage } from './types-urnet.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_Address, NP_Msg, NP_Data } from './types-urnet.ts';
+import type {
+  NP_Address,
+  NP_Msg,
+  NP_Data,
+  I_NetMessage,
+  //
+  NM_Handler
+} from './types-urnet.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type HandlerFunc = (data: NP_Data) => NP_Data | void;
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type HandlerSet = Set<HandlerFunc>; // set(handler1, handler2, ...)
+type HandlerSet = Set<NM_Handler>; // set(handler1, handler2, ...)
 type HandlerMap = Map<NP_Msg, HandlerSet>; // msg->handler functions
 type AddressSet = Set<NP_Address>; // ['UA001', 'UA002', ...]
 type AddressMap = Map<NP_Msg, AddressSet>; // msg->set of uaddr
@@ -87,7 +92,7 @@ class ServiceMap {
 
   /** API: add a protocol handler for a given service name, which
    *  are reserved for special services */
-  addProtocolHandler(pmsg: NP_Msg, handler: HandlerFunc) {
+  addProtocolHandler(pmsg: NP_Msg, handler: NM_Handler) {
     const fn = 'addProtocolHandler:';
     if (typeof pmsg !== 'string') throw Error(`${fn} invalid pmsg`);
     if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
@@ -97,19 +102,19 @@ class ServiceMap {
   /// HANDLED SERVICES are LOCAL FUNCTIONS ///
 
   /** API: declare a service handler for a given service name */
-  addServiceHandler(msg: NP_Msg, handler: HandlerFunc) {
+  addServiceHandler(msg: NP_Msg, handler: NM_Handler) {
     const fn = 'addServiceHandler:';
     // LOG(PR,this.uaddr, `reg handler '${msg}'`);
     if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
     const key = NormalizeMessage(msg);
     if (!this.handled_svcs.has(key))
-      this.handled_svcs.set(key, new Set<HandlerFunc>());
+      this.handled_svcs.set(key, new Set<NM_Handler>());
     const handler_set = this.handled_svcs.get(key);
     handler_set.add(handler);
   }
 
   /** API: remove a previously declared service handler for a given service name */
-  deleteServiceHandler(msg: NP_Msg, handler: HandlerFunc) {
+  deleteServiceHandler(msg: NP_Msg, handler: NM_Handler) {
     const fn = 'deleteServiceHandler:';
     if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
     const key = NormalizeMessage(msg);
@@ -119,12 +124,12 @@ class ServiceMap {
   }
 
   /** return list of local handlers for given service name */
-  getServiceHandlers(msg: NP_Msg): HandlerFunc[] {
+  getServiceHandlers(msg: NP_Msg): NM_Handler[] {
     const fn = 'getServiceHandlers:';
     if (this.handled_svcs === undefined) return [];
     const key = NormalizeMessage(msg);
     if (!this.handled_svcs.has(key))
-      this.handled_svcs.set(key, new Set<HandlerFunc>());
+      this.handled_svcs.set(key, new Set<NM_Handler>());
     const handler_set = this.handled_svcs.get(key);
     if (!handler_set) throw Error(`${fn} unexpected empty set '${key}'`);
     const handler_list = Array.from(handler_set);
@@ -226,4 +231,4 @@ class ServiceMap {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default ServiceMap;
 export { ServiceMap };
-export type { HandlerFunc as THandlerFunc };
+export type { NM_Handler as THandlerFunc };

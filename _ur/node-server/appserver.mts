@@ -16,7 +16,7 @@ import { NetPacket } from '../common/class-urnet-packet.ts';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_Msg, NP_Address } from '../common/types-urnet.ts';
+import type { NP_Msg, NP_Address, NM_Handler } from '../common/types-urnet.ts';
 type AddressInfo = { port: number; family: string; address: string };
 type RequestHandler = express.RequestHandler; // (req,res,next)=>void
 type PacketHandler = (pkt: NetPacket) => void;
@@ -255,18 +255,18 @@ function StopWSS() {
 /// MIDDLEWARE ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** To implement a service, add a packet handler to the endpoint. */
-function AddPacketHandler(message: NP_Msg, pktHandler: PacketHandler) {
+function AddMessageHandler(message: NP_Msg, msgHandler: NM_Handler) {
   try {
-    EP.addMessageHandler(message, pktHandler);
+    EP.addMessageHandler(message, msgHandler);
   } catch (err) {
-    LOG.error(`AddPacketHandler: ${err}`);
+    LOG.error(`AddHandler: ${err}`);
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: To remove a service, remove the packet handler from the endpoint.
  *  If the handler is not provided, all handlers for the message are removed.
  */
-function RemovePacketHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
+function RemoveMessageHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
   try {
     EP.deleteMessageHandler(message, pktHandlr);
   } catch (err) {
@@ -321,8 +321,8 @@ export {
   StopHTTP, // stop the http server
   StopWSS, // stop the websocket server
   // register URNET services
-  AddPacketHandler,
-  RemovePacketHandler,
+  AddMessageHandler,
+  RemoveMessageHandler,
   // expose instances
   GetAppInstance,
   GetServerEndpoint
