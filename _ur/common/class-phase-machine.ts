@@ -7,7 +7,7 @@
   When creating a PhaseMachine instance, it is given a PM_Name and a phase_def
   structure consists of PHASE_GROUPS containing PHASES. 
 
-  The main API function is Hook(pmHookSelector, handlerFunc), which allows you
+  The main API function is HookPhase(pmHookSelector, handlerFunc), which allows you
   to add a hook to a phase or phase group. The hook selector is simply
   PM_Name+'/'+PHASEID.
 
@@ -50,7 +50,7 @@ type PM_HookEvent = 'enter' | 'exit' | 'exec';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = true;
+const DBG = false;
 const LOG = console.log.bind(console);
 const WARN = console.warn.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -252,7 +252,7 @@ class PhaseMachine {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** API: Register a PhaseHook at any time. If the machine doesn't yet exist,
    *  the hook will be queued until the machine is created */
-  static Hook(
+  static HookPhase(
     selector: PM_HookSelector,
     fn: PM_HookFunction,
     event: PM_HookEvent = 'exec'
@@ -285,6 +285,7 @@ class PhaseMachine {
     const phaseGroup = m_DecodePhaseGroup(pm, phaseID);
     await pm.execPhaseGroup(phaseGroup, event);
   }
+
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** API: return a string of all current machines and their phase_def */
   static GetMachineStates() {
@@ -295,24 +296,49 @@ class PhaseMachine {
     }
     return out;
   }
+
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** API: return initialized PhaseMachine if it exists */
+  static GetMachine(name: PM_Name) {
+    return m_machines.get(name);
+  }
   // end class PhaseMachine
 }
 
 /// STATIC METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Hook(selector: PM_HookSelector, fn: PM_HookFunction, event: PM_HookEvent) {
-  PhaseMachine.Hook(selector, fn, event);
+function HookPhase(
+  selector: PM_HookSelector,
+  fn: PM_HookFunction,
+  event: PM_HookEvent
+) {
+  PhaseMachine.HookPhase(selector, fn, event);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function RunPhaseGroup(selector: PM_HookSelector, event: PM_HookEvent) {
   PhaseMachine.RunPhaseGroup(selector, event);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function NewPhaseMachine(name: PM_Name, phases: PM_Definition) {
+  return new PhaseMachine(name, phases);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetMachineStates() {
   return PhaseMachine.GetMachineStates();
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetPhaseMachine(name: PM_Name) {
+  return m_machines.get(name);
 }
 
 /// EXPORT CLASS DEFINITION ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default PhaseMachine;
-export { Hook, RunPhaseGroup, GetMachineStates };
+export {
+  NewPhaseMachine,
+  HookPhase,
+  RunPhaseGroup,
+  GetPhaseMachine,
+  GetMachineStates
+};
+export type { PM_Name, PM_Definition };

@@ -36,6 +36,8 @@ function m_Sleep(ms: number, resolve?: Function): Promise<void> {
     }, ms)
   );
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { HookPhase, RunPhaseGroup, GetMachine } = PhaseMachine;
 
 /// CLIENT API ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -104,11 +106,6 @@ function GetEndpoint() {
   return EP;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** add a callback to an event */
-function HookPhase(phase: string, callback: Function) {
-  PhaseMachine.Hook(phase, callback);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function AddMessageHandler(message: string, callback: Function) {
   EP.addMessageHandler(message, callback);
 }
@@ -154,12 +151,12 @@ async function Initialize() {
   });
 
   LOG(...PR(`${fn} Executing Phase Groups`));
-  await PhaseMachine.RunPhaseGroup('WEBPLAY/PHASE_INIT');
-  await PhaseMachine.RunPhaseGroup('WEBPLAY/PHASE_CONNECT');
-  await PhaseMachine.RunPhaseGroup('WEBPLAY/PHASE_LOAD');
-  await PhaseMachine.RunPhaseGroup('WEBPLAY/PHASE_CONFIG');
-  await PhaseMachine.RunPhaseGroup('WEBPLAY/PHASE_READY');
-  await PhaseMachine.RunPhaseGroup('WEBPLAY/PHASE_RUN');
+  await RunPhaseGroup('WEBPLAY/PHASE_INIT');
+  await RunPhaseGroup('WEBPLAY/PHASE_CONNECT');
+  await RunPhaseGroup('WEBPLAY/PHASE_LOAD');
+  await RunPhaseGroup('WEBPLAY/PHASE_CONFIG');
+  await RunPhaseGroup('WEBPLAY/PHASE_READY');
+  await RunPhaseGroup('WEBPLAY/PHASE_RUN');
 }
 
 /// EXPORTS ////////////////////////////////////////////////////////////////////

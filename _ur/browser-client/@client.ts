@@ -66,9 +66,21 @@ export {
   LIB,
   // services
   CLIENT_EP, // endpoint for browser
-  // formatting
-  makeStyleFormatter as ConsoleStyler, // style formatter for browser
   // temporary test exports
   StateMgr,
   ClientTest
 };
+
+// debugging helpers
+export {
+  makeStyleFormatter as ConsoleStyler // style formatter for browser
+};
+
+// PhaseMachine Interface
+export {
+  NewPhaseMachine,
+  Hook,
+  RunPhaseGroup,
+  GetPhaseMachine,
+  GetMachineStates
+} from '../common/class-phase-machine.ts';

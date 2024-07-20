@@ -28,7 +28,7 @@ import * as CONSTANTS from './constants-urnet.mts';
 
 /// TYPES /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** used for runtime initialization of the server-side URSYS library */
+import type { PM_Name, PM_Definition } from '../common/class-phase-machine.ts';
 type InitOptions = {};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -85,10 +85,21 @@ export {
   APPBUILD, // application builder
   //
   ADDON, // ur module manager,
-  PROMPTS,
-  // formatting
-  makeTerminalOut as PR // prompt style formatter
+  PROMPTS // prompt style formatter
 };
+// debugging helpers
+export {
+  makeTerminalOut as PR // makes a styled console.log for node
+};
+// PhaseMachine interface
+export {
+  NewPhaseMachine,
+  HookPhase,
+  RunPhaseGroup,
+  GetPhaseMachine,
+  GetMachineStates
+} from '../common/class-phase-machine.ts';
+
 // export types
 export type { BuildOptions, WatchOptions, NotifyCallback } from './appbuilder.mts';
 export type { InitOptions };
