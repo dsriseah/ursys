@@ -19,6 +19,7 @@ import * as UID from '../common/lib-uid.ts';
 import NetSocket from '../common/class-urnet-socket.ts';
 import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetPacket from '../common/class-urnet-packet.ts';
+import PhaseMachine from '../common/class-phase-machine.ts';
 import {
   HTTP_CLIENT_INFO,
   GetClientInfoFromWindowLocation
@@ -34,7 +35,8 @@ const CLASS = {
   StateMgr,
   NetSocket,
   NetEndpoint,
-  NetPacket
+  NetPacket,
+  PhaseMachine
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LIB = {

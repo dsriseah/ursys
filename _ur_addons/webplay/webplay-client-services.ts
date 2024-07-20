@@ -5,7 +5,6 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler, CLASS } from '@ursys/core';
-const { NetEndpoint, NetSocket } = CLASS;
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -16,32 +15,18 @@ type EventMap = Map<EventType, EventHandlers>;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const PR = ConsoleStyler('URNET', 'TagPurple');
+const PR = ConsoleStyler('WCS', 'TagPurple');
 const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const EP = new NetEndpoint();
+const { NetEndpoint, NetSocket, PhaseMachine } = CLASS;
 const EVENT_MAP: EventMap = new Map();
 const TIMEOUT = 360; // seconds before client closes connection
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let SERVER_LINK: WebSocket;
+let EP: typeof NetEndpoint = new NetEndpoint();
+let PM: typeof PhaseMachine;
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_AddEventListener(event: EventType, callback: EventCallback) {
-  if (!EVENT_MAP.has(event)) EVENT_MAP.set(event, new Set());
-  EVENT_MAP.get(event).add(callback);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_RemoveEventListener(event: EventType, callback?: EventCallback) {
-  if (!EVENT_MAP.has(event)) return;
-  if (callback) EVENT_MAP.get(event).delete(callback);
-  else EVENT_MAP.get(event).clear();
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_DispatchEvent(event: EventType, data: any) {
-  if (!EVENT_MAP.has(event)) return;
-  EVENT_MAP.get(event).forEach(cb => cb(data));
-}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_Sleep(ms: number, resolve?: Function): Promise<void> {
   return new Promise(localResolve =>
@@ -51,16 +36,11 @@ function m_Sleep(ms: number, resolve?: Function): Promise<void> {
     }, ms)
   );
 }
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** called when the browser window is closed or forced disconnect */
-function m_DisconnectListener() {
-  EP.disconnectAsClient();
-}
 
 /// CLIENT API ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** create a client connection to the HTTP/WS server */
-function Connect(): Promise<boolean> {
+function PromiseConnect(): Promise<boolean> {
   const wss_url = '/webplay-ws';
   const promiseConnect = new Promise<boolean>(resolve => {
     SERVER_LINK = new WebSocket(wss_url);
@@ -74,7 +54,7 @@ function Connect(): Promise<boolean> {
         EP.disconnectAsClient();
       });
       // needed on chrome, which doesn't appear to send a websocket closeframe
-      window.addEventListener('beforeunload', m_DisconnectListener);
+      window.addEventListener('beforeunload', EP.disconnectAsClient);
       // 2. start client; EP handles the rest
       const auth = { identity: 'my_voice_is_my_passport', secret: 'crypty' };
       const resdata = await EP.connectAsClient(client_sock, auth);
@@ -103,18 +83,17 @@ function Connect(): Promise<boolean> {
 async function RegisterMessages() {
   // declare messages to server
   const resdata = await EP.declareClientMessages();
+  LOG(...PR(`RegisterMessages: ${resdata.error || 'success'}`));
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** force close the client connection, after waiting for the prescribed number
- *  of seconds (see beforeunload event listener in Connect() also)
+ *  of seconds (see beforeunload event listener in PromiseConnect() also)
  */
 function Disconnect(seconds = TIMEOUT) {
   return new Promise((resolve, reject) => {
-    window.removeEventListener('beforeunload', m_DisconnectListener);
-    m_RemoveEventListener('connect');
+    window.removeEventListener('beforeunload', EP.disconnectAsClient);
     m_Sleep(seconds * 1000, () => {
       resolve(true);
-      m_DispatchEvent('disconnect', EP);
       SERVER_LINK.close();
     });
   });
@@ -125,36 +104,73 @@ function GetEndpoint() {
   return EP;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** add a callback to an event */
+function HookPhase(phase: string, callback: Function) {
+  PhaseMachine.Hook(phase, callback);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function AddMessageHandler(message: string, callback: Function) {
+  EP.addMessageHandler(message, callback);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** initialize the client connection */
-function Initialize() {
+async function Initialize() {
   const fn = 'Initialize:';
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function OnConnect(cb: EventCallback) {
-  m_AddEventListener('connect', cb);
-}
-
-/// RUNTIME INIT //////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-(async () => {
-  await Connect();
-  m_DispatchEvent('connect', EP);
-  EP.addMessageHandler('NET:UR_HOT_RELOAD_APP', data => {
-    LOG(...PR(`UR_OT_RELOAD_APP`));
-    window.location.reload();
+  PM = new PhaseMachine('WEBPLAY', {
+    PHASE_INIT: [
+      'SYS_BOOT', // boot the system
+      'SYS_INIT', // initialize the system
+      'DOM_READY' // web page has rendered
+    ],
+    PHASE_CONNECT: [
+      'NET_CONNECT', // connected to URNET
+      'NET_AUTH', // authenticate with URNET
+      'NET_REGISTER', // register with URNET
+      'NET_DECLARE' // declare messages to URNET
+    ],
+    PHASE_LOAD: [
+      'LOAD_DATA', // load data from server
+      'LOAD_CONFIG', // load configuration
+      'LOAD_ASSETS' // load assets
+    ],
+    PHASE_CONFIG: ['APP_CONFIG'],
+    PHASE_READY: ['APP_READY'],
+    PHASE_RUN: ['APP_RUN']
   });
-  await RegisterMessages();
-})();
+  LOG(...PR(`${fn} Hooking Phase Selectors`));
+  HookPhase('WEBPLAY/DOM_READY', (p, m) => {
+    LOG(...PR(`${p}/${m} DOM Ready`));
+    const promise = PromiseConnect();
+    LOG(...PR(`...initiating connection`));
+    return promise;
+  });
+  HookPhase('WEBPLAY/NET_CONNECT', (p, m) => {
+    AddMessageHandler('NET:UR_HOT_RELOAD_APP', () => {
+      LOG(...PR(`UR_HOT_RELOAD_APP`));
+      window.location.reload();
+    });
+    RegisterMessages();
+    LOG(...PR(`${p}/${m} Connecting to URNET`));
+  });
+
+  LOG(...PR(`${fn} Executing Phase Groups`));
+  await PhaseMachine.RunPhaseGroup('WEBPLAY/PHASE_INIT');
+  await PhaseMachine.RunPhaseGroup('WEBPLAY/PHASE_CONNECT');
+  await PhaseMachine.RunPhaseGroup('WEBPLAY/PHASE_LOAD');
+  await PhaseMachine.RunPhaseGroup('WEBPLAY/PHASE_CONFIG');
+  await PhaseMachine.RunPhaseGroup('WEBPLAY/PHASE_READY');
+  await PhaseMachine.RunPhaseGroup('WEBPLAY/PHASE_RUN');
+}
 
 /// EXPORTS ////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   Initialize, // initialize the client connection
-  Connect, // create a client connection to the HTTP/WS server
+  PromiseConnect, // create a client connection to the HTTP/WS server
   Disconnect, // force close the client connection
   RegisterMessages, // declare message handlers and register with server
+  AddMessageHandler, // add a message handler to the NetEndpoint instance
   //
   GetEndpoint, // return the NetEndpoint instance
-  //
-  OnConnect // callback for when the client connects
+  HookPhase // add a callback to an event
 };

@@ -21,6 +21,7 @@ import StateMgr from '../common/class-state-mgr.ts';
 import NetSocket from '../common/class-urnet-socket.ts';
 import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetPacket from '../common/class-urnet-packet.ts';
+import PhaseMachine from '../common/class-phase-machine.ts';
 // typescript library modules
 import * as UID from '../common/lib-uid.ts';
 import * as CONSTANTS from './constants-urnet.mts';
@@ -40,7 +41,8 @@ const CLASS = {
   UrModule,
   NetSocket,
   NetEndpoint,
-  NetPacket
+  NetPacket,
+  PhaseMachine
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LIB = {
