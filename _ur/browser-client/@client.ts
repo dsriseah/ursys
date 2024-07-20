@@ -79,7 +79,7 @@ export {
 // PhaseMachine Interface
 export {
   NewPhaseMachine,
-  Hook,
+  HookPhase,
   RunPhaseGroup,
   GetPhaseMachine,
   GetMachineStates

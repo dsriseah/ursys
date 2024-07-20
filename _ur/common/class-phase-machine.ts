@@ -87,10 +87,7 @@ function m_DecodePhaseGroup(pm: PhaseMachine, phaseID: PM_PhaseID): PM_PhaseGrou
 function m_ProcessHookQueue(pmName: PM_Name) {
   const fn = 'm_ProcessHookQueue:';
   const machine = m_machines.get(pmName);
-  if (!machine) {
-    WARN(`${pmName} not yet defined`);
-    return;
-  }
+  if (!machine) return; // machine not yet created
   const qhooks = m_queue.get(pmName) || [];
   if (DBG) LOG(`phasemachine '${pmName}' has ${qhooks.length} queued ops`);
   try {

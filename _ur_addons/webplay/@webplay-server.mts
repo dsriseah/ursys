@@ -20,7 +20,7 @@ const [AO_NAME, AO_DIR] = FILE.DetectedAddonDir();
 const ADDON = AO_NAME.toUpperCase();
 const script_name = PATH.basename(import.meta.url);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = false;
+const DBG = true;
 const { BLU, YEL, DIM, NRM } = PROMPTS.ANSI;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = PR(ADDON, 'TagCyan');
@@ -103,7 +103,7 @@ const CLIENT_BUNDLE_NAME = 'client-bundle';
   LOG(`Using esbuild to assemble website -> ${BLU}${FILE.u_short(HT_DOCS)}${NRM}`);
   await APPBUILD.BuildApp(buildOpts);
   const htdocs_short = FILE.u_short(HT_DOCS);
-  LOG(`Watching for changes in ${htdocs_short}...`);
+  LOG(`Live Reload Service is monitoring ${htdocs_short}`);
   await APPBUILD.WatchExtra({ watch_dirs: [`${SRC}/**`], notify_cb });
   const serverOpts = {
     http_port: 8080,
@@ -115,6 +115,6 @@ const CLIENT_BUNDLE_NAME = 'client-bundle';
   await APPSERV.Start(serverOpts);
   // import services after server is started
   const mtsFiles = await m_ImportServerModules();
-  LOG(`.. importing server modules: ${YEL}${mtsFiles.join(' ')}${NRM}`);
+  LOG(`imported server modules: ${YEL}${mtsFiles.join(' ')}${NRM}`);
   m_RuntimeHelp();
 })();
