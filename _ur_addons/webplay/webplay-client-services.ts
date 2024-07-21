@@ -19,7 +19,6 @@ const PR = ConsoleStyler('WCS', 'TagPurple');
 const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { NetEndpoint, NetSocket, PhaseMachine } = CLASS;
-const EVENT_MAP: EventMap = new Map();
 const TIMEOUT = 360; // seconds before client closes connection
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let SERVER_LINK: WebSocket;
