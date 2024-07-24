@@ -12,7 +12,7 @@
     "noEmit": true,
     "paths": {
       "_ur/node/*": ["./_ur/node-server/*"],
-      "_ur/web/*": ["./_ur/browser-client/*"],
+      "_ur/web/*": ["./_ur/web-client/*"],
       "_ur/common/*": ["./_ur/common/*"]
     }
   },

@@ -19,7 +19,7 @@ export default [
     plugins: [dts()]
   },
   {
-    input: '../_ur/_dist/types/browser-client/@client.d.ts',
+    input: '../_ur/_dist/types/web-client/@client.d.ts',
     output: {
       file: '../_ur/_dist/client.d.ts',
       format: 'es'

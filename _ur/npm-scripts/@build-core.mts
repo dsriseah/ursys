@@ -58,7 +58,7 @@ async function ESBuildLibrary() {
 
   /** BROWSER CLIENT SHARED BUILD SETTINGS **/
   const browserBuild = {
-    entryPoints: [`${ROOT}/_ur/browser-client/@client.ts`],
+    entryPoints: [`${ROOT}/_ur/web-client/@client.ts`],
     bundle: true,
     platform: 'browser',
     target: ['es2018'], // brunch can't handle features beyond this date

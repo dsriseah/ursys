@@ -38,7 +38,7 @@ function u_init_roots() {
   DIR_PUBLIC = u_path('/public');
   DIR_UR = u_path('/_ur');
   DIR_UR_DIST = u_path('/_ur/_dist');
-  DIR_BDL_BROWSER = u_path('/_ur/browser-client');
+  DIR_BDL_BROWSER = u_path('/_ur/web-client');
   DIR_BDL_NODE = u_path('/_ur/node-server');
   DIR_UR_ADDS = u_path('/_ur_addons');
   DIR_UR_ADDS_DIST = u_path('/_ur_addons/_dist');

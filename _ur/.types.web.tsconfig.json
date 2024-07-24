@@ -13,11 +13,7 @@
     "outDir": "./_ur/_dist/types",
     "target": "ESNext"
   },
-  "include": [
-    "./_ur/browser-client/**/*.ts",
-    "./_ur/common/**/*",
-    "./_ur/_types/**/*"
-  ],
+  "include": ["./_ur/web-client/**/*.ts", "./_ur/common/**/*", "./_ur/_types/**/*"],
   "exclude": [
     "./_ur/node-server",
     "./_ur/node_modules",
