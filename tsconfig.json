@@ -9,7 +9,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "_ur/node/*": ["./_ur/node-server/*"],
+      "_ur/web/*": ["./_ur/browser-client/*"],
+      "_ur/common/*": ["./_ur/common/*"]
+    }
   },
   "include": [
     "./_ur/**/*.ts",
