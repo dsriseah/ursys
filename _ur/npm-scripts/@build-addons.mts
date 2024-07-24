@@ -1,11 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  NODE CLI TOOL
-  designed to run inside of non-module nodejs legacy environment like
-  the prototype version of NetCreate 2.0 (2023)
-
-  It interfaces with other modules that are written in ESM and TYPESCRIPT,
-  transpiled into CJS, and imported here.
+  NODE CLI TOOL - TYPESCRIPT BUILD URSYS ADDONS
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 

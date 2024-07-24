@@ -4,7 +4,6 @@
     "module": "nodenext", // ignored by esbuild, but used by VSCODE typescript
     "moduleResolution": "nodenext", // option: leave blank if "module" set to this
     "baseUrl": "./",
-    "paths": {},
     "isolatedModules": true, // see esbuild.github.io/content-types/#typescript-caveats
     "esModuleInterop": true, // see esbuild.github.io/content-types/#typescript-caveats
     //

@@ -16,8 +16,6 @@
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR } from '@ursys/core';
-
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { NP_Address, NP_Hash } from './types-urnet.ts';
@@ -41,6 +39,7 @@ type TrxInfo = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR =
+  // @ts-ignore - multiplatform definition check
   typeof process !== 'undefined'
     ? 'Transact'.padEnd(13) // nodejs
     : 'Transact'.padEnd(11); // browser

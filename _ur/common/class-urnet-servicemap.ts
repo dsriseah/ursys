@@ -11,7 +11,6 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR } from '@ursys/core';
 import { NormalizeMessage, DecodeMessage } from './types-urnet.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -34,6 +33,7 @@ type AddressMap = Map<NP_Msg, AddressSet>; // msg->set of uaddr
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR =
+  // @ts-ignore - multiplatform definition check
   typeof process !== 'undefined'
     ? 'ServiceMap'.padEnd(13) // nodejs
     : 'ServiceMap'.padEnd(11); // browser

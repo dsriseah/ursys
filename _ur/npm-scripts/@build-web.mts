@@ -1,10 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  NODE CLI TOOL
-  designed to run inside of non-module nodejs legacy environment like
-  the prototype version of NetCreate 2.0 (2023)
-
-  it depends on UR library being built previously
+  NODE CLI TOOL - TYPESCRIPT BUILD URSYS WEBAPP
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 

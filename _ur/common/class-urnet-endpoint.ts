@@ -46,7 +46,6 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR } from '@ursys/core';
 import NetPacket from './class-urnet-packet.ts';
 import ServiceMap from './class-urnet-servicemap.ts';
 import TransactionMgr from './class-urnet-transaction.ts';
@@ -65,6 +64,7 @@ import type { THandlerFunc } from './class-urnet-servicemap.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR =
+  // @ts-ignore - multiplatform definition check
   typeof process !== 'undefined'
     ? 'EndPoint'.padEnd(13) // nodejs
     : 'EndPoint'.padEnd(11); // browser

@@ -23,7 +23,6 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR } from '@ursys/core';
 import NetPacket from './class-urnet-packet.ts';
 import {
   NP_Address,
@@ -38,6 +37,7 @@ import {
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
+// @ts-ignore - multiplatform definition check
 const PR = typeof process !== 'undefined' ? 'Socket'.padEnd(13) : 'Socket:';
 const LOG = (...args) => DBG && console.log(PR, ...args);
 

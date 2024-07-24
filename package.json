@@ -1,6 +1,7 @@
 {
   "name": "ursys",
   "version": "1.0.0-alpha.1",
+  "type": "module",
   "description": "A modular self-contained development framework fpr realtime web app prototyping",
   "workspaces": [
     "_ur/",
@@ -11,8 +12,9 @@
     "create": "./_ur/ur-create.sh"
   },
   "scripts": {
-    "example": "node ./_ur/npm-scripts/@build-core.cjs && node ./example-app/@build-example.mjs",
-    "build-libs": "node ./_ur/npm-scripts/@build-core.cjs",
+    "example": "npx ts-node-esm ./_ur/npm-scripts/@build-core.mts && node ./example-app/@build-example.mts",
+    "build-core": "npx ts-node-esm ./_ur/npm-scripts/@build-core.mts",
+    "build-types": "npm exec --workspaces -- npm run build-types",
     "lint": "npm exec --workspaces -- npm run lint && eslint example-app/"
   },
   "author": "DSri Seah",

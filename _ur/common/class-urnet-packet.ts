@@ -20,7 +20,6 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR } from '@ursys/core';
 import { I_NetMessage, NP_Address } from './types-urnet.ts';
 import { NP_ID, NP_Type, NP_Dir, I_NetSocket } from './types-urnet.ts';
 import {
@@ -32,6 +31,7 @@ import {
 import { NP_Msg, NP_Data, DecodeMessage } from './types-urnet.ts';
 import { NP_Options } from './types-urnet.ts';
 
+// @ts-ignore - multiplatform definition check
 const PR = typeof process !== 'undefined' ? 'Packet'.padEnd(13) : 'Packet:';
 const LOG = (...args) => console.log(PR, ...args);
 

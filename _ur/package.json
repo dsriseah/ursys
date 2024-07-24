@@ -8,7 +8,10 @@
   },
   "private": true,
   "scripts": {
-    "build-core": "node ./npm-scripts/@build-core.cjs",
+    "build-core": "node ./npm-scripts/@build-core.mts",
+    "_types-node": "npx tsc --project ./npm-scripts/tsconfig-types-node.json && npx dts-bundle-generator --config ./npm-scripts/types-bundle-node.json",
+    "_types-browser": "npx tsc --project ./npm-scripts/tsconfig-types-browser.json && npx dts-bundle-generator --config ./npm-scripts/types-bundle-browser.json",
+    "build-types": "npm run _types-node && npm run _types-browser ",
     "lint": "eslint .",
     "clean": "rm -rf ./node_modules ./_dist"
   },
@@ -26,6 +29,8 @@
     }
   },
   "devDependencies": {
+    "@types/node": "^20.14.12",
+    "dts-bundle-generator": "^9.5.1",
     "esbuild": "^0.21.4",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-plugin-umd-wrapper": "^2.0.0",

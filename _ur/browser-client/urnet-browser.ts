@@ -6,7 +6,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 // cjs-style modules
-import PROMPTS from '../common/util-prompts.js';
+import * as PROMPTS from '../common/util-prompts.js';
 // typescript classes
 import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetSocket from '../common/class-urnet-socket.ts';

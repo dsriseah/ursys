@@ -1,0 +1,12 @@
+{
+  "compilationOptions": {
+    "preferredConfigPath": "./tsconfig-types-node.json"
+  },
+  "entries": [
+    {
+      "filePath": "../node-server/@server.mts",
+      "outFile": "../_dist/types/server.d.ts",
+      "noCheck": true
+    }
+  ]
+}

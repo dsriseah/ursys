@@ -6,16 +6,15 @@
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { EXIT_CODES } = require('./declare-errors');
+import { EXIT_CODES } from './declare-errors';
 const { ERR_UR } = EXIT_CODES;
-const PROMPTS = require('./util-prompts');
-const { makeTerminalOut } = PROMPTS;
+import { makeTerminalOut } from './util-prompts';
 const ERROUT = makeTerminalOut('ERR', 'TagRed');
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DIE = (...args) => {
-  Error.stackTraceLimit = 20;
+  (Error as any).stackTraceLimit = 20;
   let errs = new Error(`UR Process Terminated (${ERR_UR})`).stack.split('\n');
   let myErrs = errs
     .filter(line => {
@@ -26,6 +25,7 @@ const DIE = (...args) => {
     .join('\n');
   ERROUT(`\x1b[93m${args.join(' ')}\x1b[0m`);
   ERROUT(myErrs);
+  // @ts-ignore - multiplatform definition check
   process.exit(ERR_UR);
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
