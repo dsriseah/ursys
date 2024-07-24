@@ -19,12 +19,12 @@
   When using from nodejs mts file, you can only import functions from 'default',
   so to access the NetPacket class do this:
 
-    import UR_TYPES from './urnet-types.ts';
+    import UR_TYPES from './my-types.ts';
     const { AllocateAddress } = UR_TYPES.default; // note .default
 
   You can import the types as usual, though:
 
-    import UR_TYPES, { NP_Msg, NP_Data } from './urnet-types.ts';
+    import UR_TYPES, { NP_Msg, NP_Data } from './my-types.ts';
 
   This is not required when importing from another .ts typescript file
   such as class-urnet-endpoint.ts.
