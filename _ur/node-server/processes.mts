@@ -19,7 +19,7 @@ import * as FILE from './files.mts';
 /** break string of form 'addon' or 'addon/@entry' into parts
  *  addonName and entryName (no extension)
  */
-function m_DecodeAddonName(shortPath: string): UR_ResObj {
+function m_DecodeAddonName(shortPath: string): UR_ResultObject {
   let addonName, entryName;
   // required argument
   if (typeof shortPath !== 'string') {
@@ -78,7 +78,7 @@ function DecodeAddonArgs(argv: string[]): string[] {
  *  addonName, entryName, and entryFile and reconcile with addon directory
  *  context: called from the urcli launcher script
  */
-function ValidateAddon(addon: string): UR_ResObj {
+function ValidateAddon(addon: string): UR_ResultObject {
   const ADDONS = PATH.join(FILE.DetectedRootDir(), '_ur_addons');
   if (!FILE.DirExists(ADDONS)) {
     return { err: `directory ${ADDONS} does not exist` };
