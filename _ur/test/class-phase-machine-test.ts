@@ -21,7 +21,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test, vi } from 'vitest';
-import PhaseMachine from './class-phase-machine.ts';
+import PhaseMachine from '../common/class-phase-machine.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -37,17 +37,17 @@ test('PhaseMachine should construct', () => {
 
 test('define hooks out of order, still executes in order', async () => {
   const out = [];
-  PhaseMachine.Hook('UR/INITIALIZE', () => {
+  PhaseMachine.HookPhase('UR/INITIALIZE', () => {
     out.push('INITIALIZE');
   });
-  PhaseMachine.Hook('UR/PHASE_CONFIG', () => {
+  PhaseMachine.HookPhase('UR/PHASE_CONFIG', () => {
     out.push('PHASE_CONFIG');
   });
-  PhaseMachine.Hook('UR/LOAD_ASSETS', async () => {
+  PhaseMachine.HookPhase('UR/LOAD_ASSETS', async () => {
     await new Promise(resolve => setTimeout(resolve, 500));
     out.push('LOAD_ASSETS');
   });
-  PhaseMachine.Hook('UR/APP_READY', () => {
+  PhaseMachine.HookPhase('UR/APP_READY', () => {
     out.push('APP_READY');
   });
 
