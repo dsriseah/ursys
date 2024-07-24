@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "baseUrl": "./",
+    "typeRoots": ["./_types", "./node_modules/@types", "./_ur/_types"],
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": [
+    "./_ur/**/*.ts",
+    "./_ur/**/*.mts",
+    "./_ur_addons/**/*.ts",
+    "./_ur_addons/**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
