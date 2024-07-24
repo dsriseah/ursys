@@ -65,6 +65,8 @@ case "$1" in
         npx ts-node-esm $TSOPTS $CLI_BUILD/@build-core.mts 2>&1 | cat
         # (2) add additional tasks here (eventually can be command args)
         npx ts-node-esm $TSOPTS $CLI_BUILD/@build-addons.mts 2>&1 | cat
+        # (3) build the type exports
+        npx ts-node-esm $TSOPTS $CLI_BUILD/@build-types.mts 2>&1 | cat
         exit 0;
         ;;
 
@@ -74,13 +76,13 @@ case "$1" in
         PROMPT="${BGBLUE} UR TEST ${RESET}"
         if [ "$2" = "core" ]; then
             prln "${PROMPT} running ${BRITE}ursys core tests${RESET}"
-            npx vitest --config ./test-config/vitest.core.config.mts
+            npx vitest --config ./tests/vitest.core.config.mts
         elif [ "$2" = "addons" ]; then
             prln "${PROMPT} running ${BRITE}ursys addons tests${RESET}"
-            npx vitest --config ./test-config/vitest.addons.config.mts
+            npx vitest --config ./tests/vitest.addons.config.mts
         elif [ -z "$2" ]; then
             prln "${PROMPT} running ${BRITE}ursys core and addon tests${RESET}"
-            npx vitest --config ./test-config/vitest.all.config.mts
+            npx vitest --config ./tests/vitest.all.config.mts
         else
             prln "${YELLOW}unknown test option: '$2'${RESET}"
             exit 1;
@@ -90,9 +92,10 @@ case "$1" in
 esac
 
 #
-# if we got this far, assuming that $1 is a directory and we are going
-# to pass arguments to a special script
-#
+# if we got this far, then none of the built-in commands above were run, so 
+# load the designated addon directory in $1 and pass the remaining arguments
+# to our loader scripts
+# build the core first, then load the addon
 npx ts-node-esm $TSOPTS $CLI_BUILD/@build-core.mts 2>&1 | cat
-# to debug the addon loader, remove the TSOPTS (--transpile-only)
 npx ts-node-esm $TSOPTS $ADDONS_LIB/@load-addon.mts "$@"
+# to debug the addon loader, remove the TSOPTS (--transpile-only)
