@@ -9,7 +9,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { FILE, PR } from '@ursys/core';
-import { PromiseUseDatabase, ListCollections } from './import-lokidb.mts';
+import { PromiseLoadDatabase, ListCollections } from './import-lokidb.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,6 +19,6 @@ const LOG = PR('LOKI', 'TagBlue');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 LOG('run starting...reading database');
 const datadir = FILE.AbsLocalPath('_ur_addons/loki/_data_nocommit');
-await PromiseUseDatabase(`${datadir}/netcreate-graph.loki`);
+await PromiseLoadDatabase(`${datadir}/netcreate-graph.loki`);
 ListCollections();
 LOG('run complete');

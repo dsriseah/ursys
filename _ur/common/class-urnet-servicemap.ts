@@ -9,6 +9,22 @@
   Additionally, it enforces the categoziation of services into groups, and
   knows how to recognize and decode service names.
 
+    -- CROSS PLATFORM IMPORT TRICKS -------------------------------------------
+
+  When using from nodejs mts file, you can only import 'default', which is the
+  NetEndpoint class. If you want to import other exports, you need to
+  destructure the .default prop; to access the NetPacket class do this:
+
+    import EP_DEFAULT from './class-urnet-socket.ts';
+    const { NetSocket } = EP_DEFAULT.default; // note .default
+
+  You can import the types through dereferencing as usual:
+
+    import EP_DEFAULT, { I_NetSocket } from './urnet-types.ts';
+
+  This is not required when importing from another .ts typescript file.
+
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { NormalizeMessage, DecodeMessage } from './types-urnet.ts';

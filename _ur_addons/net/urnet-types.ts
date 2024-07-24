@@ -33,12 +33,18 @@
 
 /// RUNTIME UTILITIES /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export const VALID_MSG_CHANNELS = ['NET', 'SRV', 'LOCAL', ''] as const;
+export const VALID_MSG_CHANNELS = [
+  'SYNC', // protocol sync channel
+  'NET', // user-defined net messages
+  'SRV', // server-defined services that aren't protocol sync
+  'LOCAL', // explicit local message definition
+  ''
+] as const;
 export const VALID_PKT_TYPES = [
-  'ping',
-  'signal',
-  'send',
-  'call',
+  'ping', // return list of implementors of message
+  'signal', // one-shot message with no ack
+  'send', // one-way message with ack on receipt
+  'call', // transactional message with ack data on completion
   '_auth', // special packet
   '_reg', // special packet
   '_decl' // special packet
