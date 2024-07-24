@@ -26,18 +26,11 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { NormalizeMessage, DecodeMessage } from './types-urnet.ts';
+import { NormalizeMessage, DecodeMessage } from './util-urnet.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type {
-  NP_Address,
-  NP_Msg,
-  NP_Data,
-  I_NetMessage,
-  //
-  NM_Handler
-} from './types-urnet.ts';
+import type { NP_Address, NP_Msg, NM_Handler } from '_ur/_types/urnet.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type HandlerSet = Set<NM_Handler>; // set(handler1, handler2, ...)
 type HandlerMap = Map<NP_Msg, HandlerSet>; // msg->handler functions
@@ -227,7 +220,7 @@ class ServiceMap {
   /** utility: return array of proxied services */
   proxiesList(): NP_Msg[] {
     if (this.proxied_svcs === undefined) return [];
-    return [...Object.keys(this.proxied_svcs)];
+    return [...Object.keys(this.proxied_svcs)] as NP_Msg[];
   }
 
   /** utility: return true if this service map has handlers */
@@ -238,7 +231,7 @@ class ServiceMap {
   /** utility: return array of handled service names */
   handlersList(): NP_Msg[] {
     if (this.handled_svcs === undefined) return [];
-    return [...Object.keys(this.handled_svcs)];
+    return [...Object.keys(this.handled_svcs)] as NP_Msg[];
   }
 }
 

@@ -20,17 +20,22 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { I_NetMessage, NP_Address } from './types-urnet.ts';
-import { NP_ID, NP_Type, NP_Dir, I_NetSocket } from './types-urnet.ts';
 import {
+  DecodeMessage,
   IsValidMessage,
   IsValidAddress,
   IsValidType,
   UADDR_NONE
-} from './types-urnet';
-import { NP_Msg, NP_Data, DecodeMessage } from './types-urnet.ts';
-import { NP_Options } from './types-urnet.ts';
+} from './util-urnet.ts';
 
+/// TYPE IMPORTS //////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import type { I_NetMessage, I_NetSocket, NP_Address } from '_ur/_types/urnet.d.ts';
+import type { NP_ID, NP_Type, NP_Dir, NP_Msg, NP_Data } from '_ur/_types/urnet.d.ts';
+import type { NP_Options } from '_ur/_types/urnet.d.ts';
+
+/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // @ts-ignore - multiplatform definition check
 const PR = typeof process !== 'undefined' ? 'Packet'.padEnd(13) : 'Packet:';
 const LOG = (...args) => console.log(PR, ...args);

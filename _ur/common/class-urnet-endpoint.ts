@@ -49,14 +49,14 @@
 import NetPacket from './class-urnet-packet.ts';
 import ServiceMap from './class-urnet-servicemap.ts';
 import TransactionMgr from './class-urnet-transaction.ts';
-import { GetPacketHashString, SkipOriginType } from './types-urnet.ts';
-import { IsLocalMessage, IsNetMessage, IsValidAddress } from './types-urnet.ts';
-import { UADDR_NONE, AllocateAddress } from './types-urnet.ts';
-import { NormalizeData } from './types-urnet.ts';
+import { GetPacketHashString, SkipOriginType } from './util-urnet.ts';
+import { IsLocalMessage, IsNetMessage, IsValidAddress } from './util-urnet.ts';
+import { UADDR_NONE, AllocateAddress } from './util-urnet.ts';
+import { NormalizeData } from './util-urnet.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_ID, NP_Address, NP_Msg, NP_Data, NP_Hash } from './types-urnet.ts';
+import type { NP_ID, NP_Address, NP_Msg, NP_Data } from '_ur/_types/urnet.d.ts';
 import type { I_NetSocket } from './class-urnet-socket.ts';
 import type { THandlerFunc } from './class-urnet-servicemap.ts';
 
@@ -216,7 +216,8 @@ class NetEndpoint {
    *  remove all message forwarding */
   public removeClient(uaddr_obj: NP_Address | I_NetSocket): NP_Address {
     const fn = 'removeClient:';
-    let uaddr = typeof uaddr_obj === 'string' ? uaddr_obj : uaddr_obj.uaddr;
+    let uaddr: NP_Address =
+      typeof uaddr_obj === 'string' ? uaddr_obj : uaddr_obj.uaddr;
     if (typeof uaddr !== 'string') {
       LOG(PR, `${fn} invalid uaddr ${typeof uaddr}`);
       return undefined;

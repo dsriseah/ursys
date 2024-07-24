@@ -24,15 +24,16 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import NetPacket from './class-urnet-packet.ts';
-import {
-  NP_Address,
-  NP_Msg,
-  I_NetSocket,
+
+/// TYPE IMPORTS //////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import type { I_NetSocket, NP_Address, NP_Msg } from '_ur/_types/urnet.d.ts';
+import type {
   NS_SendFunc,
-  NS_CloseFunc,
   NS_DataFunc,
+  NS_CloseFunc,
   NS_Options
-} from './types-urnet.ts';
+} from '_ur/_types/urnet.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

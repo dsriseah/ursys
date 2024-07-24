@@ -14,7 +14,7 @@
       "_ur/node/*": ["./_ur/node-server/*"],
       "_ur/web/*": ["./_ur/web-client/*"],
       "_ur/common/*": ["./_ur/common/*"],
-      "_ur/types/*": ["./_ur/_types/*", "./_ur_addons/_types/*"]
+      "_ur/_types/*": ["./_ur/_types/*"]
     }
   },
   "include": [

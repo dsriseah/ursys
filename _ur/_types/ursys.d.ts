@@ -13,7 +13,7 @@
  *  to indicate an error, or it has other keys to indicate success.
  *  Checking for the present of err is a common pattern in URSYS.
  */
-type UR_ResultObject = {
+export type UR_ResultObject = {
   err?: string;
   [key?: string]: any;
 };
@@ -24,16 +24,16 @@ type UR_ResultObject = {
  *  In some cases, the object may not have the _id key set yet on creation,
  *  but for it to be a valid object in the collection, it must have an _id key.
  */
-type ObjID = `${string}_${number}`; // unique id of an object within a collection
-type ObjREF = `${string}`; // unique name of a collection
+export type ObjID = `${string}_${number}`; // unique id of an object within a collection
+export type ObjREF = `${string}`; // unique name of a collection
 
-type ItemObj = { _id: ObjID; [key: string]: any }; // similar to a document in nosql
-type ItemKeyObj = { _id: ObjID }; // used as a parameter list compatible with ItemObj
+export type ItemObj = { _id: ObjID; [key: string]: any }; // similar to a document in nosql
+export type ItemKeyObj = { _id: ObjID }; // used as a parameter list compatible with ItemObj
 
-type ObjDict = { [itemName: string]: ItemObj };
-type ObjList = ItemObj[];
+export type ObjDict = { [itemName: string]: ItemObj };
+export type ObjList = ItemObj[];
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type UR_Dataset = {
+export type UR_Dataset = {
   dicts?: { [ref_name: ObjREF]: ObjDict };
   lists?: { [ref_name: ObjREF]: ObjList };
   // see Discussion #22 in github/dsriseah/ursys/discussions
