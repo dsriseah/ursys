@@ -65,8 +65,10 @@ case "$1" in
         npx ts-node-esm $TSOPTS $CLI_BUILD/@build-core.mts 2>&1 | cat
         # (2) add additional tasks here (eventually can be command args)
         npx ts-node-esm $TSOPTS $CLI_BUILD/@build-addons.mts 2>&1 | cat
-        # (3) build the type exports
-        npx ts-node-esm $TSOPTS $CLI_BUILD/@build-types.mts 2>&1 | cat
+        # (3) build the type exports with rollup (not working due to type conflicts)
+        # npx tsc --project ../.types.node.tsconfig.json 
+        # npx tsc --project ../.types.web.tsconfig.json 
+        # npx rollup -c ../.types.config.js
         exit 0;
         ;;
 

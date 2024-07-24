@@ -14,7 +14,6 @@
   "scripts": {
     "example": "npx ts-node-esm ./_ur/npm-scripts/@build-core.mts && node ./example-app/@build-example.mts",
     "build-core": "npx ts-node-esm ./_ur/npm-scripts/@build-core.mts",
-    "build-types": "npm exec --workspaces -- npm run build-types",
     "lint": "npm exec --workspaces -- npm run lint && eslint example-app/"
   },
   "author": "DSri Seah",
