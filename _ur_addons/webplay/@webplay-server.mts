@@ -9,19 +9,21 @@ import { FILE, PROMPTS, PR } from '@ursys/core';
 import { APPSERV, APPBUILD } from '@ursys/core';
 import PATH from 'node:path';
 import FS from 'node:fs';
+import { exec } from 'node:child_process';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type TSOptions = { field: string; value: any };
 import type { BuildOptions } from '@ursys/core';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const [AO_NAME, AO_DIR] = FILE.DetectedAddonDir();
 const ADDON = AO_NAME.toUpperCase();
-const script_name = PATH.basename(import.meta.url);
+const [script_name, ...script_args] = process.argv.slice(2);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const { BLU, YEL, DIM, NRM } = PROMPTS.ANSI;
+const { BLU, YEL, RED, DIM, NRM } = PROMPTS.ANSI;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = PR(ADDON, 'TagCyan');
 
@@ -29,22 +31,32 @@ const LOG = PR(ADDON, 'TagCyan');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: import all server modules in the scripts directory. Hide dependent
  *  scripts in subdirectory of scripts folder. */
-async function m_ImportServerModules(): Promise<string[]> {
+async function m_ImportServerModules(tsOpt?: TSOptions): Promise<string[]> {
+  const fn = 'm_ImportServerModules:';
   try {
     const mtsFilter = file => file.endsWith('.mts');
     const stashFiles = (await FS.promises.readdir('./_stash')).filter(mtsFilter);
     const scratchFiles = (await FS.promises.readdir('./_scratch')).filter(mtsFilter);
-    for (const file of stashFiles) await import(`./_stash/${file}`);
-    for (const file of scratchFiles) await import(`./_scratch/${file}`);
+    for (const file of stashFiles) {
+      const mod = await import(`./_stash/${file}`);
+      if (typeof mod.Init === 'function') mod.Init();
+    }
+    for (const file of scratchFiles) {
+      const mod = await import(`./_scratch/${file}`);
+      if (typeof mod.Init === 'function') mod.Init();
+    }
     return [...stashFiles, ...scratchFiles];
   } catch (error) {
-    console.error('Error importing files:', error);
+    if (error.message.includes(`find package '_ur`))
+      LOG(`${RED}${fn} webplay modules may not use tsconfig paths for imports${NRM}`);
+    throw Error(`${fn} Error during dynamic import: ${error.message}`);
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: write a temp file that imports client modules to be imported by
  *  webplay-client-entry.ts */
 async function m_ImportClientModules(): Promise<string[]> {
+  const fn = 'm_ImportClientModules:';
   try {
     const tsFilter = file => file.endsWith('.ts') && !file.startsWith('_');
     const stashFiles = (await FS.promises.readdir('./_stash')).filter(tsFilter);
@@ -55,7 +67,9 @@ async function m_ImportClientModules(): Promise<string[]> {
     await FS.promises.writeFile('./webplay-client-imports.ts', out);
     return [...stashFiles, ...scratchFiles];
   } catch (error) {
-    console.error('Error finding ts files:', error);
+    if (error.message.includes(`find package '_ur`))
+      LOG(`${RED}${fn} webplay modules may not use tsconfig paths for imports${NRM}`);
+    throw Error(`${fn} Error during dynamic import: ${error.message}`);
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -65,20 +79,23 @@ function m_RuntimeHelp() {
     LOG('CTRL-C TO EXIT. PRESS RETURN');
   }, 5000);
 }
-
-/// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const SRC = AO_DIR; // point to addon dir
-const HT_ASSETS = PATH.join(SRC, 'assets');
-const HT_DOCS = FILE.AbsLocalPath('_ur_addons/_public');
-const CLIENT_ENTRY_FILE = 'webplay-client-entry.ts';
-const CLIENT_BUNDLE_NAME = 'client-bundle';
+/** RUNTIME: Run tests */
+function RunTests() {
+  const cli = `npx vitest --config ./${script_name}/webplay-vitest-config.mts`;
+  // exec cli and echo output to terminal
+  exec(cli, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+    console.error(`stderr: ${stderr}`);
+  });
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-(async () => {
-  LOG(`${ADDON} URNET Live Reload Playground for Browsers`);
-  LOG(
-    `${BLU}QUICKSTART: ts and mts files are autoloaded from './_stash and _scratch'${NRM}`
-  );
+/** RUNTIME: Main function */
+async function Run() {
   // define the hot reload callback function
   const notify_cb = payload => {
     const { changed } = payload || {};
@@ -121,4 +138,21 @@ const CLIENT_BUNDLE_NAME = 'client-bundle';
   const mtsFiles = await m_ImportServerModules();
   LOG(`imported server modules: ${YEL}${mtsFiles.join(' ')}${NRM}`);
   m_RuntimeHelp();
+}
+
+/// RUNTIME ///////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const SRC = AO_DIR; // point to addon dir
+const HT_ASSETS = PATH.join(SRC, 'assets');
+const HT_DOCS = FILE.AbsLocalPath('_ur_addons/_public');
+const CLIENT_ENTRY_FILE = 'webplay-client-entry.ts';
+const CLIENT_BUNDLE_NAME = 'client-bundle';
+const TSCONFIG_FILE = PATH.join(SRC, '../../tsconfig.json');
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(async () => {
+  LOG(`${ADDON} URNET Live Reload Playground for Browsers`);
+  LOG(
+    `${BLU}QUICKSTART: ts and mts files are autoloaded from './_stash and _scratch'${NRM}`
+  );
+  await Run();
 })();

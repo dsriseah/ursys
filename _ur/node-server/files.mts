@@ -71,6 +71,7 @@ function DetectedRootDir(rootfile: string = '.nvmrc'): string {
   const check_dir = dir => FSE.existsSync(PATH.join(dir, rootfile));
   // walk through parent directories until root is reached
   while (currentDir !== PATH.parse(currentDir).root) {
+    // LOG(`DetectedRootDir: checking ${currentDir}`);
     if (check_dir(currentDir)) {
       ROOT = currentDir;
       return ROOT;
@@ -83,12 +84,19 @@ function DetectedRootDir(rootfile: string = '.nvmrc'): string {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** when run from an addon directory, return the path to the addon directory
  *  and the detected addon name */
-function DetectedAddonDir(): string[] {
+function DetectedAddonDir(aoName?: string): string[] {
+  const fn = 'DetectedAddonDir';
   const root = DetectedRootDir();
   if (!root) return undefined;
   const adir = PATH.join(root, '_ur_addons');
   const cwd = process.cwd();
-  if (!cwd.includes(adir)) return undefined;
+  if (!cwd.includes(adir)) {
+    if (aoName === undefined)
+      throw Error(`${fn}: autodetect fail; use ${fn}('addon-name') syntax`);
+    if (!DirExists(PATH.join(adir, aoName)))
+      throw Error(`${fn}: addon '${aoName}' not found in ${adir}`);
+    return [aoName, PATH.join(adir, aoName)];
+  }
   const addon = cwd.slice(adir.length + 1).split(PATH.sep)[0];
   return [addon, PATH.join(adir, addon)];
 }
