@@ -16,7 +16,7 @@ import type {
   //
   DatabaseOptions,
   CollectionOptions
-} from '../types/ur-collections';
+} from './types.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type CollectionList = {
   [name: string]: Collection;
@@ -92,8 +92,12 @@ class Collection {
     return resultSet.where(query);
   }
 
+  /** given a list of ids, see if the records contain them */
   findIDs(idList: RecordID[]): ResultSet {
-    const found = this._records.filter(r => idList.includes(r._id));
+    const found = this._records.filter(r => {
+      if (r._id === undefined) return false;
+      return idList.includes(r._id);
+    });
     return new ResultSet(found);
   }
 
@@ -115,7 +119,10 @@ class Collection {
   }
 
   removeIDs(recordList: RecordID[]): void {
-    this._records = this._records.filter(r => !recordList.includes(r._id));
+    this._records = this._records.filter(r => {
+      if (r._id === undefined) return false;
+      return !recordList.includes(r._id);
+    });
   }
 
   count(): number {

@@ -1,7 +1,7 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   read a loki database 
-  this code is based on the GEMSTEP version
+  this is a temp version of the loki database module for webplay noodling
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -19,8 +19,7 @@ type LokiFile = `${string}.loki`;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const LOG = PR('LOKI', 'TagBlue');
-const [AO_NAME, AO_DIR] = FILE.DetectedAddonDir();
-const ADDON = AO_NAME.toUpperCase();
+const [, AO_DIR] = FILE.DetectedAddonDir('webplay');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let m_datafile: string = '';
 let m_options: any = {};
