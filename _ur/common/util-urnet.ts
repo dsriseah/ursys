@@ -172,7 +172,9 @@ export function NormalizeMessage(msg: NP_Msg): NP_Msg {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** make sure that degenerate arrays turn into single objet */
 export function NormalizeData(data: NP_Data): NP_Data {
-  if (Array.isArray(data) && data.length == 1) return data[0];
+  if (!Array.isArray(data)) return data;
+  if (data.length === 0) return undefined;
+  if (data.length == 1) return data[0];
   return data;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
