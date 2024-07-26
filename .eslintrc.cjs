@@ -1,10 +1,11 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  ESLINT CONFIGURATION for NETCREATE ITEST (2023)
+  ESLINT CONFIGURATION (2024)
+  with es module support
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-const { RULES } = require('./.eslintrc-rules');
+const RULES = require('./.eslintrc-rules.cjs');
 
 /// BASE CONFIGURATION ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
