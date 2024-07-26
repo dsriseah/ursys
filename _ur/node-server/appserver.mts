@@ -16,7 +16,7 @@ import { NetPacket } from '../common/class-urnet-packet.ts';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_Msg, NP_Address, NM_Handler } from '../common/util-urnet.ts';
+import type { NP_Msg, NP_Address, NM_Handler } from '_ur/_types/urnet.d.ts';
 type AddressInfo = { port: number; family: string; address: string };
 type RequestHandler = express.RequestHandler; // (req,res,next)=>void
 type PacketHandler = (pkt: NetPacket) => void;
@@ -95,7 +95,7 @@ function SaveWSOptions(opt: WSOptions): WSOptions {
   const { wss_path, srv_addr } = opt;
   if (typeof wss_path !== 'string') return { error: `${fn} wss_path is invalid` };
   WSS_PATH = wss_path || 'urnet-ws';
-  SRV_UADDR = srv_addr || 'SRV01';
+  SRV_UADDR = srv_addr || ('SRV01' as NP_Address);
   return GetWSOptions();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -256,22 +256,14 @@ function StopWSS() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** To implement a service, add a packet handler to the endpoint. */
 function AddMessageHandler(message: NP_Msg, msgHandler: NM_Handler) {
-  try {
-    EP.addMessageHandler(message, msgHandler);
-  } catch (err) {
-    LOG.error(`AddHandler: ${err}`);
-  }
+  EP.addMessageHandler(message, msgHandler);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: To remove a service, remove the packet handler from the endpoint.
  *  If the handler is not provided, all handlers for the message are removed.
  */
 function RemoveMessageHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
-  try {
-    EP.deleteMessageHandler(message, pktHandlr);
-  } catch (err) {
-    LOG.error(`RemovePacketHandler: ${err}`);
-  }
+  EP.deleteMessageHandler(message, pktHandlr);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Get the APP instance for adding middleware */
