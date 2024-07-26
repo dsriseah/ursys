@@ -82,6 +82,9 @@ case "$1" in
         elif [ "$2" = "addons" ]; then
             prln "${PROMPT} running ${BRITE}ursys addons tests${RESET}"
             npx vitest --config ./tests/vitest.addons.config.mts
+        elif [ "$2" = "webplay" ]; then
+            prln "${PROMPT} running ${BRITE}ursys webplay tests${RESET}"
+            npx vitest --config ./tests/vitest.webplay.config.mts
         elif [ -z "$2" ]; then
             prln "${PROMPT} running ${BRITE}ursys core and addon tests${RESET}"
             npx vitest --config ./tests/vitest.all.config.mts
