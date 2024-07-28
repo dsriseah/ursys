@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  _welcome ts file
+  _welcome mts file
   print some instructions
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
@@ -19,7 +19,7 @@ const scriptDir = `${AO_DIR}/scripts`;
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-LOG('To use, create a .ts file (without dashes in the filename) in the');
+LOG('To use, create a .mts file (without dashes in the filename) in the');
 LOG(`  ${BRT}${scriptDir}${NRM}`);
 LOG('directory. Write some Typescript code in that file and the file will');
 LOG('run every time it is saved.');
