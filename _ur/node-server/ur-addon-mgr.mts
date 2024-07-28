@@ -15,7 +15,6 @@ import { join } from 'node:path';
 // MTS
 import { DirExists, Files, GetRootDirs, u_short } from './files.mts';
 import UrModule from './class-urmodule.mts';
-// JS imports are assumed to be CJS and cannot be destructured
 import { DIE } from '../common/util-error-mgr.ts';
 import * as PROMPT from '../common/util-prompts.ts';
 
