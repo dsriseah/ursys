@@ -3,9 +3,6 @@
   LokiJS Test Framework
   invoked by the _ur/ur command line module loader
 
-  NOTE: there must be a file called 'team.loki' in:
-  _ur/_data_nocommit/lokijs-team-ex directory
-
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { FILE, PR } from '@ursys/core';
@@ -18,7 +15,9 @@ const LOG = PR('LOKI', 'TagBlue');
 /// RUNTIME TESTS /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 LOG('run starting...reading database');
+// note that the database is not committed to the repo
+// so you have to create the _data_nocommit directory with a loki file
 const datadir = FILE.AbsLocalPath('_ur_addons/loki/_data_nocommit');
-await PromiseLoadDatabase(`${datadir}/netcreate-graph.loki`);
+await PromiseLoadDatabase(`${datadir}/test-graph.loki`);
 ListCollections();
 LOG('run complete');

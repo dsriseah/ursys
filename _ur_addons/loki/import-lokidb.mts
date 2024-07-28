@@ -92,9 +92,12 @@ const cb_autosaveNotice = () => {
 /** asynchronously load database file */
 function _LoadDatabase(dataset: string, options: any = {}) {
   m_datafile = f_validname(dataset);
-  FSE.ensureDirSync(PATH.dirname(m_datafile));
+  const dataDir = PATH.dirname(m_datafile);
+  FSE.ensureDirSync(PATH.dirname(dataDir));
   if (!FSE.existsSync(m_datafile)) {
     LOG.error(`DATABASE ${m_datafile} NOT FOUND`);
+    if (READONLY) LOG.warn('this addon does not include sample .loki files');
+
     if (!READONLY) LOG('creating blank database...');
     else if (m_options.reject) {
       m_options.reject();
