@@ -43,6 +43,7 @@ async function ESBuildWebApp() {
     sourcemap: true,
     outfile: PATH.join(DIR_PUBLIC, 'scripts/netc-app.js'),
     plugins: [
+      // @ts-ignore - esbuild-plugin-copy not in types
       copy({
         resolveFrom: 'cwd',
         assets: [

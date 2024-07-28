@@ -116,6 +116,7 @@ async function BuildApp(opts: BuildOptions) {
     sourcemap: true,
     outfile: `${PUBLIC}/js/${bundle_name}.js`,
     plugins: [
+      // @ts-ignore - esbuild-plugin-copy not in types
       copy({
         assets: [
           {
