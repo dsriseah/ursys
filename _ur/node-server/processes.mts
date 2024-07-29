@@ -6,7 +6,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-/// <reference types="../_types/ursys.d.ts" />
+/// <reference path="../_types/ursys.d.ts" />
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -15,6 +15,10 @@ import process from 'node:process';
 import PATH from 'node:path';
 const LOG = makeTerminalOut('PROCESS', 'TagGreen');
 import * as FILE from './files.mts';
+
+/// TYPE DECLARATIONS /////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import type { UR_ResultObject } from '~ur/types/ursys.d.ts';
 
 /// SUPPORT METHODS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

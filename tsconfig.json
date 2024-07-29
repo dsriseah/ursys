@@ -77,15 +77,26 @@
     // 'outDir' sets the output directory for the compiled files
     // This is set by esbuild in the build script, so it is not needed here
   },
-  // process all these files. per 'isolatedModules', they are all scanned individually
-  // rather than as a unified type system
+
+  // include all these files!
+  // - the top-level tsconfig.json is used for all files in the workspace for intellisense
+  // - may need to build the type files also for intellisene to work (ur build does this)
   "include": [
     "_ur/**/*.ts",
     "_ur/**/*.mts",
     "_ur_addons/**/*.ts",
-    "_ur_addons/**/*.mts"
+    "_ur_addons/**/*.mts",
+    "*-app/**/*.ts",
+    "*-app/**/*.mts",
+    "app-*/**/*.ts",
+    "app-*/**/*.mts"
   ],
 
   // don't process the files in these directories
-  "exclude": ["node_modules", "_ur/node_modules", "_ur_addons/node_modules"]
+  "exclude": [
+    "node_modules",
+    "_ur/node_modules",
+    "_ur_addons/node_modules",
+    "*-app/node_modules"
+  ]
 }
