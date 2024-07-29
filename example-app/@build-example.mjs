@@ -7,7 +7,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import esbuild from 'esbuild';
-import copy from 'esbuild-plugin-copy';
+import { copy } from 'esbuild-plugin-copy';
 import * as PATH from 'node:path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
