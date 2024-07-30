@@ -10,10 +10,12 @@
 import * as ADDON from './ur-addon-mgr.mts';
 import * as APPSERV from './appserver.mts';
 import * as APPBUILD from './appbuilder.mts';
-import * as FILE from './files.mts';
-import * as PROC from './processes.mts';
+import * as FILE from './file.mts';
+import * as PROC from './process.mts';
 import * as TEXT from '../common/util-text.ts';
 import * as PROMPTS from '../common/util-prompts.ts';
+import * as NORM from '../common/util-data-norm.ts';
+
 // typescript classes
 import UrModule from './class-urmodule.mts';
 import OpSequencer from '../common/class-op-seq.ts';
@@ -80,6 +82,7 @@ export {
   FILE,
   PROC,
   TEXT,
+  NORM,
   // server-based services
   APPSERV, // application server
   APPBUILD, // application builder

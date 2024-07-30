@@ -4,10 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-/* added for pull request #81 so 'npm run lint' test appears clean */
-/* eslint-disable no-unused-vars */
-
-/// OBJECT CONVENTIONS ////////////////////////////////////////////////////////
+/// DATASET OBJECT CONVENTIONS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** When returning results in an object, it either has an 'err' key and
  *  to indicate an error, or it has other keys to indicate success.

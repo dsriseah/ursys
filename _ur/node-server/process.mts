@@ -14,7 +14,7 @@ import { makeTerminalOut } from '../common/util-prompts.ts';
 import process from 'node:process';
 import PATH from 'node:path';
 const LOG = makeTerminalOut('PROCESS', 'TagGreen');
-import * as FILE from './files.mts';
+import * as FILE from './file.mts';
 
 /// TYPES DECLARATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -15,7 +15,7 @@ import * as url from 'url';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PROMPT.makeTerminalOut(' FILE', 'TagGreen');
+const LOG = PROMPT.makeTerminalOut('FILE', 'TagGreen');
 const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let ROOT: string; // root of the project
@@ -62,12 +62,15 @@ const u_short = p => {
 
 /// DETECTION METHODS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** scan for parent directory that contains a file that uniquely appears in the
- *  root directory of the project. It defaults to `.nvmrc`
+/** Scan for parent directory that contains a file that uniquely appears in the
+ *  root directory of the project.  To work, pass any directory below the
+ *  root of the project. By default, it searches for the .nvmrc file that's
+ *  always in an URSYS repo.
  */
 function DetectedRootDir(rootfile: string = '.nvmrc'): string {
   if (typeof ROOT === 'string') return ROOT;
-  let currentDir = url.fileURLToPath(new URL('.', import.meta.url));
+  const fileUrl = import.meta.url || `file://${process.cwd()}`;
+  let currentDir = url.fileURLToPath(new URL('.', fileUrl));
   const check_dir = dir => FSE.existsSync(PATH.join(dir, rootfile));
   // walk through parent directories until root is reached
   while (currentDir !== PATH.parse(currentDir).root) {

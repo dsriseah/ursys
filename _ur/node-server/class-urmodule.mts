@@ -11,7 +11,7 @@ import { ChildProcess } from 'node:child_process';
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import { makeTerminalOut } from '../common/util-prompts.ts';
-const LOG = makeTerminalOut(' URMOD', 'TagYellow');
+const LOG = makeTerminalOut('URMOD', 'TagYellow');
 const DBG = true;
 
 /// CLASS UR MODULE ///////////////////////////////////////////////////////////
