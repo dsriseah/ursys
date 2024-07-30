@@ -30,15 +30,16 @@ import {
 
 /// TYPE IMPORTS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { I_NetMessage, I_NetSocket, NP_Address } from '_ur/_types/urnet.d.ts';
-import type { NP_ID, NP_Type, NP_Dir, NP_Msg, NP_Data } from '_ur/_types/urnet.d.ts';
-import type { NP_Options } from '_ur/_types/urnet.d.ts';
+import type { I_NetMessage, I_NetSocket, NP_Address } from '~ur/types/urnet.d.ts';
+import type { NP_ID, NP_Type, NP_Dir, NP_Msg, NP_Data } from '~ur/types/urnet.d.ts';
+import type { NP_Options } from '~ur/types/urnet.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DBG = false;
 // @ts-ignore - multiplatform definition check
 const PR = typeof process !== 'undefined' ? 'Packet'.padEnd(13) : 'Packet:';
-const LOG = (...args) => console.log(PR, ...args);
+const LOG = console.log.bind(console);
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

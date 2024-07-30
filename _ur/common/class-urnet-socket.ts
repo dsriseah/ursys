@@ -27,20 +27,20 @@ import NetPacket from './class-urnet-packet.ts';
 
 /// TYPE IMPORTS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { I_NetSocket, NP_Address, NP_Msg } from '_ur/_types/urnet.d.ts';
+import type { I_NetSocket, NP_Address, NP_Msg } from '~ur/types/urnet.d.ts';
 import type {
   NS_SendFunc,
   NS_DataFunc,
   NS_CloseFunc,
   NS_Options
-} from '_ur/_types/urnet.d.ts';
+} from '~ur/types/urnet.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 // @ts-ignore - multiplatform definition check
 const PR = typeof process !== 'undefined' ? 'Socket'.padEnd(13) : 'Socket:';
-const LOG = (...args) => DBG && console.log(PR, ...args);
+const LOG = console.log.bind(console);
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

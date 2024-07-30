@@ -30,7 +30,7 @@ import { NormalizeMessage, DecodeMessage } from './util-urnet.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_Address, NP_Msg, NM_Handler } from '_ur/_types/urnet.d.ts';
+import type { NP_Address, NP_Msg, NM_Handler } from '~ur/types/urnet.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type HandlerSet = Set<NM_Handler>; // set(handler1, handler2, ...)
 type HandlerMap = Map<NP_Msg, HandlerSet>; // msg->handler functions
