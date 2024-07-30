@@ -8,8 +8,14 @@ import { NORM } from '@ursys/core';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { ObjID, ObjREF, ItemObj, ObjList } from '~ur/types/ursys.d.ts';
-type ListsCollection = { [ref_name: ObjREF]: ObjList };
+import type {
+  UR_EntID,
+  UR_EntID_Obj,
+  UR_BagRef,
+  UR_Item,
+  UR_ItemList
+} from '~ur/types/ursys.d.ts';
+type ListsCollection = { [ref_name: UR_BagRef]: UR_ItemList };
 const { NormalizeObjs, NormalizeIDs } = NORM;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -21,14 +27,14 @@ let LISTS: ListsCollection;
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class DataListMgr {
+class ItemListMgr {
   constructor() {
     if (LISTS === undefined) LISTS = {};
   }
   /** Given the name of a list, create a new list and return the list
    *  instance */
   createListInstance(listName: string) {
-    const fn = 'CreateListInstance:';
+    const fn = 'createListInstance:';
     if (LISTS[listName] !== undefined)
       throw Error(`${fn} list '${listName}' already exists`);
     const listInstance = [];
@@ -39,7 +45,7 @@ class DataListMgr {
   /** Given the name of a list, clear the list of all items and retain the
    *  same list instance */
   clearListInstance(listName: string) {
-    const fn = 'ClearListInstance:';
+    const fn = 'clearListInstance:';
     const listInstance = LISTS[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     listInstance.length = 0;
@@ -53,8 +59,8 @@ class DataListMgr {
 
   /** given the name of a list and an array of objects, add the objects to the
    *  list and return the list if successful, undefined otherwise */
-  listAdd(listName: string, items: ItemObj[]): ItemObj[] {
-    const fn = 'ListAdd:';
+  listAdd(listName: string, items: UR_Item[]): UR_Item[] {
+    const fn = 'listAdd:';
     const listInstance = LISTS[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     // normalize the objects and add them to the list
@@ -67,8 +73,8 @@ class DataListMgr {
   /** Given the name of a list, return the entire list or the subset of ids
    *  identified in the ids array, in order of the ids array. Return a COPY
    *  of the objects, not the original objects */
-  listRead(listName: string, ids?: ObjID[]): ItemObj[] {
-    const fn = 'ListRead:';
+  listRead(listName: string, ids?: UR_EntID[]): UR_Item[] {
+    const fn = 'listRead:';
     const listInstance = LISTS[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     // if no ids are provided, return the entire list
@@ -84,8 +90,8 @@ class DataListMgr {
    *  provided through shallow merge. If there items that don't have an _id field
    *  or if the _id field doesn't already exist in the list, throw an Error.
    *  Return a copy of list if successful */
-  listUpdate(listName: string, items: ItemObj[]) {
-    const fn = 'ListUpdate:';
+  listUpdate(listName: string, items: UR_Item[]) {
+    const fn = 'listUpdate:';
     const listInstance = LISTS[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     if (!Array.isArray(items) || items === undefined)
@@ -105,8 +111,8 @@ class DataListMgr {
   /** Given the name of a list, overwrite the objects. Unlike ListUpdate, this
    *  will not merge but replace the items. The items must exist to be
    *  replaced */
-  listReplace(listName: string, items: ItemObj[]) {
-    const fn = 'ListReplace:';
+  listReplace(listName: string, items: UR_Item[]) {
+    const fn = 'listReplace:';
     const listInstance = LISTS[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     if (!Array.isArray(items) || items === undefined)
@@ -128,8 +134,8 @@ class DataListMgr {
 
   /** Given the name of a list, add the items to the list. If an already
    *  exists in the list, update it instead. Return a copy of the list */
-  listUpdateOrAdd(listName: string, items: ItemObj[]) {
-    const fn = 'ListUpdateOrAdd:';
+  listUpdateOrAdd(listName: string, items: UR_Item[]) {
+    const fn = 'listUpdateOrAdd:';
     const listInstance = LISTS[listName];
     // update the items that already exist in the list
     for (const item of items) {
@@ -146,8 +152,8 @@ class DataListMgr {
   /** Given the name of a list, delete the objects in the list with the ids
    *  provided. If there are any ids that don't exist in the list, throw an
    *  Error. Return a copy of the deleted items if successful */
-  listDelete(listName: string, ids: ObjID[]) {
-    const fn = 'ListDelete:';
+  listDelete(listName: string, ids: UR_EntID[]) {
+    const fn = 'listDelete:';
     const list = LISTS[listName];
     if (list === undefined) throw Error(`${fn} list '${listName}' not found`);
     if (!Array.isArray(ids) || ids === undefined)
@@ -166,14 +172,14 @@ class DataListMgr {
   }
 
   /** return the instances of all lists */
-  static GetListInstances(): ItemObj[][] {
+  static GetListInstances(): UR_Item[][] {
     return Object.values(LISTS);
   }
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default DataListMgr; // the class
+export default ItemListMgr; // the class
 export {
-  DataListMgr // the class
+  ItemListMgr // the class
 };

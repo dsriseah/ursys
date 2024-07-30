@@ -4,36 +4,36 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-/// DATASET OBJECT CONVENTIONS ////////////////////////////////////////////////
+/// DATASET CONVENTIONS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** When returning results in an object, it either has an 'err' key and
- *  to indicate an error, or it has other keys to indicate success.
- *  Checking for the present of err is a common pattern in URSYS.
- */
-export type UR_ResultObject = {
-  err?: string;
-  [key?: string]: any;
-};
+/// data models have objects with an _id field that uniquely identifies
+/// each entity in the dataset called a UID.
+export type UR_EntID = `${string}`;
+export type UR_EntID_Obj = { _id: UR_EntID };
+/// we use various object conventions
+export type DataObj = { [key: string]: any };
+export type ErrObj = { error?: string; errorCode?: string; errorInfo?: string };
+export type ReturnObj = DataObj | ErrObj;
+/// we use UR_DataMethod functions to modify data and datasets
+export type UR_DataMethod = (...any, data: DataObj, options?: DataObj) => ReturnObj;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** We use a lot of collections that contain objects with an _id key. Generally
- *  this key is unique within the collection, but derived collections may
- *  have the same _id as the original collection to indicate the relationship.
- *  In some cases, the object may not have the _id key set yet on creation,
- *  but for it to be a valid object in the collection, it must have an _id key.
- */
-export type ObjID = `${string}`; // unique id of an object within a collection
-export type ObjREF = `${string}`; // unique name of a collection
-
-export type ItemObj = { _id: ObjID; [key: string]: any }; // similar to a document in nosql
-export type ItemKeyObj = { _id: ObjID }; // used as a parameter list compatible with ItemObj
-
-export type ObjDict = { [itemName: string]: ItemObj };
-export type ObjList = ItemObj[];
+/// an UR_Item is a union of DataObj with UR_EntID
+export type UR_Item = UR_EntID_Obj & DataObj; // { _id: UR_EntID; [key: string]: any }
+/// there are multiple ways to organize UR_Items into a "bag"
+export type UR_ItemList = UR_Item[]; // list of objects
+export type UR_Document = UR_Item; // nosql-style
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// REFS identify a unique "bag" of items in a data model, despite the type
+/// of bag it is (e.g. documents, itemlists, etc.)
+export type UR_BagRef = `${string}`;
+/// a UR_Dataset is a collection of multiple bags of items, organized by
+/// type of bag (e.g. documents, itemlists, etc.)
 export type UR_Dataset = {
-  dicts?: { [ref_name: ObjREF]: ObjDict };
-  lists?: { [ref_name: ObjREF]: ObjList };
-  // see Discussion #22 in github/dsriseah/ursys/discussions
+  schema?: UR_Schema; // see https://github.com/dsriseah/ursys/discussions/22
+  documents?: { [docname: UR_BagRef]: UR_Document };
+  itemlists?: { [listname: UR_BagRef]: UR_ItemList };
+  // additional items
+  // see https://github.com/dsriseah/ursys/discussions/25
   // files
   // state
   // logs

@@ -5,16 +5,16 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import type { ItemObj } from '~ur/types/ursys.d.ts';
-import { DataListMgr } from '../lib/class-dataset-list.ts';
+import type { UR_Item } from '~ur/types/ursys.d.ts';
+import { ItemListMgr } from '../lib/class-dataset-list.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LISTS = new DataListMgr();
+const LISTS = new ItemListMgr();
 
 test('instantiation', () => {
   expect(LISTS).toBeDefined();
-  expect(LISTS).toBeInstanceOf(DataListMgr);
+  expect(LISTS).toBeInstanceOf(ItemListMgr);
 });
 
 test('list creation', () => {
@@ -27,7 +27,7 @@ test('list creation', () => {
 });
 
 test('list item by-ref or value', () => {
-  const items: ItemObj[] = [
+  const items: UR_Item[] = [
     { _id: '1', name: 'item1' }, //
     { _id: '2', name: 'item2' }
   ];
@@ -49,6 +49,11 @@ test('list add,read', () => {
   // listRead will return the list
   const results = LISTS.listRead('mylist');
   expect(results).toMatchObject(items);
+  // listRead by custom order
+  expect(LISTS.listRead('mylist', ['2', '1'])).toMatchObject([
+    { _id: '2', name: 'item2' },
+    { _id: '1', name: 'item1' }
+  ]);
 });
 
 test('list update', () => {
