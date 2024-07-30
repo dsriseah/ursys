@@ -23,9 +23,13 @@
         }
       ]
     },
-    // make errors more obvious, de-emphasize warnings
     "workbench.colorCustomizations": {
-      "editorError.border": "#ff0000"
+      // make errors more obvious, de-emphasize warnings
+      "editorError.border": "#ff0000",
+      // color customizations for the title bar
+      "titleBar.activeBackground": "#343e99",
+      "titleBar.inactiveBackground": "#343e9940",
+      "titleBar.inactiveForeground": "#ffffff40"
     },
     // other theme overrides
     "editor.tokenColorCustomizations": {},
