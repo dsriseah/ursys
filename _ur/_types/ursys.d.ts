@@ -21,7 +21,7 @@ export type UR_ResultObject = {
  *  In some cases, the object may not have the _id key set yet on creation,
  *  but for it to be a valid object in the collection, it must have an _id key.
  */
-export type ObjID = `${string}_${number}`; // unique id of an object within a collection
+export type ObjID = `${string}`; // unique id of an object within a collection
 export type ObjREF = `${string}`; // unique name of a collection
 
 export type ItemObj = { _id: ObjID; [key: string]: any }; // similar to a document in nosql
