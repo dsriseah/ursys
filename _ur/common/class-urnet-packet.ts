@@ -157,8 +157,9 @@ class NetPacket implements I_NetMessage {
       throw Error(`invalid pktObj: ${pktObj}, is ${typeof pktObj}`);
     this.id = pktObj.id;
     this.msg = pktObj.msg;
-    if (pktObj.data === undefined)
-      LOG(fn, `... pktObj${pktObj.id} .data is undefined`);
+    // undefined data is a valid response for a netcall, indicating
+    // that the call didn't exist
+    // if (pktObj.data === undefined) LOG(fn, `pktObj${pktObj.id} .data is undefined`);
     this.data = pktObj.data;
     this.src_addr = pktObj.src_addr;
     this.hop_log = pktObj.hop_log;

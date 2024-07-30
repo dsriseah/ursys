@@ -260,17 +260,17 @@ async function Listen() {
     if (EP.isNewSocket(client_sock)) {
       EP.addClient(client_sock);
       const uaddr = client_sock.uaddr;
-      LOG(`${uaddr} client connected`);
+      LOG(`${uaddr} client socket 'connection'`);
     }
     // handle incoming data and return on wire
     client_link.on('message', onData);
     client_link.on('end', () => {
       const uaddr = EP.removeClient(client_sock);
-      LOG(`${uaddr} client 'end' disconnect`);
+      LOG(`${uaddr} client socket 'end'`);
     });
     client_link.on('close', () => {
       const uaddr = EP.removeClient(client_sock);
-      LOG(`${uaddr} client 'close' disconnect`);
+      LOG(`${uaddr} client socket 'close'`);
     });
     client_link.on('error', err => {
       LOG.error(`.. socket error: ${err}`);
