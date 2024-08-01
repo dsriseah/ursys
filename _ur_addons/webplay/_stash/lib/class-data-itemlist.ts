@@ -5,6 +5,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { NORM } from '@ursys/core';
+const { NormalizeItems, NormalizeItemIDs } = NORM;
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -16,7 +17,6 @@ import type {
   UR_ItemList
 } from '~ur/types/ursys.d.ts';
 type ListsCollection = { [ref_name: UR_BagRef]: UR_ItemList };
-const { NormalizeObjs, NormalizeIDs } = NORM;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,13 +28,17 @@ let LISTS: ListsCollection;
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class ItemListMgr {
+  //
   constructor() {
     if (LISTS === undefined) LISTS = {};
   }
+
+  /// LIST INSTANCE METHODS ///
+
   /** Given the name of a list, create a new list and return the list
    *  instance */
-  createListInstance(listName: string) {
-    const fn = 'createListInstance:';
+  createItemList(listName: string) {
+    const fn = 'createItemList:';
     if (LISTS[listName] !== undefined)
       throw Error(`${fn} list '${listName}' already exists`);
     const listInstance = [];
@@ -44,8 +48,8 @@ class ItemListMgr {
 
   /** Given the name of a list, clear the list of all items and retain the
    *  same list instance */
-  clearListInstance(listName: string) {
-    const fn = 'clearListInstance:';
+  clearItemList(listName: string) {
+    const fn = 'clearItemList:';
     const listInstance = LISTS[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     listInstance.length = 0;
@@ -53,9 +57,11 @@ class ItemListMgr {
   }
 
   /** Given the name of a list, return the entire list */
-  getListInstance(listName: string) {
+  getItemList(listName: string) {
     return LISTS[listName];
   }
+
+  /// LIST METHODS ///
 
   /** given the name of a list and an array of objects, add the objects to the
    *  list and return the list if successful, undefined otherwise */
@@ -64,7 +70,7 @@ class ItemListMgr {
     const listInstance = LISTS[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     // normalize the objects and add them to the list
-    const [norm_objs, norm_error] = NormalizeObjs(items);
+    const [norm_objs, norm_error] = NormalizeItems(items);
     if (norm_error) throw Error(`${fn} ${norm_error}`);
     listInstance.push(...norm_objs);
     return [...listInstance]; // return a copy of the list
@@ -97,7 +103,7 @@ class ItemListMgr {
     if (!Array.isArray(items) || items === undefined)
       throw Error(`${fn} items must be an array`);
     if (items.length === 0) throw Error(`${fn} items array is empty`);
-    const [norm_items, norm_error] = NormalizeObjs(items);
+    const [norm_items, norm_error] = NormalizeItems(items);
     if (norm_error) throw Error(`${fn} ${norm_error}`);
     // got this far, items are normalized and we can merge them.
     for (const item of norm_items) {
@@ -118,7 +124,7 @@ class ItemListMgr {
     if (!Array.isArray(items) || items === undefined)
       throw Error(`${fn} items must be an array`);
     if (items.length === 0) throw Error(`${fn} items array is empty`);
-    const [norm_items, norm_error] = NormalizeObjs(items);
+    const [norm_items, norm_error] = NormalizeItems(items);
     if (norm_error) throw Error(`${fn} ${norm_error}`);
     // got this far, items are normalized and we can overwrite them.
     const replaced = [];
@@ -158,7 +164,7 @@ class ItemListMgr {
     if (list === undefined) throw Error(`${fn} list '${listName}' not found`);
     if (!Array.isArray(ids) || ids === undefined)
       throw Error(`${fn} ids must be an array of _id strings`);
-    const [del_ids, del_error] = NormalizeIDs(ids);
+    const [del_ids, del_error] = NormalizeItemIDs(ids);
     if (del_error) throw Error(`${fn} ${del_error}`);
     // got this far, ids are normalized and we can delete them
     const deleted = [];
@@ -172,14 +178,21 @@ class ItemListMgr {
   }
 
   /** return the instances of all lists */
-  static GetListInstances(): UR_Item[][] {
+  static GetItemLists(): UR_Item[][] {
     return Object.values(LISTS);
   }
+}
+
+/// STATIC FUNCTIONS //////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetItemLists() {
+  return ItemListMgr.GetItemLists();
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default ItemListMgr; // the class
 export {
-  ItemListMgr // the class
+  ItemListMgr, // the class
+  GetItemLists // static method
 };

@@ -6,42 +6,63 @@
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { ObjID, ItemObj } from '~ur/types/ursys.d.ts';
+import type { UR_EntID_Obj, DataObj, UR_Item } from '~ur/types/ursys.d.ts';
 
 /// DATASET METHODS ///////////////////////////////////////////////////////////
-/// datasets are standardized around collections of objects, defined in
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// datasets are standardized collections of objects, defined in ursys.d.ts
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Given an array of objects, return a new array of objects that are
  *  guaranteed to have an _id field, or undefined if any object doesn't have
  *  an _id field. The copied objects are also filtered for suspicious
  *  property strings that are HTML or script tags
- *  Returns [ obj[], error ] */
-function NormalizeObjs(objs: ItemObj[], schema?: any): [ItemObj[], error?: string] {
-  const fn = 'm_NormalizeObjs:';
-  // if any object is missing an _id, return undefined
-  if (objs.some(obj => obj._id === undefined))
-    return [[undefined], `${fn} missing _id field`];
-  // copy the objects
-  const norm_objs = [];
-  for (const obj of objs) {
-    const norm_obj = { _id: obj._id };
-    for (const key in obj) {
-      if (typeof obj[key] === 'string') {
-        // htmlencode strings before storing them
-        norm_obj[key] = encodeURIComponent(obj[key]);
-      } else {
-        norm_obj[key] = obj[key];
-      }
-    }
-    norm_objs.push(norm_obj);
+ *  Returns [ item[], error ] */
+function NormalizeItems(items: UR_Item[], schema?: any): [UR_Item[], error?: string] {
+  const fn = 'NormalizeItems:';
+  const normeds = [];
+  for (const item of items) {
+    const [normed, error] = NormalizeItem(item, schema);
+    if (error) return [undefined, error];
+    normeds.push(normed);
   }
-  return [norm_objs];
+  return [normeds, ''];
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** similar to NormalizeItems, but for a single object */
+function NormalizeItem(item: UR_Item, schema?: any): [UR_Item, error?: string] {
+  const fn = 'NormalizeItem:';
+  const { _id } = item;
+  if (_id === undefined) return [undefined, `${fn} missing _id field`];
+  const [norm, detectedID] = NormalizeDataObj(item);
+  norm._id = _id;
+  return [norm as UR_Item, undefined];
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** given an object without an _id, normalize properties. return
+ *  the normalized object and the _id if found */
+function NormalizeDataObj(obj: UR_Item): [DataObj, detectedID?: string] {
+  const fn = 'NormalizeDataObj:';
+  let foundID;
+  const norm = {};
+  for (const key in obj) {
+    if (key === '_id') {
+      foundID = obj[key];
+      continue;
+    }
+    if (typeof obj[key] === 'string') {
+      // norm[key] = encodeURIComponent(obj[key]);
+      norm[key] = obj[key];
+    } else {
+      norm[key] = obj[key];
+    }
+  }
+  return [norm, foundID];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Given an array of ids, return a new array of ids that are guaranteed to be
  *  strings, or undefined if any id is not a string */
-function NormalizeIDs(ids: ObjID[]): [ObjID[], error?: string] {
-  const fn = 'm_NormalizeIDs:';
+function NormalizeItemIDs(ids: UR_EntID_Obj[]): [UR_EntID_Obj[], error?: string] {
+  const fn = 'NormalizeItemIDs:';
   if (ids.some(id => typeof id !== 'string'))
     return [[undefined], `${fn} id must be a string`];
   return [ids];
@@ -50,6 +71,8 @@ function NormalizeIDs(ids: ObjID[]): [ObjID[], error?: string] {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  NormalizeObjs, // normalize objects for storage
-  NormalizeIDs
+  NormalizeDataObj,
+  NormalizeItem, // normalize a single object for storage
+  NormalizeItems, // normalize objects for storage
+  NormalizeItemIDs
 };

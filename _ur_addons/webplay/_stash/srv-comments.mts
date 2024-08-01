@@ -6,17 +6,20 @@
 
 import { PR, APPSERV } from '@ursys/core';
 import * as LOKI from './lib/mod-loki.mts';
-import DL from './lib/class-dataset-list.ts';
+import IL from './lib/class-data-itemlist.ts';
+import DF from './lib/class-data-docfolder.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { ItemListMgr } = DL;
+const { ItemListMgr } = IL;
+const { DocFolder } = DF;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = PR('COMMENT', 'TagYellow');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LISTS = new ItemListMgr();
+const DOCS = new DocFolder();
 
 /// EXTERNAL API METHODS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,6 +45,7 @@ async function Config() {}
 export {
   // DATA
   LISTS,
+  DOCS,
   // LIFECYCLE
   Init, // () => void
   Config // () => void

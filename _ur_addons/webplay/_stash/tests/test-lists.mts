@@ -6,7 +6,7 @@
 
 import { expect, test } from 'vitest';
 import type { UR_Item } from '~ur/types/ursys.d.ts';
-import { ItemListMgr } from '../lib/class-dataset-list.ts';
+import { ItemListMgr, GetItemLists } from '../lib/class-data-itemlist.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,11 +19,11 @@ test('instantiation', () => {
 
 test('list creation', () => {
   // there should be no lists
-  // expect(LISTS.GetListInstances()).toMatchObject([]);
+  expect(GetItemLists()).toMatchObject([]);
   // list doesn't exist
   expect(() => LISTS.listRead('mylist')).toThrowError();
   // create a list is empty
-  expect(LISTS.createListInstance('mylist')).toMatchObject([]);
+  expect(LISTS.createItemList('mylist')).toMatchObject([]);
 });
 
 test('list item by-ref or value', () => {
@@ -31,7 +31,7 @@ test('list item by-ref or value', () => {
     { _id: '1', name: 'item1' }, //
     { _id: '2', name: 'item2' }
   ];
-  expect(LISTS.createListInstance('refList')).toMatchObject([]);
+  expect(LISTS.createItemList('refList')).toMatchObject([]);
   expect(LISTS.listAdd('refList', items)).toMatchObject(items);
   const refListItems = LISTS.listRead('refList');
   expect(refListItems).not.toBe(items);
@@ -127,11 +127,11 @@ test('list replace', () => {
 test('list delete', () => {
   // test delete
   const startingList = LISTS.listRead('mylist');
-  const listInstance = LISTS.getListInstance('mylist');
+  const listInstance = LISTS.getItemList('mylist');
   const ids_to_delete = ['1', '2'];
   const deleted = LISTS.listDelete('mylist', ids_to_delete);
   const endingList = LISTS.listRead('mylist');
   expect(deleted).toMatchObject(startingList);
   expect(endingList).toMatchObject([]);
-  expect(LISTS.getListInstance('mylist')).toBe(listInstance);
+  expect(LISTS.getItemList('mylist')).toBe(listInstance);
 });

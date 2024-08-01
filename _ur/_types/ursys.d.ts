@@ -19,9 +19,11 @@ export type UR_DataMethod = (...any, data: DataObj, options?: DataObj) => Return
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// an UR_Item is a union of DataObj with UR_EntID
 export type UR_Item = UR_EntID_Obj & DataObj; // { _id: UR_EntID; [key: string]: any }
+export type UR_Doc = UR_Item; // doc is a single item
 /// there are multiple ways to organize UR_Items into a "bag"
-export type UR_ItemList = UR_Item[]; // list of objects
-export type UR_Document = UR_Item; // nosql-style
+export type UR_ItemList = UR_Item[];
+export type UR_DocFolder = { [_id: UR_EntID]: UR_Doc };
+// the document manager has named Documents that are in a
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// REFS identify a unique "bag" of items in a data model, despite the type
 /// of bag it is (e.g. documents, itemlists, etc.)
@@ -30,7 +32,7 @@ export type UR_BagRef = `${string}`;
 /// type of bag (e.g. documents, itemlists, etc.)
 export type UR_Dataset = {
   schema?: UR_Schema; // see https://github.com/dsriseah/ursys/discussions/22
-  documents?: { [docname: UR_BagRef]: UR_Document };
+  docFolders?: { [foldername: UR_BagRef]: UR_DocFolder };
   itemlists?: { [listname: UR_BagRef]: UR_ItemList };
   // additional items
   // see https://github.com/dsriseah/ursys/discussions/25

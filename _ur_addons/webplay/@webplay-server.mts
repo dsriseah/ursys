@@ -37,14 +37,24 @@ async function m_ImportServerModules(tsOpt?: TSOptions): Promise<string[]> {
     const mtsFilter = file => file.endsWith('.mts');
     const stashFiles = (await FS.promises.readdir('./_stash')).filter(mtsFilter);
     const scratchFiles = (await FS.promises.readdir('./_scratch')).filter(mtsFilter);
+    const LF = {
+      init: [],
+      config: []
+    };
     for (const file of stashFiles) {
       const mod = await import(`./_stash/${file}`);
-      if (typeof mod.Init === 'function') mod.Init();
+      if (typeof mod.Init === 'function') LF.init.push(mod.Init);
+      if (typeof mod.Config === 'function') LF.config.push(mod.Config);
     }
     for (const file of scratchFiles) {
       const mod = await import(`./_scratch/${file}`);
-      if (typeof mod.Init === 'function') mod.Init();
+      if (typeof mod.Init === 'function') LF.init.push(mod.Init);
+      if (typeof mod.Config === 'function') LF.config.push(mod.Config);
     }
+    // run the init functions
+    for (const init of LF.init) await init();
+    for (const config of LF.config) await config();
+    // return the list of imported files
     return [...stashFiles, ...scratchFiles];
   } catch (error) {
     if (error.message.includes(`find package '_ur`))
