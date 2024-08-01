@@ -11,15 +11,15 @@ import DF from './lib/class-data-docfolder.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { ItemListMgr } = IL;
-const { DocFolder } = DF;
+const { ListManager } = IL;
+const { DocManager } = DF;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = PR('COMMENT', 'TagYellow');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LISTS = new ItemListMgr();
-const DOCS = new DocFolder();
+const LISTS = new ListManager();
+const DOCS = new DocManager();
 
 /// EXTERNAL API METHODS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -1,6 +1,8 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   Dataset List Manager Class
+  this is a class that manages lists of items in a dataset
+  in serializable form
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -16,33 +18,34 @@ import type {
   UR_Item,
   UR_ItemList
 } from '~ur/types/ursys.d.ts';
-type ListsCollection = { [ref_name: UR_BagRef]: UR_ItemList };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let LISTS: ListsCollection;
+/// the lists of lists managed by ListManager
+/// this is what would be serialized as part of a dataset
+let m_lists: { [ref_name: UR_BagRef]: UR_ItemList };
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class ItemListMgr {
+class ListManager {
   //
   constructor() {
-    if (LISTS === undefined) LISTS = {};
+    if (m_lists === undefined) m_lists = {};
   }
 
-  /// LIST INSTANCE METHODS ///
+  /// ITEM LIST METHODS ///
 
   /** Given the name of a list, create a new list and return the list
    *  instance */
   createItemList(listName: string) {
     const fn = 'createItemList:';
-    if (LISTS[listName] !== undefined)
+    if (m_lists[listName] !== undefined)
       throw Error(`${fn} list '${listName}' already exists`);
     const listInstance = [];
-    LISTS[listName] = listInstance;
+    m_lists[listName] = listInstance;
     return listInstance;
   }
 
@@ -50,7 +53,7 @@ class ItemListMgr {
    *  same list instance */
   clearItemList(listName: string) {
     const fn = 'clearItemList:';
-    const listInstance = LISTS[listName];
+    const listInstance = m_lists[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     listInstance.length = 0;
     return listInstance;
@@ -58,7 +61,7 @@ class ItemListMgr {
 
   /** Given the name of a list, return the entire list */
   getItemList(listName: string) {
-    return LISTS[listName];
+    return m_lists[listName];
   }
 
   /// LIST METHODS ///
@@ -67,7 +70,7 @@ class ItemListMgr {
    *  list and return the list if successful, undefined otherwise */
   listAdd(listName: string, items: UR_Item[]): UR_Item[] {
     const fn = 'listAdd:';
-    const listInstance = LISTS[listName];
+    const listInstance = m_lists[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     // normalize the objects and add them to the list
     const [norm_objs, norm_error] = NormalizeItems(items);
@@ -81,7 +84,7 @@ class ItemListMgr {
    *  of the objects, not the original objects */
   listRead(listName: string, ids?: UR_EntID[]): UR_Item[] {
     const fn = 'listRead:';
-    const listInstance = LISTS[listName];
+    const listInstance = m_lists[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     // if no ids are provided, return the entire list
     if (ids === undefined) {
@@ -98,7 +101,7 @@ class ItemListMgr {
    *  Return a copy of list if successful */
   listUpdate(listName: string, items: UR_Item[]) {
     const fn = 'listUpdate:';
-    const listInstance = LISTS[listName];
+    const listInstance = m_lists[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     if (!Array.isArray(items) || items === undefined)
       throw Error(`${fn} items must be an array`);
@@ -119,7 +122,7 @@ class ItemListMgr {
    *  replaced */
   listReplace(listName: string, items: UR_Item[]) {
     const fn = 'listReplace:';
-    const listInstance = LISTS[listName];
+    const listInstance = m_lists[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     if (!Array.isArray(items) || items === undefined)
       throw Error(`${fn} items must be an array`);
@@ -142,7 +145,7 @@ class ItemListMgr {
    *  exists in the list, update it instead. Return a copy of the list */
   listUpdateOrAdd(listName: string, items: UR_Item[]) {
     const fn = 'listUpdateOrAdd:';
-    const listInstance = LISTS[listName];
+    const listInstance = m_lists[listName];
     // update the items that already exist in the list
     for (const item of items) {
       const idx = listInstance.findIndex(obj => obj._id === item._id);
@@ -160,7 +163,7 @@ class ItemListMgr {
    *  Error. Return a copy of the deleted items if successful */
   listDelete(listName: string, ids: UR_EntID[]) {
     const fn = 'listDelete:';
-    const list = LISTS[listName];
+    const list = m_lists[listName];
     if (list === undefined) throw Error(`${fn} list '${listName}' not found`);
     if (!Array.isArray(ids) || ids === undefined)
       throw Error(`${fn} ids must be an array of _id strings`);
@@ -179,20 +182,20 @@ class ItemListMgr {
 
   /** return the instances of all lists */
   static GetItemLists(): UR_Item[][] {
-    return Object.values(LISTS);
+    return Object.values(m_lists);
   }
 }
 
 /// STATIC FUNCTIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetItemLists() {
-  return ItemListMgr.GetItemLists();
+  return ListManager.GetItemLists();
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default ItemListMgr; // the class
+export default ListManager; // the class
 export {
-  ItemListMgr, // the class
+  ListManager, // the class
   GetItemLists // static method
 };

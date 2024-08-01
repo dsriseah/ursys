@@ -1,11 +1,8 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   Dataset Document Manager Class
-  
-  NOTES
-  
-  - The Document Collection is implemented as a pure object because we need
-    to be able to serialize them to JSON. 
+  this is a class that manages folders of documents in a dataset
+  in serializable form
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -21,21 +18,22 @@ import type {
   UR_Doc, // { _ref: UR_BagRef; [key: string]: any }
   UR_DocFolder // { [ref_name: UR_BagRef]: UR_Doc }
 } from '~ur/types/ursys.d.ts';
-type DocsCollection = { [ref_name: UR_BagRef]: UR_DocFolder };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let DOCS: DocsCollection;
+/// the documents managed by DocManager
+/// this is what would be serialized as part of a dataset
+let m_docs: { [ref_name: UR_BagRef]: UR_DocFolder };
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class DocFolder {
+class DocManager {
   //
   constructor() {
-    if (DOCS === undefined) DOCS = {}; // { [ref_name: UR_BagRef]: DatasetDoc }
+    if (m_docs === undefined) m_docs = {}; // { [ref_name: UR_BagRef]: DatasetDoc }
   }
 
   /// DOCUMENT FOLDER METHODS ///
@@ -44,9 +42,9 @@ class DocFolder {
    *  instance */
   createDocFolder(fdoc: string) {
     const fn = 'createDocFolder:';
-    if (DOCS[fdoc]) throw Error(`${fn} doc '${fdoc}' already exists`);
+    if (m_docs[fdoc]) throw Error(`${fn} doc '${fdoc}' already exists`);
     const folder: UR_DocFolder = {};
-    DOCS[fdoc] = folder;
+    m_docs[fdoc] = folder;
     return folder;
   }
 
@@ -54,15 +52,15 @@ class DocFolder {
    *  same doc instance */
   clearDocFolder(fdoc: string) {
     const fn = 'clearDocFolder:';
-    const folder = DOCS[fdoc];
+    const folder = m_docs[fdoc];
     if (folder === undefined) throw Error(`${fn} folder '${fdoc}' not found`);
-    DOCS[fdoc] = undefined;
+    m_docs[fdoc] = undefined;
     return folder;
   }
 
   /** Given the name of a doc, return the entire doc */
   getDocFolder(fdoc: string) {
-    return DOCS[fdoc];
+    return m_docs[fdoc];
   }
 
   /// DOCUMENT METHODS ///
@@ -71,7 +69,7 @@ class DocFolder {
    *  doc and return the doc if successful, undefined otherwise */
   docAdd(fdoc: string, doc: DataObj): UR_Doc {
     const fn = 'docAdd:';
-    const folder = DOCS[fdoc];
+    const folder = m_docs[fdoc];
     if (folder === undefined) throw Error(`${fn} doc '${fdoc}' not found`);
     // normalize the objects and add them to the doc
     const [norm_doc, norm_error] = NormalizeItem(doc);
@@ -81,9 +79,11 @@ class DocFolder {
     return { ...norm_doc }; // return a copy of the doc
   }
 
+  /** given the name of a doc and an array of objects, add the objects to the
+   * doc and return the doc if successful, undefined otherwise */
   docsAdd(fdoc: string, docs: UR_Doc[]): UR_Doc[] {
     const fn = 'docsAdd:';
-    const folder = DOCS[fdoc];
+    const folder = m_docs[fdoc];
     if (folder === undefined) throw Error(`${fn} doc '${fdoc}' not found`);
     // normalize the objects and add them to the doc
     const [norm_docs, norm_error] = NormalizeItems(docs);
@@ -98,7 +98,7 @@ class DocFolder {
   /** return a single doc from the folder */
   docRead(fdoc: string, id: UR_EntID): UR_Doc {
     const fn = 'docRead:';
-    const folder = DOCS[fdoc];
+    const folder = m_docs[fdoc];
     if (folder === undefined) throw Error(`${fn} folder '${fdoc}' not found`);
     const doc = folder[id];
     if (doc === undefined) throw Error(`${fn} doc '${id}' not found`);
@@ -110,7 +110,7 @@ class DocFolder {
    */
   docsRead(fdoc: string, ids?: UR_EntID[]): UR_Doc[] {
     const fn = 'docRead:';
-    const folder = DOCS[fdoc];
+    const folder = m_docs[fdoc];
     if (folder === undefined) throw Error(`${fn} doc '${fdoc}' not found`);
     if (ids && Array.isArray(ids)) {
       const [norm_ids, norm_error] = NormalizeItemIDs(ids);
@@ -129,7 +129,7 @@ class DocFolder {
    */
   docUpdate(fdoc: string, doc: UR_Doc): UR_Doc {
     const fn = 'docUpdate:';
-    const folder = DOCS[fdoc];
+    const folder = m_docs[fdoc];
     if (folder === undefined) throw Error(`${fn} folder '${fdoc}' not found`);
     if (typeof doc !== 'object') throw Error(`${fn} doc must be an object`);
     const { _id } = doc;
@@ -147,7 +147,7 @@ class DocFolder {
    */
   docsUpdate(fdoc: string, docs: UR_Doc[]): UR_Doc[] {
     const fn = 'docsUpdate:';
-    const folder = DOCS[fdoc];
+    const folder = m_docs[fdoc];
     if (folder === undefined) throw Error(`${fn} folder '${fdoc}' not found`);
     const [norm_docs, norm_error] = NormalizeItems(docs);
     if (norm_error) throw Error(`${fn} ${norm_error}`);
@@ -167,7 +167,7 @@ class DocFolder {
    *  replaced */
   docReplace(fdoc: string, doc: UR_Doc) {
     const fn = 'docReplace:';
-    const folder = DOCS[fdoc];
+    const folder = m_docs[fdoc];
     if (folder === undefined) throw Error(`${fn} folder '${fdoc}' not found`);
     const { _id } = doc;
     if (_id === undefined) throw Error(`${fn} missing _id field`);
@@ -184,7 +184,7 @@ class DocFolder {
    * replaced */
   docsReplace(fdoc: string, docs: UR_Doc[]) {
     const fn = 'docsReplace:';
-    const folder = DOCS[fdoc];
+    const folder = m_docs[fdoc];
     if (folder === undefined) throw Error(`${fn} folder '${folder}' not found`);
     if (!Array.isArray(docs) || docs === undefined)
       throw Error(`${fn} docs must be an array`);
@@ -207,7 +207,7 @@ class DocFolder {
    *  exists in the doc, update it instead. Return a copy of the doc */
   docUpdateOrAdd(docID: string, doc: UR_Doc) {
     const fn = 'docUpdateOrAdd:';
-    const docInstance = DOCS[docID];
+    const docInstance = m_docs[docID];
     // update the items that already exist in the doc
   }
 
@@ -216,26 +216,26 @@ class DocFolder {
    *  Error. Return a copy of the deleted items if successful */
   docDelete(docID: string, ids: UR_EntID[]) {
     const fn = 'docDelete:';
-    const doc = DOCS[docID];
+    const doc = m_docs[docID];
     if (doc === undefined) throw Error(`${fn} doc '${docID}' not found`);
   }
 
   /** return the instances of all lists */
   static GetDocFolders(): UR_DocFolder[] {
-    return Object.values(DOCS);
+    return Object.values(m_docs);
   }
 }
 
 /// STATIC FUNCTIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetDocFolders() {
-  return DocFolder.GetDocFolders();
+  return DocManager.GetDocFolders();
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default DocFolder; // the class
+export default DocManager; // the class
 export {
   GetDocFolders, // static method
-  DocFolder // the class
+  DocManager // the class
 };

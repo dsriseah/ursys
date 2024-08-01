@@ -6,15 +6,15 @@
 
 import { expect, test } from 'vitest';
 import type { UR_Item } from '~ur/types/ursys.d.ts';
-import { ItemListMgr, GetItemLists } from '../lib/class-data-itemlist.ts';
+import { ListManager, GetItemLists } from '../lib/class-data-itemlist.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LISTS = new ItemListMgr();
+const LISTS = new ListManager();
 
 test('instantiation', () => {
   expect(LISTS).toBeDefined();
-  expect(LISTS).toBeInstanceOf(ItemListMgr);
+  expect(LISTS).toBeInstanceOf(ListManager);
 });
 
 test('list creation', () => {

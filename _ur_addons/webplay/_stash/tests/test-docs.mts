@@ -6,15 +6,15 @@
 
 import { expect, test } from 'vitest';
 import type { UR_Doc } from '~ur/types/ursys.d.ts';
-import { DocFolder, GetDocFolders } from '../lib/class-data-docfolder.ts';
+import { DocManager, GetDocFolders } from '../lib/class-data-docfolder.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DOCS = new DocFolder();
+const DOCS = new DocManager();
 
 test('instantiation', () => {
   expect(DOCS).toBeDefined();
-  expect(DOCS).toBeInstanceOf(DocFolder);
+  expect(DOCS).toBeInstanceOf(DocManager);
 });
 
 test('document creation', () => {
