@@ -208,7 +208,7 @@ class DocManager {
   docUpdateOrAdd(docID: string, doc: UR_Doc) {
     const fn = 'docUpdateOrAdd:';
     const docInstance = m_docs[docID];
-    // update the items that already exist in the doc
+    // TODO: update the items that already exist in the doc
   }
 
   /** Given the name of a doc, delete the objects in the doc with the ids
@@ -218,6 +218,7 @@ class DocManager {
     const fn = 'docDelete:';
     const doc = m_docs[docID];
     if (doc === undefined) throw Error(`${fn} doc '${docID}' not found`);
+    // TODO: update the items that already exist in the doc
   }
 
   /** return the instances of all lists */

@@ -146,16 +146,20 @@ class ListManager {
   listUpdateOrAdd(listName: string, items: UR_Item[]) {
     const fn = 'listUpdateOrAdd:';
     const listInstance = m_lists[listName];
+    const added = [];
+    const updated = [];
     // update the items that already exist in the list
     for (const item of items) {
       const idx = listInstance.findIndex(obj => obj._id === item._id);
       if (idx === -1) {
-        listInstance.push(item);
+        listInstance[idx].push(item);
+        added.push({ ...item });
       } else {
         Object.assign(listInstance[idx], item);
+        updated.push({ ...listInstance[idx] });
       }
     }
-    return [...listInstance]; // return a copy of the list
+    return { added, updated }; // return a copy of the list
   }
 
   /** Given the name of a list, delete the objects in the list with the ids
