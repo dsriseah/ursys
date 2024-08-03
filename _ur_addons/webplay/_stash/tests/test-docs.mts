@@ -6,7 +6,7 @@
 
 import { expect, test } from 'vitest';
 import type { UR_Doc } from '~ur/types/ursys.d.ts';
-import { DocManager, GetDocFolders } from '../lib/class-data-docfolder.ts';
+import { DocManager } from '../lib/class-data-docfolder.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ test('instantiation', () => {
 
 test('document creation', () => {
   // there should be no folders
-  expect(GetDocFolders()).toMatchObject([]);
+  expect(DOCS.getDocFolders()).toMatchObject([]);
   // doc doesn't exist
   expect(() => DOCS.docsRead('myfolder')).toThrowError();
   // create a doc is empty

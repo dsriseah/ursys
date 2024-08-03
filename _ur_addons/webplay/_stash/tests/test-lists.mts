@@ -6,7 +6,7 @@
 
 import { expect, test } from 'vitest';
 import type { UR_Item } from '~ur/types/ursys.d.ts';
-import { ListManager, GetItemLists } from '../lib/class-data-itemlist.ts';
+import { ListManager } from '../lib/class-data-itemlist.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ test('instantiation', () => {
 
 test('list creation', () => {
   // there should be no lists
-  expect(GetItemLists()).toMatchObject([]);
+  expect(LISTS.getItemLists()).toMatchObject([]);
   // list doesn't exist
   expect(() => LISTS.listRead('mylist')).toThrowError();
   // create a list is empty

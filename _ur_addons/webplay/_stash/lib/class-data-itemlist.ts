@@ -23,45 +23,47 @@ import type {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const LOG = console.log.bind(console);
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// the lists of lists managed by ListManager
-/// this is what would be serialized as part of a dataset
-let m_lists: { [ref_name: UR_BagRef]: UR_ItemList };
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class ListManager {
   //
-  constructor() {
-    if (m_lists === undefined) m_lists = {};
+  collection_name: string;
+  collection_type: string;
+  _LI: { [ref_name: UR_BagRef]: UR_ItemList };
+  //
+  constructor(col_name?: string) {
+    if (this._LI === undefined) this._LI = {};
+    if (col_name) this.collection_name = col_name;
+    this.collection_type = this.constructor.name;
   }
 
   /// ITEM LIST METHODS ///
 
   /** Given the name of a list, create a new list and return the list
    *  instance */
-  createItemList(listName: string) {
+  createItemList(listName: string): UR_ItemList {
     const fn = 'createItemList:';
-    if (m_lists[listName] !== undefined)
+    if (this._LI[listName] !== undefined)
       throw Error(`${fn} list '${listName}' already exists`);
     const listInstance = [];
-    m_lists[listName] = listInstance;
+    this._LI[listName] = listInstance;
     return listInstance;
   }
 
   /** Given the name of a list, clear the list of all items and retain the
    *  same list instance */
-  clearItemList(listName: string) {
+  clearItemList(listName: string): UR_ItemList {
     const fn = 'clearItemList:';
-    const listInstance = m_lists[listName];
+    const listInstance = this._LI[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     listInstance.length = 0;
     return listInstance;
   }
 
   /** Given the name of a list, return the entire list */
-  getItemList(listName: string) {
-    return m_lists[listName];
+  getItemList(listName: string): UR_ItemList {
+    return this._LI[listName];
   }
 
   /// LIST METHODS ///
@@ -70,7 +72,7 @@ class ListManager {
    *  list and return the list if successful, undefined otherwise */
   listAdd(listName: string, items: UR_Item[]): UR_Item[] {
     const fn = 'listAdd:';
-    const listInstance = m_lists[listName];
+    const listInstance = this._LI[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     // normalize the objects and add them to the list
     const [norm_objs, norm_error] = NormalizeItems(items);
@@ -84,7 +86,7 @@ class ListManager {
    *  of the objects, not the original objects */
   listRead(listName: string, ids?: UR_EntID[]): UR_Item[] {
     const fn = 'listRead:';
-    const listInstance = m_lists[listName];
+    const listInstance = this._LI[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     // if no ids are provided, return the entire list
     if (ids === undefined) {
@@ -101,7 +103,7 @@ class ListManager {
    *  Return a copy of list if successful */
   listUpdate(listName: string, items: UR_Item[]) {
     const fn = 'listUpdate:';
-    const listInstance = m_lists[listName];
+    const listInstance = this._LI[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     if (!Array.isArray(items) || items === undefined)
       throw Error(`${fn} items must be an array`);
@@ -122,7 +124,7 @@ class ListManager {
    *  replaced */
   listReplace(listName: string, items: UR_Item[]) {
     const fn = 'listReplace:';
-    const listInstance = m_lists[listName];
+    const listInstance = this._LI[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     if (!Array.isArray(items) || items === undefined)
       throw Error(`${fn} items must be an array`);
@@ -145,7 +147,7 @@ class ListManager {
    *  exists in the list, update it instead. Return a copy of the list */
   listUpdateOrAdd(listName: string, items: UR_Item[]) {
     const fn = 'listUpdateOrAdd:';
-    const listInstance = m_lists[listName];
+    const listInstance = this._LI[listName];
     const added = [];
     const updated = [];
     // update the items that already exist in the list
@@ -167,7 +169,7 @@ class ListManager {
    *  Error. Return a copy of the deleted items if successful */
   listDelete(listName: string, ids: UR_EntID[]) {
     const fn = 'listDelete:';
-    const list = m_lists[listName];
+    const list = this._LI[listName];
     if (list === undefined) throw Error(`${fn} list '${listName}' not found`);
     if (!Array.isArray(ids) || ids === undefined)
       throw Error(`${fn} ids must be an array of _id strings`);
@@ -185,21 +187,14 @@ class ListManager {
   }
 
   /** return the instances of all lists */
-  static GetItemLists(): UR_Item[][] {
-    return Object.values(m_lists);
+  getItemLists(): UR_Item[][] {
+    return Object.values(this._LI);
   }
-}
-
-/// STATIC FUNCTIONS //////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function GetItemLists() {
-  return ListManager.GetItemLists();
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default ListManager; // the class
 export {
-  ListManager, // the class
-  GetItemLists // static method
+  ListManager // the class
 };
