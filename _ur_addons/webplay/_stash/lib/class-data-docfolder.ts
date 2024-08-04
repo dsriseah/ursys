@@ -16,7 +16,8 @@ import type {
   UR_EntID, // string
   UR_BagRef, // string
   UR_Doc, // { _ref: UR_BagRef; [key: string]: any }
-  UR_DocFolder // { [ref_name: UR_BagRef]: UR_Doc }
+  UR_DocFolder, // { [ref_name: UR_BagRef]: UR_Doc }
+  UR_Item // { _id: UR_EntID; [key: string]: any }
 } from '~ur/types/ursys.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -223,9 +224,21 @@ class DocManager {
     // TODO: update the items that already exist in the doc
   }
 
+  /// DOC FOLDERS DATA STRUCTURE GETTER ///
+
   /** return the instances of all lists */
-  getDocFolders(): UR_DocFolder[] {
+  docFoldersGetAll(): UR_DocFolder[] {
     return Object.values(this._DOCS);
+  }
+
+  /// DATA INTERCHANGE METHODS ///
+
+  /** return the folder contents as a list of items. these are the actual
+   *  objects in the list, not copies */
+  getCollectionAsItemList(docf: string): UR_Item[] {
+    const folder = this._DOCS[docf];
+    if (folder === undefined) return undefined;
+    return Object.values(folder) as UR_Item[];
   }
 }
 

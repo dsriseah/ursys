@@ -19,7 +19,7 @@ test('instantiation', () => {
 
 test('document creation', () => {
   // there should be no folders
-  expect(DOCS.getDocFolders()).toMatchObject([]);
+  expect(DOCS.docFoldersGetAll()).toMatchObject([]);
   // doc doesn't exist
   expect(() => DOCS.docsRead('myfolder')).toThrowError();
   // create a doc is empty

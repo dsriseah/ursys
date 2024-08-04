@@ -19,7 +19,7 @@ test('instantiation', () => {
 
 test('list creation', () => {
   // there should be no lists
-  expect(LISTS.getItemLists()).toMatchObject([]);
+  expect(LISTS.itemListsGetAll()).toMatchObject([]);
   // list doesn't exist
   expect(() => LISTS.listRead('mylist')).toThrowError();
   // create a list is empty

@@ -186,9 +186,20 @@ class ListManager {
     return deleted; // return a copy of the list
   }
 
+  /// ITEMLISTS DATA STRUCTURE GETTER ///
+
   /** return the instances of all lists */
-  getItemLists(): UR_Item[][] {
+  itemListsGetAll(): UR_Item[][] {
     return Object.values(this._LI);
+  }
+
+  /// DATA INTERCHANGE METHODS ///
+
+  /** return the folder contents as a list of items. these are the actual
+   *  objects in the list, not copies */
+  getCollectionAsItemList(listName: string): UR_Item[] {
+    const items = this.getItemList(listName) || [];
+    return items;
   }
 }
 
