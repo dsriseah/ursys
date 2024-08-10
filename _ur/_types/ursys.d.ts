@@ -48,7 +48,7 @@ export type UR_Dataset = {
 export type RangeType = `gt ${any}` | `lt ${any}` | `between ${any}, ${any}`;
 export type RangeParams = { [field: string]: RangeType };
 export type SearchParams = { [field: string]: any };
-export type SortType = `ascending` | `descending` | `random`;
+export type SortType = `none` | `ascending` | `descending` | `random`;
 export type SearchOptions = {
   _caseSensitive?: boolean; // false
   _forceNull?: boolean; // false
