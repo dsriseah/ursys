@@ -4,7 +4,8 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ListManager } from './class-data-itemlist';
+import { ListManager } from './class-data-itemlist.ts';
+import { DeepClone, NormDataItem, NormItemIDs } from '~ur/common/util-data-norm.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -24,7 +25,7 @@ import type {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type PropKey = string;
 type QueryFlags = {
-  _flc?: boolean;
+  _flcp?: boolean;
   _fstr?: boolean;
   _fnul?: boolean;
   _deep?: boolean;
@@ -71,7 +72,7 @@ function u_getFlagsFromSearchOptions(criteria: SearchOptions): QueryFlags {
   if (typeof _forceNull !== 'boolean') throw Error('_forceNull invalid type');
   if (typeof _deepMatch !== 'boolean') throw Error('_deepMatch invalid type');
   if (typeof _cloneResults !== 'boolean') throw Error('_cloneResults invalid type');
-  const _flc = _caseSensitive;
+  const _flcp = _caseSensitive;
   const _fstr = _forceNumAsString;
   const _fnul = _forceNull;
   const _deep = _deepMatch;
@@ -88,7 +89,7 @@ function u_getFlagsFromSearchOptions(criteria: SearchOptions): QueryFlags {
   const f_post = typeof postFilter === 'function' ? postFilter : undefined;
   // return the flags object
   return {
-    _flc, // force prop keys to lowercase
+    _flcp, // force prop keys to lowercase
     _fstr, // force numeric values to strings
     _fnul, // force undefined to null
     _deep, // use deep comparison and clone
@@ -101,80 +102,75 @@ function u_getFlagsFromSearchOptions(criteria: SearchOptions): QueryFlags {
     f_post // post-filter function
   };
 }
+
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** make a deep clone of an array by copying arrays and object by value
- *  - if _fstr is true, props with numbers values are converted to strings
- *  - if _fnul is true, props with undefined values are converted to null
- */
-function u_deepCloneArray(arr: any[]): any[] {
-  const fn = 'u_deepCloneArray:';
-  const { _fstr, _fnul } = QUERY_STATE.flags;
-  if (!Array.isArray(arr)) throw Error(`${fn} invalid input ${arr}`);
-  return arr.map(item => {
-    if (Array.isArray(item)) return u_deepCloneArray(item);
-    if (typeof item === 'object') return u_deepCloneObject(item);
-    if (typeof item === 'number' && _fstr) return String(item);
-    if (item === undefined && _fnul) return null;
+function u_conformObject(mutant: UR_Item): UR_Item {
+  const { _fstr, _fnul, _flcp } = QUERY_STATE.flags;
+  Object.keys(mutant).forEach(key => {
+    let value = mutant[key];
+    if (_flcp) {
+      mutant.delete(key);
+      key = key.toLowerCase();
+      mutant[key] = value;
+    }
+    if (Array.isArray(value)) {
+      mutant[key] = u_conformArray(value);
+      return;
+    }
+    if (typeof value === 'number' && _fstr) {
+      mutant[key] = String(value);
+      return;
+    }
+    if (value === undefined && _fnul) {
+      mutant[key] = null;
+      return;
+    }
+    if (typeof value === 'object') {
+      mutant[key] = u_conformObject(value);
+      return;
+    }
+    mutant[key] = value;
+  });
+  return mutant;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function u_conformArray(mutant: any[]): any[] {
+  return mutant.map(item => {
+    if (Array.isArray(item)) return u_conformArray(item);
+    if (typeof item === 'object') return u_conformObject(item);
     return item;
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** make a deep clone of an object by copying arrays and object by value
- *  - if _fstr is true, props with numbers values are converted to strings
- *  - if _fnul is true, props with undefined values are converted to null
- */
-function u_deepCloneObject(obj: any): any {
-  const fn = 'u_deepCloneObject:';
-  const { _fstr, _fnul, _flc } = QUERY_STATE.flags;
-  if (typeof obj !== 'object') throw Error(`${fn} invalid input ${obj}`);
-  const clone = {};
-  Object.keys(obj).forEach(key => {
-    const val = obj[key];
-    if (Array.isArray(val)) {
-      clone[key] = u_deepCloneArray(val);
+/** given an item, apply all the forcing constraints to the values */
+function u_conformItem(mutant: UR_Item): UR_Item {
+  const { _fstr, _fnul, _flcp } = QUERY_STATE.flags;
+  Object.keys(mutant).forEach(key => {
+    let value = mutant[key];
+    if (_flcp) {
+      mutant.delete(key);
+      key = key.toLowerCase();
+      mutant[key] = value;
+    }
+    if (Array.isArray(value)) {
+      mutant[key] = u_conformArray(value);
       return;
     }
-    if (typeof val === 'object') {
-      clone[key] = u_deepCloneObject(val);
-    }
-    if (typeof val === 'number' && _fstr) {
-      clone[key] = String(val);
+    if (typeof value === 'number' && _fstr) {
+      mutant[key] = String(value);
       return;
     }
-    if (val === undefined && _fnul) {
-      clone[key] = null;
+    if (value === undefined && _fnul) {
+      mutant[key] = null;
       return;
     }
-    clone[key] = val;
+    if (typeof value === 'object') {
+      mutant[key] = u_conformObject(value);
+      return;
+    }
+    mutant[key] = value;
   });
-  return clone;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** make a shallow clone of an object by copying arrays and object by value
- *  - if _flc is true, top-level keys are converted to lower case
- *  - if _deep is true, objects and arrays are cloned recursively
- *  - if _fstr is true, props with numbers values are converted to strings
- *  - if _fnul is true, props with undefined values are converted to null
- */
-function u_deepClone(obj: any): any {
-  const { _flc, _deep } = QUERY_STATE.flags;
-  // walk object and clone arrays and objects
-  const clone = {};
-  for (const key in obj) {
-    const val = obj[key];
-    const kk = _flc ? key : key.toLowerCase();
-    if (Array.isArray(val)) {
-      clone[kk] = _deep ? u_deepCloneArray(val) : [...val];
-      continue;
-    }
-    if (typeof val === 'object') {
-      clone[kk] = _deep ? u_deepCloneObject(val) : { ...val };
-      continue;
-    }
-    if (typeof val === 'number') clone[kk] = String(val);
-    else clone[kk] = val;
-  }
-  return clone;
+  return mutant;
 }
 
 /// HELPER FUNCTIONS //////////////////////////////////////////////////////////
@@ -239,7 +235,7 @@ function m_matchRanges(item: UR_Item, dict: RangeParams): boolean {
  *  undefined if no item is found.
  *  - if _clone is set, the returned item will be a clone of the original
  *  - if _deep is set, then the clone will be a deep clone of the original
- *    that also has _fstr, _fnul, and _flc applied to the values
+ *    that also has _fstr, _fnul, and _flcp applied to the values
  */
 function findOne(dataset: string, criteria?: SearchOptions): UR_Item {
   const fn = 'findOne:';
@@ -249,11 +245,15 @@ function findOne(dataset: string, criteria?: SearchOptions): UR_Item {
   const items: UR_Item[] = LM.getItemList(dataset);
   if (items === undefined) throw Error(`${fn} dataset '${dataset}' not found`);
   //
-  // check for missing fields, applying case-insensitive match if _flc is false
+  let item: UR_Item; // the original item
+  let ii: UR_Item; // the mutated copy with force lc, str, null applied
+  //
   let found = true;
-  let ii: UR_Item, item: UR_Item;
   for (item of items) {
-    ii = _deep ? u_deepClone(item) : JSON.parse(JSON.stringify(item));
+    // create a deep clone of the item, otherwise use the original
+    // deepClone will apply _fstr, _fnul, _flcp to the values if they
+    // are set in flags.
+    ii = _deep ? DeepClone(item) : item;
     if (b_miss) found = found && m_hasMissingProps(ii, b_miss);
     if (b_has) found = found && m_hasProps(ii, b_has);
     if (dict_exact) found = found && m_matchValues(ii, dict_exact);

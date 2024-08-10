@@ -7,7 +7,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { NORM } from '@ursys/core';
-const { NormalizeItems, NormalizeItemIDs } = NORM;
+const { NormDataItems, NormItemIDs } = NORM;
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -75,7 +75,7 @@ class ListManager {
     const listInstance = this._LI[listName];
     if (listInstance === undefined) throw Error(`${fn} list '${listName}' not found`);
     // normalize the objects and add them to the list
-    const [norm_objs, norm_error] = NormalizeItems(items);
+    const [norm_objs, norm_error] = NormDataItems(items);
     if (norm_error) throw Error(`${fn} ${norm_error}`);
     listInstance.push(...norm_objs);
     return [...listInstance]; // return a copy of the list
@@ -108,7 +108,7 @@ class ListManager {
     if (!Array.isArray(items) || items === undefined)
       throw Error(`${fn} items must be an array`);
     if (items.length === 0) throw Error(`${fn} items array is empty`);
-    const [norm_items, norm_error] = NormalizeItems(items);
+    const [norm_items, norm_error] = NormDataItems(items);
     if (norm_error) throw Error(`${fn} ${norm_error}`);
     // got this far, items are normalized and we can merge them.
     for (const item of norm_items) {
@@ -129,7 +129,7 @@ class ListManager {
     if (!Array.isArray(items) || items === undefined)
       throw Error(`${fn} items must be an array`);
     if (items.length === 0) throw Error(`${fn} items array is empty`);
-    const [norm_items, norm_error] = NormalizeItems(items);
+    const [norm_items, norm_error] = NormDataItems(items);
     if (norm_error) throw Error(`${fn} ${norm_error}`);
     // got this far, items are normalized and we can overwrite them.
     const replaced = [];
@@ -173,7 +173,7 @@ class ListManager {
     if (list === undefined) throw Error(`${fn} list '${listName}' not found`);
     if (!Array.isArray(ids) || ids === undefined)
       throw Error(`${fn} ids must be an array of _id strings`);
-    const [del_ids, del_error] = NormalizeItemIDs(ids);
+    const [del_ids, del_error] = NormItemIDs(ids);
     if (del_error) throw Error(`${fn} ${del_error}`);
     // got this far, ids are normalized and we can delete them
     const deleted = [];
