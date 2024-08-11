@@ -8,6 +8,7 @@
   },
   "private": true,
   "scripts": {
+    "dev:ur": ". ../@build-ursys.sh && npm run dev",
     "dev": "node ./@build-example.mjs"
   },
   "devDependencies": {
