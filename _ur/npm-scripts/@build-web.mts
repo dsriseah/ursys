@@ -1,30 +1,25 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  NODE CLI TOOL
-  designed to run inside of non-module nodejs legacy environment like
-  the prototype version of NetCreate 2.0 (2023)
-
-  it depends on UR library being built previously
+  NODE CLI TOOL - TYPESCRIPT BUILD URSYS WEBAPP
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-const esbuild = require('esbuild');
-const { copy } = require('esbuild-plugin-copy');
-const PATH = require('node:path');
-const UR = require('@ursys/core');
-const { EnsureDir } = UR.FILES;
+import esbuild from 'esbuild';
+import { copy } from 'esbuild-plugin-copy';
+import PATH from 'node:path';
+import { FILE } from '@ursys/core';
 // build-web can not use URSYS library because it's BUILDING it!
 // so we yoink the routines out of the source directly
 const PROMPTS = require('../common/util-prompts');
 
 /// CONSTANTS AND DECLARATIONS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const APP_PORT = 3000;
-const { ROOT, DIR_PUBLIC } = require('./env-build.cjs');
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const LOG = PROMPTS.makeTerminalOut('BUILD-APP', 'TagSystem');
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { ROOT, DIR_PUBLIC } = FILE.GetRootDirs();
 const ENTRY_JS = PATH.join(ROOT, 'app/init.jsx');
+const APP_PORT = 3000;
 
 /// ESBUILD API ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +30,7 @@ function _short(path) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function ESBuildWebApp() {
   // make sure DIR_PUBLIC exists
-  EnsureDir(DIR_PUBLIC);
+  FILE.EnsureDir(DIR_PUBLIC);
 
   // build the webapp and stuff it into public
   const context = await esbuild.context({
@@ -48,6 +43,7 @@ async function ESBuildWebApp() {
     sourcemap: true,
     outfile: PATH.join(DIR_PUBLIC, 'scripts/netc-app.js'),
     plugins: [
+      // @ts-ignore - esbuild-plugin-copy not in types
       copy({
         resolveFrom: 'cwd',
         assets: [

@@ -34,8 +34,9 @@ function m_DetectModuleSystem() {
     return;
   }
   // Check for Node.js environment first
-  // ts-disable-ts-1470
+  // @ts-ignore - multiplatform definition check
   if (process !== undefined && process.versions && process.versions.node) {
+    // @ts-ignore - multiplatform definition check
     if (typeof module !== 'undefined' && module.exports) {
       INFO.node = ['CJS', 'Node.js - CommonJS environment'];
       // @ts-ignore - import.meta check

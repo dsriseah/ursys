@@ -8,7 +8,7 @@ import express from 'express';
 import serveIndex from 'serve-index';
 import { WebSocketServer } from 'ws';
 import http from 'node:http';
-import * as FILE from './files.mts';
+import * as FILE from './file.mts';
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 import { NetEndpoint } from '../common/class-urnet-endpoint.ts';
 import { NetSocket } from '../common/class-urnet-socket.ts';
@@ -16,7 +16,7 @@ import { NetPacket } from '../common/class-urnet-packet.ts';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_Msg, NP_Address } from '../common/types-urnet.ts';
+import type { NP_Msg, NP_Address, NM_Handler } from '~ur/types/urnet.d.ts';
 type AddressInfo = { port: number; family: string; address: string };
 type RequestHandler = express.RequestHandler; // (req,res,next)=>void
 type PacketHandler = (pkt: NetPacket) => void;
@@ -95,7 +95,7 @@ function SaveWSOptions(opt: WSOptions): WSOptions {
   const { wss_path, srv_addr } = opt;
   if (typeof wss_path !== 'string') return { error: `${fn} wss_path is invalid` };
   WSS_PATH = wss_path || 'urnet-ws';
-  SRV_UADDR = srv_addr || 'SRV01';
+  SRV_UADDR = srv_addr || ('SRV01' as NP_Address);
   return GetWSOptions();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -200,11 +200,11 @@ function ListenWSS(opt: WSOptions) {
       client_link.on('message', onData);
       client_link.on('end', () => {
         const uaddr = EP.removeClient(client_sock);
-        if (DBG) LOG(`${uaddr} client 'end' disconnect`);
+        if (DBG) LOG(`${uaddr} client disconnect (ended)`);
       });
       client_link.on('close', () => {
         const uaddr = EP.removeClient(client_sock);
-        if (DBG) LOG(`${uaddr} client 'close' disconnect`);
+        if (DBG) LOG(`${uaddr} client disconnect (closed)`);
       });
       client_link.on('error', err => {
         LOG.error(`.. socket error: ${err}`);
@@ -255,23 +255,15 @@ function StopWSS() {
 /// MIDDLEWARE ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** To implement a service, add a packet handler to the endpoint. */
-function AddPacketHandler(message: NP_Msg, pktHandler: PacketHandler) {
-  try {
-    EP.addMessageHandler(message, pktHandler);
-  } catch (err) {
-    LOG.error(`AddPacketHandler: ${err}`);
-  }
+function AddMessageHandler(message: NP_Msg, msgHandler: NM_Handler) {
+  EP.addMessageHandler(message, msgHandler);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: To remove a service, remove the packet handler from the endpoint.
  *  If the handler is not provided, all handlers for the message are removed.
  */
-function RemovePacketHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
-  try {
-    EP.deleteMessageHandler(message, pktHandlr);
-  } catch (err) {
-    LOG.error(`RemovePacketHandler: ${err}`);
-  }
+function RemoveMessageHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
+  EP.deleteMessageHandler(message, pktHandlr);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Get the APP instance for adding middleware */
@@ -321,8 +313,8 @@ export {
   StopHTTP, // stop the http server
   StopWSS, // stop the websocket server
   // register URNET services
-  AddPacketHandler,
-  RemovePacketHandler,
+  AddMessageHandler,
+  RemoveMessageHandler,
   // expose instances
   GetAppInstance,
   GetServerEndpoint

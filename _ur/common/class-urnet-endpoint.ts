@@ -46,18 +46,17 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR } from '@ursys/core';
 import NetPacket from './class-urnet-packet.ts';
 import ServiceMap from './class-urnet-servicemap.ts';
 import TransactionMgr from './class-urnet-transaction.ts';
-import { GetPacketHashString, SkipOriginType } from './types-urnet.ts';
-import { IsLocalMessage, IsNetMessage, IsValidAddress } from './types-urnet.ts';
-import { UADDR_NONE, AllocateAddress } from './types-urnet.ts';
-import { NormalizeData } from './types-urnet.ts';
+import { GetPacketHashString, SkipOriginType } from './util-urnet.ts';
+import { IsLocalMessage, IsNetMessage, IsValidAddress } from './util-urnet.ts';
+import { UADDR_NONE, AllocateAddress } from './util-urnet.ts';
+import { NormalizeData } from './util-urnet.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_ID, NP_Address, NP_Msg, NP_Data, NP_Hash } from './types-urnet.ts';
+import type { NP_ID, NP_Address, NP_Msg, NP_Data } from '~ur/types/urnet.d.ts';
 import type { I_NetSocket } from './class-urnet-socket.ts';
 import type { THandlerFunc } from './class-urnet-servicemap.ts';
 
@@ -65,6 +64,7 @@ import type { THandlerFunc } from './class-urnet-servicemap.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR =
+  // @ts-ignore - multiplatform definition check
   typeof process !== 'undefined'
     ? 'EndPoint'.padEnd(13) // nodejs
     : 'EndPoint'.padEnd(11); // browser
@@ -216,7 +216,8 @@ class NetEndpoint {
    *  remove all message forwarding */
   public removeClient(uaddr_obj: NP_Address | I_NetSocket): NP_Address {
     const fn = 'removeClient:';
-    let uaddr = typeof uaddr_obj === 'string' ? uaddr_obj : uaddr_obj.uaddr;
+    let uaddr: NP_Address =
+      typeof uaddr_obj === 'string' ? uaddr_obj : uaddr_obj.uaddr;
     if (typeof uaddr !== 'string') {
       LOG(PR, `${fn} invalid uaddr ${typeof uaddr}`);
       return undefined;
@@ -371,7 +372,7 @@ class NetEndpoint {
       this.svc_map = new ServiceMap(uaddr);
       if (cli_auth === undefined) throw Error(`${fn} invalid cli_auth`);
       this.cli_auth = cli_auth;
-      LOG(PR, 'AUTHENTICATED', uaddr, cli_auth);
+      if (DBG) LOG(PR, 'AUTHENTICATED', uaddr, cli_auth);
       this.cli_auth = cli_auth;
       return authData;
     }
@@ -418,7 +419,7 @@ class NetEndpoint {
       return regData;
     }
     if (ok) {
-      LOG(PR, 'REGISTERED', status);
+      if (DBG) LOG(PR, 'REGISTERED', status);
       this.cli_reg = info; // save registration info
       return regData;
     }
@@ -433,7 +434,7 @@ class NetEndpoint {
     const { msg_list: rmsg_list, error } = response;
     if (error) {
       LOG(PR, `${fn} error:`, error);
-    } else {
+    } else if (DBG) {
       console.groupCollapsed(PR, `DECLARED ${rmsg_list.length} messages`);
       rmsg_list.forEach((msg, i) => LOG(`${i + 1}\t'${msg}'`));
       console.groupEnd();
@@ -680,7 +681,7 @@ class NetEndpoint {
   /** endpoint lookup tables - - - - - - - - - - - - - - - - - - - -  - - - **/
 
   /** return true if the message is handled anywhere */
-  protected packetHasHandler(pkt: NetPacket): boolean {
+  protected packetHasAnyHandler(pkt: NetPacket): boolean {
     const fn = 'messageHasHandler:';
     const a = this.getMessageHandlers(pkt.msg).length > 0;
     const b = this.isServer() && this.getMessageAddresses(pkt.msg).length > 0;
@@ -779,11 +780,15 @@ class NetEndpoint {
     }
 
     // handle call and send packets
+    // note: does not forward messages back to origin as signal, ping do
     let retData: any;
-    if (this.packetHasHandler(pkt)) {
-      // handle send and call, which do not reflect back to sender
+    let remoteData: any;
+    if (this.packetHasAnyHandler(pkt)) {
       retData = await this.awaitHandlers(pkt);
-      if (this.isServer()) retData = await this.awaitProxiedHandlers(pkt);
+      if (this.isServer()) {
+        remoteData = await this.awaitProxiedHandlers(pkt);
+        retData = retData.concat(remoteData);
+      }
     } else {
       LOG(PR, this.uaddr, fn, `unknown message`, pkt);
       retData = { error: `unknown message '${pkt.msg}'` };
@@ -834,7 +839,7 @@ class NetEndpoint {
   /** Start a handler call, which might have multiple implementors.
    *  Returns data from all handlers as an array or a single item
    */
-  private async awaitHandlers(pkt: NetPacket) {
+  private async awaitHandlers(pkt: NetPacket): Promise<any[]> {
     const fn = 'awaitHandlers:';
     const { msg } = pkt;
     const handlers = this.getMessageHandlers(msg);
@@ -845,7 +850,7 @@ class NetEndpoint {
       promises.push(
         new Promise((resolve, reject) => {
           try {
-            resolve(handler({ ...pkt.data })); // copy of data
+            resolve(handler({ ...pkt.data }, pkt)); // copy of data and original pkt
           } catch (err) {
             reject(err);
           }
@@ -884,7 +889,7 @@ class NetEndpoint {
 
   /** Used to forward a transaction from server to a remote client
    */
-  private awaitRemoteHandler(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
+  private awaitRemoteHandler(pkt: NetPacket, sock: I_NetSocket): Promise<any[]> {
     const fn = 'awaitRemoteHandler:';
     const clone = this.clonePacket(pkt);
     clone.id = this.assignPacketId(clone);
@@ -1050,7 +1055,7 @@ class NetEndpoint {
   /** environment utilities - - - - - - - - - - - - - - - - - - - - - - - - **/
 
   /** return true if this endpoint is managing connections */
-  private isServer() {
+  public isServer() {
     const hasRemotes = this.svc_map.hasProxies();
     return this.client_socks !== undefined && hasRemotes;
   }
@@ -1058,7 +1063,7 @@ class NetEndpoint {
   /** socket utilities  - - - - - - - - - - - - - - - - - - - - - - - - - - **/
 
   /** given a socket, see if it's already registered */
-  private isNewSocket(socket: I_NetSocket): boolean {
+  public isNewSocket(socket: I_NetSocket): boolean {
     const fn = 'isNewSocket:';
     if (typeof socket !== 'object') return false;
     return socket.uaddr === undefined;
@@ -1067,7 +1072,7 @@ class NetEndpoint {
   /** client endpoints need to have an authentication token to
    *  access URNET beyond registration
    */
-  private authorizeSocket(auth: any) {
+  public authorizeSocket(auth: any) {
     const fn = 'authorizeSocket:';
     LOG(PR, this.uaddr, 'would check auth token');
   }

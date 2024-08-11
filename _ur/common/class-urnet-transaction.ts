@@ -16,11 +16,9 @@
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR } from '@ursys/core';
-
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_Address, NP_Hash } from './types-urnet.ts';
+import type { NP_Hash } from '~ur/types/urnet.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** a transaction consists functions used to resolve or reject the transaction
  *  for async operations. Additional data can be stored with the transaction
@@ -41,6 +39,7 @@ type TrxInfo = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR =
+  // @ts-ignore - multiplatform definition check
   typeof process !== 'undefined'
     ? 'Transact'.padEnd(13) // nodejs
     : 'Transact'.padEnd(11); // browser

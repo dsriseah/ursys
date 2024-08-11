@@ -1,11 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  NODE CLI TOOL
-  designed to run inside of non-module nodejs legacy environment like
-  the prototype version of NetCreate 2.0 (2023)
-
-  It interfaces with other modules that are written in ESM and TYPESCRIPT,
-  transpiled into CJS, and imported here.
+  NODE CLI TOOL - TYPESCRIPT BUILD URSYS ADDONS
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -13,10 +8,11 @@ import esbuild from 'esbuild';
 import { umdWrapper } from 'esbuild-plugin-umd-wrapper';
 import FSE from 'fs-extra';
 import PROMPT from '../common/util-prompts.ts';
+import { GetRootDirs } from '../node-server/file.mts';
 
 /// CONSTANTS AND DECLARATIONS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { ROOT, DIR_URADDS, DIR_URADDS_DIST } from './env_mods.mts';
+const { ROOT, DIR_UR_ADDS, DIR_UR_ADDS_DIST } = GetRootDirs();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const LOG = PROMPT.makeTerminalOut('BUILD-MOD', 'TagSystem');
@@ -30,13 +26,10 @@ function _short(path) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** build the UR libraries for server and client */
 async function ESBuildModules() {
-  //
-  // FSE.removeSync(DIR_UR_DIST); // don't do this because brunch watch will break
-  FSE.ensureDir(DIR_URADDS_DIST);
-
+  FSE.ensureDir(DIR_UR_ADDS_DIST);
   /** SERVER CLIENT SHARED BUILD SETTINGS **/
   const nodeBuild = {
-    entryPoints: [`${DIR_URADDS}/@addons-server.mts`],
+    entryPoints: [`${DIR_UR_ADDS}/@addons-server.mts`],
     bundle: true,
     platform: 'node',
     target: ['node18', 'esnext'],
@@ -48,7 +41,7 @@ async function ESBuildModules() {
   // @ts-ignore - build options
   await esbuild.build({
     ...nodeBuild,
-    outfile: `${DIR_URADDS_DIST}/addons-server-esm.mjs`,
+    outfile: `${DIR_UR_ADDS_DIST}/addons-server-esm.mjs`,
     format: 'esm'
   });
   if (DBG) LOG('built ur_addons-server ESM');
@@ -56,14 +49,14 @@ async function ESBuildModules() {
   // @ts-ignore - build options
   await esbuild.build({
     ...nodeBuild,
-    outfile: `${DIR_URADDS_DIST}/addons-server.cjs`,
+    outfile: `${DIR_UR_ADDS_DIST}/addons-server.cjs`,
     format: 'cjs'
   });
   if (DBG) LOG('built ur_addons-server CJS');
 
   /** BROWSER CLIENT SHARED BUILD SETTINGS **/
   const browserBuild = {
-    entryPoints: [`${DIR_URADDS}/@addons-client.ts`],
+    entryPoints: [`${DIR_UR_ADDS}/@addons-client.ts`],
     bundle: true,
     platform: 'browser',
     target: ['es2018'], // brunch can't handle features beyond this date
@@ -73,7 +66,7 @@ async function ESBuildModules() {
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_URADDS_DIST}/addons-client-esm.js`,
+    outfile: `${DIR_UR_ADDS_DIST}/addons-client-esm.js`,
     format: 'esm'
   });
   if (DBG) LOG('built ur_addons-client ESM');
@@ -81,7 +74,7 @@ async function ESBuildModules() {
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_URADDS_DIST}/addons-client-cjs.js`,
+    outfile: `${DIR_UR_ADDS_DIST}/addons-client-cjs.js`,
     format: 'cjs'
   });
   if (DBG) LOG('built ur_addons-client CJS');
@@ -89,7 +82,7 @@ async function ESBuildModules() {
   await esbuild.build({
     ...browserBuild,
     plugins: [umdWrapper()],
-    outfile: `${DIR_URADDS_DIST}/mod-client-umd.js`,
+    outfile: `${DIR_UR_ADDS_DIST}/mod-client-umd.js`,
     // @ts-ignore - esbuild-plugin-umd-wrapper
     format: 'umd' // esbuild-plugin-umd-wrapper
   });

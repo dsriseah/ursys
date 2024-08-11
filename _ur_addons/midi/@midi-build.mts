@@ -12,17 +12,12 @@ import { PR, FILE } from '@ursys/core';
 import FSE from 'fs-extra';
 import { copy } from 'esbuild-plugin-copy';
 import esbuild from 'esbuild';
-// http server
-import http from 'node:http';
-import https from 'node:https';
-import express from 'express';
-import serveIndex from 'serve-index';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = PR('MIDI', 'TagPurple');
 
-/// BUILD FILES ///////////////////////////////////////////////////////////////
+/// BUILD FILE ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function ESBuildApp() {
   const SRC = FILE.AbsLocalPath('_ur_addons/midi');
@@ -40,6 +35,7 @@ async function ESBuildApp() {
     sourcemap: true,
     outfile: `${DST}/scripts/midi-bundle.js`,
     plugins: [
+      // @ts-ignore - esbuild-plugin-copy not in types
       copy({
         resolveFrom: 'cwd',
         assets: [
@@ -52,36 +48,14 @@ async function ESBuildApp() {
       })
     ]
   });
-  // activate rebuild on change
   await context.watch();
-
-  // add express
-  const APP = express();
-  APP.get('/', serveIndex(DST));
-  APP.use(express.static(DST));
-
-  // Listen both http & https ports
-  const httpServer = http.createServer(APP);
-  const httpsServer = https.createServer(
-    {
-      key: FSE.readFileSync('/etc/letsencrypt/live/ursys.dsri.xyz/privkey.pem'),
-      cert: FSE.readFileSync('/etc/letsencrypt/live/ursys.dsri.xyz/fullchain.pem')
-    },
-    APP
-  );
-
-  const http_port = 8080;
-  const https_port = 8443;
-  const http_host = '127.0.0.1';
-  const https_host = 'ursys.dsri.xyz';
-
-  httpServer.listen(http_port, () => {
-    console.log(`HTTP Server running on ${http_host}:${http_port}`);
+  // The return value tells us where esbuild's local server is
+  let { host, port } = await context.serve({
+    servedir: DST,
+    port: 8888
   });
-
-  httpsServer.listen(https_port, () => {
-    console.log(`HTTPS Server running on ${https_host}:${https_port}`);
-  });
+  if (host === '0.0.0.0') host = 'localhost';
+  LOG('appserver is listening at', `http://${host}:${port}`);
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

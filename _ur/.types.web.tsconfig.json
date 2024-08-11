@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": true,
+    "typeRoots": ["./_ur/_types/"],
+    "paths": {
+      "*": ["./_ur/_types/*"]
+    },
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "./_ur/_dist/types",
+    "target": "ESNext"
+  },
+  "include": ["./_ur/web-client/**/*.ts", "./_ur/common/**/*", "./_ur/_types/**/*"],
+  "exclude": [
+    "./_ur/node-server",
+    "./_ur/node_modules",
+    "./_ur/_dist",
+    "./_ur/npm-scripts",
+    "./_ur/test-config",
+    "./_ur/vendor"
+  ]
+}

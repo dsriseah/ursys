@@ -10,11 +10,12 @@
 import * as ADDON from './ur-addon-mgr.mts';
 import * as APPSERV from './appserver.mts';
 import * as APPBUILD from './appbuilder.mts';
-import * as ENV from './env-node.mts'; /* might be deprecated in future */
-import * as FILE from './files.mts';
-import * as PROC from './processes.mts';
+import * as FILE from './file.mts';
+import * as PROC from './process.mts';
 import * as TEXT from '../common/util-text.ts';
 import * as PROMPTS from '../common/util-prompts.ts';
+import * as NORM from '../common/util-data-norm.ts';
+
 // typescript classes
 import UrModule from './class-urmodule.mts';
 import OpSequencer from '../common/class-op-seq.ts';
@@ -22,16 +23,15 @@ import StateMgr from '../common/class-state-mgr.ts';
 import NetSocket from '../common/class-urnet-socket.ts';
 import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetPacket from '../common/class-urnet-packet.ts';
+import PhaseMachine from '../common/class-phase-machine.ts';
 // typescript library modules
 import * as UID from '../common/lib-uid.ts';
 import * as CONSTANTS from './constants-urnet.mts';
 
 /// TYPES /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** used for runtime initialization of the server-side URSYS library */
-type InitOptions = {
-  rootDir: string;
-};
+import type { PM_Name, PM_Definition } from '../common/class-phase-machine.ts';
+type InitOptions = {};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,7 +43,8 @@ const CLASS = {
   UrModule,
   NetSocket,
   NetEndpoint,
-  NetPacket
+  NetPacket,
+  PhaseMachine
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LIB = {
@@ -66,10 +67,7 @@ const CONSTANT = {
 /// RUNTIME API ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** first time initialization */
-function Initialize(options: InitOptions): void {
-  const { rootDir } = options;
-  ENV.SetRootPaths(rootDir);
-}
+function Initialize(options: InitOptions): void {}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -81,16 +79,30 @@ export {
   CLASS,
   LIB,
   // basic server modules
-  ENV,
   FILE,
   PROC,
   TEXT,
+  NORM,
   // server-based services
   APPSERV, // application server
   APPBUILD, // application builder
   //
   ADDON, // ur module manager,
-  PROMPTS,
-  // formatting
-  makeTerminalOut as PR // prompt style formatter
+  PROMPTS // prompt style formatter
 };
+// debugging helpers
+export {
+  makeTerminalOut as PR // makes a styled console.log for node
+};
+// PhaseMachine interface
+export {
+  NewPhaseMachine,
+  HookPhase,
+  RunPhaseGroup,
+  GetPhaseMachine,
+  GetMachineStates
+} from '../common/class-phase-machine.ts';
+
+// export types
+export type { BuildOptions, WatchOptions, NotifyCallback } from './appbuilder.mts';
+export type { InitOptions };

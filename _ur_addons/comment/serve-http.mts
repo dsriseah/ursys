@@ -87,6 +87,7 @@ async function BuildApp() {
     bundle: true,
     sourcemap: true,
     plugins: [
+      // @ts-ignore - esbuild-plugin-copy not in types
       copy({
         resolveFrom: 'cwd',
         assets: [

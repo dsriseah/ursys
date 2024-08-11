@@ -15,5 +15,7 @@
     "javascriptreact",
     "typescript",
     "typescriptreact"
-  ]
+  ],
+  "git.detectSubmodules": false,
+  "git.ignoreSubmodules": true
 }

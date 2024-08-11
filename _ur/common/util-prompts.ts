@@ -36,10 +36,10 @@ const HIDE = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const PROMPT_DICT = {
   // URSYS-RELATED MODULES
-  'UR': [SHOW, 'TagRed'],
+  UR: [SHOW, 'TagRed'],
   // SERVERS
-  'APPSRV': [SHOW, 'Yellow'],
-  'GEMSRV': [SHOW, 'Yellow'],
+  APPSRV: [SHOW, 'Yellow'],
+  GEMSRV: [SHOW, 'Yellow'],
   // SPECIAL
   '-': [SHOW, 'TagNull']
 };
@@ -47,7 +47,7 @@ const PROMPT_DICT = {
 /** Pad string to fixed length, with default padding depending on
  *  whether the environment is node or browser
  */
-function padString(str, padding = DEFAULT_PADDING) {
+function u_pad(str, padding = DEFAULT_PADDING) {
   let len = str.length;
   const nbsp = String.fromCharCode(0x00a0); // unicode non-break space
   if (IS_NODE) return `${str.padEnd(padding, ' ')}`;
@@ -101,8 +101,8 @@ function m_MakeColorArray(prompt, colorName) {
   // or debugging is enabled but it's node (de morgan's law)
   if (!(dbg || IS_NODE)) return [];
   return IS_NODE
-    ? [`${color}${padString(prompt)}${reset}   `] // server
-    : [`%c${padString(prompt)}%c `, color, reset]; // browser
+    ? [`${color}${u_pad(prompt)}${reset}   `] // server
+    : [`%c${u_pad(prompt)}%c `, color, reset]; // browser
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Returns an environment-specific color wrapper function suitable for use
@@ -111,6 +111,7 @@ function m_MakeColorArray(prompt, colorName) {
 function m_MakeColorPromptFunction(prompt, colorName, opt: any = {}) {
   const textColor = opt.color || 'Reset';
   const dim = opt.dim || false;
+  const pad = opt.pad || DEFAULT_PADDING;
   return IS_NODE
     ? (str, ...args) => {
         // @ts-ignore - args can be string or array of strings
@@ -118,16 +119,24 @@ function m_MakeColorPromptFunction(prompt, colorName, opt: any = {}) {
         let TAG = TERM_COLORS[colorName];
         let TEXT = TERM_COLORS[textColor];
         let RST = TERM_COLORS.Reset;
-        let PR = padString(prompt);
+        let PR;
+        let SPC;
+        if (prompt.startsWith(' ')) {
+          PR = ` ${prompt.trim()} `;
+          SPC = ' ';
+        } else {
+          PR = u_pad(prompt, pad);
+          SPC = '    ';
+        }
         if (dim) TEXT += TERM_COLORS.Dim;
-        console.log(`${RST}${TAG}${PR}${RST}${TEXT}    ${str}`, ...args, RST);
+        console.log(`${RST}${TAG}${PR}${RST}${TEXT}${SPC}${str}`, ...args, RST);
       }
     : (str, ...args) => {
         // @ts-ignore - args can be string or array of strings
         if (args === undefined) args = '';
         let TEXT = TERM_COLORS[textColor];
         let RST = CSS_COLORS.Reset;
-        let PR = padString(prompt);
+        let PR = u_pad(prompt, pad);
         console.log(`%c${PR}%c%c ${str}`, RST, TEXT, ...args);
       };
 }
@@ -280,13 +289,22 @@ function colorTagString(str, tagColor) {
  *  This works better for NodeJS since the empty [] still results in output
  *  unlike the browser. Use makeStyleFormatter for browsers
  */
-function makeTerminalOut(prompt, tagColor = DEFAULT_COLOR) {
-  const wrap: any = m_MakeColorPromptFunction(prompt, tagColor);
-  wrap.warn = m_MakeColorPromptFunction(prompt, 'TagYellow', { color: 'Yellow' });
-  wrap.error = m_MakeColorPromptFunction(prompt, 'TagRed', { color: 'Red' });
-  wrap.fail = m_MakeColorPromptFunction(prompt, 'Red', { color: 'Red' });
-  wrap.pass = m_MakeColorPromptFunction(prompt, 'Green', { color: 'Green' });
-  wrap.info = m_MakeColorPromptFunction(prompt, 'TagGray', { dim: true });
+function makeTerminalOut(prompt, tagColor = DEFAULT_COLOR, pad = DEFAULT_PADDING) {
+  const wrap: any = m_MakeColorPromptFunction(prompt, tagColor, { pad });
+  wrap.warn = m_MakeColorPromptFunction(prompt, 'TagYellow', {
+    color: 'Yellow',
+    pad
+  });
+  wrap.error = m_MakeColorPromptFunction(prompt, 'TagRed', {
+    color: 'Red',
+    pad
+  });
+  wrap.fail = m_MakeColorPromptFunction(prompt, 'Red', { color: 'Red', pad });
+  wrap.pass = m_MakeColorPromptFunction(prompt, 'Green', {
+    color: 'Green',
+    pad
+  });
+  wrap.info = m_MakeColorPromptFunction(prompt, 'TagGray', { dim: true, pad });
   wrap.DIM = '\x1b[2m'; // dim text
   wrap.BRI = '\x1b[1m'; // bright text
   wrap.RST = '\x1b[0m'; // reset text
@@ -344,7 +362,7 @@ function printTagColors() {
   colors.forEach(key => {
     const color = colortable[key];
     const items = IS_NODE
-      ? [`${padString(out)} - (node) ${color}${key}${reset}`]
+      ? [`${u_pad(out)} - (node) ${color}${key}${reset}`]
       : [`(browser) %c${key}%c`, color, reset];
     console.log(...items);
   });
@@ -357,7 +375,7 @@ export {
   TERM_COLORS as TERM,
   CSS_COLORS as CSS,
   ANSI_COLORS as ANSI,
-  padString,
+  u_pad,
   makeStyleFormatter,
   makeErrorFormatter,
   makeWarningFormatter,
@@ -370,5 +388,5 @@ export {
 export default {
   makeTerminalOut,
   makeStyleFormatter,
-  padString
+  u_pad
 };

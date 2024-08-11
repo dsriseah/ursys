@@ -1,11 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  NODE CLI TOOL
-  designed to run inside of non-module nodejs legacy environment like
-  the prototype version of NetCreate 2.0 (2023)
-
-  It interfaces with other modules that are written in ESM and TYPESCRIPT,
-  transpiled into CJS, and imported here.
+  NODE CLI TOOL - TYPESCRIPT BUILD URSYS CORE
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -15,13 +10,14 @@ import FSE from 'fs-extra';
 // build-core can not use URSYS library because it's BUILDING it!
 // so we yoink the routines out of the source directly
 import PROMPT from '../common/util-prompts.ts';
+import { GetRootDirs } from '../node-server/file.mts';
 
 /// CONSTANTS AND DECLARATIONS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { ROOT, DIR_UR_DIST } from './env-build.mts';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const LOG = PROMPT.makeTerminalOut('BuildCore', 'TagSystem');
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { ROOT, DIR_UR_DIST } = GetRootDirs();
 
 /// ESBUILD API ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -62,7 +58,7 @@ async function ESBuildLibrary() {
 
   /** BROWSER CLIENT SHARED BUILD SETTINGS **/
   const browserBuild = {
-    entryPoints: [`${ROOT}/_ur/browser-client/@client.ts`],
+    entryPoints: [`${ROOT}/_ur/web-client/@client.ts`],
     bundle: true,
     platform: 'browser',
     target: ['es2018'], // brunch can't handle features beyond this date

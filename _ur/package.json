@@ -8,7 +8,7 @@
   },
   "private": true,
   "scripts": {
-    "build-core": "node ./npm-scripts/@build-core.cjs",
+    "build-core": "node ./npm-scripts/@build-core.mts",
     "lint": "eslint .",
     "clean": "rm -rf ./node_modules ./_dist"
   },
@@ -26,6 +26,7 @@
     }
   },
   "devDependencies": {
+    "@types/node": "^20.14.12",
     "esbuild": "^0.21.4",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-plugin-umd-wrapper": "^2.0.0",

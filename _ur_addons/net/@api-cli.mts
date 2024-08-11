@@ -11,7 +11,6 @@ import { fileURLToPath } from 'node:url';
 import { PR, PROC, FILE } from '@ursys/core';
 import * as KV from './kv-json.mts';
 import * as CTRL from './cli-serve-control.mts';
-import * as TEST from './cli-test.mts';
 import { UseServer } from './urnet-constants.mts';
 import * as CLIENT_UDS from './client-uds.mts';
 import * as CLIENT_WSS from './client-wss.mts';
@@ -163,9 +162,6 @@ const COMMAND_DICT = {
   },
   'hosts': async () => {
     await CTRL.ManageHosts();
-  },
-  'test': async () => {
-    await TEST.RunTests();
   }
 };
 /// - - - - - - - -å - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

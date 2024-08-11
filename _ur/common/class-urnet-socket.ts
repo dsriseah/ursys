@@ -12,34 +12,35 @@
   NetEndpoint class. If you want to import other exports, you need to
   destructure the .default prop; to access the NetPacket class do this:
 
-    import EP_DEFAULT from './class-urnet-socket.ts';
+    import EP_DEFAULT from './my-class.ts';
     const { NetSocket } = EP_DEFAULT.default; // note .default
 
   You can import the types through dereferencing as usual:
 
-    import EP_DEFAULT, { I_NetSocket } from './urnet-types.ts';
+    import EP_DEFAULT, { I_NetSocket } from './my-module.ts';
 
   This is not required when importing from another .ts typescript file.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR } from '@ursys/core';
 import NetPacket from './class-urnet-packet.ts';
-import {
-  NP_Address,
-  NP_Msg,
-  I_NetSocket,
+
+/// TYPE IMPORTS //////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import type { I_NetSocket, NP_Address, NP_Msg } from '~ur/types/urnet.d.ts';
+import type {
   NS_SendFunc,
-  NS_CloseFunc,
   NS_DataFunc,
+  NS_CloseFunc,
   NS_Options
-} from './types-urnet.ts';
+} from '~ur/types/urnet.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
+// @ts-ignore - multiplatform definition check
 const PR = typeof process !== 'undefined' ? 'Socket'.padEnd(13) : 'Socket:';
-const LOG = (...args) => DBG && console.log(PR, ...args);
+const LOG = console.log.bind(console);
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

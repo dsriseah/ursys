@@ -9,18 +9,30 @@
   Additionally, it enforces the categoziation of services into groups, and
   knows how to recognize and decode service names.
 
+  -- CROSS PLATFORM IMPORT TRICKS -------------------------------------------
+
+  When using from nodejs mts file, you can only import 'default', which is the
+  NetEndpoint class. If you want to import other exports, you need to
+  destructure the .default prop; to access the NetPacket class do this:
+
+    import EP_DEFAULT from './my-class.ts';
+    const { NetSocket } = EP_DEFAULT.default; // note .default
+
+  You can import the types through dereferencing as usual:
+
+    import EP_DEFAULT, { I_NetSocket } from './my-module.ts';
+
+  This is not required when importing from another .ts typescript file.
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR } from '@ursys/core';
-import { NormalizeMessage, DecodeMessage } from './types-urnet.ts';
+import { NormalizeMessage, DecodeMessage } from './util-urnet.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_Address, NP_Msg, NP_Data } from './types-urnet.ts';
+import type { NP_Address, NP_Msg, NM_Handler } from '~ur/types/urnet.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type HandlerFunc = (data: NP_Data) => NP_Data | void;
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type HandlerSet = Set<HandlerFunc>; // set(handler1, handler2, ...)
+type HandlerSet = Set<NM_Handler>; // set(handler1, handler2, ...)
 type HandlerMap = Map<NP_Msg, HandlerSet>; // msg->handler functions
 type AddressSet = Set<NP_Address>; // ['UA001', 'UA002', ...]
 type AddressMap = Map<NP_Msg, AddressSet>; // msg->set of uaddr
@@ -29,6 +41,7 @@ type AddressMap = Map<NP_Msg, AddressSet>; // msg->set of uaddr
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const PR =
+  // @ts-ignore - multiplatform definition check
   typeof process !== 'undefined'
     ? 'ServiceMap'.padEnd(13) // nodejs
     : 'ServiceMap'.padEnd(11); // browser
@@ -87,7 +100,7 @@ class ServiceMap {
 
   /** API: add a protocol handler for a given service name, which
    *  are reserved for special services */
-  addProtocolHandler(pmsg: NP_Msg, handler: HandlerFunc) {
+  addProtocolHandler(pmsg: NP_Msg, handler: NM_Handler) {
     const fn = 'addProtocolHandler:';
     if (typeof pmsg !== 'string') throw Error(`${fn} invalid pmsg`);
     if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
@@ -97,19 +110,19 @@ class ServiceMap {
   /// HANDLED SERVICES are LOCAL FUNCTIONS ///
 
   /** API: declare a service handler for a given service name */
-  addServiceHandler(msg: NP_Msg, handler: HandlerFunc) {
+  addServiceHandler(msg: NP_Msg, handler: NM_Handler) {
     const fn = 'addServiceHandler:';
     // LOG(PR,this.uaddr, `reg handler '${msg}'`);
     if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
     const key = NormalizeMessage(msg);
     if (!this.handled_svcs.has(key))
-      this.handled_svcs.set(key, new Set<HandlerFunc>());
+      this.handled_svcs.set(key, new Set<NM_Handler>());
     const handler_set = this.handled_svcs.get(key);
     handler_set.add(handler);
   }
 
   /** API: remove a previously declared service handler for a given service name */
-  deleteServiceHandler(msg: NP_Msg, handler: HandlerFunc) {
+  deleteServiceHandler(msg: NP_Msg, handler: NM_Handler) {
     const fn = 'deleteServiceHandler:';
     if (typeof handler !== 'function') throw Error(`${fn} invalid handler`);
     const key = NormalizeMessage(msg);
@@ -119,12 +132,12 @@ class ServiceMap {
   }
 
   /** return list of local handlers for given service name */
-  getServiceHandlers(msg: NP_Msg): HandlerFunc[] {
+  getServiceHandlers(msg: NP_Msg): NM_Handler[] {
     const fn = 'getServiceHandlers:';
     if (this.handled_svcs === undefined) return [];
     const key = NormalizeMessage(msg);
     if (!this.handled_svcs.has(key))
-      this.handled_svcs.set(key, new Set<HandlerFunc>());
+      this.handled_svcs.set(key, new Set<NM_Handler>());
     const handler_set = this.handled_svcs.get(key);
     if (!handler_set) throw Error(`${fn} unexpected empty set '${key}'`);
     const handler_list = Array.from(handler_set);
@@ -207,7 +220,7 @@ class ServiceMap {
   /** utility: return array of proxied services */
   proxiesList(): NP_Msg[] {
     if (this.proxied_svcs === undefined) return [];
-    return [...Object.keys(this.proxied_svcs)];
+    return [...Object.keys(this.proxied_svcs)] as NP_Msg[];
   }
 
   /** utility: return true if this service map has handlers */
@@ -218,7 +231,7 @@ class ServiceMap {
   /** utility: return array of handled service names */
   handlersList(): NP_Msg[] {
     if (this.handled_svcs === undefined) return [];
-    return [...Object.keys(this.handled_svcs)];
+    return [...Object.keys(this.handled_svcs)] as NP_Msg[];
   }
 }
 
@@ -226,4 +239,4 @@ class ServiceMap {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default ServiceMap;
 export { ServiceMap };
-export type { HandlerFunc as THandlerFunc };
+export type { NM_Handler as THandlerFunc };

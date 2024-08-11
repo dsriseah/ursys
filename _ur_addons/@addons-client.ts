@@ -4,20 +4,11 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import * as UR from '@ursys/core'; // this is a .js file
-import { NetEndpoint } from './net/class-urnet-endpoint.ts';
-import { NetSocket } from './net/class-urnet-socket.ts';
-import { NetPacket } from './net/class-urnet-packet.ts';
+import { CLASS, ConsoleStyler } from '@ursys/core';
 
 /// ASSEMBLE MODULES //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { ConsoleStyler } = UR;
 const PF = ConsoleStyler('UR/ADD', 'TagPink');
-const CLASS = {
-  NetEndpoint,
-  NetSocket,
-  NetPacket
-};
 
 /// TEST METHODS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
