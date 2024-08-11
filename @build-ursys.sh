@@ -29,7 +29,6 @@ TSOPTS="--transpile-only" # use --no-cache to force a full rebuild tsnode (disab
 GIT_D=$(git log -1 --format=%cd --date=format:%Y/%m/%d)
 GIT_B=$(git branch --show-current)
 printf "${DIM}building URSYS Library from branch ${RST}${GIT_B}${DIM} commit date ${RST}${GIT_D}${RST}\n"
-printf "${DIM}building URSYS Library from branch ${RST}${GIT_B}${DIM} commit date ${RST}${GIT_D}${RST}\n"
 # change to root directory of the project before runing ts-node-esm
 cd $ROOT
 printf "${DIM}--> cd ${ROOT}${RST}\n"
