@@ -1,3 +1,5 @@
+> See [First Install](https://github.com/dsriseah/ursys/wiki/Installation) for installation instructions. Tested on MacOS and Linux/Ubuntu.
+
 ## Sri's Universal Realtime System (URSYS)
 
 URSYS originated in learning science research into embodied learning from 2013 to date. The requirements were LAN-based operation, realtime graphics, simulation, video, and motion tracking served from a single laptop to multiple tablet and Chromebook-type devices in a guided classroom environment. 
@@ -17,11 +19,12 @@ Features
 
 Under Development
 
-* see [Closed Pull Requests](https://github.com/dsriseah/ursys/pulls?q=is:pr+is:closed) for an idea of what's new. The [Discussions](https://github.com/dsriseah/ursys/discussions) area also details current work in progress.
+* see [Closed Pull Requests](https://github.com/dsriseah/ursys/pulls?q=is:pr+is:closed) for an idea of what's new. 
 * pending: import URSYS as a dependency into existing projects
 * pending: other [feature porting](https://github.com/dsriseah/ursys/wiki/Catalog-of-URSYS-Modules) candidates
 
-Check out the [Wiki](https://github.com/dsriseah/ursys/wiki) for detailed information about URSYS concepts. If you'd like to help test, see [First Install](https://github.com/dsriseah/ursys/wiki/Installation) instructions.
+Documentation
 
-Questions? Contact me via [Mastodon](https://opalstack.social/@dsri). 
+* The [Wiki](https://github.com/dsriseah/ursys/wiki) and [Discussion](https://github.com/dsriseah/ursys/discussions) pages collects ongoing design thoughts. This codebase is very much a work in process. 
+* Questions? Contact me via [Mastodon](https://opalstack.social/@dsri). 
 
