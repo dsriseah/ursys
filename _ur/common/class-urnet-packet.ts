@@ -36,9 +36,10 @@ import type { NP_Options } from '~ur/types/urnet.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DBG = false;
 // @ts-ignore - multiplatform definition check
 const PR = typeof process !== 'undefined' ? 'Packet'.padEnd(13) : 'Packet:';
-const LOG = (...args) => console.log(PR, ...args);
+const LOG = console.log.bind(console);
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -156,8 +157,9 @@ class NetPacket implements I_NetMessage {
       throw Error(`invalid pktObj: ${pktObj}, is ${typeof pktObj}`);
     this.id = pktObj.id;
     this.msg = pktObj.msg;
-    if (pktObj.data === undefined)
-      LOG(fn, `... pktObj${pktObj.id} .data is undefined`);
+    // undefined data is a valid response for a netcall, indicating
+    // that the call didn't exist
+    // if (pktObj.data === undefined) LOG(fn, `pktObj${pktObj.id} .data is undefined`);
     this.data = pktObj.data;
     this.src_addr = pktObj.src_addr;
     this.hop_log = pktObj.hop_log;

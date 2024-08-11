@@ -13,14 +13,14 @@
 import { fork } from 'node:child_process';
 import { join } from 'node:path';
 // MTS
-import { DirExists, Files, GetRootDirs, u_short } from './files.mts';
+import { DirExists, Files, GetRootDirs, u_short } from './file.mts';
 import UrModule from './class-urmodule.mts';
 import { DIE } from '../common/util-error-mgr.ts';
 import * as PROMPT from '../common/util-prompts.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PROMPT.makeTerminalOut(' UPROC', 'TagCyan');
+const LOG = PROMPT.makeTerminalOut('UPROC', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LAUNCH_PREFIX = '@';

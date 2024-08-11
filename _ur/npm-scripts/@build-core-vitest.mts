@@ -1,6 +1,7 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  NODE CLI TOOL - TYPESCRIPT BUILD URSYS CORE
+  VITEST BUILD URSYS CORE for VITEST
+  based on @build-core.mts but exports the async function instead
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -94,9 +95,8 @@ async function ESBuildLibrary() {
   if (!DBG) console.log(`${LOG.DIM}info: built @ursys core${LOG.RST}`);
 }
 
-/// RUNTIME ///////////////////////////////////////////////////////////////////
+/// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** TEST **/
-(async () => {
+export default async () => {
   await ESBuildLibrary();
-})();
+};

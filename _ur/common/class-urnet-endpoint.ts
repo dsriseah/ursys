@@ -681,7 +681,7 @@ class NetEndpoint {
   /** endpoint lookup tables - - - - - - - - - - - - - - - - - - - -  - - - **/
 
   /** return true if the message is handled anywhere */
-  protected packetHasHandler(pkt: NetPacket): boolean {
+  protected packetHasAnyHandler(pkt: NetPacket): boolean {
     const fn = 'messageHasHandler:';
     const a = this.getMessageHandlers(pkt.msg).length > 0;
     const b = this.isServer() && this.getMessageAddresses(pkt.msg).length > 0;
@@ -780,12 +780,15 @@ class NetEndpoint {
     }
 
     // handle call and send packets
+    // note: does not forward messages back to origin as signal, ping do
     let retData: any;
-    if (this.packetHasHandler(pkt)) {
-      // handle send and call, which do not reflect back to sender
+    let remoteData: any;
+    if (this.packetHasAnyHandler(pkt)) {
       retData = await this.awaitHandlers(pkt);
-    } else if (this.isServer()) {
-      retData = await this.awaitProxiedHandlers(pkt);
+      if (this.isServer()) {
+        remoteData = await this.awaitProxiedHandlers(pkt);
+        retData = retData.concat(remoteData);
+      }
     } else {
       LOG(PR, this.uaddr, fn, `unknown message`, pkt);
       retData = { error: `unknown message '${pkt.msg}'` };
@@ -836,7 +839,7 @@ class NetEndpoint {
   /** Start a handler call, which might have multiple implementors.
    *  Returns data from all handlers as an array or a single item
    */
-  private async awaitHandlers(pkt: NetPacket) {
+  private async awaitHandlers(pkt: NetPacket): Promise<any[]> {
     const fn = 'awaitHandlers:';
     const { msg } = pkt;
     const handlers = this.getMessageHandlers(msg);
@@ -886,7 +889,7 @@ class NetEndpoint {
 
   /** Used to forward a transaction from server to a remote client
    */
-  private awaitRemoteHandler(pkt: NetPacket, sock: I_NetSocket): Promise<any> {
+  private awaitRemoteHandler(pkt: NetPacket, sock: I_NetSocket): Promise<any[]> {
     const fn = 'awaitRemoteHandler:';
     const clone = this.clonePacket(pkt);
     clone.id = this.assignPacketId(clone);

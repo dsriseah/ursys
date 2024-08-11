@@ -14,7 +14,11 @@ import { makeTerminalOut } from '../common/util-prompts.ts';
 import process from 'node:process';
 import PATH from 'node:path';
 const LOG = makeTerminalOut('PROCESS', 'TagGreen');
-import * as FILE from './files.mts';
+import * as FILE from './file.mts';
+
+/// TYPES DECLARATIONS ////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import type { ReturnObj } from '~ur/types/ursys.d.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,7 +29,7 @@ import type { UR_ResultObject } from '~ur/types/ursys.d.ts';
 /** break string of form 'addon' or 'addon/@entry' into parts
  *  addonName and entryName (no extension)
  */
-function m_DecodeAddonName(shortPath: string): UR_ResultObject {
+function m_DecodeAddonName(shortPath: string): ReturnObj {
   let addonName, entryName;
   // required argument
   if (typeof shortPath !== 'string') {
@@ -84,7 +88,7 @@ function DecodeAddonArgs(argv: string[]): string[] {
  *  addonName, entryName, and entryFile and reconcile with addon directory
  *  context: called from the urcli launcher script
  */
-function ValidateAddon(addon: string): UR_ResultObject {
+function ValidateAddon(addon: string): ReturnObj {
   const ADDONS = PATH.join(FILE.DetectedRootDir(), '_ur_addons');
   if (!FILE.DirExists(ADDONS)) {
     return { err: `directory ${ADDONS} does not exist` };

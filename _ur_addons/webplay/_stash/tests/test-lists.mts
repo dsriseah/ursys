@@ -5,59 +5,70 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import * as SVC from '../srv-comments.mts';
+import type { UR_Item } from '~ur/types/ursys.d.ts';
+import { ListManager } from '../lib/class-data-itemlist.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const LISTS = new ListManager();
+
+test('instantiation', () => {
+  expect(LISTS).toBeDefined();
+  expect(LISTS).toBeInstanceOf(ListManager);
+});
+
 test('list creation', () => {
-  // module initialized
-  expect(SVC).toBeDefined();
   // there should be no lists
-  expect(SVC.GetListInstances()).toMatchObject([]);
+  expect(LISTS.itemListsGetAll()).toMatchObject([]);
   // list doesn't exist
-  expect(() => SVC.ListRead('mylist')).toThrowError();
+  expect(() => LISTS.listRead('mylist')).toThrowError();
   // create a list is empty
-  expect(SVC.CreateListInstance('mylist')).toMatchObject([]);
+  expect(LISTS.createItemList('mylist')).toMatchObject([]);
 });
 
 test('list item by-ref or value', () => {
-  const items = [
+  const items: UR_Item[] = [
     { _id: '1', name: 'item1' }, //
     { _id: '2', name: 'item2' }
   ];
-  expect(SVC.CreateListInstance('refList')).toMatchObject([]);
-  expect(SVC.ListAdd('refList', items)).toMatchObject(items);
-  const refListItems = SVC.ListRead('refList');
+  expect(LISTS.createItemList('refList')).toMatchObject([]);
+  expect(LISTS.listAdd('refList', items)).toMatchObject(items);
+  const refListItems = LISTS.listRead('refList');
   expect(refListItems).not.toBe(items);
 });
 
 test('list add,read', () => {
   // undefined list should throw an error
-  expect(() => SVC.ListRead('anotherlist')).toThrowError();
+  expect(() => LISTS.listRead('anotherlist')).toThrowError();
   const items = [
     { _id: '1', name: 'item1' }, //
     { _id: '2', name: 'item2' }
   ];
-  // ListAdd will add items to the list and return the list
-  expect(SVC.ListAdd('mylist', items)).toMatchObject(items);
-  // ListRead will return the list
-  const results = SVC.ListRead('mylist');
+  // listAdd will add items to the list and return the list
+  expect(LISTS.listAdd('mylist', items)).toMatchObject(items);
+  // listRead will return the list
+  const results = LISTS.listRead('mylist');
   expect(results).toMatchObject(items);
+  // listRead by custom order
+  expect(LISTS.listRead('mylist', ['2', '1'])).toMatchObject([
+    { _id: '2', name: 'item2' },
+    { _id: '1', name: 'item1' }
+  ]);
 });
 
 test('list update', () => {
   // empty items means nothing for update
-  expect(() => SVC.ListUpdate('mylist', [])).toThrowError();
+  expect(() => LISTS.listUpdate('mylist', [])).toThrowError();
   // items that aren't in mylist should throw an error
   expect(() =>
-    SVC.ListUpdate('mylist', [
+    LISTS.listUpdate('mylist', [
       { _id: '3', name: 'item3' },
       { _id: '1', name: 'item1' }
     ])
   ).toThrowError();
   // updating the list shoudld return the updated list
   expect(
-    SVC.ListUpdate('mylist', [
+    LISTS.listUpdate('mylist', [
       { _id: '1', name: 'item1-changed' },
       { _id: '2', name: 'item2-changed' }
     ])
@@ -66,12 +77,12 @@ test('list update', () => {
     { _id: '2', name: 'item2-changed' }
   ]);
   // reading the list should return the updated list
-  expect(SVC.ListRead('mylist')).toMatchObject([
+  expect(LISTS.listRead('mylist')).toMatchObject([
     { _id: '1', name: 'item1-changed' },
     { _id: '2', name: 'item2-changed' }
   ]);
   // adding an item to the list
-  const updated = SVC.ListUpdate('mylist', [{ _id: '1', mood: 'happy' }]);
+  const updated = LISTS.listUpdate('mylist', [{ _id: '1', mood: 'happy' }]);
   expect(updated).toMatchObject([
     { _id: '1', name: 'item1-changed', mood: 'happy' },
     { _id: '2', name: 'item2-changed' }
@@ -79,7 +90,7 @@ test('list update', () => {
 });
 
 test('list replace', () => {
-  const origItems = SVC.ListRead('mylist');
+  const origItems = LISTS.listRead('mylist');
   const newItems = [
     {
       _id: '1',
@@ -98,29 +109,29 @@ test('list replace', () => {
     }
   ];
   // if an id doesn't exist, it should throw an error
-  expect(() => SVC.ListReplace('mylist', newItems)).toThrowError();
+  expect(() => LISTS.listReplace('mylist', newItems)).toThrowError();
   // even though an error was thrown, the list will have been
   // partially updated, so we can check that
   newItems.splice(2, 1); // remove the item that doesn't exist
-  expect(SVC.ListRead('mylist')).toMatchObject(newItems);
+  expect(LISTS.listRead('mylist')).toMatchObject(newItems);
   // replace the list with origItems items
-  const replaced = SVC.ListReplace('mylist', origItems);
+  const replaced = LISTS.listReplace('mylist', origItems);
   // the list should be replaced completed
   expect(replaced).not.toMatchObject(origItems);
   expect(replaced[0].animal).toBe('dog');
-  expect(SVC.ListRead('mylist')[0].animal).not.toBe('dog');
-  expect(SVC.ListRead('mylist')[1].name).toBe('item2-changed');
+  expect(LISTS.listRead('mylist')[0].animal).not.toBe('dog');
+  expect(LISTS.listRead('mylist')[1].name).toBe('item2-changed');
   // the list should be back to the original items
 });
 
 test('list delete', () => {
   // test delete
-  const startingList = SVC.ListRead('mylist');
-  const listInstance = SVC.GetListInstance('mylist');
+  const startingList = LISTS.listRead('mylist');
+  const listInstance = LISTS.getItemList('mylist');
   const ids_to_delete = ['1', '2'];
-  const deleted = SVC.ListDelete('mylist', ids_to_delete);
-  const endingList = SVC.ListRead('mylist');
+  const deleted = LISTS.listDelete('mylist', ids_to_delete);
+  const endingList = LISTS.listRead('mylist');
   expect(deleted).toMatchObject(startingList);
   expect(endingList).toMatchObject([]);
-  expect(SVC.GetListInstance('mylist')).toBe(listInstance);
+  expect(LISTS.getItemList('mylist')).toBe(listInstance);
 });

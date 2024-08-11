@@ -170,11 +170,17 @@ export function NormalizeMessage(msg: NP_Msg): NP_Msg {
   return `${chan}:${name}`;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** make sure that degenerate arrays turn into single objet */
+/** make sure that degenerate arrays turn into single object */
 export function NormalizeData(data: NP_Data): NP_Data {
+  // if not an array just return as-is
   if (!Array.isArray(data)) return data;
+  // no handlers for empty array
   if (data.length === 0) return undefined;
+  // replace undefined with empty object
+  for (let i = 0; i < data.length; i++) if (data[i] === undefined) data[i] = {};
+  // if only one element, return it as a single object
   if (data.length == 1) return data[0];
+  // otherwise return the normalized array
   return data;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

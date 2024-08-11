@@ -4,42 +4,67 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-/* added for pull request #81 so 'npm run lint' test appears clean */
-/* eslint-disable no-unused-vars */
-
-/// OBJECT CONVENTIONS ////////////////////////////////////////////////////////
+/// DATASET CONVENTIONS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** When returning results in an object, it either has an 'err' key and
- *  to indicate an error, or it has other keys to indicate success.
- *  Checking for the present of err is a common pattern in URSYS.
- */
-export type UR_ResultObject = {
-  err?: string;
-  [key?: string]: any;
-};
+/// data models have objects with an _id field that uniquely identifies
+/// each entity in the dataset called a UID.
+export type UR_EntID = `${string}`;
+export type UR_EntID_Obj = { _id: UR_EntID };
+/// we use various object conventions
+export type DataObj = { [key: string]: any };
+export type ErrObj = { error?: string; errorCode?: string; errorInfo?: string };
+export type ReturnObj = DataObj | ErrObj;
+/// we use UR_DataMethod functions to modify data and datasets
+export type UR_DataMethod = (...any, data: DataObj, options?: DataObj) => ReturnObj;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** We use a lot of collections that contain objects with an _id key. Generally
- *  this key is unique within the collection, but derived collections may
- *  have the same _id as the original collection to indicate the relationship.
- *  In some cases, the object may not have the _id key set yet on creation,
- *  but for it to be a valid object in the collection, it must have an _id key.
- */
-export type ObjID = `${string}_${number}`; // unique id of an object within a collection
-export type ObjREF = `${string}`; // unique name of a collection
-
-export type ItemObj = { _id: ObjID; [key: string]: any }; // similar to a document in nosql
-export type ItemKeyObj = { _id: ObjID }; // used as a parameter list compatible with ItemObj
-
-export type ObjDict = { [itemName: string]: ItemObj };
-export type ObjList = ItemObj[];
+/// an UR_Item is a union of DataObj with UR_EntID
+export type UR_Item = UR_EntID_Obj & DataObj; // { _id: UR_EntID; [key: string]: any }
+export type UR_Doc = UR_Item; // doc is a single item
+/// there are multiple ways to organize UR_Items into a "bag"
+export type UR_ItemList = UR_Item[];
+export type UR_DocFolder = { [_id: UR_EntID]: UR_Doc };
+// the document manager has named Documents that are in a
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// REFS identify a unique "bag" of items in a data model, despite the type
+/// of bag it is (e.g. documents, itemlists, etc.)
+export type UR_BagRef = `${string}`;
+/// a UR_Dataset is a collection of multiple bags of items, organized by
+/// type of bag (e.g. documents, itemlists, etc.)
 export type UR_Dataset = {
-  dicts?: { [ref_name: ObjREF]: ObjDict };
-  lists?: { [ref_name: ObjREF]: ObjList };
-  // see Discussion #22 in github/dsriseah/ursys/discussions
+  schema?: UR_Schema; // see https://github.com/dsriseah/ursys/discussions/22
+  docFolders?: { [foldername: UR_BagRef]: UR_DocFolder };
+  itemlists?: { [listname: UR_BagRef]: UR_ItemList };
+  // additional items
+  // see https://github.com/dsriseah/ursys/discussions/25
   // files
   // state
   // logs
   // templates
   // config
+};
+
+/// DATASET OPERATIONS ///////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type RangeType = `gt ${any}` | `lt ${any}` | `between ${any}, ${any}`;
+export type RangeParams = { [field: string]: RangeType };
+export type SearchParams = { [field: string]: any };
+export type SortType = `none` | `ascending` | `descending` | `random`;
+export type SearchOptions = {
+  _caseSensitive?: boolean; // false
+  _forceNull?: boolean; // false
+  _forceNumAsString?: boolean; // true
+  _deepMatch?: boolean; // false
+  _cloneResults?: boolean; // true
+  preFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
+  missingFields?: string[];
+  hasFields?: string[];
+  matchExact?: DataObj;
+  matchRange?: RangeObj;
+  postFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
+};
+export type SortOptions = {
+  _cloneResults?: boolean; //
+  preFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
+  sortBy?: { [field: string]: SortType };
+  postFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
 };
