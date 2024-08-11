@@ -17,8 +17,9 @@ Features
 
 Under Development
 
-* import URSYS as a dependency into existing projects
-* other [feature porting](https://github.com/dsriseah/ursys/wiki/Catalog-of-URSYS-Modules) candidates
+* see [Closed Pull Requests](https://github.com/dsriseah/ursys/pulls?q=is:pr+is:closed) for an idea of what's new. The [Discussions](https://github.com/dsriseah/ursys/discussions) area also details current work in progress.
+* pending: import URSYS as a dependency into existing projects
+* pending: other [feature porting](https://github.com/dsriseah/ursys/wiki/Catalog-of-URSYS-Modules) candidates
 
 Check out the [Wiki](https://github.com/dsriseah/ursys/wiki) for detailed information about URSYS concepts. If you'd like to help test, see [First Install](https://github.com/dsriseah/ursys/wiki/Installation) instructions.
 
