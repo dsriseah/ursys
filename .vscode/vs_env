@@ -94,7 +94,7 @@ else
   printf "\n"
   printf "vsenv: ${ALRT}Missing .nvmrc file or .vscode folder${NRML}\n"
   printf "       This script is intended to be used within a VSCODE integrated terminal opened as a Code Workspace.\n"
-  printf "       The project folder should contain a .nvmrc file and a .vscode folder.\n"
+  printf "       The project folder should contain a .nvmrc file and a .vscode folder that has this script.\n"
 fi
 
 # for bash and zsh shells: if ./ is not in PATH, add it to end of PATH
