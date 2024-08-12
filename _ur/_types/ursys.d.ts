@@ -4,6 +4,16 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
+/// PROCESS OPERATIONS ////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// used by process.mts
+export type ReturnObj = { [key: string]: any };
+export type UR_ResultObject = {
+  error?: string;
+  errorCode?: string;
+  errorInfo?: string;
+};
+
 /// DATASET CONVENTIONS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// data models have objects with an _id field that uniquely identifies

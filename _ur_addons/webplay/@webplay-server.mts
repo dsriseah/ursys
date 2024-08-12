@@ -128,7 +128,7 @@ async function Run() {
     asset_dir: HT_ASSETS,
     output_dir: HT_DOCS,
     entry_file: CLIENT_ENTRY_FILE,
-    bundle_name: CLIENT_BUNDLE_NAME,
+    bundle_file: CLIENT_BUNDLE_FILE,
     //
     notify_cb // hot reload callback, added to esbuild events
   };
@@ -158,7 +158,7 @@ const SRC = AO_DIR; // point to addon dir
 const HT_ASSETS = PATH.join(SRC, 'assets');
 const HT_DOCS = FILE.AbsLocalPath('_ur_addons/_public');
 const CLIENT_ENTRY_FILE = 'webplay-client-entry.ts';
-const CLIENT_BUNDLE_NAME = 'client-bundle';
+const CLIENT_BUNDLE_FILE = 'client-bundle.js';
 const TSCONFIG_FILE = PATH.join(SRC, '../../tsconfig.json');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {

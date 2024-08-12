@@ -29,7 +29,7 @@ async function ESBuildApp() {
     entryPoints: [`${SRC}/midi-init.ts`],
     bundle: true,
     loader: { '.js': 'jsx' },
-    target: 'es2020',
+    target: 'es2022',
     platform: 'browser',
     format: 'iife',
     sourcemap: true,
