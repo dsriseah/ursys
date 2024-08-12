@@ -86,8 +86,8 @@
     "_ur/**/*.mts",
     "_ur_addons/**/*.ts",
     "_ur_addons/**/*.mts",
-    "*-app/**/*.ts",
-    "*-app/**/*.mts",
+    "example/**/*.ts",
+    "example/**/*.mts",
     "app-*/**/*.ts",
     "app-*/**/*.mts"
   ],
@@ -97,6 +97,7 @@
     "node_modules",
     "_ur/node_modules",
     "_ur_addons/node_modules",
-    "*-app/node_modules"
+    "example/node_modules",
+    "app-*/node_modules"
   ]
 }
