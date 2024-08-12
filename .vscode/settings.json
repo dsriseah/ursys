@@ -17,5 +17,6 @@
     "typescriptreact"
   ],
   "git.detectSubmodules": false,
-  "git.ignoreSubmodules": true
+  "git.ignoreSubmodules": true,
+  "typescript.suggest.autoImports": true
 }

@@ -21,7 +21,7 @@ type BuildOptions = {
   //
   entry_file?: string; // main entry file for the app
   index_file?: string; // default index file for web server
-  bundle_name?: string; // (opt) short name for the bundle
+  bundle_file?: string; // (opt) short name for the bundle
   notify_cb?: NotifyCallback; // (opt) callback to notify on build
   //
   error?: string; // (opt) error message...if present, options are invalid
@@ -63,7 +63,7 @@ function GetBuildOptions(): BuildOptions {
     entry_file: ENTRY_FILE,
     index_file: INDEX_FILE,
     // optional values
-    bundle_name: BUNDLE_NAME,
+    bundle_file: BUNDLE_NAME,
     notify_cb: NOTIFY_CB
   };
 }
@@ -77,7 +77,7 @@ function SetBuildOptions(opts: BuildOptions) {
     output_dir,
     entry_file,
     index_file,
-    bundle_name,
+    bundle_file,
     notify_cb
   } = opts;
   const valid = source_dir && asset_dir && output_dir;
@@ -87,7 +87,7 @@ function SetBuildOptions(opts: BuildOptions) {
   PUBLIC = output_dir;
   ENTRY_FILE = entry_file;
   INDEX_FILE = index_file;
-  BUNDLE_NAME = bundle_name;
+  BUNDLE_NAME = bundle_file;
   NOTIFY_CB = notify_cb;
   return GetBuildOptions();
 }
@@ -100,9 +100,10 @@ function SetBuildOptions(opts: BuildOptions) {
 async function BuildApp(opts: BuildOptions) {
   const fn = 'BuildApp:';
   // save options for later. these are NOT esbuild-specific options
-  let { bundle_name, entry_file, notify_cb } = SetBuildOptions(opts);
+  let { bundle_file, entry_file, notify_cb } = SetBuildOptions(opts);
   // option: default bundle name to entry file name if not set
-  if (!bundle_name) bundle_name = path.basename(entry_file);
+  if (!bundle_file) bundle_file = path.basename(entry_file);
+  if (bundle_file.endsWith('.js')) bundle_file = bundle_file.slice(0, -3);
   // ensure the output directory exists
   fse.ensureDir(PUBLIC);
   // build the webapp and stuff it into public
@@ -110,11 +111,11 @@ async function BuildApp(opts: BuildOptions) {
     entryPoints: [`${SRC_JS}/${entry_file}`],
     bundle: true,
     loader: { '.js': 'jsx' },
-    target: 'es2020',
+    target: 'es2022',
     platform: 'browser',
-    format: 'iife',
+    format: 'esm',
     sourcemap: true,
-    outfile: `${PUBLIC}/js/${bundle_name}.js`,
+    outfile: `${PUBLIC}/js/${bundle_file}.js`,
     plugins: [
       // @ts-ignore - esbuild-plugin-copy not in types
       copy({

@@ -11,6 +11,10 @@
 import * as PROMPTS from '../common/util-prompts.ts';
 import * as TEXT from '../common/util-text.js';
 import * as NORM from '../common/util-data-norm.ts';
+
+// core UR modules
+import * as UR from './urnet-browser.ts';
+
 // typescript classes
 import OpSequencer from '../common/class-op-seq.ts';
 import StateMgr from '../common/class-state-mgr.ts';
@@ -20,6 +24,7 @@ import NetSocket from '../common/class-urnet-socket.ts';
 import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetPacket from '../common/class-urnet-packet.ts';
 import PhaseMachine from '../common/class-phase-machine.ts';
+
 // constants
 import {
   HTTP_CLIENT_INFO,
@@ -58,7 +63,9 @@ function ClientTest(): void {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  //
+  // core ur modules for client
+  UR,
+  // ur utility modules
   PROMPTS,
   TEXT,
   NORM,

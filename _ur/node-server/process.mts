@@ -18,11 +18,7 @@ import * as FILE from './file.mts';
 
 /// TYPES DECLARATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { ReturnObj } from '~ur/types/ursys.d.ts';
-
-/// TYPE DECLARATIONS /////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { UR_ResultObject } from '~ur/types/ursys.d.ts';
+import type { ReturnObj, UR_ResultObject } from '~ur/types/ursys.d.ts';
 
 /// SUPPORT METHODS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

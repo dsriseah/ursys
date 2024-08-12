@@ -5,15 +5,14 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-// cjs-style modules
-import * as PROMPTS from '../common/util-prompts.js';
-// typescript classes
+import * as PROMPT from '../common/util-prompts.ts';
 import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetSocket from '../common/class-urnet-socket.ts';
+import type { NP_Msg, NP_Address, NM_Handler } from '../_types/urnet.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const PR = PROMPTS.makeStyleFormatter('URNET', 'TagPurple');
+const PR = PROMPT.makeStyleFormatter('URNET', 'TagPurple');
 const LOG = console.log.bind(console);
 const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,8 +42,8 @@ function m_DisconnectListener() {
 /// CLIENT API ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Create a client connection to the HTTP/WS server */
-function Connect(): Promise<boolean> {
-  const wss_url = '/webplay-ws';
+function Connect(wsPath?: string): Promise<boolean> {
+  const wss_url = wsPath || '/urnet-ws';
   const promiseConnect = new Promise<boolean>(resolve => {
     SERVER_LINK = new WebSocket(wss_url);
     SERVER_LINK.addEventListener('open', async () => {
@@ -118,6 +117,17 @@ function Disconnect(seconds = TIMEOUT) {
     });
   });
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Add a message handler to the URNET endpoint, which can be registered
+ *  with the server with RegisterMessages()
+ */
+function AddMessageHandler(msg: NP_Msg, callback: NM_Handler) {
+  const fn = 'AddMessageHandler:';
+  if (!EP.uaddr) {
+    throw Error(`${fn}: endpoint not configured? uaddr is ${EP.uaddr}`);
+  }
+  EP.addMessageHandler(msg, callback);
+}
 
 /// EXAMPLE USE ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -136,6 +146,7 @@ async function EX_Start() {
 export {
   /* MAIN API */
   Connect, // create a client connection to the HTTP/WS server
+  AddMessageHandler, // add a message handler to the URNET endpoint
   RegisterMessages, // delare message handlers and register after authentation
   Disconnect, // force close the client connection
   /* EXAMPLE USE */
