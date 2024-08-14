@@ -27,6 +27,11 @@ const STRINGS = {
   'meme:pr-1abc': false // non-numeric id
 };
 
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:
+
+  Test the STRINGS table above, executing a complete test for each case
+  
+:*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 let ii = 0;
 for (const id of Object.keys(STRINGS)) {
   const e = STRINGS[id];

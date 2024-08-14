@@ -47,6 +47,7 @@ type PM_Hook = {
   exit?: PM_HookFunction;
 };
 type PM_HookEvent = 'enter' | 'exit' | 'exec';
+type PM_ExecutorArray = [Function[], Promise<void>[]];
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -156,29 +157,28 @@ class PhaseMachine {
    *  returns a Promise, the function will wait for it to resolve before
    *  returning.
    */
-  _promisePhase(
-    phid: PM_PhaseID,
-    event: PM_HookEvent = 'exec'
-  ): Promise<void[]> | void {
-    const fn = '_promisePhase:';
-    // note: contents of PHASE_HOOKs are promise-generating functions
+  _handleExecutors(phid: PM_PhaseID, evt: PM_HookEvent = 'exec'): Promise<void[]> {
+    const fn = '_handleExecutors:';
+    // housekeeping for phase group
     if (phid.startsWith('PHASE_')) this.cur_group = phid;
     else {
       this.cur_group = this.phase_membership.get(phid);
       this.cur_phase = phid;
     }
-    // check that there are promises to execute
+    // check that there are executors to run
     let hooks = this.phase_hooks.get(phid);
     if (hooks.length === 0) return Promise.resolve([]);
-    // got this far, then invoke the hooks
+    // got this far, there is a mix of functions and promises
     const promises = [];
     hooks.forEach(hook => {
-      const fn = hook[event];
-      if (typeof fn !== 'function') throw Error(`${fn} '${event}' is not defined`);
-      const fname = `fn_${event}`;
+      const fn = hook[evt];
+      // first run the executor function
+      if (typeof fn !== 'function') throw Error(`${fn} '${evt}' is not defined`);
       let retval = fn(this.pm_name, phid); // can return void or promise <void>
+      // if the executor returns a promise, add it to the promises array
       if (retval instanceof Promise) promises.push(retval);
     });
+    // suspend operation until all promises have resolved for this phase
     if (promises.length > 0) return Promise.all(promises);
   }
 
@@ -186,24 +186,25 @@ class PhaseMachine {
    *  waiting for each to resolve before executing the next. If there are hooks
    *  associated with the PhaseGroup, they fire after all Phases have completed.
    */
-  async execPhaseGroup(pgroup: string, event: PM_HookEvent = 'exec') {
+  async execPhaseGroup(pgroup: string, evt: PM_HookEvent = 'exec') {
     const fn = 'execPhaseGroup:';
+    // housekeeping for phase group
     this.cur_group = pgroup;
-    if (DBG) LOG(`${fn} EXECUTING ${pgroup}`);
+    if (DBG) LOG(`${fn} executing group ${pgroup}`);
     // processes phases inside group first
     const phaseList = this.phase_def[pgroup];
     if (phaseList.length === 0) return;
-    for (const phase of phaseList) await this._promisePhase(phase, event);
+    for (const phase of phaseList) await this._handleExecutors(phase, evt);
     // then process group hooks
-    await this._promisePhase(pgroup, event);
+    await this._handleExecutors(pgroup, evt);
   }
 
   /** helper: return hook function array for a given phase or phase group.
    *  It defaults to returning the 'exec' function.
    */
-  getHookFunctions(phid: PM_PhaseID, event: PM_HookEvent = 'exec') {
+  getHookFunctions(phid: PM_PhaseID, evt: PM_HookEvent = 'exec') {
     const hooks = this.phase_hooks.get(phid);
-    return hooks.map(hook => hook[event]);
+    return hooks.map(hook => hook[evt]);
   }
 
   /** helper: check for phase group membership */
@@ -252,11 +253,11 @@ class PhaseMachine {
   static HookPhase(
     selector: PM_HookSelector,
     fn: PM_HookFunction,
-    event: PM_HookEvent = 'exec'
+    evt: PM_HookEvent = 'exec'
   ) {
     const [machine, phase] = m_DecodeHookSelector(selector);
     const pm = m_machines.get(machine);
-    const hook = { phase, [event]: fn };
+    const hook = { phase, [evt]: fn };
     // if the phase machine exists, add the hook
     if (pm) {
       pm.addHook(phase, hook);
@@ -272,15 +273,12 @@ class PhaseMachine {
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** API: Execute a PhaseGroup in a machine. If the machine doesn't yet exist,
    *  the function will throw an error. */
-  static async RunPhaseGroup(
-    selector: PM_HookSelector,
-    event: PM_HookEvent = 'exec'
-  ) {
+  static async RunPhaseGroup(selector: PM_HookSelector, evt: PM_HookEvent = 'exec') {
     const [machine, phaseID] = m_DecodeHookSelector(selector);
     const pm = m_machines.get(machine);
     if (!pm) throw Error(`machine '${machine}' not yet defined`);
     const phaseGroup = m_DecodePhaseGroup(pm, phaseID);
-    await pm.execPhaseGroup(phaseGroup, event);
+    await pm.execPhaseGroup(phaseGroup, evt);
   }
 
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -307,13 +305,13 @@ class PhaseMachine {
 function HookPhase(
   selector: PM_HookSelector,
   fn: PM_HookFunction,
-  event: PM_HookEvent
+  evt: PM_HookEvent
 ) {
-  PhaseMachine.HookPhase(selector, fn, event);
+  PhaseMachine.HookPhase(selector, fn, evt);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function RunPhaseGroup(selector: PM_HookSelector, event: PM_HookEvent) {
-  PhaseMachine.RunPhaseGroup(selector, event);
+function RunPhaseGroup(selector: PM_HookSelector, evt: PM_HookEvent) {
+  PhaseMachine.RunPhaseGroup(selector, evt);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function NewPhaseMachine(name: PM_Name, phases: PM_Definition) {
