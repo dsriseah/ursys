@@ -40,13 +40,25 @@ let PM: PhaseMachine;
   could be considered as a "loop" or "cycle" of phases as seen in GEMSTEP.
   
 :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-test('PhaseMachine should construct', () => {
+test('construct and check phase selectors', () => {
   PM = new PhaseMachine('UR', {
     PHASE_INIT: ['INITIALIZE', 'DOM_READY', 'PRE_CONNECT', 'CONNECT', 'CONNECTED'],
     PHASE_CONFIG: ['LOAD_ASSETS', 'CONFIG_APP', 'CONFIG_START', 'APP_READY'],
-    PHASE_TEST: ['HOOK_0', 'HOOK_1', 'HOOK_2']
+    PHASE_ORDER: ['ORDER_0', 'ORDER_1'],
+    PHASE_EVENT: ['EVENT_0', 'EVENT_1']
   });
   expect(PM).toBeDefined();
+  // bad syntax
+  expect(() => PM.hasHook('PUMPKIN')).toThrowError();
+  expect(() => PM.hasHook('ur/INITIALIZE')).toThrowError();
+  expect(() => PM.hasHook('ur/initialize')).toThrowError();
+  expect(PM.hasHook('UR/INITIALIZE')).toBe(true);
+  // exists in definition
+  expect(PM.hasHook('UR/PHASE_INIT')).toBe(true);
+  expect(PM.hasHook('UR/ORDER_0')).toBe(true);
+  // doesn't exit
+  expect(PM.hasHook('UR/PUMPKIN')).toBe(false);
+  expect(PM.hasHook('RANDO/SOMETHING_PHASE')).toBe(false);
 });
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:
@@ -70,9 +82,9 @@ test('define hooks out of order, still executes in order', async () => {
   PhaseMachine.HookPhase('UR/APP_READY', () => {
     out.push('APP_READY');
   });
-  await PM.execPhaseGroup('PHASE_INIT');
+  await PhaseMachine.RunPhaseGroup('UR/PHASE_INIT');
   expect(out).toEqual(['INITIALIZE']);
-  await PM.execPhaseGroup('PHASE_CONFIG');
+  await PhaseMachine.RunPhaseGroup('UR/PHASE_CONFIG');
   const match = ['INITIALIZE', 'LOAD_ASSETS', 'APP_READY', 'PHASE_CONFIG'];
   expect(out).toEqual(match);
 });
@@ -84,12 +96,12 @@ test('define hooks out of order, still executes in order', async () => {
   as expected, running in parallel. Multiple ways of defining the promise.
   
 :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-test('test expected execution order', async () => {
+test('expected execution order', async () => {
   const done = []; // completion order
   const invk = []; // invocation order
 
   // Hook Async 500 using async/await
-  PhaseMachine.HookPhase('UR/HOOK_0', async () => {
+  PhaseMachine.HookPhase('UR/ORDER_0', async () => {
     invk.push('500'); // invocation order
     await new Promise(resolve => setTimeout(resolve, 500));
     // note that this has to happen AFTER the promise resolves
@@ -98,13 +110,13 @@ test('test expected execution order', async () => {
     expect(done).toEqual(['0', '250', '500']);
   });
   // Hook No Async
-  PhaseMachine.HookPhase('UR/HOOK_0', () => {
+  PhaseMachine.HookPhase('UR/ORDER_0', () => {
     invk.push('0');
     done.push('0');
     expect(done).toEqual(['0']);
   });
   // Hook Async 250 using return Promise
-  PhaseMachine.HookPhase('UR/HOOK_0', () => {
+  PhaseMachine.HookPhase('UR/ORDER_0', () => {
     invk.push('250');
     return new Promise(resolve => {
       setTimeout(() => {
@@ -116,7 +128,46 @@ test('test expected execution order', async () => {
       }, 250);
     });
   });
-  await PM.execPhaseGroup('PHASE_TEST');
+  await PhaseMachine.RunPhaseGroup('UR/PHASE_ORDER');
   expect(done).toEqual(['0', '250', '500']);
   expect(invk).toEqual(['500', '0', '250']);
+});
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:
+
+  PhaseMachines implement events in each phase: 'enter', 'exec', and 'exit'.
+  When using HookPhase, the default is 'exec', but you can override it by 
+  as follows. e.g. HookPhase('UR/INITIALIZE:enter). Then, when 
+  RunPhaseGroup('UR/INITIALIZE') is called, all phases should execute in groups
+  of 'enter', 'exec', and 'exit'.
+  
+:*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+test('expected phase events order', async () => {
+  const done = []; // completion order
+  const invk = []; // invocation order
+
+  expect(done).toEqual([]);
+  expect(invk).toEqual([]);
+
+  // Hook No Async '1:enter'
+  PhaseMachine.HookPhase('UR/EVENT_1:enter', () => {
+    invk.push('1:enter');
+    done.push('1:enter');
+    expect(done).toEqual(['0:exec', '0:exit', '1:enter']);
+  });
+  // Hook No Async '0:exec'
+  PhaseMachine.HookPhase('UR/EVENT_0:exec', () => {
+    invk.push('0:exec');
+    done.push('0:exec');
+    expect(done).toEqual(['0:exec']);
+  });
+  // Hook Async '0:exit'
+  PhaseMachine.HookPhase('UR/EVENT_0:exit', async () => {
+    invk.push('0:exit');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    done.push('0:exit');
+    expect(done).toEqual(['0:exec', '0:exit']);
+  });
+
+  await PhaseMachine.RunPhaseGroup('UR/PHASE_EVENT');
 });
