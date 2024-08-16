@@ -18,7 +18,7 @@ import type {
   UR_Doc, // { _ref: UR_BagRef; [key: string]: any }
   UR_DocFolder, // { [ref_name: UR_BagRef]: UR_Doc }
   UR_Item // { _id: UR_EntID; [key: string]: any }
-} from '~ur/types/ursys.d.ts';
+} from '../_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

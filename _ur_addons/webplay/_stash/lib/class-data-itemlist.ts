@@ -17,7 +17,7 @@ import type {
   UR_BagRef,
   UR_Item,
   UR_ItemList
-} from '~ur/types/ursys.d.ts';
+} from '../_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

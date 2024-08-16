@@ -14,7 +14,7 @@ import type {
   UR_DocFolder,
   SearchOptions,
   SortOptions
-} from '~ur/types/ursys.d.ts';
+} from '../_types/dataset.d.ts';
 
 /// DATA OPERATIONS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

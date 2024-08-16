@@ -1,13 +1,27 @@
+/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
+
+  URSYS NETWORK (URNET) TYPES
+
+\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
+
 /// BASIC NETPACKET TYPES //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** note that these string types have mirrored declarations in util-urnet.ts **/
+export type NP_AddrPre = '???' | 'UR_' | 'WSS' | 'UDS' | 'MQT' | 'SRV';
+export type NP_Address = `${NP_AddrPre}${number}`; // range set by UADDR_DIGITS
 export type NP_ID = `pkt[${NP_Address}:${number}]`;
-export type NP_Chan = (typeof VALID_MSG_CHANNELS)[number];
-export type NP_Type = (typeof VALID_PKT_TYPES)[number];
+export type NP_Chan = 'SYNC' | 'NET' | 'SRV' | 'LOCAL' | '';
+export type NP_Type =
+  | 'ping'
+  | 'signal'
+  | 'send'
+  | 'call'
+  | '_auth' // special packet
+  | '_reg' // special packet
+  | '_decl'; // special packet
 export type NP_Msg = `${NP_Chan}${string}`; // e.g. 'NET:HELLO' or 'HELLO'
 export type NP_Data = any;
 export type NP_Dir = 'req' | 'res';
-export type NP_AddrPre = (typeof VALID_ADDR_PREFIX)[number];
-export type NP_Address = `${NP_AddrPre}${number}`; // range set by UADDR_DIGITS
 
 /// NETPACKET-RELATED TYPES ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

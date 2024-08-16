@@ -46,7 +46,8 @@ import type {
 
 /// RUNTIME UTILITIES /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export const VALID_MSG_CHANNELS = ['NET', 'SRV', 'LOCAL', ''] as const;
+/** note: these runtime checks have mirrored declarations in ursys.d.ts **/
+export const VALID_MSG_CHANNELS = ['SYNC', 'NET', 'SRV', 'LOCAL', ''] as const;
 export const VALID_PKT_TYPES = [
   'ping',
   'signal',
@@ -56,8 +57,8 @@ export const VALID_PKT_TYPES = [
   '_reg', // special packet
   '_decl' // special packet
 ] as const;
-export const SKIP_SELF_PKT_TYPES = ['call', 'send'];
 export const VALID_ADDR_PREFIX = ['???', 'UR_', 'WSS', 'UDS', 'MQT', 'SRV'] as const;
+export const SKIP_SELF_PKT_TYPES = ['call', 'send'];
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export const UADDR_DIGITS = 3; // number of digits in UADDR (padded with 0)
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
