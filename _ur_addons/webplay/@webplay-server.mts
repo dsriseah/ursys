@@ -7,6 +7,7 @@
 
 import { FILE, PROMPTS, PR } from '@ursys/core';
 import { APPSERV, APPBUILD } from '@ursys/core';
+import { CLASS } from '@ursys/core';
 import PATH from 'node:path';
 import FS from 'node:fs';
 import { exec } from 'node:child_process';
@@ -16,6 +17,11 @@ import { exec } from 'node:child_process';
 type TSOptions = { field: string; value: any };
 import type { BuildOptions } from '@ursys/core';
 
+/// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { PhaseMachine } = CLASS;
+const { BLU, YEL, RED, DIM, NRM } = PROMPTS.ANSI;
+
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const [AO_NAME, AO_DIR] = FILE.DetectedAddonDir();
@@ -23,9 +29,13 @@ const ADDON = AO_NAME.toUpperCase();
 const [script_name, ...script_args] = process.argv.slice(2);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const { BLU, YEL, RED, DIM, NRM } = PROMPTS.ANSI;
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = PR(ADDON, 'TagCyan');
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let PM: typeof PhaseMachine;
+
+/// IMPORTED HELPER METHODS ///////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { HookPhase, RunPhaseGroup, GetMachine } = PhaseMachine; // static
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -91,23 +101,13 @@ function m_RuntimeHelp() {
     LOG('CTRL-C TO EXIT. PRESS RETURN');
   }, 5000);
 }
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** RUNTIME: Run tests */
-function RunTests() {
-  const cli = `npx vitest --config ./${script_name}/webplay-vitest-config.mts`;
-  // exec cli and echo output to terminal
-  exec(cli, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`exec error: ${error}`);
-      return;
-    }
-    console.log(`stdout: ${stdout}`);
-    console.error(`stderr: ${stderr}`);
-  });
-}
+
+/// SERVER STARTUP ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** RUNTIME: Main function */
-async function Run() {
+async function Build() {
+  const fn = 'Build:';
+  LOG(`${fn} Building WebPlay Sources`);
   // define the hot reload callback function
   const notify_cb = payload => {
     const { changed } = payload || {};
@@ -151,6 +151,38 @@ async function Run() {
   LOG(`imported server modules: ${YEL}${mtsFiles.join(' ')}${NRM}`);
   m_RuntimeHelp();
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: initialize the server's lifecycle */
+async function UR_StartLifecycle() {
+  const fn = 'UR_StartLifecycle:';
+  LOG(`${fn} Starting WebPlay Server`);
+  PM = new PhaseMachine('URSYS', {
+    PHASE_INIT: [
+      'SRV_BOOT', // boot the system
+      'SRV_INIT' // initialize the system
+    ],
+    PHASE_LOAD: [
+      'LOAD_FILES', // load data from server
+      'LOAD_CONFIG' // load configuration
+    ],
+    PHASE_CONNECT: [
+      'EXPRESS_CONFIG', // express add middleware routes
+      'EXPRESS_READY', // express server is ready to start
+      'EXPRESS_LISTEN', // express server is listening
+      'URNET_LISTEN' // ursys network is listening on socket-ish connection
+    ],
+    PHASE_CONFIG: ['SRV_CONFIG'],
+    PHASE_READY: ['SRV_READY'],
+    PHASE_RUN: ['SRV_RUN']
+  });
+  LOG(`${fn} Executing Phase Groups`);
+  await RunPhaseGroup('URSYS/PHASE_INIT');
+  await RunPhaseGroup('URSYS/PHASE_CONNECT');
+  await RunPhaseGroup('URSYS/PHASE_LOAD');
+  await RunPhaseGroup('URSYS/PHASE_CONFIG');
+  await RunPhaseGroup('URSYS/PHASE_READY');
+  await RunPhaseGroup('URSYS/PHASE_RUN');
+}
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -166,5 +198,6 @@ const TSCONFIG_FILE = PATH.join(SRC, '../../tsconfig.json');
   LOG(
     `${BLU}QUICKSTART: ts and mts files are autoloaded from './_stash and _scratch'${NRM}`
   );
-  await Run();
+  await Build();
+  await UR_StartLifecycle();
 })();

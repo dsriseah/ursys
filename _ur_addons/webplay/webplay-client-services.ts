@@ -35,6 +35,8 @@ function m_Sleep(ms: number, resolve?: Function): Promise<void> {
     }, ms)
   );
 }
+
+/// IMPORTED HELPER METHODS ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { HookPhase, RunPhaseGroup, GetMachine } = PhaseMachine;
 
@@ -85,6 +87,7 @@ async function RegisterMessages() {
   // declare messages to server
   const resdata = await EP.declareClientMessages();
   LOG(...PR(`RegisterMessages: ${resdata.error || 'success'}`));
+  LOG(resdata);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** force close the client connection, after waiting for the prescribed number
@@ -100,18 +103,43 @@ function Disconnect(seconds = TIMEOUT) {
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return the NetEndpoint instance */
-function GetEndpoint() {
+/** API: return the NetEndpoint instance */
+function Endpoint() {
+  if (!EP) throw Error('Endpoint not initialized');
   return EP;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: export the endpoint's addMessageHandler method */
 function AddMessageHandler(message: string, callback: Function) {
   EP.addMessageHandler(message, callback);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** initialize the client connection */
-async function Initialize() {
-  const fn = 'Initialize:';
+/** Convenience method for hooking into the phase machine */
+async function HookPhases() {
+  const fn = 'HookPhases:';
+  LOG(...PR(`${fn} Hooking Phase Selectors`));
+  HookPhase('WEBPLAY/DOM_READY', (p, m) => {
+    LOG(...PR(`${p}/${m} DOM Ready`));
+    const promise = PromiseConnect();
+    LOG(...PR(`...initiating connection`));
+    return promise;
+  });
+  HookPhase('WEBPLAY/NET_CONNECT', async (p, m) => {
+    AddMessageHandler('NET:UR_HOT_RELOAD_APP', () => {
+      LOG(...PR(`UR_HOT_RELOAD_APP`));
+      window.location.reload();
+    });
+    LOG(...PR(`${p}/${m} Connecting to URNET`));
+  });
+  HookPhase('WEBPLAY/NET_DECLARE', async (p, m) => {
+    await RegisterMessages();
+  });
+}
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** initialize the client lifecycle */
+async function UR_StartLifecycle() {
+  const fn = 'UR_StartLifecycle:';
   PM = new PhaseMachine('WEBPLAY', {
     PHASE_INIT: [
       'SYS_BOOT', // boot the system
@@ -119,10 +147,12 @@ async function Initialize() {
       'DOM_READY' // web page has rendered
     ],
     PHASE_CONNECT: [
-      'NET_CONNECT', // connected to URNET
-      'NET_AUTH', // authenticate with URNET
-      'NET_REGISTER', // register with URNET
-      'NET_DECLARE' // declare messages to URNET
+      'NET_CONNECT', // websocket is connected
+      'NET_AUTH', // hook for authentication setup
+      'NET_REGISTER', // hook for registration info
+      'NET_READY', // ursys network is active and registered
+      'NET_DECLARE', // hook for declaring messages to URNET
+      'NET_ACTIVE' // system is listen for messages
     ],
     PHASE_LOAD: [
       'LOAD_DATA', // load data from server
@@ -133,22 +163,6 @@ async function Initialize() {
     PHASE_READY: ['APP_READY'],
     PHASE_RUN: ['APP_RUN']
   });
-  LOG(...PR(`${fn} Hooking Phase Selectors`));
-  HookPhase('WEBPLAY/DOM_READY', (p, m) => {
-    LOG(...PR(`${p}/${m} DOM Ready`));
-    const promise = PromiseConnect();
-    LOG(...PR(`...initiating connection`));
-    return promise;
-  });
-  HookPhase('WEBPLAY/NET_CONNECT', (p, m) => {
-    AddMessageHandler('NET:UR_HOT_RELOAD_APP', () => {
-      LOG(...PR(`UR_HOT_RELOAD_APP`));
-      window.location.reload();
-    });
-    RegisterMessages();
-    LOG(...PR(`${p}/${m} Connecting to URNET`));
-  });
-
   LOG(...PR(`${fn} Executing Phase Groups`));
   await RunPhaseGroup('WEBPLAY/PHASE_INIT');
   await RunPhaseGroup('WEBPLAY/PHASE_CONNECT');
@@ -158,15 +172,22 @@ async function Initialize() {
   await RunPhaseGroup('WEBPLAY/PHASE_RUN');
 }
 
+/// RUNTIME ///////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(async () => {
+  await HookPhases();
+  await UR_StartLifecycle();
+})();
+
 /// EXPORTS ////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  Initialize, // initialize the client connection
+  UR_StartLifecycle, // initialize the client connection
   PromiseConnect, // create a client connection to the HTTP/WS server
   Disconnect, // force close the client connection
   RegisterMessages, // declare message handlers and register with server
   AddMessageHandler, // add a message handler to the NetEndpoint instance
   //
-  GetEndpoint, // return the NetEndpoint instance
+  Endpoint, // return the NetEndpoint instance
   HookPhase // add a callback to an event
 };

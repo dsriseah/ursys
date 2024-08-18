@@ -21,6 +21,6 @@ const LOG = console.log.bind(console);
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
-  SERVICE.Initialize(); // force load of module
+  SERVICE.UR_StartLifecycle(); // force load of module
   LOG(...PR('WEBPLAY READY'));
 })();
