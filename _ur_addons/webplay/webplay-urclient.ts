@@ -38,7 +38,7 @@ function m_Sleep(ms: number, resolve?: Function): Promise<void> {
 
 /// IMPORTED HELPER METHODS ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { HookPhase, RunPhaseGroup, GetMachine } = PhaseMachine;
+const { HookPhase, RunPhaseGroup } = PhaseMachine;
 
 /// CLIENT API ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -176,7 +176,6 @@ async function UR_StartLifecycle() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
   await HookPhases();
-  await UR_StartLifecycle();
 })();
 
 /// EXPORTS ////////////////////////////////////////////////////////////////////

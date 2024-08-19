@@ -194,13 +194,13 @@ export function IsLocalMessage(msg: NP_Msg): boolean {
 /** return true if message is a network request */
 export function IsNetMessage(msg: NP_Msg): boolean {
   const [chan] = DecodeMessage(msg);
-  return chan === 'NET' || chan === 'SRV';
+  return chan === 'NET' || chan === 'SRV' || chan === 'SYNC';
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if message is implemented by main URNET server */
 export function IsServerMessage(msg: NP_Msg): boolean {
   const [chan] = DecodeMessage(msg);
-  return chan === 'SRV';
+  return chan === 'SRV' || chan === 'SYNC';
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a packet, return a unique hash string */

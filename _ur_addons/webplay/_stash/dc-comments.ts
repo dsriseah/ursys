@@ -6,7 +6,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler } from '@ursys/core';
-import { GetEndpoint, HookPhase } from '../webplay-client-services.ts';
+import { Endpoint, HookPhase, AddMessageHandler } from '../webplay-urclient.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,24 +21,59 @@ const LOG = console.log.bind(console);
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Initialize() {
+
+/// RUNTIME ///////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(async () => {
   LOG(...PR('DC-Comments Initializing'));
-  HookPhase('WEBPLAY/APP_READY', () => {
-    LOG(...PR('DC-Comments Ready'));
+
+  /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:
+    APP_CONFIG allows data structures to initialize to starting values
+  :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+  HookPhase('WEBPLAY/NET_REGISTER', () => {
+    LOG(...PR('DC-Comments NetRegister'));
+
+    // client implements these sync handlers
+    AddMessageHandler('SYNC:DATA_CLIENT', (data: any) => {});
+    AddMessageHandler('SYNC:STATE_CLIENT', async (data: any) => {});
   });
+
+  /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:
+    LOAD_DATA happens early to fetch critical data from wherever it's stored.
+  :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+  HookPhase('WEBPLAY/LOAD_DATA', async () => {
+    LOG(...PR('DC-Comments LoadData'));
+    const request = {
+      bagRef: 'comments'
+    };
+    await Endpoint()
+      .netCall('SYNC:GET_DATA', request)
+      .then(data => {
+        LOG(...PR('DC-Comments Data got'), data);
+      });
+  });
+
+  /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:
+    APP_READY is when the app is ready to start running, but hasn't yet.
+    Might be a good place to set up modes and initial user interface states.
+  :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+  HookPhase('WEBPLAY/APP_READY', () => {
+    LOG(...PR('DC-Comments AppReady'));
+    // srv-comments implements message API
+  });
+
+  /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:
+    APP_RUN is when the app is starting to run, used to start main processes.
+  :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
   HookPhase('WEBPLAY/APP_RUN', () => {
     LOG(...PR('DC-Comments Running'));
-    const EP = GetEndpoint();
+    const EP = Endpoint();
     EP.netCall('NET:DC_HANDLER', { data: 'hello' }).then(data => {
       LOG(...PR('DC-Handler Response'), data);
     });
   });
-}
-
-/// RUNTIME ///////////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Initialize();
+})();
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export { Initialize };
+export {};
