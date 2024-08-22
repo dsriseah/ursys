@@ -151,6 +151,27 @@ class PhaseMachine {
     m_ProcessHookQueue(pmName);
   } // end constructor
 
+  /// GETTER SETTER ///
+
+  /** setter: update current phase */
+  set cur_phase(phase: PhaseID) {
+    this.pm_state._cur_phase = phase;
+  }
+  /** setter: update current phase group */
+  set cur_group(group: PhaseID) {
+    this.pm_state._cur_group = group;
+  }
+  /** getter: return current phase */
+  get cur_phase() {
+    return this.pm_state._cur_phase;
+  }
+  /** getter: return current phase group */
+  get cur_group() {
+    return this.pm_state._cur_group;
+  }
+
+  /// PHASE OPERATIONS ///
+
   /** API: register an Operations Handler. <op> is a string constant
    *  define in phase_def and converted into the MAP. <f> is a function that
    *  will be invoked during the operation, and it can return a promise or value.
@@ -204,7 +225,7 @@ class PhaseMachine {
     this.cur_group = pgroup;
     // LOG(`${fn} executing group ${pgroup}`);
     // process the group enter hooks
-    await this._promiseHookEvaluation(pgroup, 'enter');
+    await this._promiseHookEvaluation(pgroup, 'enter'); // prgroup is just another named phase in this context
     // processes phases inside group first
     const phaseList = this.phase_def[pgroup];
     if (phaseList.length === 0) return;
@@ -214,8 +235,8 @@ class PhaseMachine {
       await this._promiseHookEvaluation(phase, 'exit');
     }
     // then process remaining group hooks
-    await this._promiseHookEvaluation(pgroup, 'exec');
-    await this._promiseHookEvaluation(pgroup, 'exit');
+    await this._promiseHookEvaluation(pgroup, 'exec'); // just another named phase
+    await this._promiseHookEvaluation(pgroup, 'exit'); // just another named phase
   }
 
   /** helper: return hook function array for a given phase or phase group.
@@ -253,26 +274,6 @@ class PhaseMachine {
     return phaseInfo;
   }
 
-  /** setter: update current phase */
-  set cur_phase(phase: PhaseID) {
-    this.pm_state._cur_phase = phase;
-  }
-
-  /** setter: update current phase group */
-  set cur_group(group: PhaseID) {
-    this.pm_state._cur_group = group;
-  }
-
-  /** getter: return current phase */
-  get cur_phase() {
-    return this.pm_state._cur_phase;
-  }
-
-  /** getter: return current phase group */
-  get cur_group() {
-    return this.pm_state._cur_group;
-  }
-
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** API: Register a PhaseHook at any time. If the machine doesn't yet exist,
    *  the hook will be queued until the machine is created */
@@ -292,14 +293,19 @@ class PhaseMachine {
     m_ProcessHookQueue(machine);
   }
 
+  /// STATIC CLASS API ///
+
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** API: Execute a PhaseGroup in a machine. If the machine doesn't yet exist,
    *  the function will throw an error. */
   static async RunPhaseGroup(selector: HookSelector) {
+    const fn = 'RunPhaseGroup:';
     const [machine, phaseID] = m_DecodeHookSelector(selector);
     const pm = m_machines.get(machine);
     if (!pm) throw Error(`machine '${machine}' not yet defined`);
     const phaseGroup = m_DecodePhaseGroup(pm, phaseID);
+    if (phaseGroup === undefined)
+      throw Error(`${fn} phaseGroup '${phaseID}' is undefined`);
     await pm.invokeGroupHooks(phaseGroup);
   }
 
