@@ -6,7 +6,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { FILE, PROMPTS, PR } from '@ursys/core';
-import { UR_StartLifecycle, UR_Build } from './webplay-server-services.mts';
+import { UR_StartLifecycle, UR_Build } from './webplay-svc-server.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

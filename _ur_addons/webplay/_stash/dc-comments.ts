@@ -6,7 +6,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler } from '@ursys/core';
-import { Endpoint, HookPhase, AddMessageHandler } from '../webplay-urclient.ts';
+import { Endpoint, HookPhase, AddMessageHandler } from '../webplay-svc-client.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

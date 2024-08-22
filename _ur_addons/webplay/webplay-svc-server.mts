@@ -170,30 +170,42 @@ async function UR_StartLifecycle() {
   PM = new PhaseMachine('URSYS', {
     PHASE_INIT: [
       'SRV_BOOT', // boot the system
-      'SRV_INIT' // initialize the system
+      'SRV_INIT', // allocate system data structures
+      'SRV_CONFIG' // configure the system
     ],
     PHASE_LOAD: [
+      'LOAD_INIT', // initialize data structures
       'LOAD_FILES', // load data from server
-      'LOAD_CONFIG' // load configuration
+      'LOAD_CONFIG' // finalize data
     ],
     PHASE_CONNECT: [
+      'EXPRESS_INIT', // express allocate data structures
       'EXPRESS_CONFIG', // express add middleware routes
       'EXPRESS_READY', // express server is ready to start
       'EXPRESS_LISTEN', // express server is listening
       'URNET_LISTEN' // ursys network is listening on socket-ish connection
     ],
-    PHASE_CONFIG: ['SRV_CONFIG'],
     PHASE_READY: ['SRV_READY'],
-    PHASE_RUN: ['SRV_RUN']
+    PHASE_RUN: ['SRV_START', 'SRV_RUN']
   });
   LOG(`${fn} Executing Phase Groups`);
   await RunPhaseGroup('URSYS/PHASE_INIT');
-  await RunPhaseGroup('URSYS/PHASE_CONNECT');
   await RunPhaseGroup('URSYS/PHASE_LOAD');
-  await RunPhaseGroup('URSYS/PHASE_CONFIG');
+  await RunPhaseGroup('URSYS/PHASE_CONNECT');
   await RunPhaseGroup('URSYS/PHASE_READY');
   await RunPhaseGroup('URSYS/PHASE_RUN');
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: return the current phase machine state */
+function UR_MachineState() {
+  const fn = 'UR_MachineState:';
+  if (PM === undefined) throw Error(`${fn} URSYS PhaseMachine not yet defined`);
+  return {
+    phaseGroup: PM.cur_group,
+    phase: PM.cur_phase
+  };
+}
+
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
@@ -206,6 +218,7 @@ export {
 
 export {
   UR_StartLifecycle,
+  UR_MachineState,
   //
   RunPhaseGroup,
   HookPhase,

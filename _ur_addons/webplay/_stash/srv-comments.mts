@@ -8,7 +8,7 @@ import { PR } from '@ursys/core';
 import * as LOKI from './lib/mod-loki.mts';
 import IL from './lib/class-data-itemlist.ts';
 import DF from './lib/class-data-docfolder.ts';
-import { HookPhase, AddMessageHandler } from '../webplay-urserver-.mts';
+import { HookPhase, AddMessageHandler } from '../webplay-svc-server.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
