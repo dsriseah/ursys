@@ -54,19 +54,9 @@ async function m_ImportServerModules(tsOpt?: TSOptions): Promise<string[]> {
       init: [],
       config: []
     };
-    for (const file of stashFiles) {
-      const mod = await import(`./_stash/${file}`);
-      if (typeof mod.Init === 'function') LF.init.push(mod.Init);
-      if (typeof mod.Config === 'function') LF.config.push(mod.Config);
-    }
-    for (const file of scratchFiles) {
-      const mod = await import(`./_scratch/${file}`);
-      if (typeof mod.Init === 'function') LF.init.push(mod.Init);
-      if (typeof mod.Config === 'function') LF.config.push(mod.Config);
-    }
-    // run the init functions
-    for (const init of LF.init) await init();
-    for (const config of LF.config) await config();
+    // load stash and scratch modules
+    for (const file of stashFiles) await import(`./_stash/${file}`);
+    for (const file of scratchFiles) await import(`./_scratch/${file}`);
     // return the list of imported files
     return [...stashFiles, ...scratchFiles];
   } catch (error) {
