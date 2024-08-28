@@ -23,7 +23,7 @@ export type UR_SchemaID = `${SchemaRoot}:${SchemaName}:${SchemaVersion}:${Schema
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// data models have objects with an _id field that uniquely identifies
 /// each entity in the dataset called a UID.
-export type UR_EntID = `${string}${number}`;
+export type UR_EntID = string;
 export type UR_EntID_Obj = { _id: UR_EntID };
 /// we use various object conventions
 export type DataObj = { [key: string]: any };

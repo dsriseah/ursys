@@ -17,9 +17,14 @@
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { UR_EntID_Obj, DataObj, UR_Item } from '~ur/types/ursys.d.ts';
+import type {
+  UR_EntID,
+  UR_EntID_Obj,
+  DataObj,
+  UR_Item
+} from '~ur/types/dataset.d.ts';
 
-/// DATASET METHODS ///////////////////////////////////////////////////////////
+/// DATA FORMAT CHECKING //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// datasets are standardized collections of objects, defined in ursys.d.ts
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +41,21 @@ function NormDataItems(items: UR_Item[], schema?: any): [UR_Item[], error?: stri
     if (error) return [undefined, error];
     normeds.push(normed);
   }
-  return [normeds, ''];
+  return [normeds, undefined];
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Normalize NEW items by making sure they don't have an _id field */
+function NormNewDataItems(
+  items: UR_Item[],
+  schema?: any
+): [UR_Item[], error?: string] {
+  const fn = 'NormNewDataItems:';
+  const normeds = [];
+  for (const item of items) {
+    if (item._id) return [undefined, `${fn} item has _id field`];
+    normeds.push(item);
+  }
+  return [normeds, undefined];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** similar to NormDataItems, but for a single object */
@@ -77,6 +96,20 @@ function NormItemIDs(ids: UR_EntID_Obj[]): [UR_EntID_Obj[], error?: string] {
   if (ids.some(id => typeof id !== 'string'))
     return [[undefined], `${fn} id must be a string`];
   return [ids];
+}
+
+/// ID MANIPULATION ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Given an id string, return the prefix and the numeric id */
+function DecodeID(id: UR_EntID): [string, number] {
+  // scan each character until we find the first non-numeric character
+  let prefix = '';
+  let num = '';
+  for (const char of id) {
+    if (char >= '0' && char <= '9') num += char;
+    else prefix += char;
+  }
+  return [prefix, parseInt(num)];
 }
 
 /// ITEM CLONING //////////////////////////////////////////////////////////////
@@ -150,6 +183,9 @@ export {
   NormDataItem, // normalize a single object for storage
   NormDataItems, // normalize objects for storage
   NormItemIDs, // IDs should be strings
+  NormNewDataItems, // normalize new objects for storage
+  //
+  DecodeID, // extract prefix and numeric id
   //
   DeepClone,
   DeepCloneObject,

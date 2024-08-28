@@ -790,7 +790,7 @@ class NetEndpoint {
         retData = retData.concat(remoteData);
       }
     } else {
-      LOG(PR, this.uaddr, fn, `unknown message`, pkt);
+      LOG(PR, this.uaddr, fn, `unknown message ${pkt.msg}`);
       retData = { error: `unknown message '${pkt.msg}'` };
     }
 
