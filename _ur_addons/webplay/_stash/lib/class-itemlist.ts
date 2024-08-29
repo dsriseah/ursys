@@ -1,9 +1,13 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  ItemList Class
-  this is a class that manages lists of items in a dataset
-  in serializable form
+  ItemList Class - Manage a list of UR_Items
 
+  When instancing an Itemlist without an ItemListOptions object, the ids
+  will be simple integers. If you define an idPrefix, then the ids will be
+  the prefix + zero-padded number. See ItemListOptions for more details.
+
+  Its sibbling class is DocFolder. Its parent manager is DataManager.
+  
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { NORM } from '@ursys/core';
@@ -19,27 +23,26 @@ import type {
 } from '../../../../_ur/_types/dataset.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type ItemListOptions = {
-  idPrefix: string; // required
+  idPrefix?: string; // prefix to use for ids, otherwise simple ids
   startOrd?: number; // starting number (default 0)
   ordDigits?: number; // number of digits (default 3)
 };
-
-/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = false;
-const LOG = console.log.bind(console);
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class ItemList {
   //
-  collection_name: string;
-  collection_type: string;
-  _list: UR_ItemList;
-  _max_ord: number;
-  _prefix: string;
-  _ord_digits: number;
+  collection_name: string; // name of this collection
+  collection_type: string; // type of this collection (.e.g ItemList);
+  _list: UR_ItemList; // list storage
+  _prefix: string; // when set, this is the prefix for the ids
+  _ord_digits: number; // if _prefix is set, then number of zero-padded digits
   //
+  _ord_highest: number; // current highest ordinal
+
+  /** constuctor takes ItemListOptions. If there are no options defined,
+   *  the ids created will be simple integers. If you define an idPrefix,
+   *  then the ids will be the prefix + zero-padded number */
   constructor(col_name: string, opt?: ItemListOptions) {
     const fn = 'ItemList:';
     this._list = [];
@@ -53,7 +56,7 @@ class ItemList {
     this._prefix = idPrefix || ''; // default to no prefix
     // optional
     this._ord_digits = ordDigits || 3;
-    this._max_ord = startOrd || 0;
+    this._ord_highest = startOrd || 0;
   }
 
   /// LIST ID METHODS ///
@@ -74,19 +77,21 @@ class ItemList {
    *  we can just sort the _list and return the last one */
   newID(): UR_EntID {
     const fn = 'findMaxID:';
-    // do we already know the
-    if (this._max_ord > 0) {
-      const idstr = (++this._max_ord).toString().padStart(this._ord_digits, '0');
-      return `${this._prefix}${idstr}`;
+    let id;
+    // if ord_highest is set, we can just increment it since we don't reuse ids
+    if (this._ord_highest > 0) {
+      id = (++this._ord_highest).toString();
+    } else {
+      // otherwise, we need to scan the existing list
+      let maxID = 0;
+      for (const li of this._list) {
+        const [_prefix, ord] = this.decodeID(li._id);
+        if (ord > maxID) maxID = ord;
+      }
+      this._ord_highest = maxID;
+      id = (++this._ord_highest).toString();
     }
-    // otherwise, we need to find it
-    let maxID = 0;
-    for (const li of this._list) {
-      const [_prefix, ord] = this.decodeID(li._id);
-      if (ord > maxID) maxID = ord;
-    }
-    this._max_ord = maxID;
-    const idstr = (++this._max_ord).toString().padStart(this._ord_digits, '0');
+    const idstr = this._prefix ? id.padStart(this._ord_digits, '0') : id;
     return `${this._prefix}${idstr}`;
   }
 

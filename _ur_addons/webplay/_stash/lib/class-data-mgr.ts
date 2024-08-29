@@ -45,7 +45,7 @@ class DataManager {
 
   /** Given the name of a list, create a new list and return the list
    *  instance */
-  createItemList(listName: string, opt: ItemListOptions): ItemList {
+  createItemList(listName: string, opt?: ItemListOptions): ItemList {
     const fn = 'createItemList:';
     if (this._LI[listName] !== undefined)
       throw Error(`${fn} list '${listName}' already exists`);

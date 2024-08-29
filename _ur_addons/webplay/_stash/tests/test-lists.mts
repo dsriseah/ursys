@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  TESTER for LISTS
+  TESTER for DATA
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -10,16 +10,16 @@ import { DataManager } from '../lib/class-data-mgr.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LISTS = new DataManager();
+const DATA = new DataManager();
 
 test('instantiation', () => {
-  expect(LISTS).toBeDefined();
-  expect(LISTS).toBeInstanceOf(DataManager);
+  expect(DATA).toBeDefined();
+  expect(DATA).toBeInstanceOf(DataManager);
 });
 
 test('list creation', () => {
   // there should be no lists
-  const list = LISTS.createItemList('mylist', { idPrefix: 'li' });
+  const list = DATA.createItemList('mylist', { idPrefix: 'li' });
   expect(list.read()).toMatchObject([]);
 });
 
@@ -28,7 +28,7 @@ test('list item by-ref or value', () => {
     { name: 'item1' }, //
     { name: 'item2' }
   ];
-  const list = LISTS.createItemList('refList', { idPrefix: 'li' });
+  const list = DATA.createItemList('refList', { idPrefix: 'li' });
   expect(list.read()).toMatchObject([]);
   expect(list.add(items)).toMatchObject(items);
   const refListItems = list.read();
@@ -37,13 +37,13 @@ test('list item by-ref or value', () => {
 
 test('list add,read', () => {
   // undefined list should throw an error
-  expect(() => LISTS.getItemList('anotherlist')).toThrowError();
+  expect(() => DATA.getItemList('anotherlist')).toThrowError();
   const items = [
     { name: 'item1' }, //
     { name: 'item2' }
   ];
   // listAdd will add items to the list and return the list
-  const list = LISTS.getItemList('mylist');
+  const list = DATA.getItemList('mylist');
   const added = list.add(items);
   expect(items).not.toMatchObject(added); // checks that added objects are subset of items
   // listRead will return the list
@@ -59,7 +59,7 @@ test('list add,read', () => {
 
 test('list update', () => {
   // empty items means nothing for update
-  const list = LISTS.getItemList('mylist');
+  const list = DATA.getItemList('mylist');
   expect(() => list.update([])).toThrowError();
   // items that aren't in mylist should throw an error
   expect(() =>
@@ -92,7 +92,7 @@ test('list update', () => {
 });
 
 test('list replace', () => {
-  const list = LISTS.getItemList('mylist');
+  const list = DATA.getItemList('mylist');
   const origItems = list.read();
   const newItems = [
     {
@@ -129,13 +129,13 @@ test('list replace', () => {
 
 test('list delete', () => {
   // test delete
-  const list = LISTS.getItemList('mylist');
+  const list = DATA.getItemList('mylist');
   const startingList = list.read();
   const ids_to_delete = ['li001', 'li002'];
   const deleted = list.delete(ids_to_delete);
   const endingList = list.read();
   expect(deleted).toMatchObject(startingList);
   expect(endingList).toMatchObject([]);
-  const listInstance = LISTS.getItemList('mylist');
-  expect(LISTS.getItemList('mylist')).toBe(listInstance);
+  const listInstance = DATA.getItemList('mylist');
+  expect(DATA.getItemList('mylist')).toBe(listInstance);
 });
