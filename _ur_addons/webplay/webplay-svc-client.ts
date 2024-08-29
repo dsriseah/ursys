@@ -86,8 +86,8 @@ function PromiseConnect(): Promise<boolean> {
 async function RegisterMessages() {
   // declare messages to server
   const resdata = await EP.declareClientMessages();
-  LOG(...PR(`RegisterMessages: ${resdata.error || 'success'}`));
-  LOG(resdata);
+  // LOG(...PR(`RegisterMessages: ${resdata.error || 'success'}`));
+  // LOG(resdata);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** force close the client connection, after waiting for the prescribed number

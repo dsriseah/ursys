@@ -30,10 +30,11 @@ const [AO_NAME, AO_DIR] = FILE.DetectedAddonDir();
 const ADDON = AO_NAME.toUpperCase();
 const [script_name, ...script_args] = process.argv.slice(2);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('LCYCL', 'TagCyan');
+const LOG = PR('WP.SVC', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let PM: typeof PhaseMachine;
+const m_rebuild_subs = new Set<Function>();
 
 /// IMPORTED HELPER METHODS ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -111,9 +112,17 @@ async function UR_Build() {
   // define the hot reload callback function
   const notify_cb = payload => {
     const { changed } = payload || {};
-    if (DBG && changed) LOG(`${DIM}notify change: ${JSON.stringify(changed)}${NRM}`);
-    const EP = APPSERV.GetServerEndpoint();
-    EP.netSignal('NET:UR_HOT_RELOAD_APP', { changed });
+    if (changed === undefined) return;
+    if (DBG) LOG(`${DIM}notify change: ${changed}${NRM}`);
+    // is this a file on the server?
+    if (changed.endsWith('.mts')) {
+      // do nothing
+    }
+    // is this a file in the client?
+    if (changed.endsWith('.ts')) {
+      const EP = APPSERV.GetServerEndpoint();
+      EP.netSignal('NET:UR_HOT_RELOAD_APP', { changed });
+    }
   };
   // A build consists of (1) building js bundle from CLIENT_ENTRY, and copying the
   // output to HT_DOCS/js followed by (2) copying assets from HT_ASSETS to HT_DOCS,
@@ -157,27 +166,28 @@ async function UR_Build() {
 /** API: initialize the server's lifecycle */
 async function UR_StartLifecycle() {
   const fn = 'UR_StartLifecycle:';
-  PM = new PhaseMachine('URSYS', {
-    PHASE_INIT: [
-      'SRV_BOOT', // boot the system
-      'SRV_INIT', // allocate system data structures
-      'SRV_CONFIG' // configure the system
-    ],
-    PHASE_LOAD: [
-      'LOAD_INIT', // initialize data structures
-      'LOAD_FILES', // load data from server
-      'LOAD_CONFIG' // finalize data
-    ],
-    PHASE_CONNECT: [
-      'EXPRESS_INIT', // express allocate data structures
-      'EXPRESS_CONFIG', // express add middleware routes
-      'EXPRESS_READY', // express server is ready to start
-      'EXPRESS_LISTEN', // express server is listening
-      'URNET_LISTEN' // ursys network is listening on socket-ish connection
-    ],
-    PHASE_READY: ['SRV_READY'],
-    PHASE_RUN: ['SRV_START', 'SRV_RUN']
-  });
+  if (PM === undefined)
+    PM = new PhaseMachine('URSYS', {
+      PHASE_INIT: [
+        'SRV_BOOT', // boot the system
+        'SRV_INIT', // allocate system data structures
+        'SRV_CONFIG' // configure the system
+      ],
+      PHASE_LOAD: [
+        'LOAD_INIT', // initialize data structures
+        'LOAD_FILES', // load data from server
+        'LOAD_CONFIG' // finalize data
+      ],
+      PHASE_CONNECT: [
+        'EXPRESS_INIT', // express allocate data structures
+        'EXPRESS_CONFIG', // express add middleware routes
+        'EXPRESS_READY', // express server is ready to start
+        'EXPRESS_LISTEN', // express server is listening
+        'URNET_LISTEN' // ursys network is listening on socket-ish connection
+      ],
+      PHASE_READY: ['SRV_READY'],
+      PHASE_RUN: ['SRV_START', 'SRV_RUN']
+    });
   LOG(`${fn} Executing Phase Groups`);
   await RunPhaseGroup('URSYS/PHASE_INIT');
   await RunPhaseGroup('URSYS/PHASE_LOAD');

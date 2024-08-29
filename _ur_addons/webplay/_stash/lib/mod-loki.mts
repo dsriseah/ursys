@@ -17,8 +17,8 @@ type LokiFile = `${string}.loki`;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = true;
-const LOG = PR('LOKI', 'TagBlue');
+const DBG = false;
+const LOG = PR('WP.LOKI', 'TagBlue');
 const [, AO_DIR] = FILE.DetectedAddonDir('webplay');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let m_datafile: string = '';
@@ -56,7 +56,7 @@ const f_validname = (lokiFile: string): string => {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** helper used by m_LoadLokiDB() when the database file has loaded */
 const cb_loadComplete = () => {
-  LOG('DATABASE LOADED!');
+  if (DBG) LOG('DATABASE LOADED!');
   // ensure collections if readonly
   NODES = m_db.getCollection('nodes');
   EDGES = m_db.getCollection('edges');
@@ -71,8 +71,8 @@ const cb_loadComplete = () => {
   m_max_nodeID = GetMaxIdIn(NODES);
   m_max_edgeID = GetMaxIdIn(EDGES);
   //
-  LOG(`${nodeCount} NODES / ${edgeCount} EDGES`);
-  LOG(`NODE MAX_ID ${m_max_nodeID} / EDGE MAX_ID ${m_max_edgeID}`);
+  if (DBG) LOG(`${nodeCount} NODES / ${edgeCount} EDGES`);
+  if (DBG) LOG(`NODE MAX_ID ${m_max_nodeID} / EDGE MAX_ID ${m_max_edgeID}`);
   //
   m_db_loaded = true;
   if (m_options.resolve) {
