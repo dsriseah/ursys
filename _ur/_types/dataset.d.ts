@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  Collections are 
+  WIP:
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -23,7 +23,8 @@ export type UR_SchemaID = `${SchemaRoot}:${SchemaName}:${SchemaVersion}:${Schema
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// data models have objects with an _id field that uniquely identifies
 /// each entity in the dataset called a UID.
-export type UR_EntID = string;
+type IntString = `${string}`; // this is an integer padding string
+export type UR_EntID = `${string}${IntString}`; // a unique identifier
 export type UR_EntID_Obj = { _id: UR_EntID };
 /// we use various object conventions
 export type DataObj = { [key: string]: any };
@@ -33,6 +34,7 @@ export type ReturnObj = DataObj | ErrObj;
 export type UR_DataMethod = (data: DataObj, options?: DataObj) => ReturnObj;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// an UR_Item is a union of MatchObj with UR_EntID
+export type UR_NewItem = DataObj; // { [key: string]: any }
 export type UR_Item = UR_EntID_Obj & DataObj; // { _id: UR_EntID; [key: string]: any }
 export type UR_Doc = UR_EntID_Obj & DataObj; // doc is a single item
 /// there are multiple ways to organize UR_Items into a "bag"
