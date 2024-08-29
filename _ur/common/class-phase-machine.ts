@@ -9,7 +9,8 @@
 
   The main API function is HookPhase(pmHookSelector, handlerFunc), which allows you
   to add a hook to a phase or phase group. The hook selector is simply
-  PhaseName+'/'+PHASEID.
+  PhaseName+'/'+PHASEID. An event suffix can be added to the PHASEID to designate
+  :enter, :exec, or :exit events (default is :exec).
 
   If the machine doesn't yet exist, the hook will be queued until the machine
   with matching PhaseName. On creation, the queued hooks will be processed and
@@ -274,6 +275,8 @@ class PhaseMachine {
     return phaseInfo;
   }
 
+  /// STATIC CLASS API ///
+
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** API: Register a PhaseHook at any time. If the machine doesn't yet exist,
    *  the hook will be queued until the machine is created */
@@ -292,9 +295,6 @@ class PhaseMachine {
     mq.push(hook); // array of 2-element arrays
     m_ProcessHookQueue(machine);
   }
-
-  /// STATIC CLASS API ///
-
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** API: Execute a PhaseGroup in a machine. If the machine doesn't yet exist,
    *  the function will throw an error. */
@@ -308,15 +308,21 @@ class PhaseMachine {
       throw Error(`${fn} phaseGroup '${phaseID}' is undefined`);
     await pm.invokeGroupHooks(phaseGroup);
   }
-
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /** API: return a list of all pending machines that have not been hooked. */
+  static GetDanglingHooks() {
+    let out = [];
+    for (const [name, hooks] of m_queue)
+      for (const hook of hooks) out.push(`${name}/${hook.phase}`);
+    if (out.length === 0) return null;
+    return out;
+  }
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** API: return a string of all current machines and their phase_def */
   static GetMachineStates() {
-    let out = '';
-    for (const [name, m] of m_machines) {
-      if (out.length !== 0) out += ', ';
-      out += `${name}[${m.cur_group}.${m.cur_phase}]`;
-    }
+    let out = [];
+    for (const [name, m] of m_machines)
+      out.push(`${name}[${m.cur_group}.${m.cur_phase}]`);
     return out;
   }
 
@@ -330,24 +336,38 @@ class PhaseMachine {
 
 /// STATIC METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/**  API: Register a PhaseHook at any time. If the machine doesn't yet exist,
+ *   the hook will be queued until the machine is created. The format for
+ *   selector is MACHINE/PHASE_NAME, with an optional :enter :exec :exit
+ *   event tag at the end. */
 function HookPhase(selector: HookSelector, fn: HookFunction, evt: HookEvent) {
   PhaseMachine.HookPhase(selector, fn);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** run all hooks associated with the selector in 'enter', 'exec', and 'exit'
- *  order */
+/** API: Run all hooks associated with the selector in 'enter', 'exec', and
+ *  'exit' order */
 function RunPhaseGroup(selector: HookSelector) {
   PhaseMachine.RunPhaseGroup(selector);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: return a list of all pending machines that have not been hooked.
+ *  Used after running all phase groups to detect misdefined hooks */
+function GetDanglingHooks() {
+  return PhaseMachine.GetDanglingHooks();
+}
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Create a new PhaseMachine instance with the given name and phase_def */
 function NewPhaseMachine(name: PhaseName, phases: PhaseDefinition) {
   return new PhaseMachine(name, phases);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: return a string of all current machines and their phase_def */
 function GetMachineStates() {
   return PhaseMachine.GetMachineStates();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: return initialized PhaseMachine if it exists */
 function GetPhaseMachine(name: PhaseName) {
   return m_machines.get(name);
 }
@@ -359,6 +379,7 @@ export {
   NewPhaseMachine,
   HookPhase,
   RunPhaseGroup,
+  GetDanglingHooks,
   GetPhaseMachine,
   GetMachineStates
 };

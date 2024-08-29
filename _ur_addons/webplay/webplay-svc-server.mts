@@ -38,7 +38,7 @@ const m_rebuild_subs = new Set<Function>();
 
 /// IMPORTED HELPER METHODS ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { HookPhase, RunPhaseGroup, GetMachine } = PhaseMachine; // static
+const { HookPhase, RunPhaseGroup, GetMachine, GetDanglingHooks } = PhaseMachine; // static
 const { AddMessageHandler, RemoveMessageHandler, GetServerEndpoint } = APPSERV;
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
@@ -194,6 +194,10 @@ async function UR_StartLifecycle() {
   await RunPhaseGroup('URSYS/PHASE_CONNECT');
   await RunPhaseGroup('URSYS/PHASE_READY');
   await RunPhaseGroup('URSYS/PHASE_RUN');
+  const dooks = GetDanglingHooks();
+  if (dooks) {
+    LOG(`${RED} *** ERROR *** dangling phase hooks detected${NRM}`, dooks);
+  }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the current phase machine state */

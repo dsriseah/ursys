@@ -38,7 +38,7 @@ function m_Sleep(ms: number, resolve?: Function): Promise<void> {
 
 /// IMPORTED HELPER METHODS ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { HookPhase, RunPhaseGroup } = PhaseMachine;
+const { HookPhase, RunPhaseGroup, GetDanglingHooks } = PhaseMachine;
 
 /// CLIENT API ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -170,6 +170,10 @@ async function UR_StartLifecycle() {
   await RunPhaseGroup('WEBPLAY/PHASE_CONFIG');
   await RunPhaseGroup('WEBPLAY/PHASE_READY');
   await RunPhaseGroup('WEBPLAY/PHASE_RUN');
+  const dooks = GetDanglingHooks();
+  if (dooks) {
+    LOG(...PR(`*** ERROR *** dangling phase hooks detected`), dooks);
+  }
 }
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
