@@ -19,7 +19,7 @@ import type {
   UR_BagRef,
   UR_Item,
   UR_ItemList
-} from '../../../../_ur/_types/dataset.d.ts';
+} from '../../../../_ur/_types/dataset';
 import type { ItemListOptions } from './class-itemlist.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -29,7 +29,7 @@ const LOG = console.log.bind(console);
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class ListManager {
+class DataManager {
   //
   collection_name: string; // the name of this list manager
   collection_type: string; // the type of this list manager
@@ -82,7 +82,7 @@ class ListManager {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default ListManager; // the class
+export default DataManager; // the class
 export {
-  ListManager // the class
+  DataManager // the class
 };

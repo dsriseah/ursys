@@ -6,15 +6,15 @@
 
 import { expect, test } from 'vitest';
 import type { UR_NewItem } from '~ur/types/dataset.d.ts';
-import { ListManager } from '../lib/class-data-itemlist.ts';
+import { DataManager } from '../lib/class-data-mgr.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LISTS = new ListManager();
+const LISTS = new DataManager();
 
 test('instantiation', () => {
   expect(LISTS).toBeDefined();
-  expect(LISTS).toBeInstanceOf(ListManager);
+  expect(LISTS).toBeInstanceOf(DataManager);
 });
 
 test('list creation', () => {

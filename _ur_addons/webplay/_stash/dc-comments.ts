@@ -7,6 +7,7 @@
 
 import { ConsoleStyler } from '@ursys/core';
 import { Endpoint, HookPhase, AddMessageHandler } from '../webplay-svc-client.ts';
+import { DataManager } from './lib/class-data-mgr.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

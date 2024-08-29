@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ListManager } from './class-data-itemlist.ts';
+import { DataManager } from './class-data-mgr.ts';
 import { DeepClone, NormDataItem, NormItemIDs } from '~ur/common/util-data-norm.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ type QueryState = {
 
 /// CONSTANT DECLARATIONS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LM = new ListManager();
+const LM = new DataManager();
 const QUERY_STATE: QueryState = { criteria: {}, flags: {}, props: {} };
 
 /// QUERY STATE METHODS ///////////////////////////////////////////////////////
