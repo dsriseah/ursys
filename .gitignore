@@ -8,10 +8,11 @@
 .obsidian
 
 # URSYS apps are built on _ur and _ur_addons, but are submodules
-# that begin with app and app-*
-/app
+# that begin with app (webapp), jot (scratch), or sna (sri new arch)
+/app   
 /app-*
-/*-app
+/jot-*
+/sna-*
 
 # URSYS apps use a common runtime directory
 /runtime
