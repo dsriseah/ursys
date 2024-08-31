@@ -24,6 +24,8 @@ import type {
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = PR('COMMENT', 'TagYellow');
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DATA = new DataManager();
 
 /// IMPORTED API METHODS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,12 +33,35 @@ const { PromiseUseDatabase } = LOKI;
 
 /// DUMMY LIST MANAGER ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATA = new DataManager();
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const m_dummy_data = [
   { text: 'initial comment number one' }, //
   { text: 'initialcomment number two' }
 ];
+
+/// GUARD FUNCTIONS ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function m_CheckDataParams(data: any) {
+  const { listName, accToken, ids, items } = data;
+  // required params
+  if (accToken === undefined) return { error: 'accToken is required' };
+  if (!listName) return { error: 'listName is required' };
+  if (typeof listName !== 'string') return { error: 'listName must be a string' };
+  if (DATA.getItemList(listName) === undefined)
+    return { error: `list ${listName} not found` };
+  // optional params
+  if (ids) {
+    if (!Array.isArray(ids)) return { error: 'ids must be an array' };
+    if (ids.some(id => typeof id !== 'string'))
+      return { error: 'ids must be an array of string IDs' };
+  }
+  if (items) {
+    if (!Array.isArray(items)) return { error: 'items must be an array' };
+    if (items.some(item => typeof item !== 'object'))
+      return { error: 'items must be an array of objects' };
+  }
+  // everything good, then return the data
+  return { listName, accToken, ids, items };
+}
 
 /// LIFECYCLE /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -60,12 +85,10 @@ async function Init() {
   });
 
   /** collection initialize **/
-  AddMessageHandler('SYNC:SRV_DATA_INIT', async (data: any) => {
-    const { listName, accToken } = data;
-    if (accToken === undefined) return { error: 'accToken is required' };
-    if (!listName) return { error: 'listName is required' };
+  AddMessageHandler('SYNC:SRV_DATA_INIT', async (params: any) => {
+    const { listName, error } = m_CheckDataParams(params);
+    if (error) return { error };
     const list = DATA.getItemList(listName);
-    if (list === undefined) return { error: `list ${listName} not found` };
     list.clear();
     list.add([
       { text: 'initial comment number one' }, //
@@ -77,11 +100,9 @@ async function Init() {
 
   /** collection get */
   AddMessageHandler('SYNC:SRV_DATA_GET', async (params: any) => {
-    const { listName, accToken, ids } = params;
-    if (accToken === undefined) return { error: 'accToken is required' };
-    if (!listName) return { error: 'listName is required' };
+    const { listName, accToken, ids, error } = m_CheckDataParams(params);
+    if (error) return { error };
     const list = DATA.getItemList(listName);
-    if (list === undefined) return { error: `list ${listName} not found` };
     const listItems = list.getItems();
     // if ids are provided, return only those items
     if (ids) {
@@ -93,56 +114,44 @@ async function Init() {
   });
 
   /** collection add */
-  AddMessageHandler('SYNC:SRV_DATA_ADD', async (data: any) => {
-    const { listName, accToken, items } = data; // items is the generic term id data
-    if (accToken === undefined) return { error: 'accToken is required' };
-    if (!listName) return { error: 'listName is required' };
-    if (!items) return { error: 'entities is required' };
+  AddMessageHandler('SYNC:SRV_DATA_ADD', async (params: any) => {
+    const { listName, accToken, items, error } = m_CheckDataParams(params);
+    if (error) return { error };
     const list = DATA.getItemList(listName);
-    if (list === undefined) return { error: `list ${listName} not found` };
-    let added = list.add(items);
+    const added = list.add(items);
     return { added };
   });
 
   /** collection update  */
-  AddMessageHandler('SYNC:SRV_DATA_UPDATE', async (data: any) => {
-    const { listName, accToken, items } = data; // items is the generic term id data
-    if (accToken === undefined) return { error: 'accToken is required' };
-    if (!listName) return { error: 'listName is required' };
-    if (!items) return { error: 'entities is required' };
+  AddMessageHandler('SYNC:SRV_DATA_UPDATE', async (params: any) => {
+    const { listName, accToken, items, error } = m_CheckDataParams(params);
+    if (error) return { error };
     const list = DATA.getItemList(listName);
-    if (list === undefined) return { error: `list ${listName} not found` };
-    let updated = list.update(items);
+    const updated = list.update(items);
     return { updated };
   });
 
   /** collection write (updates and adds) */
-  AddMessageHandler('SYNC:SRV_DATA_WRITE', async (data: any) => {
-    const { listName, accToken, items } = data; // items is the generic term id data
-    if (accToken === undefined) return { error: 'accToken is required' };
-    if (!listName) return { error: 'listName is required' };
-    if (!items) return { error: 'entities is required' };
+  AddMessageHandler('SYNC:SRV_DATA_WRITE', async (params: any) => {
+    const { listName, accToken, items, error } = m_CheckDataParams(params);
+    if (error) return { error };
     const list = DATA.getItemList(listName);
-    if (list === undefined) return { error: `list ${listName} not found` };
-    let { added, updated } = list.write(items);
+    const { added, updated } = list.write(items);
     return { added, updated };
   });
 
   /** collection replace */
-  AddMessageHandler('SYNC:SRV_DATA_REPLACE', async (data: any) => {
-    const { listName, accToken, items } = data; // items is the generic term id data
-    if (accToken === undefined) return { error: 'accToken is required' };
-    if (!listName) return { error: 'listName is required' };
-    if (!items) return { error: 'entities is required' };
+  AddMessageHandler('SYNC:SRV_DATA_REPLACE', async (params: any) => {
+    const { listName, accToken, items, error } = m_CheckDataParams(params);
+    if (error) return { error };
     const list = DATA.getItemList(listName);
-    if (list === undefined) return { error: `list ${listName} not found` };
-    let { replaced, error, skipped } = list.replace(items);
-    return { replaced, skipped, error };
+    const { replaced, error: err, skipped } = list.replace(items);
+    return { replaced, skipped, error: err };
   });
 
   /** collection delete */
-  AddMessageHandler('SYNC:SRV_DATA_DELETE', async (data: any) => {
-    const { listName, accToken, ids } = data; // items is the generic term id data
+  AddMessageHandler('SYNC:SRV_DATA_DELETE', async (params: any) => {
+    const { listName, accToken, ids } = params; // items is the generic term id data
     if (accToken === undefined) return { error: 'accToken is required' };
     if (!listName) return { error: 'listName is required' };
     if (!ids) return { error: 'ids is required' };
