@@ -33,22 +33,23 @@ const { PromiseUseDatabase } = LOKI;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DATA = new DataManager();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_InitDummyData() {
-  const opt = {
-    // idPrefix: 'cmt'
-  };
-  const list = DATA.createItemList('comments', opt);
-  list.add([
-    { text: 'initial comment number one' }, //
-    { text: 'initialcomment number two' }
-  ]);
-}
+const m_dummy_data = [
+  { text: 'initial comment number one' }, //
+  { text: 'initialcomment number two' }
+];
 
 /// LIFECYCLE /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Init() {
   const current_state = UR_MachineState();
   await PromiseUseDatabase('comments.loki');
+
+  /** initialize the list */
+  const opt = {
+    // idPrefix: 'cmt'
+  };
+  const list = DATA.createItemList('comments', opt);
+  list.add(m_dummy_data);
 
   /** dummy handler example */
   AddMessageHandler('NET:DC_HANDLER', data => {
@@ -145,11 +146,9 @@ async function Init() {
     if (accToken === undefined) return { error: 'accToken is required' };
     if (!listName) return { error: 'listName is required' };
     if (!ids) return { error: 'ids is required' };
-    LOG('deleting ids', ids);
     const list = DATA.getItemList(listName);
     if (list === undefined) return { error: `list ${listName} not found` };
     let { deleted } = list.delete(ids);
-    LOG('got deleted', deleted);
     return { deleted };
   });
 }
@@ -158,9 +157,7 @@ async function Init() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (() => {
   LOG('Hook SRV_INIT');
-  HookPhase('URSYS/SRV_INIT', m_InitDummyData);
-  LOG('Hook EXPRESS_CONFIG');
-  HookPhase('URSYS/EXPRESS_CONFIG', Init);
+  HookPhase('URSYS/SRV_INIT', Init);
 })();
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
