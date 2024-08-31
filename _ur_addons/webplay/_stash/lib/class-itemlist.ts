@@ -49,7 +49,9 @@ class ItemList {
     this._type = this.constructor.name;
     let { idPrefix, startOrd, ordDigits } = opt || {};
     if (col_name === undefined) throw Error(`${fn} collection name is required`);
-    // required
+    if (typeof col_name !== 'string')
+      throw Error(`${fn} collection name must be a string`);
+    this.name = col_name;
     if (idPrefix === undefined) idPrefix = '';
     if (typeof idPrefix !== 'string')
       throw Error(`${fn} idPrefix must be a string when specified`);
@@ -100,7 +102,7 @@ class ItemList {
   /** given the name of a _list and an array of objects, add the objects to the
    *  _list and return the _list if successful, undefined otherwise */
   add(items: UR_NewItem[]) {
-    const fn = 'listAdd:';
+    const fn = 'add:';
     if (!Array.isArray(items)) throw Error(`${fn} items must be array of objects`);
     if (items.length === 0) throw Error(`${fn} items array is empty`);
     // make sure that items do not have _id fields and assign new ones
@@ -114,7 +116,7 @@ class ItemList {
     // make sure that the _list doesn't have these items already
     for (let item of items) {
       if (this._list.find(obj => obj._id === item._id))
-        throw Error(`${fn} item ${item._id} already exists in _list`);
+        throw Error(`${fn} item ${item._id} already exists in ${this.name}`);
     }
     // add the items to the _list
     this._list.push(...(copies as UR_Item[]));
@@ -125,7 +127,7 @@ class ItemList {
    *  identified in the ids array, in order of the ids array. Return a COPY
    *  of the objects, not the original objects */
   read(ids?: UR_EntID[]) {
-    const fn = 'listRead:';
+    const fn = 'read:';
     // if no ids are provided, return the entire _list
     if (ids === undefined) {
       return { items: [...this._list] }; // return a copy of the _list
@@ -144,7 +146,7 @@ class ItemList {
    *  or if the _id field doesn't already exist in the _list, throw an Error.
    *  Return a copy of _list if successful */
   update(items: UR_Item[]) {
-    const fn = 'listUpdate:';
+    const fn = 'update:';
     if (!Array.isArray(items) || items === undefined)
       throw Error(`${fn} items must be an array`);
     if (items.length === 0) throw Error(`${fn} items array is empty`);
@@ -153,7 +155,7 @@ class ItemList {
     // got this far, items are normalized and we can merge them.
     for (const item of norm_items) {
       const idx = this._list.findIndex(obj => obj._id === item._id);
-      if (idx === -1) throw Error(`${fn} item ${item._id} not found in _list`);
+      if (idx === -1) throw Error(`${fn} item ${item._id} not found in ${this.name}`);
       Object.assign(this._list[idx], item);
     }
     return { updated: [...this._list] }; // return a copy of the _list
@@ -163,7 +165,7 @@ class ItemList {
    *  will not merge but replace the items. The items must exist to be
    *  replaced */
   replace(items: UR_Item[]) {
-    const fn = 'listReplace:';
+    const fn = 'replace:';
     if (!Array.isArray(items) || items === undefined)
       throw Error(`${fn} items must be an array`);
     if (items.length === 0) throw Error(`${fn} items array is empty`);
@@ -184,7 +186,7 @@ class ItemList {
     }
     const error =
       skipped.length > 0
-        ? `${fn} ${skipped.length} items not found in _list`
+        ? `${fn} ${skipped.length} items not found in ${this.name}`
         : undefined;
     return { replaced, skipped, error }; // return a copy of the _list
   }
@@ -192,7 +194,7 @@ class ItemList {
   /** Given the name of a _list, add the items to the _list. If an already
    *  exists in the _list, update it instead. Return a copy of the _list */
   write(items: UR_Item[]) {
-    const fn = 'listWrite:';
+    const fn = 'write:';
     const added = [];
     const updated = [];
     // update the items that already exist in the _list
@@ -217,7 +219,7 @@ class ItemList {
    *  provided. If there are any ids that don't exist in the _list, throw an
    *  Error. Return a copy of the deleted items if successful */
   delete(ids: UR_EntID[]) {
-    const fn = 'listDelete:';
+    const fn = 'delete:';
     if (!Array.isArray(ids) || ids === undefined)
       throw Error(`${fn} ids must be an array of _id strings`);
     const [del_ids, del_error] = NormItemIDs(ids);
