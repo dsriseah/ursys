@@ -103,14 +103,7 @@ async function Init() {
     const { listName, accToken, ids, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(listName);
-    const listItems = list.getItems();
-    // if ids are provided, return only those items
-    if (ids) {
-      const items = listItems.filter((item: any) => ids.includes(item._id));
-      return { items };
-    }
-    // otherwise return everything
-    return { items: listItems };
+    return list.read(ids);
   });
 
   /** collection add */
@@ -118,8 +111,7 @@ async function Init() {
     const { listName, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(listName);
-    const added = list.add(items);
-    return { added };
+    return list.add(items);
   });
 
   /** collection update  */
@@ -127,8 +119,7 @@ async function Init() {
     const { listName, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(listName);
-    const updated = list.update(items);
-    return { updated };
+    return list.update(items);
   });
 
   /** collection write (updates and adds) */
@@ -136,8 +127,7 @@ async function Init() {
     const { listName, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(listName);
-    const { added, updated } = list.write(items);
-    return { added, updated };
+    return list.write(items);
   });
 
   /** collection replace */
@@ -145,20 +135,15 @@ async function Init() {
     const { listName, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(listName);
-    const { replaced, error: err, skipped } = list.replace(items);
-    return { replaced, skipped, error: err };
+    return list.replace(items);
   });
 
   /** collection delete */
   AddMessageHandler('SYNC:SRV_DATA_DELETE', async (params: any) => {
-    const { listName, accToken, ids } = params; // items is the generic term id data
-    if (accToken === undefined) return { error: 'accToken is required' };
-    if (!listName) return { error: 'listName is required' };
-    if (!ids) return { error: 'ids is required' };
+    const { listName, accToken, ids, error } = m_CheckDataParams(params);
+    if (error) return { error };
     const list = DATA.getItemList(listName);
-    if (list === undefined) return { error: `list ${listName} not found` };
-    let { deleted } = list.delete(ids);
-    return { deleted };
+    return list.delete(ids);
   });
 }
 

@@ -99,7 +99,7 @@ class ItemList {
 
   /** given the name of a _list and an array of objects, add the objects to the
    *  _list and return the _list if successful, undefined otherwise */
-  add(items: UR_NewItem[]): UR_Item[] {
+  add(items: UR_NewItem[]) {
     const fn = 'listAdd:';
     if (!Array.isArray(items)) throw Error(`${fn} items must be array of objects`);
     if (items.length === 0) throw Error(`${fn} items array is empty`);
@@ -118,21 +118,25 @@ class ItemList {
     }
     // add the items to the _list
     this._list.push(...(copies as UR_Item[]));
-    return [...this._list]; // return a copy of the _list
+    return { added: [...this._list] }; // return a copy of the _list
   }
 
   /** Given the name of a _list, return the entire _list or the subset of ids
    *  identified in the ids array, in order of the ids array. Return a COPY
    *  of the objects, not the original objects */
-  read(ids?: UR_EntID[]): UR_Item[] {
+  read(ids?: UR_EntID[]) {
     const fn = 'listRead:';
     // if no ids are provided, return the entire _list
     if (ids === undefined) {
-      return [...this._list]; // return a copy of the _list
+      return { items: [...this._list] }; // return a copy of the _list
     }
     // otherwise, return the specific objects in the order of the ids array
     // as a copy of the objects
-    return ids.map(id => this._list.find(obj => obj._id === id));
+    const items = ids.map(id => this._list.find(obj => obj._id === id));
+    const error = items.includes(undefined)
+      ? `${fn} one or more ids not found in ${this.name}`
+      : undefined;
+    return { items, error };
   }
 
   /** Given the name of a _list, update the objects in the _list with the items
@@ -152,7 +156,7 @@ class ItemList {
       if (idx === -1) throw Error(`${fn} item ${item._id} not found in _list`);
       Object.assign(this._list[idx], item);
     }
-    return [...this._list]; // return a copy of the _list
+    return { updated: [...this._list] }; // return a copy of the _list
   }
 
   /** Given the name of a _list, overwrite the objects. Unlike ListUpdate, this
@@ -241,14 +245,16 @@ class ItemList {
     this._ord_highest = 0;
   }
 
-  /** alternative getter */
+  /** alternative getter returning unwrapped items */
   getItems(ids?: UR_EntID[]): UR_Item[] {
-    return this.read(ids);
+    const { items } = this.read(ids);
+    return items;
   }
 
-  /** getter for the _list, returning a copy */
+  /** getter for the _list, returning unwrapped items */
   get items() {
-    return this.read();
+    const { items } = this.read();
+    return items;
   }
 }
 
