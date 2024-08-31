@@ -34,10 +34,13 @@ const { PromiseUseDatabase } = LOKI;
 const DATA = new DataManager();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_InitDummyData() {
-  const list = DATA.createItemList('comments'); // would be nice if it returns recordset
+  const opt = {
+    // idPrefix: 'cmt'
+  };
+  const list = DATA.createItemList('comments', opt);
   list.add([
-    { text: 'comment number one' }, //
-    { text: 'comment number two' }
+    { text: 'initial comment number one' }, //
+    { text: 'initialcomment number two' }
   ]);
 }
 
@@ -55,6 +58,22 @@ async function Init() {
     return data;
   });
 
+  /** collection initialize **/
+  AddMessageHandler('SYNC:SRV_DATA_INIT', async (data: any) => {
+    const { listName, accToken } = data;
+    if (accToken === undefined) return { error: 'accToken is required' };
+    if (!listName) return { error: 'listName is required' };
+    const list = DATA.getItemList(listName);
+    if (list === undefined) return { error: `list ${listName} not found` };
+    list.clear();
+    list.add([
+      { text: 'initial comment number one' }, //
+      { text: 'initialcomment number two' }
+    ]);
+    const items = list.getItems();
+    return { items };
+  });
+
   /** collection get */
   AddMessageHandler('SYNC:SRV_DATA_GET', async (params: any) => {
     const { listName, accToken, ids } = params;
@@ -66,10 +85,10 @@ async function Init() {
     // if ids are provided, return only those items
     if (ids) {
       const items = listItems.filter((item: any) => ids.includes(item._id));
-      return { listItems: items };
+      return { items };
     }
     // otherwise return everything
-    return { listItems };
+    return { items: listItems };
   });
 
   /** collection add */
@@ -80,12 +99,59 @@ async function Init() {
     if (!items) return { error: 'entities is required' };
     const list = DATA.getItemList(listName);
     if (list === undefined) return { error: `list ${listName} not found` };
-    return list.add(items);
+    let added = list.add(items);
+    return { added };
   });
-  AddMessageHandler('SYNC:SRV_DATA_UPDATE', async (data: any) => {});
-  AddMessageHandler('SYNC:SRV_DATA_WRITE', async (data: any) => {});
-  AddMessageHandler('SYNC:SRV_DATA_REPLACE', async (data: any) => {});
-  AddMessageHandler('SYNC:SRV_DATA_DELETE', async (data: any) => {});
+
+  /** collection update  */
+  AddMessageHandler('SYNC:SRV_DATA_UPDATE', async (data: any) => {
+    const { listName, accToken, items } = data; // items is the generic term id data
+    if (accToken === undefined) return { error: 'accToken is required' };
+    if (!listName) return { error: 'listName is required' };
+    if (!items) return { error: 'entities is required' };
+    const list = DATA.getItemList(listName);
+    if (list === undefined) return { error: `list ${listName} not found` };
+    let updated = list.update(items);
+    return { updated };
+  });
+
+  /** collection write (updates and adds) */
+  AddMessageHandler('SYNC:SRV_DATA_WRITE', async (data: any) => {
+    const { listName, accToken, items } = data; // items is the generic term id data
+    if (accToken === undefined) return { error: 'accToken is required' };
+    if (!listName) return { error: 'listName is required' };
+    if (!items) return { error: 'entities is required' };
+    const list = DATA.getItemList(listName);
+    if (list === undefined) return { error: `list ${listName} not found` };
+    let { added, updated } = list.write(items);
+    return { added, updated };
+  });
+
+  /** collection replace */
+  AddMessageHandler('SYNC:SRV_DATA_REPLACE', async (data: any) => {
+    const { listName, accToken, items } = data; // items is the generic term id data
+    if (accToken === undefined) return { error: 'accToken is required' };
+    if (!listName) return { error: 'listName is required' };
+    if (!items) return { error: 'entities is required' };
+    const list = DATA.getItemList(listName);
+    if (list === undefined) return { error: `list ${listName} not found` };
+    let { replaced, error, skipped } = list.replace(items);
+    return { replaced, skipped, error };
+  });
+
+  /** collection delete */
+  AddMessageHandler('SYNC:SRV_DATA_DELETE', async (data: any) => {
+    const { listName, accToken, ids } = data; // items is the generic term id data
+    if (accToken === undefined) return { error: 'accToken is required' };
+    if (!listName) return { error: 'listName is required' };
+    if (!ids) return { error: 'ids is required' };
+    LOG('deleting ids', ids);
+    const list = DATA.getItemList(listName);
+    if (list === undefined) return { error: `list ${listName} not found` };
+    let { deleted } = list.delete(ids);
+    LOG('got deleted', deleted);
+    return { deleted };
+  });
 }
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////

@@ -68,7 +68,7 @@ class DataManager {
   getItemList(listName: string): ItemList {
     const fn = 'getItemList:';
     const list = this._LI[listName];
-    if (list === undefined) throw Error(`${fn} list '${listName}' not found`);
+    if (list === undefined) LOG(`${fn} list '${listName}' not found`);
     return list;
   }
 

@@ -32,8 +32,8 @@ type ItemListOptions = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class ItemList {
   //
-  collection_name: string; // name of this collection
-  collection_type: string; // type of this collection (.e.g ItemList);
+  name: string; // name of this collection
+  _type: string; // type of this collection (.e.g ItemList);
   _list: UR_ItemList; // list storage
   _prefix: string; // when set, this is the prefix for the ids
   _ord_digits: number; // if _prefix is set, then number of zero-padded digits
@@ -46,7 +46,7 @@ class ItemList {
   constructor(col_name: string, opt?: ItemListOptions) {
     const fn = 'ItemList:';
     this._list = [];
-    this.collection_type = this.constructor.name;
+    this._type = this.constructor.name;
     let { idPrefix, startOrd, ordDigits } = opt || {};
     if (col_name === undefined) throw Error(`${fn} collection name is required`);
     // required
@@ -76,7 +76,7 @@ class ItemList {
   /** find the highest id in the _list. EntityIDs are _prefix string + padded number, so
    *  we can just sort the _list and return the last one */
   newID(): UR_EntID {
-    const fn = 'findMaxID:';
+    const fn = 'newID:';
     let id;
     // if ord_highest is set, we can just increment it since we don't reuse ids
     if (this._ord_highest > 0) {
@@ -167,14 +167,22 @@ class ItemList {
     if (norm_error) throw Error(`${fn} ${norm_error}`);
     // got this far, items are normalized and we can overwrite them.
     const replaced = [];
+    const skipped = [];
     for (const item of norm_items) {
       const idx = this._list.findIndex(obj => obj._id === item._id);
-      if (idx === -1) throw Error(`${fn} item ${item._id} not found in _list`);
+      if (idx === -1) {
+        skipped.push({ ...item });
+        continue;
+      }
       const old_obj = { ...this._list[idx] };
       replaced.push(old_obj);
       this._list[idx] = item;
     }
-    return replaced; // return a copy of the _list
+    const error =
+      skipped.length > 0
+        ? `${fn} ${skipped.length} items not found in _list`
+        : undefined;
+    return { replaced, skipped, error }; // return a copy of the _list
   }
 
   /** Given the name of a _list, add the items to the _list. If an already
@@ -185,8 +193,12 @@ class ItemList {
     const updated = [];
     // update the items that already exist in the _list
     for (const item of items) {
-      const idx = this._list.findIndex(obj => obj._id === item._id);
+      const idx = this._list.findIndex(obj => {
+        if (obj._id === undefined) return false;
+        return obj._id === item._id;
+      });
       if (idx === -1) {
+        item._id = this.newID();
         this._list.push(item);
         added.push({ ...item });
       } else {
@@ -207,29 +219,36 @@ class ItemList {
     const [del_ids, del_error] = NormItemIDs(ids);
     if (del_error) throw Error(`${fn} ${del_error}`);
     // got this far, ids are normalized and we can delete them
-    const deleted = [];
+    const itemIDs = [];
     for (const id of del_ids) {
       const idx = this._list.findIndex(obj => obj._id === id);
-      if (idx === -1) throw Error(`${fn} item ${id} not found in _list`);
-      deleted.push(this._list[idx]);
-      this._list.splice(idx, 1);
+      if (idx === -1) return { error: `${fn} item ${id} not found in ${this.name}` };
+      itemIDs.push(id);
     }
-    return deleted; // return a copy of the _list
+    // good to go, delete the items
+    const deleted = [];
+    for (const id of itemIDs) {
+      const idx = this._list.findIndex(obj => obj._id === id);
+      const item = this._list.splice(idx, 1);
+      deleted.push(item);
+    }
+    return { deleted }; // return a copy of the _list
   }
 
   /** erase all the entries in the _list, but do not reset the max_ord or _prefix */
   clear() {
     this._list = [];
+    this._ord_highest = 0;
   }
 
   /** alternative getter */
-  getItems() {
-    return this.items;
+  getItems(ids?: UR_EntID[]): UR_Item[] {
+    return this.read(ids);
   }
 
   /** getter for the _list, returning a copy */
   get items() {
-    return [...this._list];
+    return this.read();
   }
 }
 
