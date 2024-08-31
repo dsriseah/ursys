@@ -234,7 +234,7 @@ class ItemList {
     for (const id of itemIDs) {
       const idx = this._list.findIndex(obj => obj._id === id);
       const item = this._list.splice(idx, 1);
-      deleted.push(item);
+      deleted.push(...item);
     }
     return { deleted }; // return a copy of the _list
   }
