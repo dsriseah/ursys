@@ -17,12 +17,38 @@ import { DataManager } from './lib/class-data-mgr.ts';
 const PR = ConsoleStyler('CMT.DBS', 'TagYellow');
 const P2 = ConsoleStyler('CMT.CLI', 'TagGreen');
 const LOG = console.log.bind(console);
-const DBG = false;
+const DCA = true; // log debug calls
+const DSN = true; // log debug sync
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DATA = new DataManager();
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let m_out = '';
+function m_Info(label?: string, data?: any) {
+  if (label && data) m_out += `${label}: ${JSON.stringify(data)}\n`;
+  if (label && data === undefined) {
+    LOG(...P2(label, m_out));
+    m_out = '';
+  }
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function m_Compare() {
+  const EP = Endpoint();
+  let cdata = await EP.netCall('SYNC:SRV_DATA_GET', {
+    cName: 'comments',
+    accToken: 'myAccess'
+  });
+  // LOG(...PR('DC-Comments Data'), ...cdata.items);
+  const items = DATA.getItemList('comments').items;
+  // LOG(...PR('DC-Comments List'), ...items);
+  // compare list and cdata.items
+  if (items.length !== cdata.items.length) {
+    LOG(...PR('DC-Comments Error'), 'length mismatch');
+    return;
+  }
+  LOG('\nitems', ...items, '\ncdata', ...cdata.items);
+}
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -30,15 +56,55 @@ const DATA = new DataManager();
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
-  LOG(...PR('DC-Comments Initializing'));
+  if (DCA) LOG(...PR('DC-Comments Initializing'));
 
   /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:
     APP_CONFIG allows data structures to initialize to starting values
   :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
   HookPhase('WEBPLAY/NET_REGISTER', () => {
     // client implements these sync handlers
-    AddMessageHandler('SYNC:CLI_DATA', (data: any) => {
-      LOG(...P2('SYNC:CLI_DATA'), data);
+    AddMessageHandler('SYNC:CLI_DATA', (sync: any) => {
+      const { cName, cType, items, status, error, skipped } = sync;
+      const { updated, added, deleted, replaced } = sync;
+      const list = DATA.getItemList(cName);
+      if (list === undefined) {
+        LOG(...P2('SYNC:CLI_DATA Error'), `list ${cName} not found`);
+        return;
+      }
+      if (error) {
+        LOG(...P2('SYNC:CLI_DATA Error'), error);
+        return;
+      }
+      // if (Array.isArray(items)) m_Info('items', items);
+      // if (Array.isArray(updated)) m_Info('updated', updated);
+      // if (Array.isArray(added)) m_Info('added', added);
+      // if (Array.isArray(deleted)) m_Info('deleted', deleted);
+      // if (Array.isArray(replaced)) m_Info('replaced', replaced);
+      // m_Info(`${cName}/${cType}`);
+      if (Array.isArray(skipped) && skipped.length > 0) {
+        LOG('ERROR skipped items', ...skipped);
+      }
+      if (Array.isArray(items)) {
+        list.write(items);
+        LOG(...P2('write items'), ...items);
+      }
+      if (Array.isArray(updated)) {
+        list.update(updated);
+        LOG(...P2('update items'), ...updated);
+      }
+      if (Array.isArray(added)) {
+        list.write(added);
+        LOG(...P2('add items'), ...added);
+      }
+      if (Array.isArray(deleted)) {
+        const ids = deleted.map(item => item._id);
+        list.delete(ids);
+        LOG(...P2('delete items'), ...ids);
+      }
+      if (Array.isArray(replaced)) {
+        list.replace(replaced);
+        LOG(...P2('replace items'), ...replaced);
+      }
     });
     AddMessageHandler('SYNC:CLI_STATE', async (data: any) => {
       LOG(...P2('SYNC:CLI_STATE'), data);
@@ -68,7 +134,7 @@ const DATA = new DataManager();
       LOG(...PR(fn, 'Warning: unexpected updated array on list creation', updated));
     }
     if (added.length > 0) {
-      LOG(...PR(fn, 'DC-Comments Added'), ...added);
+      if (DCA) LOG(...PR(fn, 'DC-Comments Added'), ...added);
     }
   });
 
@@ -81,130 +147,127 @@ const DATA = new DataManager();
     const accToken = 'myAccess';
     const EP = Endpoint();
 
-    if (DBG) LOG(...PR(fn, 'DC-Comments APP_READY'));
+    if (DCA) LOG(...PR(fn, 'DC-Comments APP_READY'));
+
+    let added, updated, deleted, retdata;
 
     /** test data add **/
-    let retdata = await EP.netCall('SYNC:SRV_DATA_ADD', {
-      accToken,
-      cName: 'comments',
-      items: [{ text: `comment add` }]
-    });
-    if (retdata.error) {
-      LOG(...PR('error in SRV_DATA_ADD'), retdata.error);
-      return;
+    async function addData() {
+      let retdata = await EP.netCall('SYNC:SRV_DATA_ADD', {
+        accToken,
+        cName: 'comments',
+        items: [{ text: `add CCC` }]
+      });
+      if (retdata.error) {
+        LOG(...PR('error in SRV_DATA_ADD'), retdata.error);
+        return;
+      }
+      added = retdata.added; // test data update
+      if (DCA) LOG(...PR('added'), ...added);
     }
-    let added = retdata.added; // test data update
-    LOG(...PR('added'), ...added);
-
     /** test data update **/
-    let updatedItems = added.map(item => {
-      item.text = `updated comment ${item._id}`;
-      return item;
-    });
-    if (DBG) LOG(...PR('updating'), ...updatedItems);
-    retdata = await EP.netCall('SYNC:SRV_DATA_UPDATE', {
-      accToken,
-      cName: 'comments',
-      items: updatedItems
-    });
-    if (retdata.error) {
-      LOG(...PR('error in SRV_DATA_UPDATE'), retdata.error);
-      return;
+    async function updateData() {
+      let retdata = await EP.netCall('SYNC:SRV_DATA_UPDATE', {
+        accToken,
+        cName: 'comments',
+        items: [{ _id: '1', text: `update AAA` }]
+      });
+      if (retdata.error) {
+        LOG(...PR('error in SRV_DATA_UPDATE'), retdata.error);
+        return;
+      }
+      updated = retdata.updated;
+      if (DCA) LOG(...PR('updated'), ...updated);
     }
-    let updated = retdata.updated;
-    LOG(...PR('updated'), ...updated);
-    // let's see if we got any added items with ids in them
-
     /** test data write **/
-    let writeItems = [
-      { text: `write new comment AAA` },
-      { text: `write new comment BBB` },
-      { _id: '1', text: `write existing comment 1` }
-    ];
-    if (DBG) LOG(...PR('writing'), ...writeItems);
-    retdata = await EP.netCall('SYNC:SRV_DATA_WRITE', {
-      accToken,
-      cName: 'comments',
-      items: writeItems
-    });
-    if (retdata.error) {
-      LOG(...PR('error in SRV_DATA_WRITE'), retdata.error);
-      return;
+    async function writeData() {
+      let writeItems = [
+        { text: `write DDD new` },
+        { text: `write EEE new` },
+        { _id: '1', text: `write AAA 1` }
+      ];
+      if (DCA) LOG(...PR('writing'), ...writeItems);
+      retdata = await EP.netCall('SYNC:SRV_DATA_WRITE', {
+        accToken,
+        cName: 'comments',
+        items: writeItems
+      });
+      if (retdata.error) {
+        LOG(...PR('error in SRV_DATA_WRITE'), retdata.error);
+        return;
+      }
+      added = retdata.added;
+      updated = retdata.updated;
+      if (DCA) LOG(...PR('write added'), ...added);
+      if (DCA) LOG(...PR('write updated'), ...updated);
     }
-    added = retdata.added;
-    updated = retdata.updated;
-    if (DBG) LOG(...PR('write added'), ...added);
-    if (DBG) LOG(...PR('write updated'), ...updated);
-
     /** test data replace **/
-    let replaceItems = [
-      { _id: '1', replaced: true },
-      { _id: '3', replaced: true },
-      { _id: '5', replaced: true }
-    ];
-    if (DBG) LOG(...PR('replacing'), ...replaceItems);
-    retdata = await EP.netCall('SYNC:SRV_DATA_REPLACE', {
-      accToken,
-      cName: 'comments',
-      items: replaceItems
-    });
-    if (retdata.error) {
-      LOG(...PR('error in SRV_DATA_REPLACE'), retdata.error);
-      return;
+    async function replaceData() {
+      let replaceItems = [
+        { _id: '1', replaced: true },
+        { _id: '3', replaced: true },
+        { _id: '5', replaced: true }
+      ];
+      if (DCA) LOG(...PR('replacing'), ...replaceItems);
+      retdata = await EP.netCall('SYNC:SRV_DATA_REPLACE', {
+        accToken,
+        cName: 'comments',
+        items: replaceItems
+      });
+      if (retdata.error) {
+        LOG(...PR('error in SRV_DATA_REPLACE'), retdata.error);
+        return;
+      }
+      let replaced = retdata.replaced;
+      if (DCA) LOG(...PR('replaced'), ...replaced);
     }
-    let replaced = retdata.replaced;
-    LOG(...PR('replaced'), ...replaced);
-
-    /** retrieve current data **/
-    retdata = await EP.netCall('SYNC:SRV_DATA_GET', {
-      cName: 'comments',
-      accToken
-    });
-    if (retdata.error) {
-      LOG(...PR('error in SRV_DATA_GET'), retdata.error);
-      return;
-    }
-    if (DBG) LOG(...PR('current items after replace'), ...retdata.items);
-
     /** test data delete **/
-    let deleteIDs = retdata.items.map(item => item._id);
-    if (DBG) LOG(...PR('deleting'), ...deleteIDs);
-    retdata = await EP.netCall('SYNC:SRV_DATA_DELETE', {
-      accToken,
-      cName: 'comments',
-      ids: deleteIDs
-    });
-    if (retdata.error) {
-      LOG(...PR('error in SRV_DATA_DELETE'), retdata.error);
-      return;
+    async function deleteData() {
+      retdata = await EP.netCall('SYNC:SRV_DATA_GET', {
+        cName: 'comments',
+        accToken: 'myAccess'
+      });
+      let deleteIDs = retdata.items.map(item => item._id);
+      if (DCA) LOG(...PR('deleting'), ...deleteIDs);
+      retdata = await EP.netCall('SYNC:SRV_DATA_DELETE', {
+        accToken,
+        cName: 'comments',
+        ids: deleteIDs
+      });
+      if (retdata.error) {
+        LOG(...PR('error in SRV_DATA_DELETE'), retdata.error);
+        return;
+      }
+      deleted = retdata.deleted;
+      if (DCA) LOG(...PR('deleted'), ...deleted);
     }
-    let deleted = retdata.deleted;
-    LOG(...PR('deleted'), ...deleted);
-
-    /** retrieve current data **/
-    retdata = await EP.netCall('SYNC:SRV_DATA_GET', {
-      cName: 'comments',
-      accToken
-    });
-    if (retdata.error) {
-      LOG(...PR('error in SRV_DATA_GET'), retdata.error);
-      return;
-    }
-    if (DBG)
-      LOG(...PR(`${retdata.items.length} items after delete`), ...retdata.items);
-
-    /** RESET DATA **/
-    retdata = await EP.netCall('SYNC:SRV_DATA_INIT', {
-      cName: 'comments',
-      accToken
-    });
-    if (retdata.error) {
-      LOG(...PR('error in SRV_DATA_INIT'), retdata.error);
-      return;
+    /** reset data **/
+    async function resetData() {
+      retdata = await EP.netCall('SYNC:SRV_DATA_INIT', {
+        cName: 'comments',
+        accToken
+      });
+      if (retdata.error) {
+        LOG(...PR('error in SRV_DATA_INIT'), retdata.error);
+        return;
+      }
+      const resetItems = retdata.items;
+      if (DCA) LOG(...PR('reset items'), ...resetItems);
     }
 
-    const resetItems = retdata.items;
-    LOG(...PR('reset items'), ...resetItems);
+    // exercise
+    await addData();
+    await m_Compare();
+    await updateData();
+    await m_Compare();
+    await writeData();
+    await m_Compare();
+    await replaceData();
+    await m_Compare();
+    await deleteData();
+    await m_Compare();
+    // do not remove or comment out otherwise reload will fail
+    await resetData();
   });
 
   /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:

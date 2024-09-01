@@ -38,8 +38,8 @@ const { PromiseUseDatabase } = LOKI;
 /// DUMMY LIST MANAGER ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const m_dummy_data = [
-  { text: 'initial comment number one' }, //
-  { text: 'initialcomment number two' }
+  { text: 'AAA' }, //
+  { text: 'BBB' }
 ];
 
 /// GUARD FUNCTIONS ///////////////////////////////////////////////////////////
@@ -95,10 +95,7 @@ async function Init() {
     if (error) return { error };
     const list = DATA.getItemList(cName);
     list.clear();
-    list.add([
-      { text: 'initial comment number one' }, //
-      { text: 'initialcomment number two' }
-    ]);
+    list.add(m_dummy_data);
     const items = list.getItems();
     return { items };
   });
@@ -120,9 +117,9 @@ async function Init() {
     const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(cName);
-    const added = list.add(items);
-    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...added });
-    return added;
+    const addObj = list.add(items);
+    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...addObj });
+    return addObj;
   });
 
   /** collection update  */
@@ -130,9 +127,9 @@ async function Init() {
     const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(cName);
-    const updated = list.update(items);
-    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...updated });
-    return updated;
+    const updObj = list.update(items);
+    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...updObj });
+    return updObj;
   });
 
   /** collection write (updates and adds) */
@@ -140,9 +137,9 @@ async function Init() {
     const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(cName);
-    const written = list.write(items);
-    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...written });
-    return written;
+    const writObj = list.write(items);
+    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...writObj });
+    return writObj;
   });
 
   /** collection replace */
@@ -150,9 +147,10 @@ async function Init() {
     const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(cName);
-    const replaced = list.replace(items);
-    EP.netSignal('SYNC:CLI_DATA', { cName: cName, cType, ...replaced });
-    return replaced;
+    const oldItems = list.replace(items); // returns the old items
+    const replaced = [...items];
+    EP.netSignal('SYNC:CLI_DATA', { cName: cName, cType, replaced });
+    return oldItems;
   });
 
   /** collection delete */
@@ -160,9 +158,9 @@ async function Init() {
     const { cName, cType, accToken, ids, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(cName);
-    const deleted = list.delete(ids);
-    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...deleted });
-    return deleted;
+    const delObj = list.delete(ids);
+    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...delObj });
+    return delObj;
   });
 }
 
