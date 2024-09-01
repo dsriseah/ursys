@@ -7,7 +7,11 @@
 import { PR } from '@ursys/core';
 import * as LOKI from './lib/mod-loki.mts';
 import tsm_data from './lib/class-data-mgr.ts';
-import { HookPhase, AddMessageHandler } from '../webplay-svc-server.mts';
+import {
+  HookPhase,
+  AddMessageHandler,
+  GetServerEndpoint
+} from '../webplay-svc-server.mts';
 import { UR_MachineState } from '../webplay-svc-server.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -41,13 +45,13 @@ const m_dummy_data = [
 /// GUARD FUNCTIONS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_CheckDataParams(data: any) {
-  const { listName, accToken, ids, items } = data;
+  const { cName, accToken, ids, items } = data;
   // required params
-  if (accToken === undefined) return { error: 'accToken is required' };
-  if (!listName) return { error: 'listName is required' };
-  if (typeof listName !== 'string') return { error: 'listName must be a string' };
-  if (DATA.getItemList(listName) === undefined)
-    return { error: `list ${listName} not found` };
+  if (accToken === undefined) return { error: 'cType, accToken is required' };
+  if (!cName) return { error: 'cName is required' };
+  if (typeof cName !== 'string') return { error: 'cName must be a string' };
+  if (DATA.getItemList(cName) === undefined)
+    return { error: `list ${cName} not found` };
   // optional params
   if (ids) {
     if (!Array.isArray(ids)) return { error: 'ids must be an array' };
@@ -60,7 +64,8 @@ function m_CheckDataParams(data: any) {
       return { error: 'items must be an array of objects' };
   }
   // everything good, then return the data
-  return { listName, accToken, ids, items };
+  const cType = 'ItemList';
+  return { cName, cType, accToken, ids, items };
 }
 
 /// LIFECYCLE /////////////////////////////////////////////////////////////////
@@ -86,9 +91,9 @@ async function Init() {
 
   /** collection initialize **/
   AddMessageHandler('SYNC:SRV_DATA_INIT', async (params: any) => {
-    const { listName, error } = m_CheckDataParams(params);
+    const { cName, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(listName);
+    const list = DATA.getItemList(cName);
     list.clear();
     list.add([
       { text: 'initial comment number one' }, //
@@ -100,50 +105,64 @@ async function Init() {
 
   /** collection get */
   AddMessageHandler('SYNC:SRV_DATA_GET', async (params: any) => {
-    const { listName, accToken, ids, error } = m_CheckDataParams(params);
+    const { cName, cType, accToken, ids, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(listName);
+    const list = DATA.getItemList(cName);
     return list.read(ids);
   });
 
+  /// DATA MUTATION HANDLERS ///
+
+  const EP = GetServerEndpoint();
+
   /** collection add */
   AddMessageHandler('SYNC:SRV_DATA_ADD', async (params: any) => {
-    const { listName, accToken, items, error } = m_CheckDataParams(params);
+    const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(listName);
-    return list.add(items);
+    const list = DATA.getItemList(cName);
+    const added = list.add(items);
+    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...added });
+    return added;
   });
 
   /** collection update  */
   AddMessageHandler('SYNC:SRV_DATA_UPDATE', async (params: any) => {
-    const { listName, accToken, items, error } = m_CheckDataParams(params);
+    const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(listName);
-    return list.update(items);
+    const list = DATA.getItemList(cName);
+    const updated = list.update(items);
+    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...updated });
+    return updated;
   });
 
   /** collection write (updates and adds) */
   AddMessageHandler('SYNC:SRV_DATA_WRITE', async (params: any) => {
-    const { listName, accToken, items, error } = m_CheckDataParams(params);
+    const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(listName);
-    return list.write(items);
+    const list = DATA.getItemList(cName);
+    const written = list.write(items);
+    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...written });
+    return written;
   });
 
   /** collection replace */
   AddMessageHandler('SYNC:SRV_DATA_REPLACE', async (params: any) => {
-    const { listName, accToken, items, error } = m_CheckDataParams(params);
+    const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(listName);
-    return list.replace(items);
+    const list = DATA.getItemList(cName);
+    const replaced = list.replace(items);
+    EP.netSignal('SYNC:CLI_DATA', { cName: cName, cType, ...replaced });
+    return replaced;
   });
 
   /** collection delete */
   AddMessageHandler('SYNC:SRV_DATA_DELETE', async (params: any) => {
-    const { listName, accToken, ids, error } = m_CheckDataParams(params);
+    const { cName, cType, accToken, ids, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(listName);
-    return list.delete(ids);
+    const list = DATA.getItemList(cName);
+    const deleted = list.delete(ids);
+    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...deleted });
+    return deleted;
   });
 }
 

@@ -14,8 +14,10 @@ import { DataManager } from './lib/class-data-mgr.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const PR = ConsoleStyler('COMMENT', 'TagYellow');
+const PR = ConsoleStyler('CMT.DBS', 'TagYellow');
+const P2 = ConsoleStyler('CMT.CLI', 'TagGreen');
 const LOG = console.log.bind(console);
+const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DATA = new DataManager();
 
@@ -35,8 +37,12 @@ const DATA = new DataManager();
   :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
   HookPhase('WEBPLAY/NET_REGISTER', () => {
     // client implements these sync handlers
-    AddMessageHandler('SYNC:CLI_DATA', (data: any) => {});
-    AddMessageHandler('SYNC:CLI_STATE', async (data: any) => {});
+    AddMessageHandler('SYNC:CLI_DATA', (data: any) => {
+      LOG(...P2('SYNC:CLI_DATA'), data);
+    });
+    AddMessageHandler('SYNC:CLI_STATE', async (data: any) => {
+      LOG(...P2('SYNC:CLI_STATE'), data);
+    });
   });
 
   /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:
@@ -46,7 +52,7 @@ const DATA = new DataManager();
     const fn = 'LOAD_DATA:';
     const EP = Endpoint();
     let retdata = await EP.netCall('SYNC:SRV_DATA_GET', {
-      listName: 'comments',
+      cName: 'comments',
       accToken: 'myAccess'
     });
     if (retdata.error) {
@@ -75,12 +81,12 @@ const DATA = new DataManager();
     const accToken = 'myAccess';
     const EP = Endpoint();
 
-    LOG(...PR(fn, 'DC-Comments APP_READY'));
+    if (DBG) LOG(...PR(fn, 'DC-Comments APP_READY'));
 
     /** test data add **/
     let retdata = await EP.netCall('SYNC:SRV_DATA_ADD', {
       accToken,
-      listName: 'comments',
+      cName: 'comments',
       items: [{ text: `comment add` }]
     });
     if (retdata.error) {
@@ -95,10 +101,10 @@ const DATA = new DataManager();
       item.text = `updated comment ${item._id}`;
       return item;
     });
-    LOG(...PR('updating'), ...updatedItems);
+    if (DBG) LOG(...PR('updating'), ...updatedItems);
     retdata = await EP.netCall('SYNC:SRV_DATA_UPDATE', {
       accToken,
-      listName: 'comments',
+      cName: 'comments',
       items: updatedItems
     });
     if (retdata.error) {
@@ -106,7 +112,7 @@ const DATA = new DataManager();
       return;
     }
     let updated = retdata.updated;
-    LOG(...PR('received updated'), ...updated);
+    LOG(...PR('updated'), ...updated);
     // let's see if we got any added items with ids in them
 
     /** test data write **/
@@ -115,10 +121,10 @@ const DATA = new DataManager();
       { text: `write new comment BBB` },
       { _id: '1', text: `write existing comment 1` }
     ];
-    LOG(...PR('writing'), ...writeItems);
+    if (DBG) LOG(...PR('writing'), ...writeItems);
     retdata = await EP.netCall('SYNC:SRV_DATA_WRITE', {
       accToken,
-      listName: 'comments',
+      cName: 'comments',
       items: writeItems
     });
     if (retdata.error) {
@@ -127,8 +133,8 @@ const DATA = new DataManager();
     }
     added = retdata.added;
     updated = retdata.updated;
-    LOG(...PR('added'), ...added);
-    LOG(...PR('updated'), ...updated);
+    if (DBG) LOG(...PR('write added'), ...added);
+    if (DBG) LOG(...PR('write updated'), ...updated);
 
     /** test data replace **/
     let replaceItems = [
@@ -136,10 +142,10 @@ const DATA = new DataManager();
       { _id: '3', replaced: true },
       { _id: '5', replaced: true }
     ];
-    LOG(...PR('replacing'), ...replaceItems);
+    if (DBG) LOG(...PR('replacing'), ...replaceItems);
     retdata = await EP.netCall('SYNC:SRV_DATA_REPLACE', {
       accToken,
-      listName: 'comments',
+      cName: 'comments',
       items: replaceItems
     });
     if (retdata.error) {
@@ -151,21 +157,21 @@ const DATA = new DataManager();
 
     /** retrieve current data **/
     retdata = await EP.netCall('SYNC:SRV_DATA_GET', {
-      listName: 'comments',
+      cName: 'comments',
       accToken
     });
     if (retdata.error) {
       LOG(...PR('error in SRV_DATA_GET'), retdata.error);
       return;
     }
-    LOG(...PR('current items after replace'), ...retdata.items);
+    if (DBG) LOG(...PR('current items after replace'), ...retdata.items);
 
     /** test data delete **/
     let deleteIDs = retdata.items.map(item => item._id);
-    LOG(...PR('deleting'), ...deleteIDs);
+    if (DBG) LOG(...PR('deleting'), ...deleteIDs);
     retdata = await EP.netCall('SYNC:SRV_DATA_DELETE', {
       accToken,
-      listName: 'comments',
+      cName: 'comments',
       ids: deleteIDs
     });
     if (retdata.error) {
@@ -177,18 +183,19 @@ const DATA = new DataManager();
 
     /** retrieve current data **/
     retdata = await EP.netCall('SYNC:SRV_DATA_GET', {
-      listName: 'comments',
+      cName: 'comments',
       accToken
     });
     if (retdata.error) {
       LOG(...PR('error in SRV_DATA_GET'), retdata.error);
       return;
     }
-    LOG(...PR(`${retdata.items.length} items after delete`), ...retdata.items);
+    if (DBG)
+      LOG(...PR(`${retdata.items.length} items after delete`), ...retdata.items);
 
     /** RESET DATA **/
     retdata = await EP.netCall('SYNC:SRV_DATA_INIT', {
-      listName: 'comments',
+      cName: 'comments',
       accToken
     });
     if (retdata.error) {
