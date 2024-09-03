@@ -66,6 +66,7 @@ function NormDataObj(obj: UR_Item): [DataObj, detectedID?: string] {
       continue;
     }
     if (typeof obj[key] === 'string') {
+      // todo: remove bad characters
       // norm[key] = encodeURIComponent(obj[key]);
       norm[key] = obj[key];
     } else {
@@ -87,8 +88,6 @@ function NormItemIDs(ids: UR_EntID_Obj[]): [UR_EntID_Obj[], error?: string] {
 /// ITEM CLONING //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** make a deep clone of an array by copying arrays and object by value
- *  - if _fstr is true, props with numbers values are converted to strings
- *  - if _fnul is true, props with undefined values are converted to null
  */
 function DeepCloneArray(arr: any[]): any[] {
   const fn = 'DeepCloneArray:';
@@ -101,8 +100,6 @@ function DeepCloneArray(arr: any[]): any[] {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** make a deep clone of an object by copying arrays and object by value
- *  - if _fstr is true, props with numbers values are converted to strings
- *  - if _fnul is true, props with undefined values are converted to null
  */
 function DeepCloneObject(obj: any): any {
   const fn = 'DeepCloneObject:';
@@ -124,10 +121,6 @@ function DeepCloneObject(obj: any): any {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** make a shallow clone of an object by copying arrays and object by value
- *  - if _flcp is true, top-level keys are converted to lower case
- *  - if _deep is true, objects and arrays are cloned recursively
- *  - if _fstr is true, props with numbers values are converted to strings
- *  - if _fnul is true, props with undefined values are converted to null
  */
 function DeepClone(obj: any): any {
   // walk object and clone arrays and objects

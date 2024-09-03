@@ -1,39 +1,33 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-
+  A set of utilities that work on an array of items, providing advanced
+  filtering and matching.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { DataManager } from './class-data-mgr.ts';
-import { DeepClone, NormDataItem, NormItemIDs } from '~ur/common/util-data-norm.ts';
+import { DeepClone } from '~ur/common/util-data-norm.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   UR_Item,
-  UR_Doc,
-  UR_EntID,
-  UR_ItemList,
-  UR_DocFolder,
-  RangeType,
-  RangeParams,
-  SortType,
   SearchOptions,
-  SearchParams,
-  SortOptions
+  MatchObj,
+  RangeObj
 } from '../../../../_ur/_types/dataset';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type PropKey = string;
 type QueryFlags = {
   _flcp?: boolean;
-  _fstr?: boolean;
+  _fval?: 'number' | 'string' | undefined;
   _fnul?: boolean;
   _deep?: boolean;
   _clone?: boolean;
   b_miss?: string[];
   b_has?: string[];
-  dict_exact?: SearchParams;
-  dict_range?: RangeParams;
+  match_exact?: MatchObj;
+  match_range?: RangeObj;
   f_pre?: (items: UR_Item[]) => Promise<UR_Item[]>;
   f_post?: (items: UR_Item[]) => Promise<UR_Item[]>;
 };
@@ -64,16 +58,15 @@ function SetCriteria(criteria: SearchOptions): QueryState {
 /** convert the verbose search options to object with shorter names */
 function u_getFlagsFromSearchOptions(criteria: SearchOptions): QueryFlags {
   // processing options
-  const { _caseSensitive, _forceNumAsString, _forceNull, _deepMatch, _cloneResults } =
+  const { _caseSensitive, _forceValue, _forceNull, _deepMatch, _cloneResults } =
     criteria;
   if (typeof _caseSensitive !== 'boolean') throw Error('_caseSensitive invalid type');
-  if (typeof _forceNumAsString !== 'boolean')
-    throw Error('_forceNumAsString invalid type');
+  if (typeof _forceValue !== 'string') throw Error('_forceValue invalid type');
   if (typeof _forceNull !== 'boolean') throw Error('_forceNull invalid type');
   if (typeof _deepMatch !== 'boolean') throw Error('_deepMatch invalid type');
   if (typeof _cloneResults !== 'boolean') throw Error('_cloneResults invalid type');
   const _flcp = _caseSensitive;
-  const _fstr = _forceNumAsString;
+  const _fval = _forceValue;
   const _fnul = _forceNull;
   const _deep = _deepMatch;
   const _clone = _cloneResults;
@@ -81,8 +74,8 @@ function u_getFlagsFromSearchOptions(criteria: SearchOptions): QueryFlags {
   const { missingFields, hasFields, matchExact, matchRange } = criteria;
   const b_miss = Array.isArray(missingFields) ? missingFields : undefined;
   const b_has = Array.isArray(hasFields) ? hasFields : undefined;
-  const dict_exact = typeof matchExact === 'object' ? matchExact : undefined;
-  const dict_range = typeof matchRange === 'object' ? matchRange : undefined;
+  const match_exact = typeof matchExact === 'object' ? matchExact : undefined;
+  const match_range = typeof matchRange === 'object' ? matchRange : undefined;
   // pre and post filter functions
   const { preFilter, postFilter } = criteria;
   const f_pre = typeof preFilter === 'function' ? preFilter : undefined;
@@ -90,143 +83,184 @@ function u_getFlagsFromSearchOptions(criteria: SearchOptions): QueryFlags {
   // return the flags object
   return {
     _flcp, // force prop keys to lowercase
-    _fstr, // force numeric values to strings
+    _fval, // force numeric values to strings or numeric strings to numbers
     _fnul, // force undefined to null
     _deep, // use deep comparison and clone
     _clone, // return cloned items, not originals
     b_miss, // check for these missing fields
     b_has, // check that these fields are present
-    dict_exact, // match these exact values no more no less
-    dict_range, // match these ranges for values
+    match_exact, // match these exact values no more no less
+    match_range, // match these ranges for values
     f_pre, // pre-filter function
     f_post // post-filter function
   };
 }
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function u_conformObject(mutant: UR_Item): UR_Item {
-  const { _fstr, _fnul, _flcp } = QUERY_STATE.flags;
-  Object.keys(mutant).forEach(key => {
-    let value = mutant[key];
+/** Given an object, recursively apply all the forcing constraints to its
+ *  values. The 'mutable' object is mutated in place and returned. Converts numbers
+ *  to strings, undefined to null, handles arrays, and optionally forces
+ *  lowercase prop keys. */
+function u_conformObject(mutable: UR_Item, flags?: QueryFlags): UR_Item {
+  const { _fval, _fnul, _flcp } = flags || QUERY_STATE.flags;
+  Object.keys(mutable).forEach(key => {
+    let value = mutable[key];
     if (_flcp) {
-      mutant.delete(key);
+      mutable.delete(key);
       key = key.toLowerCase();
-      mutant[key] = value;
+      mutable[key] = value;
     }
     if (Array.isArray(value)) {
-      mutant[key] = u_conformArray(value);
+      mutable[key] = u_conformArray(value);
       return;
     }
-    if (typeof value === 'number' && _fstr) {
-      mutant[key] = String(value);
+    if (typeof value === 'string' && !_fval) {
+      const num = Number(value);
+      if (!isNaN(num)) mutable[key] = num;
+    }
+    if (typeof value === 'number' && _fval) {
+      mutable[key] = String(value);
       return;
     }
     if (value === undefined && _fnul) {
-      mutant[key] = null;
+      mutable[key] = null;
       return;
     }
     if (typeof value === 'object') {
-      mutant[key] = u_conformObject(value);
+      mutable[key] = u_conformObject(value);
       return;
     }
-    mutant[key] = value;
+    mutable[key] = value;
   });
-  return mutant;
+  return mutable;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function u_conformArray(mutant: any[]): any[] {
-  return mutant.map(item => {
+/** Given array, recursively apply all the forcing constraints to the values.
+ *  Iterates over the array and also calls u_conformObject on any object
+ *  members. The 'muts' array is mutated in place and returned */
+function u_conformArray(muts: any[]): any[] {
+  return muts.map(item => {
     if (Array.isArray(item)) return u_conformArray(item);
     if (typeof item === 'object') return u_conformObject(item);
     return item;
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** given an item, apply all the forcing constraints to the values */
-function u_conformItem(mutant: UR_Item): UR_Item {
-  const { _fstr, _fnul, _flcp } = QUERY_STATE.flags;
-  Object.keys(mutant).forEach(key => {
-    let value = mutant[key];
-    if (_flcp) {
-      mutant.delete(key);
-      key = key.toLowerCase();
-      mutant[key] = value;
-    }
-    if (Array.isArray(value)) {
-      mutant[key] = u_conformArray(value);
-      return;
-    }
-    if (typeof value === 'number' && _fstr) {
-      mutant[key] = String(value);
-      return;
-    }
-    if (value === undefined && _fnul) {
-      mutant[key] = null;
-      return;
-    }
-    if (typeof value === 'object') {
-      mutant[key] = u_conformObject(value);
-      return;
-    }
-    mutant[key] = value;
-  });
-  return mutant;
-}
-
-/// HELPER FUNCTIONS //////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return found, missing, extra props in item based on passed list of desired
- *  properties */
-function m_decodeProps(item: UR_Item, plist: PropKey[]): QueryProps {
-  const ff = [];
-  const mm = [];
-  const xx = [];
-  // check keys against exact match list
-  for (const key in item) {
-    if (plist.includes(key)) ff.push(key);
-    else xx.push(key);
-  }
-  // figure out what is missing
-  for (const key in plist) {
-    if (!ff.includes(key)) mm.push(key);
-  }
-  const found = ff.length === 0 ? ff : undefined;
-  const missing = mm.length === 0 ? mm : undefined;
-  const extra = xx.length === 0 ? xx : undefined;
-  QUERY_STATE.props = { found, missing, extra };
-  return QUERY_STATE.props;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if item has all the fields in the passed list,
  *  no more, no less */
-function m_hasProps(item: UR_Item, plist: PropKey[]): boolean {
+function u_hasProps(item: UR_Item, plist: PropKey[]): boolean {
   let foundCount = 0;
   for (const key of plist) if (item[key] !== undefined) foundCount++;
   return foundCount === plist.length;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** check if item does not have any of the fields in the passed list */
-function m_hasMissingProps(item: UR_Item, plist: PropKey[]): boolean {
+function u_hasMissingProps(item: UR_Item, plist: PropKey[]): boolean {
   const missing = [];
   for (const key of plist) if (item[key] === undefined) missing.push(key);
   return missing.length > 0;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** check if item has any extra fields not in the passed list */
-function m_hasExtraProps(item: UR_Item, plist: PropKey[]): boolean {
+function u_hasExtraProps(item: UR_Item, plist: PropKey[]): boolean {
   const extra = [];
   for (const key in item) if (!plist.includes(key)) extra.push(key);
   return extra.length > 0;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** check if item has all the fields and values in the passed dictionary */
-function m_matchValues(item: UR_Item, dict: SearchParams): boolean {
-  return false;
+function u_matchValues(item: UR_Item, mObj: MatchObj): boolean {
+  let match = true;
+  for (const [key, value] of Object.entries(mObj)) {
+    match &&= item[key] === value;
+  }
+  return match;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** check if item has all the fields and values in the passed dictionary */
-function m_matchRanges(item: UR_Item, dict: RangeParams): boolean {
-  return false;
+/** check if item has all the fields and values in the passed dictionary
+ *  RangeObj: { [key: string]: RangeType }
+ *  RangeType: `op value [value]`
+ */
+function u_matchRanges(item: UR_Item, rObj: RangeObj): boolean {
+  const fn = 'u_matchRanges:';
+  let match = true;
+  for (const [prop, parms] of Object.entries(rObj)) {
+    let [op, a, b] = parms.split(' ');
+    let ival = item[prop];
+    if (Number.isFinite(ival)) ival = Number(ival);
+    if (Number.isFinite(a)) (a as any) = Number(a);
+    // we're assuming that javascript's weird string-to-number coercion will
+    // handle both string and numeric comparisons correctly
+    if (op === 'gt') match &&= ival > a;
+    if (op === 'lt') match &&= ival < a;
+    if (op === 'gte') match &&= ival >= a;
+    if (op === 'lte') match &&= ival <= a;
+    if (op === 'eq') match &&= ival === a;
+    if (op === 'ne') match &&= ival !== a;
+    if (op === 'between') match &&= ival >= a && ival <= b;
+    throw Error(`${fn} invalid range operator ${op}`);
+  }
+  return match;
+}
+
+/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Given an item, apply all the forcing constraints to the values.
+ *  The provided item is mutated in place and returned. */
+function m_EnforceFlags(mutable: UR_Item): UR_Item {
+  const {
+    _fval, // force prop values to strings
+    _fnul, // force undefined to null
+    _flcp // force prop keys to lowercase
+  } = QUERY_STATE.flags;
+  Object.keys(mutable).forEach(key => {
+    let value = mutable[key];
+    if (_flcp) {
+      mutable.delete(key);
+      key = key.toLowerCase();
+      mutable[key] = value;
+    }
+    if (Array.isArray(value)) {
+      mutable[key] = u_conformArray(value);
+      return;
+    }
+    if (typeof value === 'number' && _fval) {
+      mutable[key] = String(value);
+      return;
+    }
+    if (value === undefined && _fnul) {
+      mutable[key] = null;
+      return;
+    }
+    if (typeof value === 'object') {
+      mutable[key] = u_conformObject(value);
+      return;
+    }
+    mutable[key] = value;
+  });
+  return mutable;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return found, missing, extra props in item based on passed list of desired
+ *  properties */
+function m_AssessPropKeys(item: UR_Item, plist: PropKey[]): QueryProps {
+  const ff = []; // found
+  const mm = []; // missing
+  const xx = []; // extra
+  // check keys against exact match list
+  Object.keys(item).forEach(key => {
+    if (plist.includes(key)) ff.push(key);
+    else xx.push(key);
+  });
+  // figure out what is missing
+  Object.keys(plist).forEach(key => {
+    if (!ff.includes(key)) mm.push(key);
+  });
+  const found = ff.length === 0 ? ff : undefined;
+  const missing = mm.length === 0 ? mm : undefined;
+  const extra = xx.length === 0 ? xx : undefined;
+  QUERY_STATE.props = { found, missing, extra };
+  return QUERY_STATE.props;
 }
 
 /// QUERY OPERATIONS //////////////////////////////////////////////////////////
@@ -235,12 +269,12 @@ function m_matchRanges(item: UR_Item, dict: RangeParams): boolean {
  *  undefined if no item is found.
  *  - if _clone is set, the returned item will be a clone of the original
  *  - if _deep is set, then the clone will be a deep clone of the original
- *    that also has _fstr, _fnul, and _flcp applied to the values
+ *    that also has _fval, _fnul, and _flcp applied to the values
  */
 function findOne(dataset: string, criteria?: SearchOptions): UR_Item {
   const fn = 'findOne:';
   const { flags } = SetCriteria(criteria);
-  const { _deep, _clone, b_miss, b_has, dict_exact, dict_range } = flags;
+  const { _deep, _clone, b_miss, b_has, match_exact, match_range } = flags;
   // get the raw items
   const { items } = LM.getItemList(dataset);
   if (items === undefined) throw Error(`${fn} dataset '${dataset}' not found`);
@@ -251,13 +285,13 @@ function findOne(dataset: string, criteria?: SearchOptions): UR_Item {
   let found = true;
   for (item of items) {
     // create a deep clone of the item, otherwise use the original
-    // deepClone will apply _fstr, _fnul, _flcp to the values if they
+    // deepClone will apply _fval, _fnul, _flcp to the values if they
     // are set in flags.
     ii = _deep ? DeepClone(item) : item;
-    if (b_miss) found = found && m_hasMissingProps(ii, b_miss);
-    if (b_has) found = found && m_hasProps(ii, b_has);
-    if (dict_exact) found = found && m_matchValues(ii, dict_exact);
-    if (dict_range) found = found && m_matchRanges(ii, dict_range);
+    if (b_miss) found = found && u_hasMissingProps(ii, b_miss);
+    if (b_has) found = found && u_hasProps(ii, b_has);
+    if (match_exact) found = found && u_matchValues(ii, match_exact);
+    if (match_range) found = found && u_matchRanges(ii, match_range);
     if (found) break;
   }
   if (found) return _clone ? ii : item;

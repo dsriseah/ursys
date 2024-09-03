@@ -74,21 +74,27 @@ export type BagResponse = {
 
 /// DATASET OPERATIONS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export type RangeType = `gt ${any}` | `lt ${any}` | `between ${any}, ${any}`;
-export type RangeParams = { [field: string]: RangeType };
-export type SearchParams = { [field: string]: any };
+export type RangeType =
+  | `gt ${any}`
+  | `lt ${any}`
+  | `gte ${any}`
+  | `lte ${any}`
+  | `eq ${any}`
+  | `ne ${any}`
+  | `between ${any}, ${any}`;
 export type MatchObj = { [key: string]: any };
 export type RangeObj = { [key: string]: RangeType };
 export type SortType = `none` | `ascending` | `descending` | `random`;
 export type SearchOptions = {
   _caseSensitive?: boolean; // false
   _forceNull?: boolean; // false
-  _forceNumAsString?: boolean; // true
+  _forceValue?: boolean; // true
   _deepMatch?: boolean; // false
   _cloneResults?: boolean; // true
   preFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
   missingFields?: string[];
   hasFields?: string[];
+  matchCount?: number; // when set, limits the number of matches
   matchExact?: MatchObj;
   matchRange?: RangeObj;
   postFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
