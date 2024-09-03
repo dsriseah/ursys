@@ -21,7 +21,7 @@ import type {
   SearchOptions,
   SearchParams,
   SortOptions
-} from '~ur/types/ursys.d.ts';
+} from '../../../../_ur/_types/dataset';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type PropKey = string;
 type QueryFlags = {
@@ -242,7 +242,7 @@ function findOne(dataset: string, criteria?: SearchOptions): UR_Item {
   const { flags } = SetCriteria(criteria);
   const { _deep, _clone, b_miss, b_has, dict_exact, dict_range } = flags;
   // get the raw items
-  const items: UR_Item[] = LM.getItemList(dataset);
+  const { items } = LM.getItemList(dataset);
   if (items === undefined) throw Error(`${fn} dataset '${dataset}' not found`);
   //
   let item: UR_Item; // the original item
