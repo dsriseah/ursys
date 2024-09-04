@@ -75,35 +75,56 @@ export type BagResponse = {
 /// DATASET OPERATIONS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type RangeType =
-  | `gt ${any}`
-  | `lt ${any}`
-  | `gte ${any}`
-  | `lte ${any}`
-  | `eq ${any}`
-  | `ne ${any}`
-  | `between ${any}, ${any}`;
-export type MatchObj = { [key: string]: any };
+  | `gt ${string | number}`
+  | `lt ${string | number}`
+  | `gte ${string | number}`
+  | `lte ${string | number}`
+  | `eq ${string | number}`
+  | `ne ${string | number}`
+  | `between ${string | number} ${string | number}`;
+export type MatchObj = { [key: string]: string | number };
 export type RangeObj = { [key: string]: RangeType };
 export type SortType = `none` | `ascending` | `descending` | `random`;
 export type SearchOptions = {
-  _caseSensitive?: boolean; // false
+  _lowercaseProps?: boolean; // false
   _forceNull?: boolean; // false
-  _forceValue?: boolean; // true
-  _deepMatch?: boolean; // false
-  _cloneResults?: boolean; // true
-  preFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
+  _forceValue?: 'number' | 'string'; // true
+  _cloneItems?: boolean; // true
+  preFilter?: (items: UR_Item[]) => UR_Item[];
   missingFields?: string[];
   hasFields?: string[];
   matchCount?: number; // when set, limits the number of matches
   matchExact?: MatchObj;
   matchRange?: RangeObj;
-  postFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
+  postFilter?: (items: UR_Item[]) => UR_Item[];
 };
 export type SortOptions = {
-  _cloneResults?: boolean; //
+  _cloneItems?: boolean; //
   preFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
   sortBy?: { [field: string]: SortType };
   postFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
+};
+
+/// QUERY OPERATIONS //////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type QueryFlags = {
+  _flcp?: boolean; // force lowercase
+  _fval?: 'number' | 'string' | undefined;
+  _fnul?: boolean; // force null
+  _clone?: boolean; // make clone
+  b_miss?: string[]; // missing fields
+  b_has?: string[]; // has fields
+  count?: number;
+  match_exact?: MatchObj;
+  match_range?: RangeObj;
+  f_pre?: (items: UR_Item[]) => UR_Item[];
+  f_post?: (items: UR_Item[]) => UR_Item[];
+};
+export type QueryProps = { found?: string[]; missing?: string[]; extra?: string[] };
+export type QueryState = {
+  criteria: SearchOptions;
+  flags: QueryFlags;
+  props: QueryProps;
 };
 
 /// RESOURCE TYPES ////////////////////////////////////////////////////////////

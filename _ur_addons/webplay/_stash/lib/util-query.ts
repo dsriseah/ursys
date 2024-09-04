@@ -5,8 +5,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { DataManager } from './class-data-mgr.ts';
-import { DeepClone } from '~ur/common/util-data-norm.ts';
+import { DeepClone } from '../../../../_ur/common/util-data-norm.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -14,42 +13,28 @@ import type {
   UR_Item,
   SearchOptions,
   MatchObj,
-  RangeObj
+  RangeObj,
+  QueryFlags,
+  QueryProps,
+  QueryState
 } from '../../../../_ur/_types/dataset';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type PropKey = string;
-type QueryFlags = {
-  _flcp?: boolean;
-  _fval?: 'number' | 'string' | undefined;
-  _fnul?: boolean;
-  _deep?: boolean;
-  _clone?: boolean;
-  b_miss?: string[];
-  b_has?: string[];
-  match_exact?: MatchObj;
-  match_range?: RangeObj;
-  f_pre?: (items: UR_Item[]) => Promise<UR_Item[]>;
-  f_post?: (items: UR_Item[]) => Promise<UR_Item[]>;
-};
-type QueryProps = { found?: string[]; missing?: string[]; extra?: string[] };
-type QueryState = {
-  criteria: SearchOptions;
-  flags: QueryFlags;
-  props: QueryProps;
-};
 
 /// CONSTANT DECLARATIONS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LM = new DataManager();
 const QUERY_STATE: QueryState = { criteria: {}, flags: {}, props: {} };
 
 /// QUERY STATE METHODS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: set the search criteria for the query */
-function SetCriteria(criteria: SearchOptions): QueryState {
+function m_SetCriteria(criteria: SearchOptions): QueryState {
   QUERY_STATE.criteria = criteria;
   QUERY_STATE.flags = u_getFlagsFromSearchOptions(criteria);
   // props are reset after each query operation
+  return QUERY_STATE;
+}
+/** API: get the current query state */
+function m_GetCriteria(): QueryState {
   return QUERY_STATE;
 }
 
@@ -58,24 +43,23 @@ function SetCriteria(criteria: SearchOptions): QueryState {
 /** convert the verbose search options to object with shorter names */
 function u_getFlagsFromSearchOptions(criteria: SearchOptions): QueryFlags {
   // processing options
-  const { _caseSensitive, _forceValue, _forceNull, _deepMatch, _cloneResults } =
-    criteria;
-  if (typeof _caseSensitive !== 'boolean') throw Error('_caseSensitive invalid type');
-  if (typeof _forceValue !== 'string') throw Error('_forceValue invalid type');
-  if (typeof _forceNull !== 'boolean') throw Error('_forceNull invalid type');
-  if (typeof _deepMatch !== 'boolean') throw Error('_deepMatch invalid type');
-  if (typeof _cloneResults !== 'boolean') throw Error('_cloneResults invalid type');
-  const _flcp = _caseSensitive;
-  const _fval = _forceValue;
-  const _fnul = _forceNull;
-  const _deep = _deepMatch;
-  const _clone = _cloneResults;
+  const { _lowercaseProps, _forceValue, _forceNull, _cloneItems } = criteria;
+  const _flcp = _lowercaseProps || false;
+  const _fval = _forceValue || undefined;
+  const _fnul = _forceNull || false;
+  const _clone = _cloneItems === undefined ? true : _cloneItems;
+  if (typeof _flcp !== 'boolean') throw Error('_lowercaseProps invalid type');
+  if (typeof _fval !== 'string' && _fval !== undefined)
+    throw Error('_forceValue invalid type');
+  if (typeof _fnul !== 'boolean') throw Error('_forceNull invalid type');
+  if (typeof _clone !== 'boolean') throw Error('_cloneItems invalid type');
   // fields and values to match
-  const { missingFields, hasFields, matchExact, matchRange } = criteria;
+  const { missingFields, hasFields, matchExact, matchRange, matchCount } = criteria;
   const b_miss = Array.isArray(missingFields) ? missingFields : undefined;
   const b_has = Array.isArray(hasFields) ? hasFields : undefined;
   const match_exact = typeof matchExact === 'object' ? matchExact : undefined;
   const match_range = typeof matchRange === 'object' ? matchRange : undefined;
+  const count = typeof matchCount === 'number' ? matchCount : undefined;
   // pre and post filter functions
   const { preFilter, postFilter } = criteria;
   const f_pre = typeof preFilter === 'function' ? preFilter : undefined;
@@ -85,12 +69,12 @@ function u_getFlagsFromSearchOptions(criteria: SearchOptions): QueryFlags {
     _flcp, // force prop keys to lowercase
     _fval, // force numeric values to strings or numeric strings to numbers
     _fnul, // force undefined to null
-    _deep, // use deep comparison and clone
     _clone, // return cloned items, not originals
     b_miss, // check for these missing fields
     b_has, // check that these fields are present
     match_exact, // match these exact values no more no less
     match_range, // match these ranges for values
+    count, // limit the number of matches
     f_pre, // pre-filter function
     f_post // post-filter function
   };
@@ -103,6 +87,7 @@ function u_getFlagsFromSearchOptions(criteria: SearchOptions): QueryFlags {
  *  lowercase prop keys. */
 function u_conformObject(mutable: UR_Item, flags?: QueryFlags): UR_Item {
   const { _fval, _fnul, _flcp } = flags || QUERY_STATE.flags;
+  if (mutable === null) return null;
   Object.keys(mutable).forEach(key => {
     let value = mutable[key];
     if (_flcp) {
@@ -148,21 +133,21 @@ function u_conformArray(muts: any[]): any[] {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if item has all the fields in the passed list,
  *  no more, no less */
-function u_hasProps(item: UR_Item, plist: PropKey[]): boolean {
+function u_hasProps(item: UR_Item, plist: string[]): boolean {
   let foundCount = 0;
   for (const key of plist) if (item[key] !== undefined) foundCount++;
   return foundCount === plist.length;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** check if item does not have any of the fields in the passed list */
-function u_hasMissingProps(item: UR_Item, plist: PropKey[]): boolean {
+function u_hasMissingProps(item: UR_Item, plist: string[]): boolean {
   const missing = [];
   for (const key of plist) if (item[key] === undefined) missing.push(key);
   return missing.length > 0;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** check if item has any extra fields not in the passed list */
-function u_hasExtraProps(item: UR_Item, plist: PropKey[]): boolean {
+function u_hasExtraProps(item: UR_Item, plist: string[]): boolean {
   const extra = [];
   for (const key in item) if (!plist.includes(key)) extra.push(key);
   return extra.length > 0;
@@ -177,6 +162,14 @@ function u_matchValues(item: UR_Item, mObj: MatchObj): boolean {
   return match;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Given a value, return a string or number, or throw an error if the value
+ *  is not a string or number */
+function u_cast_value(val: any): string | number {
+  if (!isNaN(parseFloat(val))) return Number(parseFloat(val));
+  if (typeof val === 'string') return String(val);
+  throw Error('u_cast_num: value is not string or number');
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** check if item has all the fields and values in the passed dictionary
  *  RangeObj: { [key: string]: RangeType }
  *  RangeType: `op value [value]`
@@ -185,10 +178,10 @@ function u_matchRanges(item: UR_Item, rObj: RangeObj): boolean {
   const fn = 'u_matchRanges:';
   let match = true;
   for (const [prop, parms] of Object.entries(rObj)) {
-    let [op, a, b] = parms.split(' ');
-    let ival = item[prop];
-    if (Number.isFinite(ival)) ival = Number(ival);
-    if (Number.isFinite(a)) (a as any) = Number(a);
+    let bits = parms.split(' ');
+    let [op, arg1, arg2] = bits.filter(bit => bit.trim() !== '');
+    let ival = u_cast_value(item[prop]);
+    let a = u_cast_value(arg1);
     // we're assuming that javascript's weird string-to-number coercion will
     // handle both string and numeric comparisons correctly
     if (op === 'gt') match &&= ival > a;
@@ -197,8 +190,10 @@ function u_matchRanges(item: UR_Item, rObj: RangeObj): boolean {
     if (op === 'lte') match &&= ival <= a;
     if (op === 'eq') match &&= ival === a;
     if (op === 'ne') match &&= ival !== a;
-    if (op === 'between') match &&= ival >= a && ival <= b;
-    throw Error(`${fn} invalid range operator ${op}`);
+    if (op === 'between') {
+      let b = u_cast_value(arg2);
+      match &&= ival >= a && ival <= b;
+    }
   }
   return match;
 }
@@ -211,12 +206,14 @@ function m_EnforceFlags(mutable: UR_Item): UR_Item {
   const {
     _fval, // force prop values to strings
     _fnul, // force undefined to null
-    _flcp // force prop keys to lowercase
+    _flcp, // force prop keys to lowercase
+    _clone // clone the item
   } = QUERY_STATE.flags;
+  if (_clone) mutable = DeepClone(mutable);
   Object.keys(mutable).forEach(key => {
     let value = mutable[key];
     if (_flcp) {
-      mutable.delete(key);
+      delete mutable[key];
       key = key.toLowerCase();
       mutable[key] = value;
     }
@@ -238,12 +235,13 @@ function m_EnforceFlags(mutable: UR_Item): UR_Item {
     }
     mutable[key] = value;
   });
+
   return mutable;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return found, missing, extra props in item based on passed list of desired
  *  properties */
-function m_AssessPropKeys(item: UR_Item, plist: PropKey[]): QueryProps {
+function m_AssessPropKeys(item: UR_Item, plist: string[]): QueryProps {
   const ff = []; // found
   const mm = []; // missing
   const xx = []; // extra
@@ -271,37 +269,61 @@ function m_AssessPropKeys(item: UR_Item, plist: PropKey[]): QueryProps {
  *  - if _deep is set, then the clone will be a deep clone of the original
  *    that also has _fval, _fnul, and _flcp applied to the values
  */
-function findOne(dataset: string, criteria?: SearchOptions): UR_Item {
-  const fn = 'findOne:';
-  const { flags } = SetCriteria(criteria);
-  const { _deep, _clone, b_miss, b_has, match_exact, match_range } = flags;
+function Find(items: UR_Item[], criteria?: SearchOptions): UR_Item[] {
+  const fn = 'Find:';
+  if (criteria === undefined) return [];
+  if (Object.keys(criteria).length === 0) return [];
+  const { flags } = m_SetCriteria(criteria);
+  const { _clone, b_miss, b_has, match_exact, match_range, count } = flags;
   // get the raw items
-  const { items } = LM.getItemList(dataset);
-  if (items === undefined) throw Error(`${fn} dataset '${dataset}' not found`);
+  if (items === undefined) throw Error(`${fn} items are undefined`);
+  // apply the pre-filter function if it exists
+  // if (flags.f_pre) items = flags.f_pre(items);
   //
   let item: UR_Item; // the original item
   let ii: UR_Item; // the mutated copy with force lc, str, null applied
   //
-  let found = true;
+  const found = [];
   for (item of items) {
+    // bail out if we've found the number of matches we're looking for
+    if (found.length >= count) break;
     // create a deep clone of the item, otherwise use the original
     // deepClone will apply _fval, _fnul, _flcp to the values if they
     // are set in flags.
-    ii = _deep ? DeepClone(item) : item;
-    if (b_miss) found = found && u_hasMissingProps(ii, b_miss);
-    if (b_has) found = found && u_hasProps(ii, b_has);
-    if (match_exact) found = found && u_matchValues(ii, match_exact);
-    if (match_range) found = found && u_matchRanges(ii, match_range);
-    if (found) break;
+    ii = _clone ? { ...item } : item;
+    let match = true;
+    if (b_miss) match &&= u_hasMissingProps(ii, b_miss);
+    if (b_has) match &&= u_hasProps(ii, b_has);
+    if (match_exact) match &&= u_matchValues(ii, match_exact);
+    if (match_range) match &&= u_matchRanges(ii, match_range);
+    if (match) found.push(ii);
   }
-  if (found) return _clone ? ii : item;
-  return undefined;
+  // apply the pre-filter function if it exists
+  //if (flags.f_post) items = flags.f_post(items);
+  return found;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Find all items that match the criteria, returning a list of items or
  *  undefined if no items are found */
-function findAll(dataset: string, criteria: SearchOptions): UR_Item[] {
+function FindAll(items: UR_Item[], criteria: SearchOptions): UR_Item[] {
   // find all matching field (case sensitive or not)
   // return the list of matching items
   return undefined || [{ _id: '1', name: 'item1' }];
 }
+
+/// EXPORTS ////////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export {
+  Find // (items: UR_Item[], criteria: SearchOptions) => UR_Item
+};
+
+/// for testing only
+export {
+  m_SetCriteria, // (criteria: SearchOptions) => QueryState
+  m_GetCriteria, // () => QueryState
+  m_EnforceFlags, // (mutable: UR_Item) => UR_Item
+  m_AssessPropKeys, // (item: UR_Item, plist: PropKey[]) => QueryProps
+  //
+  u_matchValues, // (item: UR_Item, mObj: MatchObj) => boolean
+  u_matchRanges // (item: UR_Item, rObj: RangeObj) => boolean
+};

@@ -22,7 +22,7 @@ import type {
   UR_EntID_Obj,
   DataObj,
   UR_Item
-} from '~ur/types/dataset.d.ts';
+} from '../_types/dataset.d.ts';
 
 /// DATA FORMAT CHECKING //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -105,6 +105,7 @@ function DeepCloneObject(obj: any): any {
   const fn = 'DeepCloneObject:';
   if (typeof obj !== 'object') throw Error(`${fn} invalid input ${obj}`);
   const clone = {};
+  if (obj === null) return null;
   Object.keys(obj).forEach(key => {
     const val = obj[key];
     if (Array.isArray(val)) {
