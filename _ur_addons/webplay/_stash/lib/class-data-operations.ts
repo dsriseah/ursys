@@ -12,7 +12,7 @@ import type {
   UR_EntID,
   UR_ItemList,
   UR_DocFolder,
-  SearchOptions,
+  QueryOptions,
   SortOptions
 } from '../../../../_ur/_types/dataset.d.ts';
 
@@ -58,7 +58,7 @@ interface I_DocManager {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Find the first item that matches the criteria, returning the item or
  *  undefined if no item is found */
-function findOne(dataset, criteria: SearchOptions): UR_Item {
+function findOne(dataset, criteria: QueryOptions): UR_Item {
   // find one matching field (case sensitive or not)
   // throw error if more than one
   // return the matching item
@@ -67,7 +67,7 @@ function findOne(dataset, criteria: SearchOptions): UR_Item {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Find all items that match the criteria, returning a list of items or
  *  undefined if no items are found */
-function findAll(dataset, criteria: SearchOptions): UR_Item[] {
+function findAll(dataset, criteria: QueryOptions): UR_Item[] {
   // find all matching field (case sensitive or not)
   // return the list of matching items
   return undefined || [{ _id: '1', name: 'item1' }];
@@ -130,7 +130,7 @@ function sort(items: UR_Item[], criteria: SortOptions): UR_Item[] {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Filter the items in the provided set by the criteria provided */
-function filter(items: UR_Item[], criteria: SearchOptions): UR_Item[] {
+function filter(items: UR_Item[], criteria: QueryOptions): UR_Item[] {
   // filter the items by the criteria provided, returning a new set
   // of items that match the criteria
   return items;

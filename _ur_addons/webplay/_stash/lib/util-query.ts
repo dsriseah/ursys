@@ -11,7 +11,7 @@ import { DeepClone } from '../../../../_ur/common/util-data-norm.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   UR_Item,
-  SearchOptions,
+  QueryOptions,
   MatchObj,
   RangeObj,
   QueryFlags,
@@ -27,7 +27,7 @@ const QUERY_STATE: QueryState = { criteria: {}, flags: {}, props: {} };
 /// QUERY STATE METHODS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: set the search criteria for the query */
-function m_SetCriteria(criteria: SearchOptions): QueryState {
+function m_SetCriteria(criteria: QueryOptions): QueryState {
   QUERY_STATE.criteria = criteria;
   QUERY_STATE.flags = u_getFlagsFromSearchOptions(criteria);
   // props are reset after each query operation
@@ -41,7 +41,7 @@ function m_GetCriteria(): QueryState {
 /// UTILITY FUNCTIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** convert the verbose search options to object with shorter names */
-function u_getFlagsFromSearchOptions(criteria: SearchOptions): QueryFlags {
+function u_getFlagsFromSearchOptions(criteria: QueryOptions): QueryFlags {
   // processing options
   const { _lowercaseProps, _forceValue, _forceNull, _cloneItems } = criteria;
   const _flcp = _lowercaseProps || false;
@@ -269,7 +269,7 @@ function m_AssessPropKeys(item: UR_Item, plist: string[]): QueryProps {
  *  - if _deep is set, then the clone will be a deep clone of the original
  *    that also has _fval, _fnul, and _flcp applied to the values
  */
-function Find(items: UR_Item[], criteria?: SearchOptions): UR_Item[] {
+function Find(items: UR_Item[], criteria?: QueryOptions): UR_Item[] {
   const fn = 'Find:';
   if (criteria === undefined) return [];
   if (Object.keys(criteria).length === 0) return [];
@@ -305,7 +305,7 @@ function Find(items: UR_Item[], criteria?: SearchOptions): UR_Item[] {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Find all items that match the criteria, returning a list of items or
  *  undefined if no items are found */
-function FindAll(items: UR_Item[], criteria: SearchOptions): UR_Item[] {
+function FindAll(items: UR_Item[], criteria: QueryOptions): UR_Item[] {
   // find all matching field (case sensitive or not)
   // return the list of matching items
   return undefined || [{ _id: '1', name: 'item1' }];
@@ -314,12 +314,12 @@ function FindAll(items: UR_Item[], criteria: SearchOptions): UR_Item[] {
 /// EXPORTS ////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  Find // (items: UR_Item[], criteria: SearchOptions) => UR_Item
+  Find // (items: UR_Item[], criteria: QueryOptions) => UR_Item
 };
 
 /// for testing only
 export {
-  m_SetCriteria, // (criteria: SearchOptions) => QueryState
+  m_SetCriteria, // (criteria: QueryOptions) => QueryState
   m_GetCriteria, // () => QueryState
   m_EnforceFlags, // (mutable: UR_Item) => UR_Item
   m_AssessPropKeys, // (item: UR_Item, plist: PropKey[]) => QueryProps

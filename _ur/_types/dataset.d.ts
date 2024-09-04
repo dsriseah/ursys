@@ -85,7 +85,16 @@ export type RangeType =
 export type MatchObj = { [key: string]: string | number };
 export type RangeObj = { [key: string]: RangeType };
 export type SortType = `none` | `ascending` | `descending` | `random`;
-export type SearchOptions = {
+export type SortOptions = {
+  _cloneItems?: boolean; //
+  preFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
+  sortBy?: { [field: string]: SortType };
+  postFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
+};
+
+/// QUERY OPERATIONS //////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type QueryOptions = {
   _lowercaseProps?: boolean; // false
   _forceNull?: boolean; // false
   _forceValue?: 'number' | 'string'; // true
@@ -98,15 +107,6 @@ export type SearchOptions = {
   matchRange?: RangeObj;
   postFilter?: (items: UR_Item[]) => UR_Item[];
 };
-export type SortOptions = {
-  _cloneItems?: boolean; //
-  preFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
-  sortBy?: { [field: string]: SortType };
-  postFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
-};
-
-/// QUERY OPERATIONS //////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type QueryFlags = {
   _flcp?: boolean; // force lowercase
   _fval?: 'number' | 'string' | undefined;
@@ -122,7 +122,7 @@ export type QueryFlags = {
 };
 export type QueryProps = { found?: string[]; missing?: string[]; extra?: string[] };
 export type QueryState = {
-  criteria: SearchOptions;
+  criteria: QueryOptions;
   flags: QueryFlags;
   props: QueryProps;
 };
