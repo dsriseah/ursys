@@ -84,12 +84,12 @@ export type RangeType =
   | `between ${string | number} ${string | number}`;
 export type MatchObj = { [key: string]: string | number };
 export type RangeObj = { [key: string]: RangeType };
-export type SortType = `none` | `ascending` | `descending` | `random`;
+export type SortType = `none` | `sort_asc` | `sort_desc` | `random`;
 export type SortOptions = {
   _cloneItems?: boolean; //
-  preFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
+  preFilter?: (items: UR_Item[]) => UR_Item[];
   sortBy?: { [field: string]: SortType };
-  postFilter?: (items: UR_Item[]) => Promise<UR_Item[]>;
+  postFilter?: (items: UR_Item[]) => UR_Item[];
 };
 
 /// QUERY OPERATIONS //////////////////////////////////////////////////////////

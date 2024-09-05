@@ -146,8 +146,8 @@ function DeepClone(obj: any): any {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   NormDataObj,
-  NormDataItem, // normalize a single object for storage
-  NormDataItems, // normalize objects for storage
+  NormDataItem, // normalize a single object for serialized storage
+  NormDataItems, // normalize multiple objects for storage
   NormItemIDs, // IDs should be strings
   //
   DeepClone,
