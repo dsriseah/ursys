@@ -1,6 +1,40 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
+  Recordset is a class that provides a chainable interface for transforming
+  and analyzing data. It is designed to work with UR_Item arrays, which are
+  passed to the constructor. 
   
+  CHAINING METHODS:
+
+  - sort(opt) - sort the items
+    opt.preFilter:items=>items - filter items before sorting
+    opt.sortBy:{ [field]:function } - sort by fields
+    opt.postFilter:items=>items - filter items after sorting
+
+  - format(opt) - format the items
+    opt.includeFields:[] - include only these fields
+    opt.excludeFields:[] - exclude these fields
+    opt.transformBy:{ [field]:function } - transform field
+
+  - analyze(opt) - analyze the items
+    opt.groupBy:{ [group]:function } - group items by a field
+    opt.statTests:{ [testProp]:function } - test items for statistics
+
+  - paginate(size) : paginate the items
+    size : number of items per page (default 10)
+    
+  TERMINAL METHODS:
+
+  - getItems() : return the current items
+  - getStats() : return the current metadata
+  - getSrcItems() : return the original source items
+  - reset() : reset the current items
+  - getPage() : return the current page items
+  - getPageIndex() : return the current page index
+  - getPageCount() : return the total number of pages
+  - isLastPage() : return true if this is the last page
+  - isFirstPage() : return true if this is the first page
+  - goPage(index) : go to a specific page
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -41,8 +75,10 @@ const fn = 'Recordset';
 
 /// PREDEFINED TRANSFORMER METHODS ////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// PLACEHOLDER
 /// Transformer methods are used to transform the data in the recordset
 /// in common ways. These methods are used in the format() method.
+///
 const tx_option_id = (item: UR_Item) => (item.opt = `opt${item._id}`);
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
@@ -53,6 +89,11 @@ class Recordset {
   cur_items: UR_Item[]; // transformed items
   cur_meta: any; // metadata
   //
+  page_index: number; // current page index (0-based)
+  page_size: number; // current page size in items
+  page_count: number; // total number of pages
+  pages: UR_Item[][]; // paginated items
+  //
   constructor(items: UR_Item[]) {
     if (!Array.isArray(items)) {
       throw Error(`${fn} requires an array of items`);
@@ -60,7 +101,13 @@ class Recordset {
     const [normed, error] = NormDataItems(items);
     if (error) throw Error(`${fn} ${error}`);
     this.src_items = normed;
-    this.cur_items = DeepCloneArray(this.src_items);
+    this.reset(); // set current items to source items
+  }
+
+  /** return true if the current list is paginated */
+  no_pages(): string | void {
+    if (this.page_index !== undefined) return;
+    return 'call paginate() first';
   }
 
   /// NON-CHAINING TERMINAL LIST METHODS ///
@@ -192,33 +239,93 @@ class Recordset {
     return this;
   }
 
-  /// PAGINATION ///
+  /// CHAINING PAGINATION ///
 
-  /** */
-  pageItems(): UR_Item[] {
-    return this.cur_items;
+  /** API: main pagination, using 1-based indexing */
+  paginate(pageSize: number = 10): Recordset {
+    const fn = 'paginate:';
+    let pidx = 0; // zero-based page index for local use
+    // calculate new page size and index
+    this.page_size = pageSize;
+    this.page_index = 1;
+    // calculate new page count
+    this.pages = [];
+    this.cur_items.forEach((item, ii) => {
+      if (ii % this.page_size === 0) pidx++;
+      if (this.pages[pidx - 1] === undefined) this.pages[pidx - 1] = [];
+      this.pages[pidx - 1].push(item);
+    });
+    this.page_count = this.pages.length;
+    // method-chaining return
+    return this;
   }
 
-  /** */
-  pageIndex() {}
+  /** API: set the current page index */
+  goPage(index: number): Recordset {
+    const fn = 'goPage:';
+    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    if (index < 1 || index > this.page_count)
+      throw Error(`${fn} invalid index ${index}`);
+    this.page_index = index;
+    // method-chaining return
+    return this;
+  }
 
-  /** */
-  pageCount() {}
+  /** API: advance to the next page */
+  nextPage(): Recordset {
+    const fn = 'nextPage:';
+    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    const total = this.page_count;
+    if (this.page_index < total) this.page_index++;
+    // method-chaining return
+    return this;
+  }
 
-  /** */
-  paginate(pageNum?, pageSize?) {}
+  /** API: go back a page */
+  prevPage(): Recordset {
+    const fn = 'prevPage:';
+    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    if (this.page_index > 1) this.page_index--;
+    // method-chaining return
+    return this;
+  }
 
-  /** */
-  nextPage() {}
+  /// TERMINAL PAGINATION METHODS ///
 
-  /** */
-  prevPage() {}
+  /** return the page items of the current page */
+  getPage(): UR_Item[] {
+    const fn = 'pageItems:';
+    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    return this.pages[this.page_index - 1];
+  }
 
-  /** */
-  isLastPage() {}
+  /** return the current 1-based page index */
+  getPageIndex() {
+    const fn = 'pageIndex:';
+    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    return this.page_index;
+  }
 
-  /** */
-  isFirstPage() {}
+  /** return the total number of pages */
+  getPageCount() {
+    const fn = 'pageCount:';
+    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    return this.page_count;
+  }
+
+  /** return true if this is the last page */
+  isLastPage() {
+    const fn = 'isLastPage:';
+    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    return this.page_index === this.page_count - 1;
+  }
+
+  /** return true if this is the first page */
+  isFirstPage() {
+    const fn = 'isFirstPage:';
+    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    return this.page_index === 0;
+  }
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

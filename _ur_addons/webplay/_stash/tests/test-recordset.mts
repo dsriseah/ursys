@@ -102,3 +102,40 @@ test('stat summaries', () => {
     { _id: '4', name: 'Bob', age: 40 }
   ]);
 });
+
+test('paginate', () => {
+  const rs = new Recordset(items);
+  // set up pages of 3 items each
+  expect(rs.paginate(3)).instanceOf(Recordset);
+  // check first page
+  expect(rs.getPage()).toMatchObject([
+    { _id: '1', name: 'Zack', age: 10 },
+    { _id: '2', name: 'Mildred', age: 30 },
+    { _id: '3', name: 'Alice', age: 20 }
+  ]);
+  expect(rs.getPageIndex()).toBe(1);
+  // check the next page
+  expect(rs.nextPage().getPage()).toMatchObject([{ _id: '4', name: 'Bob', age: 40 }]);
+  // check the previous page
+  expect(rs.prevPage().getPage()).toMatchObject([
+    { _id: '1', name: 'Zack', age: 10 },
+    { _id: '2', name: 'Mildred', age: 30 },
+    { _id: '3', name: 'Alice', age: 20 }
+  ]);
+  // repaginate
+  expect(rs.paginate(2).getPage()).toMatchObject([
+    { _id: '1', name: 'Zack', age: 10 },
+    { _id: '2', name: 'Mildred', age: 30 }
+  ]);
+  // repaginate to 1, then check page 3
+  expect(rs.paginate(1).goPage(3).getPage()).toMatchObject([
+    { _id: '3', name: 'Alice', age: 20 }
+  ]);
+  // check the last page (4 pages total)
+  expect(rs.goPage(3).nextPage().getPage()).toMatchObject([
+    { _id: '4', name: 'Bob', age: 40 }
+  ]);
+  expect(rs.getPageIndex()).toBe(4);
+  expect(rs.getPageCount()).toBe(4);
+  expect(rs.paginate(2).getPageCount()).toBe(2);
+});
