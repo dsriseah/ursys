@@ -127,6 +127,20 @@ export type QueryState = {
   props: QueryProps;
 };
 
+/// RECORDSET OPERATIONS //////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type ItemTransformFunction = (item: UR_Item) => UR_Item;
+export type ItemFormatOptions = {
+  includeFields?: string[];
+  excludeFields?: string[];
+  transformBy?: { [field: string]: ItemTransformFunction };
+};
+export type ItemsTesterFunction = (items: UR_Item[]) => any;
+export type ItemTestOptions = {
+  groupBy?: { [test: string]: ItemsTesterFunction };
+  statTests?: { [stat: string]: ItemsTesterFunction };
+};
+
 /// RESOURCE TYPES ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Resources are file-based data structures that conform to a schema */

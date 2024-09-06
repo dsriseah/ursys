@@ -3,9 +3,34 @@
   A set of utilities that work on an array of items, providing advanced
   filtering and matching.
 
+  MAIN API METHODS
+
+    Find(items: UR_Item[], criteria: QueryOptions) => UR_Item[]
+    Query(items: UR_Item[], criteria: QueryOptions) => Recordset
+
+  QUERY OPTIONS MAIN PROPERTIES
+
+    preFilter: (items: UR_Item[]) => UR_Item[] - pre-filter function
+    missingFields: string[] - check for these missing fields
+    hasFields: string[] - check that these fields are present
+    matchCount: number - limit the number of matches
+    matchExact: MatchObj - match these exact values no more no less
+    matchRange: RangeObj - match these ranges for values
+    postFilter: (items: UR_Item[]) => UR_Item[] - post-filter function
+
+  QUERY OPTIONS SPECIAL PROPERTIES
+
+    _lowercaseProps: booleean - force prop keys to lowercase
+    _forceNull: boolean - force undefined to null
+    _forceValue: 'number' | 'string' - force numeric values to strings
+    _cloneItems: boolean - return cloned items, not originals
+
+
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { DeepClone } from '../../../../_ur/common/util-data-norm.ts';
+import { Recordset } from './class-data-record.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -18,7 +43,6 @@ import type {
   QueryProps,
   QueryState
 } from '../../../../_ur/_types/dataset';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /// CONSTANT DECLARATIONS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -303,18 +327,18 @@ function Find(items: UR_Item[], criteria?: QueryOptions): UR_Item[] {
   return found;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Find all items that match the criteria, returning a list of items or
- *  undefined if no items are found */
-function FindAll(items: UR_Item[], criteria: QueryOptions): UR_Item[] {
-  // find all matching field (case sensitive or not)
-  // return the list of matching items
-  return undefined || [{ _id: '1', name: 'item1' }];
+/** API: Find the first item that matches the criteria, returning a recordset
+ *  wrapping the results
+ */
+function Query(items: UR_Item[], criteria?: QueryOptions): Recordset {
+  return new Recordset(Find(items, criteria));
 }
 
 /// EXPORTS ////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  Find // (items: UR_Item[], criteria: QueryOptions) => UR_Item
+  Find, // (items: UR_Item[], criteria: QueryOptions) => UR_Item
+  Query // (items: UR_Item[], criteria: QueryOptions) => Recordset
 };
 
 /// for testing only

@@ -3,39 +3,46 @@
   Recordset is a class that provides a chainable interface for transforming
   and analyzing data. It is designed to work with UR_Item arrays, which are
   passed to the constructor. 
+
+  Each "Chaining Method" returns the Recordset object, mutating the internal
+  items with each subsequent method call. The final items can be retrieved
+  using "Terminal Methods" which 
   
   CHAINING METHODS:
 
-  - sort(opt) - sort the items
+  * sort(opt) - sort the items
     opt.preFilter:items=>items - filter items before sorting
     opt.sortBy:{ [field]:function } - sort by fields
     opt.postFilter:items=>items - filter items after sorting
 
-  - format(opt) - format the items
+  * format(opt) - format the items
     opt.includeFields:[] - include only these fields
     opt.excludeFields:[] - exclude these fields
     opt.transformBy:{ [field]:function } - transform field
 
-  - analyze(opt) - analyze the items
+  * analyze(opt) - analyze the items
     opt.groupBy:{ [group]:function } - group items by a field
     opt.statTests:{ [testProp]:function } - test items for statistics
 
-  - paginate(size) : paginate the items
+  * paginate(size) - paginate the current items
     size : number of items per page (default 10)
+  * goPage(index) - go to a specific page (1-based)
+  * nextPage() - go to the next page
+  * prevPage() - go to the previous page
+
+  * reset() - reset the current items back to source items
     
   TERMINAL METHODS:
 
-  - getItems() : return the current items
-  - getStats() : return the current metadata
-  - getSrcItems() : return the original source items
-  - reset() : reset the current items
-  - getPage() : return the current page items
-  - getPageIndex() : return the current page index
-  - getPageCount() : return the total number of pages
-  - isLastPage() : return true if this is the last page
-  - isFirstPage() : return true if this is the first page
-  - goPage(index) : go to a specific page
-
+  * getItems() : return the current items
+  * getSrcItems() : return the original source items
+  * getStats() : return the results of analyze()
+  * getPage() : return the current page items
+  * getPageIndex() : return the current page index (1-based)
+  * getPageCount() : return the total number of pages
+  * isLastPage() : return true if this is the last page
+  * isFirstPage() : return true if this is the first page
+  
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import {
@@ -48,26 +55,11 @@ import {
 import type {
   SortOptions, //
   UR_Item,
-  DataObj
+  DataObj,
+  //
+  ItemFormatOptions,
+  ItemTestOptions
 } from '../../../../_ur/_types/dataset';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type ItemTransformFunction = (item: UR_Item) => UR_Item;
-type ItemFormatOptions = {
-  includeFields?: string[];
-  excludeFields?: string[];
-  transformBy?: { [field: string]: ItemTransformFunction };
-};
-/*/ SORT OPTIONS
-    _cloneItems?: boolean; //
-    preFilter?: (items: UR_Item[]) => UR_Item[];
-    sortBy?: { [field: string]: SortType };
-    postFilter?: (items: UR_Item[]) => UR_Item[];
-/*/
-type ItemsTesterFunction = (items: UR_Item[]) => any;
-type ItemTestOptions = {
-  groupBy?: { [test: string]: ItemsTesterFunction };
-  statTests?: { [stat: string]: ItemsTesterFunction };
-};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -105,7 +97,7 @@ class Recordset {
   }
 
   /** return true if the current list is paginated */
-  no_pages(): string | void {
+  _nop(): string | void {
     if (this.page_index !== undefined) return;
     return 'call paginate() first';
   }
@@ -132,11 +124,6 @@ class Recordset {
   /** return the original source items */
   getSrcItems() {
     return DeepCloneArray(this.src_items);
-  }
-
-  /** resets the current item set to beginning */
-  reset() {
-    this.cur_items = DeepCloneArray(this.src_items);
   }
 
   /// CHAINING METHODS ///
@@ -239,6 +226,13 @@ class Recordset {
     return this;
   }
 
+  /** resets the current item set to beginning */
+  reset() {
+    this.cur_items = DeepCloneArray(this.src_items);
+    // method-chaining return
+    return this;
+  }
+
   /// CHAINING PAGINATION ///
 
   /** API: main pagination, using 1-based indexing */
@@ -263,7 +257,7 @@ class Recordset {
   /** API: set the current page index */
   goPage(index: number): Recordset {
     const fn = 'goPage:';
-    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     if (index < 1 || index > this.page_count)
       throw Error(`${fn} invalid index ${index}`);
     this.page_index = index;
@@ -274,7 +268,7 @@ class Recordset {
   /** API: advance to the next page */
   nextPage(): Recordset {
     const fn = 'nextPage:';
-    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     const total = this.page_count;
     if (this.page_index < total) this.page_index++;
     // method-chaining return
@@ -284,7 +278,7 @@ class Recordset {
   /** API: go back a page */
   prevPage(): Recordset {
     const fn = 'prevPage:';
-    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     if (this.page_index > 1) this.page_index--;
     // method-chaining return
     return this;
@@ -295,35 +289,35 @@ class Recordset {
   /** return the page items of the current page */
   getPage(): UR_Item[] {
     const fn = 'pageItems:';
-    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     return this.pages[this.page_index - 1];
   }
 
   /** return the current 1-based page index */
   getPageIndex() {
     const fn = 'pageIndex:';
-    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     return this.page_index;
   }
 
   /** return the total number of pages */
   getPageCount() {
     const fn = 'pageCount:';
-    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     return this.page_count;
   }
 
   /** return true if this is the last page */
   isLastPage() {
     const fn = 'isLastPage:';
-    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     return this.page_index === this.page_count - 1;
   }
 
   /** return true if this is the first page */
   isFirstPage() {
     const fn = 'isFirstPage:';
-    if (this.no_pages()) throw Error(`${fn} ${this.no_pages()}`);
+    if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     return this.page_index === 0;
   }
 }
