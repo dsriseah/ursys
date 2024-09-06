@@ -307,6 +307,13 @@ class Recordset {
     return this.page_count;
   }
 
+  /** return the current page size */
+  getPageSize() {
+    const fn = 'getPageSize:';
+    if (this._nop()) throw Error(`${fn} ${this._nop()}`);
+    return this.page_size;
+  }
+
   /** return true if this is the last page */
   isLastPage() {
     const fn = 'isLastPage:';
