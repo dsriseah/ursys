@@ -5,8 +5,8 @@
 
   MAIN API METHODS
 
-    Find(items: UR_Item[], criteria: QueryOptions) => UR_Item[]
-    Query(items: UR_Item[], criteria: QueryOptions) => Recordset
+    Find(items: UR_Item[], criteria: SearchOptions) => UR_Item[]
+    Query(items: UR_Item[], criteria: SearchOptions) => RecordSet
 
   QUERY OPTIONS MAIN PROPERTIES
 
@@ -30,42 +30,42 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { DeepClone } from '../../../../_ur/common/util-data-norm.ts';
-import { Recordset } from './class-data-record.ts';
+import { RecordSet } from './class-data-record.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   UR_Item,
-  QueryOptions,
+  SearchOptions,
   MatchObj,
   RangeObj,
-  QueryFlags,
-  QueryProps,
-  QueryState
+  SearchFlags,
+  SearchProps,
+  SearchState
 } from '../../../../_ur/_types/dataset';
 
 /// CONSTANT DECLARATIONS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const QUERY_STATE: QueryState = { criteria: {}, flags: {}, props: {} };
+const QUERY_STATE: SearchState = { criteria: {}, flags: {}, props: {} };
 
 /// QUERY STATE METHODS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: set the search criteria for the query */
-function m_SetCriteria(criteria: QueryOptions): QueryState {
+function m_SetCriteria(criteria: SearchOptions): SearchState {
   QUERY_STATE.criteria = criteria;
   QUERY_STATE.flags = u_getFlagsFromSearchOptions(criteria);
   // props are reset after each query operation
   return QUERY_STATE;
 }
 /** API: get the current query state */
-function m_GetCriteria(): QueryState {
+function m_GetCriteria(): SearchState {
   return QUERY_STATE;
 }
 
 /// UTILITY FUNCTIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** convert the verbose search options to object with shorter names */
-function u_getFlagsFromSearchOptions(criteria: QueryOptions): QueryFlags {
+function u_getFlagsFromSearchOptions(criteria: SearchOptions): SearchFlags {
   // processing options
   const { _lowercaseProps, _forceValue, _forceNull, _cloneItems } = criteria;
   const _flcp = _lowercaseProps || false;
@@ -109,7 +109,7 @@ function u_getFlagsFromSearchOptions(criteria: QueryOptions): QueryFlags {
  *  values. The 'mutable' object is mutated in place and returned. Converts numbers
  *  to strings, undefined to null, handles arrays, and optionally forces
  *  lowercase prop keys. */
-function u_conformObject(mutable: UR_Item, flags?: QueryFlags): UR_Item {
+function u_conformObject(mutable: UR_Item, flags?: SearchFlags): UR_Item {
   const { _fval, _fnul, _flcp } = flags || QUERY_STATE.flags;
   if (mutable === null) return null;
   Object.keys(mutable).forEach(key => {
@@ -265,7 +265,7 @@ function m_EnforceFlags(mutable: UR_Item): UR_Item {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return found, missing, extra props in item based on passed list of desired
  *  properties */
-function m_AssessPropKeys(item: UR_Item, plist: string[]): QueryProps {
+function m_AssessPropKeys(item: UR_Item, plist: string[]): SearchProps {
   const ff = []; // found
   const mm = []; // missing
   const xx = []; // extra
@@ -293,7 +293,7 @@ function m_AssessPropKeys(item: UR_Item, plist: string[]): QueryProps {
  *  - if _deep is set, then the clone will be a deep clone of the original
  *    that also has _fval, _fnul, and _flcp applied to the values
  */
-function Find(items: UR_Item[], criteria?: QueryOptions): UR_Item[] {
+function Find(items: UR_Item[], criteria?: SearchOptions): UR_Item[] {
   const fn = 'Find:';
   if (criteria === undefined) return [];
   if (Object.keys(criteria).length === 0) return [];
@@ -330,23 +330,23 @@ function Find(items: UR_Item[], criteria?: QueryOptions): UR_Item[] {
 /** API: Find the first item that matches the criteria, returning a recordset
  *  wrapping the results
  */
-function Query(items: UR_Item[], criteria?: QueryOptions): Recordset {
-  return new Recordset(Find(items, criteria));
+function Query(items: UR_Item[], criteria?: SearchOptions): RecordSet {
+  return new RecordSet(Find(items, criteria));
 }
 
 /// EXPORTS ////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  Find, // (items: UR_Item[], criteria: QueryOptions) => UR_Item
-  Query // (items: UR_Item[], criteria: QueryOptions) => Recordset
+  Find, // (items: UR_Item[], criteria: SearchOptions) => UR_Item
+  Query // (items: UR_Item[], criteria: SearchOptions) => RecordSet
 };
 
 /// for testing only
 export {
-  m_SetCriteria, // (criteria: QueryOptions) => QueryState
-  m_GetCriteria, // () => QueryState
+  m_SetCriteria, // (criteria: SearchOptions) => SearchState
+  m_GetCriteria, // () => SearchState
   m_EnforceFlags, // (mutable: UR_Item) => UR_Item
-  m_AssessPropKeys, // (item: UR_Item, plist: PropKey[]) => QueryProps
+  m_AssessPropKeys, // (item: UR_Item, plist: PropKey[]) => SearchProps
   //
   u_matchValues, // (item: UR_Item, mObj: MatchObj) => boolean
   u_matchRanges // (item: UR_Item, rObj: RangeObj) => boolean

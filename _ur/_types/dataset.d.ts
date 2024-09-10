@@ -72,7 +72,7 @@ export type BagResponse = {
   items: UR_Item[];
 };
 
-/// DATASET OPERATIONS ///////////////////////////////////////////////////////
+/// DATASET OP TYPES //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type RangeType =
   | `gt ${string | number}`
@@ -85,16 +85,10 @@ export type RangeType =
 export type MatchObj = { [key: string]: string | number };
 export type RangeObj = { [key: string]: RangeType };
 export type SortType = `none` | `sort_asc` | `sort_desc` | `random`;
-export type SortOptions = {
-  _cloneItems?: boolean; //
-  preFilter?: (items: UR_Item[]) => UR_Item[];
-  sortBy?: { [field: string]: SortType };
-  postFilter?: (items: UR_Item[]) => UR_Item[];
-};
 
-/// QUERY OPERATIONS //////////////////////////////////////////////////////////
+/// ITEM SEARCH OPERATIONS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export type QueryOptions = {
+export type SearchOptions = {
   _lowercaseProps?: boolean; // false
   _forceNull?: boolean; // false
   _forceValue?: 'number' | 'string'; // true
@@ -107,7 +101,7 @@ export type QueryOptions = {
   matchRange?: RangeObj;
   postFilter?: (items: UR_Item[]) => UR_Item[];
 };
-export type QueryFlags = {
+export type SearchFlags = {
   _flcp?: boolean; // force lowercase
   _fval?: 'number' | 'string' | undefined;
   _fnul?: boolean; // force null
@@ -120,14 +114,23 @@ export type QueryFlags = {
   f_pre?: (items: UR_Item[]) => UR_Item[];
   f_post?: (items: UR_Item[]) => UR_Item[];
 };
-export type QueryProps = { found?: string[]; missing?: string[]; extra?: string[] };
-export type QueryState = {
-  criteria: QueryOptions;
-  flags: QueryFlags;
-  props: QueryProps;
+export type SearchProps = { found?: string[]; missing?: string[]; extra?: string[] };
+export type SearchState = {
+  criteria: SearchOptions;
+  flags: SearchFlags;
+  props: SearchProps;
 };
 
-/// RECORDSET OPERATIONS //////////////////////////////////////////////////////
+/// ITEM SORT OPS /////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type SortOptions = {
+  _cloneItems?: boolean; //
+  preFilter?: (items: UR_Item[]) => UR_Item[];
+  sortBy?: { [field: string]: SortType };
+  postFilter?: (items: UR_Item[]) => UR_Item[];
+};
+
+/// ITEM TRANSFORM OPS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type ItemTransformFunction = (item: UR_Item) => UR_Item;
 export type ItemFormatOptions = {
@@ -135,10 +138,17 @@ export type ItemFormatOptions = {
   excludeFields?: string[];
   transformBy?: { [field: string]: ItemTransformFunction };
 };
+
+/// ITEM TEST OPS /////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type ItemsTesterFunction = (items: UR_Item[]) => any;
 export type ItemTestOptions = {
   groupBy?: { [test: string]: ItemsTesterFunction };
   statTests?: { [stat: string]: ItemsTesterFunction };
+};
+export type ItemTestResult = {
+  groups?: { [test: string]: UR_Item[] };
+  [stat: string]: any;
 };
 
 /// RESOURCE TYPES ////////////////////////////////////////////////////////////

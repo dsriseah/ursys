@@ -7,7 +7,7 @@
 import { expect, test } from 'vitest';
 import { Find } from '../lib/util-query.ts';
 import { m_SetCriteria, m_EnforceFlags, m_GetCriteria } from '../lib/util-query.ts';
-import type { QueryOptions } from '../../../../_ur/_types/dataset.d.ts';
+import type { SearchOptions } from '../../../../_ur/_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -72,7 +72,7 @@ test('compound query', () => {
 
 test('forced value utility', () => {
   let item = { _id: '1', NAmE: 'item1', Age: 10, color: undefined };
-  let criteria: QueryOptions = {
+  let criteria: SearchOptions = {
     _forceValue: 'number',
     _lowercaseProps: true,
     _forceNull: true,

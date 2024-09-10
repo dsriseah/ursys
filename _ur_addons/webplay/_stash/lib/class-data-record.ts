@@ -1,10 +1,10 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  Recordset is a class that provides a chainable interface for transforming
+  RecordSet is a class that provides a chainable interface for transforming
   and analyzing data. It is designed to work with UR_Item arrays, which are
   passed to the constructor. 
 
-  Each "Chaining Method" returns the Recordset object, mutating the internal
+  Each "Chaining Method" returns the RecordSet object, mutating the internal
   items with each subsequent method call. The final items can be retrieved
   using "Terminal Methods" which 
   
@@ -58,12 +58,13 @@ import type {
   DataObj,
   //
   ItemFormatOptions,
-  ItemTestOptions
+  ItemTestOptions,
+  ItemTestResult
 } from '../../../../_ur/_types/dataset';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const fn = 'Recordset';
+const fn = 'RecordSet';
 
 /// PREDEFINED TRANSFORMER METHODS ////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -75,11 +76,11 @@ const tx_option_id = (item: UR_Item) => (item.opt = `opt${item._id}`);
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class Recordset {
+class RecordSet {
   //
   src_items: UR_Item[]; // source items
   cur_items: UR_Item[]; // transformed items
-  cur_meta: any; // metadata
+  cur_meta: ItemTestResult; // metadata
   //
   page_index: number; // current page index (0-based)
   page_size: number; // current page size in items
@@ -105,14 +106,14 @@ class Recordset {
   /// NON-CHAINING TERMINAL LIST METHODS ///
 
   /** return the current transformed items */
-  getItems() {
+  getItems(): UR_Item[] {
     return DeepCloneArray(this.cur_items);
   }
 
   /** return the current metadata. can provide a name which will
    *  be searched first in groups, then in the top level metadata.
    */
-  getStats(name?: string) {
+  getStats(name?: string): ItemTestResult {
     let result;
     if (name === undefined) result = this.cur_meta;
     else if (this.cur_meta.groups && this.cur_meta.groups[name])
@@ -122,7 +123,7 @@ class Recordset {
   }
 
   /** return the original source items */
-  getSrcItems() {
+  getSrcItems(): UR_Item[] {
     return DeepCloneArray(this.src_items);
   }
 
@@ -131,7 +132,7 @@ class Recordset {
   /** sorts the current list. if no sort options are passed,
    *  the list is sorted by the first field in ascending order
    */
-  sort(sOpt?: SortOptions): Recordset {
+  sort(sOpt?: SortOptions): RecordSet {
     let { sortBy, preFilter, postFilter } = sOpt || {};
     // apply pre filter
     if (preFilter) {
@@ -168,7 +169,7 @@ class Recordset {
   }
 
   /** */
-  format(fOpt: ItemFormatOptions): Recordset {
+  format(fOpt: ItemFormatOptions): RecordSet {
     const { includeFields, transformBy } = fOpt || {};
     let items = [];
     this.cur_items.forEach(item => {
@@ -196,7 +197,7 @@ class Recordset {
   }
 
   /** */
-  analyze(testOpts: ItemTestOptions): Recordset {
+  analyze(testOpts: ItemTestOptions): RecordSet {
     const { groupBy, statTests } = testOpts || {};
     let groups: DataObj;
     let stats: DataObj;
@@ -236,7 +237,7 @@ class Recordset {
   /// CHAINING PAGINATION ///
 
   /** API: main pagination, using 1-based indexing */
-  paginate(pageSize: number = 10): Recordset {
+  paginate(pageSize: number = 10): RecordSet {
     const fn = 'paginate:';
     let pidx = 0; // zero-based page index for local use
     // calculate new page size and index
@@ -255,7 +256,7 @@ class Recordset {
   }
 
   /** API: set the current page index */
-  goPage(index: number): Recordset {
+  goPage(index: number): RecordSet {
     const fn = 'goPage:';
     if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     if (index < 1 || index > this.page_count)
@@ -266,7 +267,7 @@ class Recordset {
   }
 
   /** API: advance to the next page */
-  nextPage(): Recordset {
+  nextPage(): RecordSet {
     const fn = 'nextPage:';
     if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     const total = this.page_count;
@@ -276,7 +277,7 @@ class Recordset {
   }
 
   /** API: go back a page */
-  prevPage(): Recordset {
+  prevPage(): RecordSet {
     const fn = 'prevPage:';
     if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     if (this.page_index > 1) this.page_index--;
@@ -294,35 +295,35 @@ class Recordset {
   }
 
   /** return the current 1-based page index */
-  getPageIndex() {
+  getPageIndex(): number {
     const fn = 'pageIndex:';
     if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     return this.page_index;
   }
 
   /** return the total number of pages */
-  getPageCount() {
+  getPageCount(): number {
     const fn = 'pageCount:';
     if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     return this.page_count;
   }
 
   /** return the current page size */
-  getPageSize() {
+  getPageSize(): number {
     const fn = 'getPageSize:';
     if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     return this.page_size;
   }
 
   /** return true if this is the last page */
-  isLastPage() {
+  isLastPage(): boolean {
     const fn = 'isLastPage:';
     if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     return this.page_index === this.page_count - 1;
   }
 
   /** return true if this is the first page */
-  isFirstPage() {
+  isFirstPage(): boolean {
     const fn = 'isFirstPage:';
     if (this._nop()) throw Error(`${fn} ${this._nop()}`);
     return this.page_index === 0;
@@ -331,5 +332,5 @@ class Recordset {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default Recordset;
-export { Recordset };
+export default RecordSet;
+export { RecordSet };

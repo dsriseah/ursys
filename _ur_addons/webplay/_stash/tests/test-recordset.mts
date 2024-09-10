@@ -5,7 +5,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import { Recordset } from '../lib/class-data-record.ts';
+import { RecordSet } from '../lib/class-data-record.ts';
 
 /// TYPE IMPORTS & DEFINITIONS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,7 +23,7 @@ const items: UR_Item[] = [
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 test('initialize', () => {
-  const rs = new Recordset(items);
+  const rs = new RecordSet(items);
   // check that the values match the original
   expect(rs.getItems()).toEqual(items);
   expect(rs.getSrcItems()).toEqual(items);
@@ -38,7 +38,7 @@ test('initialize', () => {
 });
 
 test('sort', () => {
-  const rs = new Recordset(items);
+  const rs = new RecordSet(items);
   rs.sort({ sortBy: { name: 'sort_asc' } });
   expect(rs.getItems()).toMatchObject([
     { _id: '3', name: 'Alice', age: 20 },
@@ -63,7 +63,7 @@ test('sort', () => {
 });
 
 test('derived format and fields', () => {
-  const rs = new Recordset(items);
+  const rs = new RecordSet(items);
   rs.format({
     includeFields: ['name'],
     transformBy: { name: item => (item.name = item.name.toUpperCase()) }
@@ -77,7 +77,7 @@ test('derived format and fields', () => {
 });
 
 test('stat summaries', () => {
-  const rs = new Recordset(items);
+  const rs = new RecordSet(items);
   rs.analyze({
     groupBy: {
       'gen-z': items => items.filter(item => item.age < 21),
@@ -104,9 +104,9 @@ test('stat summaries', () => {
 });
 
 test('paginate', () => {
-  const rs = new Recordset(items);
+  const rs = new RecordSet(items);
   // set up pages of 3 items each
-  expect(rs.paginate(3)).instanceOf(Recordset);
+  expect(rs.paginate(3)).instanceOf(RecordSet);
   // check first page
   expect(rs.getPage()).toMatchObject([
     { _id: '1', name: 'Zack', age: 10 },
