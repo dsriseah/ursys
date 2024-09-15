@@ -11,12 +11,12 @@ Features
 * Designed to use Visual Studio Code features from integrated terminal.
 * Works on MacOS/Linux systems with a minimum of 4GB memory free.
 * Monorepo structure implemented with npm workspaces.
-* Favors straightforward fluent code patterns so source code is easy to scan.
 * Modular separation between core, addon, and app directories for easy extensibility.
 * Designed for simple copy/paste folder operation with automatic configuration whereever possible.
 * Command line `ur` auto-discovers and spawns addons processes.
-* Tested with nginx proxy forwarding for both http and websocket connections
-* Verbose prompting and guardrails to help users understand what's going on
+* Tested with nginx proxy forwarding for both http and websocket connections.
+* Verbose prompting and guardrails to help users understand what's going on.
+* Favors straightforward fluent code patterns and formatting so source code is easy to scan.
 
 Under Development
 
