@@ -5,8 +5,9 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import type { UR_Doc } from '~ur/types/ursys.d.ts';
 import { DocManager } from '../lib/class-data-docfolder.ts';
+
+import type { UR_Doc } from '../../../../_ur/_types/dataset.d.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -60,9 +61,7 @@ test('document update', () => {
   // empty items means nothing for update
   // @ts-expect-error
   expect(() => DOCS.docUpdate('myfolder')).toThrowError();
-  // @ts-expect-error
   expect(() => DOCS.docUpdate('myfolder', '3')).toThrowError();
-  // @ts-expect-error
   expect(() => DOCS.docUpdate('myfolder', {})).toThrowError();
   // items that aren't in myfolder should throw an error
   expect(() =>
@@ -70,7 +69,6 @@ test('document update', () => {
   ).toThrowError();
   // docUpdate has different args that docsUpdate
   expect(() =>
-    // @ts-expect-error
     DOCS.docUpdate('myfolder', [
       { _id: '1', name: 'item1-changed' },
       { _id: '2', name: 'item2-changed' }

@@ -7,7 +7,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { NORM } from '@ursys/core';
-const { NormDataItem, NormDataItems, NormDataObj, NormItemIDs } = NORM;
+const { NormDocIDs, NormDoc, NormDocFolder } = NORM;
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -18,7 +18,7 @@ import type {
   UR_Doc, // { _ref: UR_BagRef; [key: string]: any }
   UR_DocFolder, // { [ref_name: UR_BagRef]: UR_Doc }
   UR_Item // { _id: UR_EntID; [key: string]: any }
-} from '../_types/dataset.d.ts';
+} from '../../../../_ur/_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -75,7 +75,7 @@ class DocManager {
     const folder = this._DOCS[fdoc];
     if (folder === undefined) throw Error(`${fn} doc '${fdoc}' not found`);
     // normalize the objects and add them to the doc
-    const [norm_doc, norm_error] = NormDataItem(doc);
+    const [norm_doc, norm_error] = NormDoc(doc);
     if (norm_error) throw Error(`${fn} ${norm_error}`);
     const { _id } = norm_doc;
     folder[_id] = norm_doc;
@@ -89,7 +89,7 @@ class DocManager {
     const folder = this._DOCS[fdoc];
     if (folder === undefined) throw Error(`${fn} doc '${fdoc}' not found`);
     // normalize the objects and add them to the doc
-    const [norm_docs, norm_error] = NormDataItems(_DOCS);
+    const [norm_docs, norm_error] = NormDocFolder(_DOCS);
     if (norm_error) throw Error(`${fn} ${norm_error}`);
     for (const doc of norm_docs) {
       const { _id } = doc;
@@ -116,7 +116,7 @@ class DocManager {
     const folder = this._DOCS[fdoc];
     if (folder === undefined) throw Error(`${fn} doc '${fdoc}' not found`);
     if (ids && Array.isArray(ids)) {
-      const [norm_ids, norm_error] = NormItemIDs(ids);
+      const [norm_ids, norm_error] = NormDocIDs(ids);
       if (norm_error) throw Error(`${fn} ${norm_error}`);
       return norm_ids.map(id => {
         const doc = folder[id];
@@ -137,7 +137,7 @@ class DocManager {
     if (typeof doc !== 'object') throw Error(`${fn} doc must be an object`);
     const { _id } = doc;
     if (_id === undefined) throw Error(`${fn} missing _id field`);
-    const [norm_doc, error] = NormDataItem(doc);
+    const [norm_doc, error] = NormDoc(doc);
     if (error) throw Error(`${fn} ${error}`);
     const old_doc = folder[_id];
     if (old_doc === undefined) throw Error(`${fn} doc '${_id}' not found`);
@@ -152,7 +152,7 @@ class DocManager {
     const fn = 'docsUpdate:';
     const folder = this._DOCS[fdoc];
     if (folder === undefined) throw Error(`${fn} folder '${fdoc}' not found`);
-    const [norm_docs, norm_error] = NormDataItems(_DOCS);
+    const [norm_docs, norm_error] = NormDocFolder(_DOCS);
     if (norm_error) throw Error(`${fn} ${norm_error}`);
     const updated = [];
     for (const doc of norm_docs) {
@@ -175,7 +175,7 @@ class DocManager {
     const { _id } = doc;
     if (_id === undefined) throw Error(`${fn} missing _id field`);
     if (folder[_id] === undefined) throw Error(`${fn} doc '${_id}' not found`);
-    const [norm_doc, error] = NormDataItem(doc);
+    const [norm_doc, error] = NormDoc(doc);
     if (error) throw Error(`${fn} ${error}`);
     const old_doc = folder[_id];
     folder[_id] = norm_doc;
@@ -192,7 +192,7 @@ class DocManager {
     if (!Array.isArray(_DOCS) || _DOCS === undefined)
       throw Error(`${fn} _DOCS must be an array`);
     if (_DOCS.length === 0) throw Error(`${fn} _DOCS array is empty`);
-    const [norm_docs, error] = NormDataItems(_DOCS);
+    const [norm_docs, error] = NormDocFolder(_DOCS);
     if (error) throw Error(`${fn} ${error}`);
     const replaced = [];
     for (const doc of norm_docs) {

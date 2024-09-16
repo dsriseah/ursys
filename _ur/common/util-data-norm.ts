@@ -17,12 +17,7 @@
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type {
-  UR_EntID,
-  UR_EntID_Obj,
-  DataObj,
-  UR_Item
-} from '../_types/dataset.d.ts';
+import type { UR_EntID, DataObj, UR_Item } from '../_types/dataset.d.ts';
 
 /// SINGLE OBJ HELPERS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -68,6 +63,7 @@ function m_NormItem(item: UR_Item, schema?: any): UR_Item {
   dataObj._id = foundID;
   return dataObj as UR_Item;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /// DATA FORMAT CHECKING //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
