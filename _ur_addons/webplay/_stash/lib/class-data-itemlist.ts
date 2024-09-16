@@ -22,6 +22,9 @@ import type {
   UR_NewItem,
   UR_Item,
   UR_ItemList,
+  I_BagInstance,
+  UR_BagRef,
+  UR_BagType,
   //
   SearchOptions
 } from '../../../../_ur/_types/dataset';
@@ -34,10 +37,10 @@ type ItemListOptions = {
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class ItemList {
+class ItemList implements I_BagInstance {
   //
-  name: string; // name of this collection
-  _type: string; // type of this collection (.e.g ItemList);
+  name: UR_BagRef; // name of this collection
+  _type: UR_BagType; // type of this collection (.e.g ItemList);
   _list: UR_ItemList; // list storage
   _prefix: string; // when set, this is the prefix for the ids
   _ord_digits: number; // if _prefix is set, then number of zero-padded digits
@@ -50,7 +53,7 @@ class ItemList {
   constructor(col_name: string, opt?: ItemListOptions) {
     const fn = 'ItemList:';
     this._list = [];
-    this._type = this.constructor.name;
+    this._type = this.constructor.name as UR_BagType;
     let { idPrefix, startOrd, ordDigits } = opt || {};
     if (col_name === undefined) throw Error(`${fn} collection name is required`);
     if (typeof col_name !== 'string')

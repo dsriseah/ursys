@@ -7,9 +7,7 @@
 /// BASE TYPES ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** identifier strings for types of collections in the URSYS ecosystem */
-type CollectionName = string; // snake_case for a name of a collection
 type PropName = string; // camelCase for user, _snake_case for internal
-type CollectionClass = 'ItemList' | 'DocFolder'; // class of collection
 
 /// UNIVERSAL IDENTIFIERS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,8 +32,8 @@ export type ReturnObj = DataObj | ErrObj;
 /// we use UR_DataMethod functions to modify data and datasets
 export type UR_DataMethod = (data: DataObj, options?: DataObj) => ReturnObj;
 export type UR_DataSyncObj = {
-  cName: CollectionName;
-  cType: CollectionClass;
+  cName: BagName;
+  cType: BagClass;
   seqNum: number;
   //
   status?: string;
@@ -56,17 +54,21 @@ export type UR_Doc = UR_EntID_Obj & DataObj; // doc is a single item
 /// there are multiple ways to organize UR_Items into a "bag"
 export type UR_ItemList = UR_Item[];
 export type UR_DocFolder = { [_id: UR_EntID]: UR_Doc };
-// the document manager has named Documents that are in a
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// REFS identify a unique "bag" of items in a data model, despite the type
 /// of bag it is (e.g. documents, itemlists, etc.)
-export type UR_BagRef = string;
+export type UR_BagRef = string; // snake_case
 /// a UR_Dataset is a collection of multiple bags of items, organized by
 /// type of bag (e.g. documents, itemlists, etc.)
+export type UR_BagType = 'DocFolder' | 'ItemList';
+export interface I_BagInstance {
+  name: UR_BagRef;
+  _type: UR_BagType;
+}
 export type UR_Dataset = {
-  schema?: UR_SchemaID; // see https://github.com/dsriseah/ursys/discussions/22
-  docFolders?: { [foldername: UR_BagRef]: UR_DocFolder };
-  itemlists?: { [listname: UR_BagRef]: UR_ItemList };
+  Schema?: UR_SchemaID; // see https://github.com/dsriseah/ursys/discussions/22
+  DocFolder?: { [foldername: UR_BagRef]: any };
+  ItemList?: { [listname: UR_BagRef]: any };
   // additional items
   // see https://github.com/dsriseah/ursys/discussions/25
   // files
@@ -184,7 +186,7 @@ export type TemplateUID = string; // must be unique within a schema
 /** A template is a collection of properties defined in schema */
 type UR_Template = {
   _schema: UR_SchemaID;
-  template_name: CollectionName;
+  template_name: BagName;
   fields: {
     [templateProperty: PropName]: any;
   };

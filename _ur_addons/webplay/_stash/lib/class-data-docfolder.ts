@@ -27,7 +27,7 @@ const LOG = console.log.bind(console);
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class DocManager {
+class DocFolder {
   //
   collection_name: string;
   collection_type: string;
@@ -244,7 +244,7 @@ class DocManager {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default DocManager; // the class
+export default DocFolder; // the class
 export {
-  DocManager // the class
+  DocFolder // the class
 };
