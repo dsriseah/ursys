@@ -60,14 +60,16 @@ test('list add,read', () => {
 test('list update', () => {
   // empty items means nothing for update
   const list = DATA.getItemList('mylist');
-  expect(() => list.update([])).toThrowError();
+  let result = list.update([]);
+  expect(result.updated).toBeUndefined();
+  expect(result.error).toBeDefined();
   // items that aren't in mylist should throw an error
-  expect(() =>
-    list.update([
-      { _id: 'li003', name: 'item3' },
-      { _id: 'li001', name: 'item1' }
-    ])
-  ).toThrowError();
+  result = list.update([
+    { _id: 'li003', name: 'item3' },
+    { _id: 'li001', name: 'item1' }
+  ]);
+  expect(result.updated).toBeUndefined();
+  expect(result.error).toBeDefined();
   // // updating the list shoudld return the updated list
   expect(
     list.update([
