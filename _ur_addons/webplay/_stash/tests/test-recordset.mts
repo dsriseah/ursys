@@ -5,7 +5,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import { RecordSet } from '../lib/class-data-record.ts';
+import { RecordSet } from '../lib/class-data-recordset.ts';
 
 /// TYPE IMPORTS & DEFINITIONS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

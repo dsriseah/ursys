@@ -30,7 +30,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { DeepClone } from '../../../../_ur/common/util-data-norm.ts';
-import { RecordSet } from './class-data-record.ts';
+import { RecordSet } from './class-data-recordset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
