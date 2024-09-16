@@ -5,8 +5,12 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import { Find } from '../lib/util-query.ts';
-import { m_SetCriteria, m_EnforceFlags, m_GetCriteria } from '../lib/util-query.ts';
+import { Find } from '../lib/util-data-search.ts';
+import {
+  m_SetCriteria,
+  m_EnforceFlags,
+  m_GetCriteria
+} from '../lib/util-data-search.ts';
 import type { SearchOptions } from '../../../../_ur/_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
