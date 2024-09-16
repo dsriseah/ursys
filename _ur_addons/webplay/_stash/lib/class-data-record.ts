@@ -46,7 +46,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import {
-  NormDataItems,
+  NormItems, //
   DeepCloneArray
 } from '../../../../_ur/common/util-data-norm.ts';
 
@@ -58,8 +58,8 @@ import type {
   DataObj,
   //
   ItemFormatOptions,
-  ItemTestOptions,
-  ItemTestResult
+  ItemStatsOptions,
+  ItemStatsResult
 } from '../../../../_ur/_types/dataset';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -80,7 +80,7 @@ class RecordSet {
   //
   src_items: UR_Item[]; // source items
   cur_items: UR_Item[]; // transformed items
-  cur_meta: ItemTestResult; // metadata
+  cur_meta: ItemStatsResult; // metadata
   //
   page_index: number; // current page index (0-based)
   page_size: number; // current page size in items
@@ -91,7 +91,7 @@ class RecordSet {
     if (!Array.isArray(items)) {
       throw Error(`${fn} requires an array of items`);
     }
-    const [normed, error] = NormDataItems(items);
+    const [normed, error] = NormItems(items);
     if (error) throw Error(`${fn} ${error}`);
     this.src_items = normed;
     this.reset(); // set current items to source items
@@ -113,7 +113,7 @@ class RecordSet {
   /** return the current metadata. can provide a name which will
    *  be searched first in groups, then in the top level metadata.
    */
-  getStats(name?: string): ItemTestResult {
+  getStats(name?: string): ItemStatsResult {
     let result;
     if (name === undefined) result = this.cur_meta;
     else if (this.cur_meta.groups && this.cur_meta.groups[name])
@@ -197,7 +197,7 @@ class RecordSet {
   }
 
   /** */
-  analyze(testOpts: ItemTestOptions): RecordSet {
+  analyze(testOpts: ItemStatsOptions): RecordSet {
     const { groupBy, statTests } = testOpts || {};
     let groups: DataObj;
     let stats: DataObj;

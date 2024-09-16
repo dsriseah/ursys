@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  WIP:
+  Types related to managing a collection of standardized items
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -9,6 +9,7 @@
 /** identifier strings for types of collections in the URSYS ecosystem */
 type CollectionName = string; // snake_case for a name of a collection
 type PropName = string; // camelCase for user, _snake_case for internal
+type CollectionClass = 'ItemList' | 'DocFolder'; // class of collection
 
 /// UNIVERSAL IDENTIFIERS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,6 +33,21 @@ export type ErrObj = { error?: string; errorCode?: string; errorInfo?: string };
 export type ReturnObj = DataObj | ErrObj;
 /// we use UR_DataMethod functions to modify data and datasets
 export type UR_DataMethod = (data: DataObj, options?: DataObj) => ReturnObj;
+export type UR_DataSyncObj = {
+  cName: CollectionName;
+  cType: CollectionClass;
+  seqNum: number;
+  //
+  status?: string;
+  error?: string;
+  skipped?: UR_EntID[];
+  //
+  items?: UR_Item[];
+  updated?: UR_Item[];
+  added?: UR_Item[];
+  deleted?: UR_Item[];
+  replaced?: UR_Item[];
+};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// an UR_Item is a union of MatchObj with UR_EntID
 export type UR_NewItem = DataObj; // { [key: string]: any }
@@ -141,12 +157,12 @@ export type ItemFormatOptions = {
 
 /// ITEM TEST OPS /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export type ItemsTesterFunction = (items: UR_Item[]) => any;
-export type ItemTestOptions = {
-  groupBy?: { [test: string]: ItemsTesterFunction };
-  statTests?: { [stat: string]: ItemsTesterFunction };
+export type ItemsMapFunction = (items: UR_Item[]) => any;
+export type ItemStatsOptions = {
+  groupBy?: { [test: string]: ItemsMapFunction };
+  statTests?: { [stat: string]: ItemsMapFunction };
 };
-export type ItemTestResult = {
+export type ItemStatsResult = {
   groups?: { [test: string]: UR_Item[] };
   [stat: string]: any;
 };

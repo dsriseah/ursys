@@ -11,7 +11,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { NORM } from '@ursys/core';
-const { NormDataItems, NormItemIDs } = NORM;
+const { NormItems, NormItemIDs, NormIDs } = NORM;
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -101,7 +101,7 @@ class ItemList {
 
   /** given the name of a _list and an array of objects, add the objects to the
    *  _list and return the _list if successful, undefined otherwise */
-  add(items: UR_NewItem[]) {
+  add(items: UR_NewItem[]): { added?: UR_Item[]; error?: string } {
     const fn = 'add:';
     if (!Array.isArray(items)) throw Error(`${fn} items must be array of objects`);
     if (items.length === 0) throw Error(`${fn} items array is empty`);
@@ -116,17 +116,17 @@ class ItemList {
     // make sure that the _list doesn't have these items already
     for (let item of items) {
       if (this._list.find(obj => obj._id === item._id))
-        throw Error(`${fn} item ${item._id} already exists in ${this.name}`);
+        return { error: `${fn} item ${item._id} already exists in ${this.name}` };
     }
     // add the items to the _list
     this._list.push(...(copies as UR_Item[]));
     return { added: [...this._list] }; // return a copy of the _list
   }
 
-  /** Given the name of a _list, return the entire _list or the subset of ids
+  /** return the entire _list or the subset of ids
    *  identified in the ids array, in order of the ids array. Return a COPY
    *  of the objects, not the original objects */
-  read(ids?: UR_EntID[]) {
+  read(ids?: UR_EntID[]): { items?: UR_Item[]; error?: string } {
     const fn = 'read:';
     // if no ids are provided, return the entire _list
     if (ids === undefined) {
@@ -141,17 +141,17 @@ class ItemList {
     return { items, error };
   }
 
-  /** Given the name of a _list, update the objects in the _list with the items
-   *  provided through shallow merge. If there items that don't have an _id field
-   *  or if the _id field doesn't already exist in the _list, throw an Error.
-   *  Return a copy of _list if successful */
-  update(items: UR_Item[]) {
+  /** Update the objects in the _list with the items provided through shallow
+   *  merge. If there items that don't have an _id field or if the _id field
+   *  doesn't already exist in the _list, throw an Error. Return a copy of _list
+   *  if successful */
+  update(items: UR_Item[]): { updated?: UR_Item[]; error?: string } {
     const fn = 'update:';
     if (!Array.isArray(items) || items === undefined)
       throw Error(`${fn} items must be an array`);
     if (items.length === 0) throw Error(`${fn} items array is empty`);
-    const [norm_items, norm_error] = NormDataItems(items);
-    if (norm_error) throw Error(`${fn} ${norm_error}`);
+    const [norm_items, norm_error] = NormItems(items);
+    if (norm_error) return { error: `${fn} ${norm_error}` };
     // got this far, items are normalized and we can merge them.
     for (const item of norm_items) {
       const idx = this._list.findIndex(obj => obj._id === item._id);
@@ -161,16 +161,19 @@ class ItemList {
     return { updated: [...this._list] }; // return a copy of the _list
   }
 
-  /** Given the name of a _list, overwrite the objects. Unlike ListUpdate, this
-   *  will not merge but replace the items. The items must exist to be
-   *  replaced */
-  replace(items: UR_Item[]) {
+  /** Overwrite the objects. Unlike ListUpdate, this will not merge but replace
+   *  the items. The items must exist to be replaced */
+  replace(items: UR_Item[]): {
+    replaced?: UR_Item[];
+    skipped?: UR_Item[];
+    error?: string;
+  } {
     const fn = 'replace:';
     if (!Array.isArray(items) || items === undefined)
       throw Error(`${fn} items must be an array`);
     if (items.length === 0) throw Error(`${fn} items array is empty`);
-    const [norm_items, norm_error] = NormDataItems(items);
-    if (norm_error) throw Error(`${fn} ${norm_error}`);
+    const [norm_items, norm_error] = NormItems(items);
+    if (norm_error) return { error: `${fn} ${norm_error}` };
     // got this far, items are normalized and we can overwrite them.
     const replaced = [];
     const skipped = [];
@@ -191,9 +194,13 @@ class ItemList {
     return { replaced, skipped, error }; // return a copy of the _list
   }
 
-  /** Given the name of a _list, add the items to the _list. If an already
-   *  exists in the _list, update it instead. Return a copy of the _list */
-  write(items: UR_Item[]) {
+  /** Add the items to the _list. If an already exists in the _list, update it
+   *  instead. Return a copy of the _list */
+  write(items: UR_Item[]): {
+    added?: UR_Item[];
+    updated?: UR_Item[];
+    error?: string;
+  } {
     const fn = 'write:';
     const added = [];
     const updated = [];
@@ -215,15 +222,14 @@ class ItemList {
     return { added, updated }; // return a copy of the _list
   }
 
-  /** Given the name of a _list, delete the objects in the _list with the ids
-   *  provided. If there are any ids that don't exist in the _list, throw an
-   *  Error. Return a copy of the deleted items if successful */
-  delete(ids: UR_EntID[]) {
-    const fn = 'delete:';
+  /** Delete the objects in the _list with the ids provided. If there are any
+   *  ids that don't exist in the _list, throw an Error. Return a copy of the
+   *  deleted items if successful */
+  deleteIDs(ids: UR_EntID[]): { deleted?: UR_Item[]; error?: string } {
+    const fn = 'deleteIDs:';
     if (!Array.isArray(ids) || ids === undefined)
       throw Error(`${fn} ids must be an array of _id strings`);
-    const [del_ids, del_error] = NormItemIDs(ids);
-    if (del_error) throw Error(`${fn} ${del_error}`);
+    const del_ids = NormIDs(ids);
     // got this far, ids are normalized and we can delete them
     const itemIDs = [];
     for (const id of del_ids) {
@@ -237,6 +243,27 @@ class ItemList {
       const idx = this._list.findIndex(obj => obj._id === id);
       const item = this._list.splice(idx, 1);
       deleted.push(...item);
+    }
+    return { deleted }; // return a copy of the _list
+  }
+
+  /** Given a set of objects, delete them from the _list by looking-up their id
+   *  fields. Return a copy of the _list */
+  delete(items: UR_Item[]): { deleted?: UR_Item[]; error?: string } {
+    const fn = 'delete:';
+    if (!Array.isArray(items) || items === undefined)
+      throw Error(`${fn} items must be an array of objects`);
+    if (items.length === 0) throw Error(`${fn} items array is empty`);
+    const [norm_items, norm_error] = NormItems(items);
+    if (norm_error) return { error: `${fn} ${norm_error}` };
+    // got this far, items are normalized and we can delete them
+    const deleted = [];
+    for (const item of norm_items) {
+      const idx = this._list.findIndex(obj => obj._id === item._id);
+      if (idx === -1)
+        return { error: `${fn} item ${item._id} not found in ${this.name}` };
+      const del_item = this._list.splice(idx, 1);
+      deleted.push(...del_item);
     }
     return { deleted }; // return a copy of the _list
   }

@@ -11,11 +11,13 @@ import { DataManager } from './lib/class-data-mgr.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import type { UR_DataSyncObj } from '../../../_ur/_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const PR = ConsoleStyler('CMT.DBS', 'TagYellow');
-const P2 = ConsoleStyler('CMT.CLI', 'TagGreen');
+const PR = ConsoleStyler('CMT', 'TagYellow');
+const P2 = ConsoleStyler('CMT.SYN', 'TagGreen');
+const ERR = ConsoleStyler('ERR', 'TagRed');
 const LOG = console.log.bind(console);
 const DCA = true; // log debug calls
 const DSN = true; // log debug sync
@@ -47,7 +49,7 @@ async function m_Compare() {
     LOG(...PR('DC-Comments Error'), 'length mismatch');
     return;
   }
-  LOG('\nitems', ...items, '\ncdata', ...cdata.items);
+  // LOG('\nitems', ...items, '\ncdata', ...cdata.items);
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
@@ -63,9 +65,9 @@ async function m_Compare() {
   :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
   HookPhase('WEBPLAY/NET_REGISTER', () => {
     // client implements these sync handlers
-    AddMessageHandler('SYNC:CLI_DATA', (sync: any) => {
-      const { cName, cType, items, status, error, skipped } = sync;
-      const { updated, added, deleted, replaced } = sync;
+    AddMessageHandler('SYNC:CLI_DATA', (sync: UR_DataSyncObj) => {
+      const { cName, cType, seqNum, status, error, skipped } = sync;
+      const { items, updated, added, deleted, replaced } = sync;
       const list = DATA.getItemList(cName);
       if (list === undefined) {
         LOG(...P2('SYNC:CLI_DATA Error'), `list ${cName} not found`);
@@ -96,10 +98,9 @@ async function m_Compare() {
         list.write(added);
         LOG(...P2('add items'), ...added);
       }
+      // the deleted array contains objects that were deleted
       if (Array.isArray(deleted)) {
-        const ids = deleted.map(item => item._id);
-        list.delete(ids);
-        LOG(...P2('delete items'), ...ids);
+        const items = list.delete(deleted);
       }
       if (Array.isArray(replaced)) {
         list.replace(replaced);
@@ -147,8 +148,6 @@ async function m_Compare() {
     const accToken = 'myAccess';
     const EP = Endpoint();
 
-    if (DCA) LOG(...PR(fn, 'DC-Comments APP_READY'));
-
     let added, updated, deleted, retdata;
 
     /** test data add **/
@@ -159,7 +158,7 @@ async function m_Compare() {
         items: [{ text: `add CCC` }]
       });
       if (retdata.error) {
-        LOG(...PR('error in SRV_DATA_ADD'), retdata.error);
+        LOG(...ERR('error in SRV_DATA_ADD'), retdata.error);
         return;
       }
       added = retdata.added; // test data update
@@ -173,7 +172,7 @@ async function m_Compare() {
         items: [{ _id: '1', text: `update AAA` }]
       });
       if (retdata.error) {
-        LOG(...PR('error in SRV_DATA_UPDATE'), retdata.error);
+        LOG(...ERR('error in SRV_DATA_UPDATE'), retdata.error);
         return;
       }
       updated = retdata.updated;
@@ -193,7 +192,7 @@ async function m_Compare() {
         items: writeItems
       });
       if (retdata.error) {
-        LOG(...PR('error in SRV_DATA_WRITE'), retdata.error);
+        LOG(...ERR('error in SRV_DATA_WRITE'), retdata.error);
         return;
       }
       added = retdata.added;
@@ -215,7 +214,7 @@ async function m_Compare() {
         items: replaceItems
       });
       if (retdata.error) {
-        LOG(...PR('error in SRV_DATA_REPLACE'), retdata.error);
+        LOG(...ERR('error in SRV_DATA_REPLACE'), retdata.error);
         return;
       }
       let replaced = retdata.replaced;
@@ -227,6 +226,10 @@ async function m_Compare() {
         cName: 'comments',
         accToken: 'myAccess'
       });
+      if (retdata.error) {
+        LOG(...ERR('error in SRV_DATA_GET'), retdata.error);
+        return;
+      }
       let deleteIDs = retdata.items.map(item => item._id);
       if (DCA) LOG(...PR('deleting'), ...deleteIDs);
       retdata = await EP.netCall('SYNC:SRV_DATA_DELETE', {
@@ -235,7 +238,7 @@ async function m_Compare() {
         ids: deleteIDs
       });
       if (retdata.error) {
-        LOG(...PR('error in SRV_DATA_DELETE'), retdata.error);
+        LOG(...ERR('error in SRV_DATA_DELETE'), retdata.error);
         return;
       }
       deleted = retdata.deleted;
@@ -248,7 +251,7 @@ async function m_Compare() {
         accToken
       });
       if (retdata.error) {
-        LOG(...PR('error in SRV_DATA_INIT'), retdata.error);
+        LOG(...ERR('error in SRV_DATA_INIT'), retdata.error);
         return;
       }
       const resetItems = retdata.items;
@@ -256,6 +259,8 @@ async function m_Compare() {
     }
 
     // exercise
+    console.group('dc-comments APP_READY');
+    LOG(...PR('--- starting web test ---'));
     await addData();
     await m_Compare();
     await updateData();
@@ -268,6 +273,8 @@ async function m_Compare() {
     await m_Compare();
     // do not remove or comment out otherwise reload will fail
     await resetData();
+    LOG(...PR('--- finished web test ---'));
+    console.groupEnd();
   });
 
   /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*:

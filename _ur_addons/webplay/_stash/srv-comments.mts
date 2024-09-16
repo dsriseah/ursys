@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR } from '@ursys/core';
+import { PR, PROMPTS } from '@ursys/core';
 import * as LOKI from './lib/mod-loki.mts';
 import tsm_data from './lib/class-data-mgr.ts';
 import {
@@ -17,19 +17,15 @@ import { UR_MachineState } from '../webplay-svc-server.mts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { DataManager } = tsm_data;
-import type {
-  UR_EntID,
-  UR_EntID_Obj,
-  UR_BagRef,
-  UR_Item,
-  UR_ItemList
-} from '../../../_ur/_types/dataset.d.ts';
+import type { UR_BagRef, UR_DataSyncObj } from '../../../_ur/_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { BLU, YEL, RED, DIM, NRM } = PROMPTS.ANSI;
 const LOG = PR('COMMENT', 'TagYellow');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DATA = new DataManager();
+let SEQ_NUM = 0; // very predictable sequence number
 
 /// IMPORTED API METHODS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -68,6 +64,14 @@ function m_CheckDataParams(data: any) {
   return { cName, cType, accToken, ids, items };
 }
 
+/// CLIENT SYNC HELPER ////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function m_NotifyClients(cName: UR_BagRef, cType: string, data: any) {
+  const EP = GetServerEndpoint();
+  const seqNum = SEQ_NUM++;
+  EP.netSignal('SYNC:CLI_DATA', { cName, cType, seqNum, ...data });
+}
+
 /// LIFECYCLE /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Init() {
@@ -83,9 +87,7 @@ async function Init() {
 
   /** dummy handler example */
   AddMessageHandler('NET:DC_HANDLER', data => {
-    LOG(`DC_HANDLER`, data);
     data = { status: 'OK' };
-    LOG('returning data', data);
     return data;
   });
 
@@ -100,7 +102,7 @@ async function Init() {
     return { items };
   });
 
-  /** collection get */
+  /** accept optional id[], return { items, error } */
   AddMessageHandler('SYNC:SRV_DATA_GET', async (params: any) => {
     const { cName, cType, accToken, ids, error } = m_CheckDataParams(params);
     if (error) return { error };
@@ -110,57 +112,55 @@ async function Init() {
 
   /// DATA MUTATION HANDLERS ///
 
-  const EP = GetServerEndpoint();
-
-  /** collection add */
+  /** accept item[], return { added, error } */
   AddMessageHandler('SYNC:SRV_DATA_ADD', async (params: any) => {
     const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(cName);
     const addObj = list.add(items);
-    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...addObj });
+    m_NotifyClients(cName, cType, addObj);
     return addObj;
   });
 
-  /** collection update  */
+  /** accept item[], return { updated, error } */
   AddMessageHandler('SYNC:SRV_DATA_UPDATE', async (params: any) => {
     const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(cName);
     const updObj = list.update(items);
-    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...updObj });
+    m_NotifyClients(cName, cType, updObj);
     return updObj;
   });
 
-  /** collection write (updates and adds) */
+  /** accepts item[], return { added, updated, error } */
   AddMessageHandler('SYNC:SRV_DATA_WRITE', async (params: any) => {
     const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(cName);
     const writObj = list.write(items);
-    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...writObj });
+    m_NotifyClients(cName, cType, writObj);
     return writObj;
   });
 
-  /** collection replace */
+  /** accepts item[], return { replace, error } */
   AddMessageHandler('SYNC:SRV_DATA_REPLACE', async (params: any) => {
     const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(cName);
     const oldItems = list.replace(items); // returns the old items
     const replaced = [...items];
-    EP.netSignal('SYNC:CLI_DATA', { cName: cName, cType, replaced });
+    m_NotifyClients(cName, cType, { replaced, oldItems });
     return oldItems;
   });
 
-  /** collection delete */
+  /** accepts id[], returning deleted:items[] */
   AddMessageHandler('SYNC:SRV_DATA_DELETE', async (params: any) => {
     const { cName, cType, accToken, ids, error } = m_CheckDataParams(params);
     if (error) return { error };
     const list = DATA.getItemList(cName);
-    const delObj = list.delete(ids);
-    EP.netSignal('SYNC:CLI_DATA', { cName, cType, ...delObj });
-    return delObj;
+    const result = list.deleteIDs(ids);
+    m_NotifyClients(cName, cType, result);
+    return result;
   });
 }
 

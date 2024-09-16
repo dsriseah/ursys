@@ -140,11 +140,11 @@ test('list delete', () => {
   const list = DATA.getItemList('mylist');
   const { items: startingList } = list.read();
   const ids_to_delete = ['li001', 'li002'];
-  const { deleted } = list.delete(ids_to_delete);
+  const { deleted } = list.deleteIDs(ids_to_delete);
   const { items: endingList } = list.read();
-  console.log('deleted', deleted);
-  console.log('startingList', startingList);
-  console.log('endingList', endingList);
+  // console.log('deleted', deleted);
+  // console.log('startingList', startingList);
+  // console.log('endingList', endingList);
   expect(deleted).toMatchObject(startingList);
   expect(endingList).toMatchObject([]);
   const listInstance = DATA.getItemList('mylist');

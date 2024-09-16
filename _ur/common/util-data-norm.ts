@@ -24,45 +24,27 @@ import type {
   UR_Item
 } from '../_types/dataset.d.ts';
 
-/// DATA FORMAT CHECKING //////////////////////////////////////////////////////
+/// SINGLE OBJ HELPERS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// datasets are standardized collections of objects, defined in ursys.d.ts
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Given an array of objects, return a new array of objects that are
- *  guaranteed to have an _id field, or undefined if any object doesn't have
- *  an _id field. The copied objects are also filtered for suspicious
- *  property strings that are HTML or script tags
- *  Returns [ item[], error ] */
-function NormDataItems(items: UR_Item[], schema?: any): [UR_Item[], error?: string] {
-  const fn = 'NormDataItems:';
-  const normeds = [];
-  for (const item of items) {
-    const [normed, error] = NormDataItem(item, schema);
-    if (error) return [undefined, error];
-    normeds.push(normed);
-  }
-  return [normeds, undefined];
+/** given an ID, return a new ID that is guaranteed to be a string by converting
+ *  numbers to strings */
+function m_NormItemID(id: UR_EntID): UR_EntID {
+  const fn = 'm_NormItemID:';
+  if (typeof id === 'string') return id;
+  if (typeof id === 'number') return String(id);
+  throw Error(`${fn} invalid id ${id} typeof ${typeof id}`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** similar to NormDataItems, but for a single object */
-function NormDataItem(item: UR_Item, schema?: any): [UR_Item, error?: string] {
-  const fn = 'NormDataItem:';
-  const { _id } = item;
-  if (_id === undefined) return [undefined, `${fn} missing _id field`];
-  const [norm, detectedID] = NormDataObj(item);
-  norm._id = _id;
-  return [norm as UR_Item, undefined];
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** given an object without an _id, normalize properties. return
- *  the normalized object and the _id if found */
-function NormDataObj(obj: UR_Item): [DataObj, detectedID?: string] {
-  const fn = 'NormDataObj:';
+/** Shallow normalize a single DataObj, which does not have _id field.
+ *  Detects and returns the normalized _id field if found */
+function m_NormDataObj(obj: DataObj): [DataObj, foundID: string] {
+  const fn = 'm_NormDataObj:';
+  if (typeof obj !== 'object') throw Error(`${fn} invalid input ${obj}`);
   let foundID;
   const norm = {};
-  for (const key in obj) {
+  for (const key of Object.keys(obj)) {
     if (key === '_id') {
-      foundID = obj[key];
+      foundID = m_NormItemID(obj[key]);
       continue;
     }
     if (typeof obj[key] === 'string') {
@@ -76,13 +58,42 @@ function NormDataObj(obj: UR_Item): [DataObj, detectedID?: string] {
   return [norm, foundID];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Given an array of ids, return a new array of ids that are guaranteed to be
- *  strings, or undefined if any id is not a string */
-function NormItemIDs(ids: UR_EntID_Obj[]): [UR_EntID_Obj[], error?: string] {
+/** Normalize a single Item, which is DataObj plus _id field. It leverages
+ *  m_NormDataObj to normalize the object and detect the _id field which
+ *  is roundabout */
+function m_NormItem(item: UR_Item, schema?: any): UR_Item {
+  const fn = ' m_NormItem:';
+  // first normalize the base object
+  let [dataObj, foundID] = m_NormDataObj(item);
+  dataObj._id = foundID;
+  return dataObj as UR_Item;
+}
+
+/// DATA FORMAT CHECKING //////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// datasets are standardized collections of objects, defined in ursys.d.ts
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Given an array of objects, return a new array of objects that are
+ *  guaranteed to have an _id field, or undefined if any object doesn't have
+ *  an _id field. The copied objects are also filtered for suspicious
+ *  property strings that are HTML or script tags
+ *  Returns [ item[], error ] */
+function NormItems(items: UR_Item[], schema?: any): [UR_Item[], error?: string] {
+  const fn = 'NormItems:';
+  const normeds = [];
+  for (const item of items) {
+    const normed = m_NormItem(item, schema);
+    if (normed === undefined) return [undefined, `${fn} invalid item ${item}`];
+    normeds.push(normed);
+  }
+  return [normeds, undefined];
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Given an array of IDs, return a new array of ids that are guaranteed
+ *  to be strings, or undefined if any id is not a string */
+function NormIDs(ids: string[] | number[]): UR_EntID[] {
   const fn = 'NormItemIDs:';
-  if (ids.some(id => typeof id !== 'string'))
-    return [[undefined], `${fn} id must be a string`];
-  return [ids];
+  return ids.map(id => m_NormItemID(id));
 }
 
 /// ITEM CLONING //////////////////////////////////////////////////////////////
@@ -145,10 +156,9 @@ function DeepClone(obj: any): any {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  NormDataObj,
-  NormDataItem, // normalize a single object for serialized storage
-  NormDataItems, // normalize multiple objects for storage
-  NormItemIDs, // IDs should be strings
+  m_NormItem, // normalize a single object for serialized storage
+  NormItems, // normalize multiple objects for storage
+  NormIDs, // addar should be strings
   //
   DeepClone,
   DeepCloneObject,

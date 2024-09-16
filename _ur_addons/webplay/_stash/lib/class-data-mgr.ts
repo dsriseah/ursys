@@ -8,7 +8,6 @@
 
 import { NORM } from '@ursys/core';
 import { ItemList } from './class-itemlist.ts';
-const { NormDataItems, NormNewDataItems, NormItemIDs, DecodeID } = NORM;
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
