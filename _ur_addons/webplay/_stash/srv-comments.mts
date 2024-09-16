@@ -5,7 +5,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { PR, PROMPTS } from '@ursys/core';
-import * as LOKI from './lib/mod-loki.mts';
+import * as LOKI from './lib/module-loki.mts';
 import tsm_data from './lib/class-data-mgr.ts';
 import {
   HookPhase,
