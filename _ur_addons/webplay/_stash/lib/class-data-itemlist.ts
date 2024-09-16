@@ -11,6 +11,8 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { NORM } from '@ursys/core';
+import { Find, Query } from './util-data-search.ts';
+import { RecordSet } from './class-data-recordset.ts';
 const { NormItems, NormIDs } = NORM;
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -19,8 +21,10 @@ import type {
   UR_EntID,
   UR_NewItem,
   UR_Item,
-  UR_ItemList
-} from '../../../../_ur/_types/dataset.d.ts';
+  UR_ItemList,
+  //
+  SearchOptions
+} from '../../../../_ur/_types/dataset';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type ItemListOptions = {
   idPrefix?: string; // prefix to use for ids, otherwise simple ids
@@ -286,6 +290,18 @@ class ItemList {
   get items() {
     const { items } = this.read();
     return items;
+  }
+
+  /// STATIC METHODS ///
+
+  /** Search for matching items in the list using options, return found items */
+  static Find(items: UR_Item[], criteria?: SearchOptions): UR_Item[] {
+    return Find(items, criteria);
+  }
+
+  /** Search for matching items in the list, return Recordset */
+  static Query(items: UR_Item[], criteria?: SearchOptions): RecordSet {
+    return Query(items, criteria);
   }
 }
 

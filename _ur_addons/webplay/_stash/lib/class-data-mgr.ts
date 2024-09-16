@@ -7,7 +7,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { NORM } from '@ursys/core';
-import { ItemList } from './class-itemlist.ts';
+import { ItemList } from './class-data-itemlist.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +19,7 @@ import type {
   UR_Item,
   UR_ItemList
 } from '../../../../_ur/_types/dataset';
-import type { ItemListOptions } from './class-itemlist.ts';
+import type { ItemListOptions } from './class-data-itemlist.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
