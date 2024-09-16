@@ -25,7 +25,7 @@ import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetPacket from '../common/class-urnet-packet.ts';
 import PhaseMachine from '../common/class-phase-machine.ts';
 // typescript library modules
-import * as UID from '../common/lib-uid.ts';
+import * as UID from '../common/module-uid.ts';
 import * as CONSTANTS from './constants-urnet.mts';
 
 /// TYPES /////////////////////////////////////////////////////////////////////
