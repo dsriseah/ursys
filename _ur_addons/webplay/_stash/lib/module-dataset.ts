@@ -132,10 +132,15 @@ function GetBagType(bagSelector: string): any {
   if (bag && bag._type === bType) return bag;
   return undefined;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function CreateBag(bName: UR_BagRef, bType: UR_BagType): any {
+  return m_CreateBag(bName, bType);
+}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   GetBag, //
-  GetBagType
+  GetBagType,
+  CreateBag
 };

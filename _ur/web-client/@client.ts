@@ -83,6 +83,6 @@ export {
   NewPhaseMachine,
   HookPhase,
   RunPhaseGroup,
-  GetPhaseMachine,
+  GetMachine,
   GetMachineStates
 } from '../common/class-phase-machine.ts';

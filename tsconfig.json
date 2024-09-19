@@ -83,7 +83,13 @@
     "_ur/**/*.ts",
     "_ur/**/*.mts",
     "_ur_addons/**/*.ts",
-    "_ur_addons/**/*.mts"
+    "_ur_addons/**/*.mts",
+    "sna-*/**.ts",
+    "sna-*/**.mts",
+    "app-*/**.ts",
+    "app-*/**.mts",
+    "example-*/**/*.ts",
+    "example-*/**/*.mts"
   ],
 
   // don't process the files in these directories

@@ -1,0 +1,13 @@
+{
+  "name": "sna-test",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "ts-node-esm ../_ur/npm-scripts/@build-core.mts && ts-node-esm ./@build-sna.mts"
+  },
+  "author": "dsriseah",
+  "license": "MIT",
+  "dependencies": {
+    "@ursys/core": "file:../_ur"
+  }
+}

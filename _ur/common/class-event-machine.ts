@@ -129,5 +129,7 @@ class EventMachine {
 
 /// EXPORT CLASS DEFINITION ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// accessible from ts files via import EM from 'class-event-machine.ts'
 export default EventMachine;
+/// accessible from mts files via import EM from './class-event-machine.ts'
 export { EventMachine };

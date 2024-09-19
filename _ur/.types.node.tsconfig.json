@@ -3,25 +3,28 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "allowImportingTsExtensions": true,
-    "typeRoots": ["./_ur/_types/"],
+    "typeRoots": ["./_types/"],
     "paths": {
-      "*": ["./_ur/_types/*"]
+      "~ur/common/*": ["./common/*"],
+      "~ur/server/*": ["./node-server/*"],
+      "~ur/web/*": ["./web-client/*"],
+      "~ur/types/*": ["./_types/*"]
     },
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "outDir": "./_ur/_dist/types",
+    "outDir": "./_dist/_types",
     "module": "NodeNext",
     "target": "ESNext"
   },
-  "include": ["./_ur/node-server/**/*.mts", "./_ur/common/**/*", "./_ur/_types/**/*"],
+  "include": ["./node-server/**/*.mts", "./common/**/*", "./_types/**/*"],
   "exclude": [
-    "./_ur/web-client",
-    "./_ur/node_modules",
-    "./_ur/_dist",
-    "./_ur/npm-scripts",
-    "./_ur/test-config",
-    "./_ur/test",
-    "./_ur/vendor"
+    "./web-client",
+    "./node_modules",
+    "./_dist",
+    "./npm-scripts",
+    "./test-config",
+    "./test",
+    "./vendor"
   ]
 }

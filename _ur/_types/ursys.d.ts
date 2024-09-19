@@ -7,7 +7,7 @@
 /// PROCESS OPERATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// used by process.mts
-export type UR_ResultObject = {
+export type ExtendedErrorObj = {
   error?: string;
   errorCode?: string;
   errorInfo?: string;

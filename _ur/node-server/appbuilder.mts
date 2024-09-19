@@ -28,6 +28,7 @@ type BuildOptions = {
 };
 type WatchOptions = {
   watch_dirs: string[]; // directories to watch for changes
+  ignored?: RegExp; // regex to ignore files
   notify_cb?: NotifyCallback; // callback to notify on change
 };
 
@@ -114,10 +115,11 @@ async function BuildApp(opts: BuildOptions) {
     platform: 'browser',
     format: 'iife',
     sourcemap: true,
-    outfile: `${PUBLIC}/js/${bundle_name}.js`,
+    outfile: `${PUBLIC}/js/${bundle_name}`,
     plugins: [
       // @ts-ignore - esbuild-plugin-copy not in types
       copy({
+        resolveFrom: 'cwd',
         assets: [
           {
             from: [`${SRC_ASSETS}/**/*`],
@@ -146,10 +148,11 @@ async function BuildApp(opts: BuildOptions) {
  *  outside of the source directory, such as changes to assets.
  */
 async function WatchExtra(opts: WatchOptions) {
-  const { watch_dirs, notify_cb } = opts;
+  const { watch_dirs, ignored, notify_cb } = opts;
   // Initialize watcher.
   const watcher = chokidar.watch(watch_dirs, {
-    persistent: true
+    persistent: true,
+    ignored
   });
   watcher.on('change', async changed => {
     const opts = GetBuildOptions();

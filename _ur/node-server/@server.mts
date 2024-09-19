@@ -15,6 +15,7 @@ import * as PROC from './process.mts';
 import * as TEXT from '../common/util-text.ts';
 import * as PROMPTS from '../common/util-prompts.ts';
 import * as NORM from '../common/util-data-norm.ts';
+import * as SNA from './sna-node.mts';
 
 // typescript classes
 import UrModule from './class-urmodule.mts';
@@ -87,6 +88,7 @@ export {
   APPSERV, // application server
   APPBUILD, // application builder
   //
+  SNA, // Sri New Architecture (SNA)
   ADDON, // ur module manager,
   PROMPTS // prompt style formatter
 };
@@ -99,7 +101,7 @@ export {
   NewPhaseMachine,
   HookPhase,
   RunPhaseGroup,
-  GetPhaseMachine,
+  GetMachine,
   GetMachineStates
 } from '../common/class-phase-machine.ts';
 

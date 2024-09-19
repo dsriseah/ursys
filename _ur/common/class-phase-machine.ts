@@ -4,16 +4,16 @@
   run hooks in a specific order. The addHookEntry functions that are provided can
   return a Promise that must be resolved before the next addHookEntry is called.
 
-  When creating a PhaseMachine instance, it is given a PhaseName and a phase_def
+  When creating a PhaseMachine instance, it is given a MachineName and a phase_def
   structure consists of PHASE_GROUPS containing PHASES. 
 
   The main API function is HookPhase(pmHookSelector, handlerFunc), which allows you
   to add a hook to a phase or phase group. The hook selector is simply
-  PhaseName+'/'+PHASEID. An event suffix can be added to the PHASEID to designate
+  PHASEGROUP+'/'+PHASEID. An event suffix can be added to the PHASEID to designate
   :enter, :exec, or :exit events (default is :exec).
 
   If the machine doesn't yet exist, the hook will be queued until the machine
-  with matching PhaseName. On creation, the queued hooks will be processed and
+  with matching MachineName. On creation, the queued hooks will be processed and
   added to the function lists held for each phase.
 
   PhaseMachine instances are managed by a "Game Loop" or "Startup Sequence"
@@ -24,7 +24,7 @@
 
 /// TYPES & INTERFACES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type PhaseName = string; // uppercase string
+type MachineName = string; // uppercase string
 type MachineState = {
   _cur_phase: PhaseID;
   _cur_group: PhaseID;
@@ -36,8 +36,8 @@ type PhaseList = PhaseID[]; // list of phase names
 type PhaseDefinition = {
   [phaseGroup: PhaseID]: PhaseList;
 };
-type HookSelector = `${PhaseName}/${PhaseID}`; // e.g. 'SIM/UPDATE_ALL'
-type HookFunction = (machine?: PhaseName, phase?: PhaseID) => void | Promise<void>;
+type HookSelector = `${MachineName}/${PhaseID}`; // e.g. 'SIM/UPDATE_ALL'
+type HookFunction = (machine?: MachineName, phase?: PhaseID) => void | Promise<void>;
 type HookObj = {
   phase: PhaseID;
   enter?: HookFunction;
@@ -50,7 +50,7 @@ type HookEvent =
   | 'exit'; // exiting a phase
 
 type Executors = [Function[], Promise<void>[]];
-type Selectors = [PhaseName, PhaseID, HookEvent];
+type Selectors = [MachineName, PhaseID, HookEvent];
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -58,8 +58,8 @@ const DBG = false;
 const LOG = console.log.bind(console);
 const WARN = console.warn.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const m_machines: Map<PhaseName, PhaseMachine> = new Map();
-const m_queue: Map<PhaseName, HookObj[]> = new Map();
+const m_machines: Map<MachineName, PhaseMachine> = new Map();
+const m_queue: Map<MachineName, HookObj[]> = new Map();
 
 /// PRIVATE HELPERS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -95,7 +95,7 @@ function m_DecodePhaseGroup(pm: PhaseMachine, phaseID: PhaseID): PhaseGroupID {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** UTILITY: process queued hooks for a phasemachine name. */
-function m_ProcessHookQueue(pmName: PhaseName) {
+function m_ProcessHookQueue(pmName: MachineName) {
   const fn = 'm_ProcessHookQueue:';
   const machine = m_machines.get(pmName);
   if (!machine) return; // machine not yet created
@@ -120,7 +120,7 @@ class PhaseMachine {
   phase_def: PhaseDefinition;
   phase_timer: ReturnType<typeof setTimeout>;
 
-  constructor(pmName: PhaseName, phases: PhaseDefinition) {
+  constructor(pmName: MachineName, phases: PhaseDefinition) {
     // initialize
     if (typeof pmName !== 'string') throw Error('arg1 must be string');
     if (pmName.length < 1) throw Error('arg1 string.length must be > 1');
@@ -328,7 +328,7 @@ class PhaseMachine {
 
   /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   /** API: return initialized PhaseMachine if it exists */
-  static GetMachine(name: PhaseName) {
+  static GetMachine(name: MachineName) {
     return m_machines.get(name);
   }
   // end class PhaseMachine
@@ -340,7 +340,7 @@ class PhaseMachine {
  *   the hook will be queued until the machine is created. The format for
  *   selector is MACHINE/PHASE_NAME, with an optional :enter :exec :exit
  *   event tag at the end. */
-function HookPhase(selector: HookSelector, fn: HookFunction, evt: HookEvent) {
+function HookPhase(selector: HookSelector, fn: HookFunction) {
   PhaseMachine.HookPhase(selector, fn);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -358,7 +358,7 @@ function GetDanglingHooks() {
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Create a new PhaseMachine instance with the given name and phase_def */
-function NewPhaseMachine(name: PhaseName, phases: PhaseDefinition) {
+function NewPhaseMachine(name: MachineName, phases: PhaseDefinition) {
   return new PhaseMachine(name, phases);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -368,19 +368,31 @@ function GetMachineStates() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return initialized PhaseMachine if it exists */
-function GetPhaseMachine(name: PhaseName) {
+function GetMachine(name: MachineName) {
   return m_machines.get(name);
 }
 
 /// EXPORT CLASS DEFINITION ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// the class is accessible as default when imported by other ts files
 export default PhaseMachine;
+/// when imported from node mts module, this is what is received as default
 export {
-  NewPhaseMachine,
-  HookPhase,
-  RunPhaseGroup,
+  PhaseMachine, // class instance
+  // static methods that work on selecttors
+  NewPhaseMachine, // (name, phases)
+  HookPhase, // (hookselector, handlerFunc, event)=>void
+  RunPhaseGroup, // (hookselector)=>void
   GetDanglingHooks,
-  GetPhaseMachine,
-  GetMachineStates
+  GetMachine, // (name)=>PhaseMachine
+  GetMachineStates // ()=>PhaseDef[]
 };
-export type { PhaseName, PhaseDefinition };
+/// type exports
+export type {
+  MachineName,
+  PhaseID,
+  PhaseDefinition,
+  HookSelector,
+  HookFunction,
+  HookEvent
+};

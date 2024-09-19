@@ -11,17 +11,17 @@ import dts from 'rollup-plugin-dts';
 
 export default [
   {
-    input: '../_ur/_dist/types/node-server/@server.d.mts',
+    input: './_dist/_types/node-server/@server.d.mts',
     output: {
-      file: '../_ur/_dist/server.d.ts',
+      file: './_dist/server.d.ts',
       format: 'es'
     },
     plugins: [dts()]
   },
   {
-    input: '../_ur/_dist/types/web-client/@client.d.ts',
+    input: './_dist/_types/web-client/@client.d.ts',
     output: {
-      file: '../_ur/_dist/client.d.ts',
+      file: './_dist/client.d.ts',
       format: 'es'
     },
     plugins: [dts()]

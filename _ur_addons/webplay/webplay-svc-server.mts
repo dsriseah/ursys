@@ -102,7 +102,7 @@ const SRC = AO_DIR; // point to addon dir
 const HT_ASSETS = PATH.join(SRC, 'assets');
 const HT_DOCS = FILE.AbsLocalPath('_ur_addons/_public');
 const CLIENT_ENTRY_FILE = 'webplay-client-entry.ts';
-const CLIENT_BUNDLE_NAME = 'client-bundle';
+const CLIENT_BUNDLE_NAME = 'client-bundle.js';
 const TSCONFIG_FILE = PATH.join(SRC, '../../tsconfig.json');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: UR_Build found scripts in the _stash and _scratch directories. */

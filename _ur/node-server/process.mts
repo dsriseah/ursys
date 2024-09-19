@@ -18,7 +18,7 @@ import * as FILE from './file.mts';
 
 /// TYPES DECLARATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { ReturnObj } from '~ur/types/ursys.d.ts';
+import type { ReturnObj } from '~ur/types/dataset.d.ts';
 
 /// SUPPORT METHODS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -93,8 +93,8 @@ function ValidateAddon(addon: string): ReturnObj {
   const f_dir = item => !(item.startsWith('_') || item === 'node_modules');
   const a_dirs = FILE.Subdirs(ADDONS).filter(f_dir);
   // parse the addon name
-  let { addonName, entryName, err } = m_DecodeAddonName(addon);
-  if (err) return { err };
+  let { addonName, entryName, error } = m_DecodeAddonName(addon);
+  if (error) return { error };
 
   if (!a_dirs.includes(addonName))
     return {
