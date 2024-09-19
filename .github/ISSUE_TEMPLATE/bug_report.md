@@ -7,16 +7,13 @@ assignees: ''
 
 ---
 
-Bug reports should be entered as a Github Issue with the title "BUG: [description]" and include just three elements:
+Provide this essential context:
+1. What you tried to DO.
+2. What you EXPECTED to see.
+3. What you saw INSTEAD (screenshot, camera phone pic)
+4. The verified BRANCH NAME you are using.
 
-1. **what you expected to see / tried to do**
-2. **what you saw instead (w/ screenshots)**
-3. **detailed steps to reproduce the bug**
+Optionally, the following is also helpful:
 
-Additionally, you can provide:
-
-4. a **workaround** you found to get around the bug
-5. how it **prevents** you from doing something with the software
-
->[!TIP]
-> It is most important to provide (3) **detailed steps** to **reproduce the bug**. Secondarily, the **screen shot** of the bug (**camera phone pictures** is OK too) along with any **error messages** seen.
+5. Any WORKAROUND you discovered to get around the problem
+6. How the bug PREVENTS you from in your current TASK
