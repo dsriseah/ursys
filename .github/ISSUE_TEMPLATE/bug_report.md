@@ -1,19 +1,20 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Ensuring good bug reports
 title: 'BUG: [description here]'
 labels: ''
 assignees: ''
 
 ---
 
-Provide this essential context:
+Please provide the following information:
+
 1. What you tried to DO.
 2. What you EXPECTED to see.
-3. What you saw INSTEAD (screenshot, camera phone pic)
-4. The verified BRANCH NAME you are using.
+3. What you saw INSTEAD, with screenshot, camera phone pic, exact error message
+4. The BRANCH NAME you are using (e.g. `git status` output)
 
-Optionally, the following is also helpful:
+The following is also helpful for context:
 
 5. Any WORKAROUND you discovered to get around the problem
 6. How the bug PREVENTS you from in your current TASK
