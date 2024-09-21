@@ -1,28 +1,27 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  SNA Test Module
+  SNA Client Component
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import PATH from 'node:path';
-import { SNA, PR } from '@ursys/core';
+import { SNA, ConsoleStyler } from '@ursys/core';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('SNA.TEST', 'TagCyan');
-const sna_project_dir = PATH.dirname(process.argv[1]);
+const LOG = console.log.bind(this);
+const PR = ConsoleStyler('client', 'TagGreen');
 
-/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// LIFECYCLE HOOKS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SNA.Hook('LOAD_CONFIG', () => {});
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-LOG('SNA Test Module Loaded');
-await SNA.Build(sna_project_dir);
-await SNA.Start();
-const { phaseGroup, phase, completed } = await SNA.Status();
-if (completed) LOG(`SNA Test: Lifecycle complete`);
-else LOG(`SNA Test Lifecycle error: incomplete on phase:${phaseGroup}/${phase}`);
+(async () => {
+  LOG(...PR('SNA Client Component Loaded'));
+  await SNA.Start();
+  LOG(...PR(SNA.Status().message));
+})();

@@ -37,7 +37,7 @@ type PhaseDefinition = {
   [phaseGroup: PhaseID]: PhaseList;
 };
 type HookSelector = `${MachineName}/${PhaseID}`; // e.g. 'SIM/UPDATE_ALL'
-type HookFunction = (machine?: MachineName, phase?: PhaseID) => void | Promise<void>;
+type HookFunction = (machine?: MachineName, phase?: PhaseID) => void | Promise<any>;
 type HookObj = {
   phase: PhaseID;
   enter?: HookFunction;
@@ -169,6 +169,15 @@ class PhaseMachine {
   /** getter: return current phase group */
   get cur_group() {
     return this.pm_state._cur_group;
+  }
+
+  /** getter: return last phase */
+  getLastPhase() {
+    const groups = Object.keys(this.phase_def);
+    const lastGroup = groups[groups.length - 1];
+    const phases = this.phase_def[lastGroup];
+    const lastPhase = phases[phases.length - 1];
+    return lastPhase;
   }
 
   /// PHASE OPERATIONS ///

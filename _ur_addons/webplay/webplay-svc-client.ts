@@ -22,8 +22,8 @@ const { NetEndpoint, NetSocket, PhaseMachine } = CLASS;
 const TIMEOUT = 360; // seconds before client closes connection
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let SERVER_LINK: WebSocket;
-let EP: typeof NetEndpoint = new NetEndpoint();
-let PM: typeof PhaseMachine;
+let EP: typeof NetEndpoint = new NetEndpoint(); // CLASS dereference
+let PM: typeof PhaseMachine; // dereference from CLASS missing type data
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -46,7 +46,7 @@ let INDEX_FILE: string; // default index file for the app
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import { ANSI_COLORS } from '../common/declare-colors.ts';
 const { DIM, NRM } = ANSI_COLORS;
-const LOG = makeTerminalOut('UR.BUILD', 'TagBlue');
+const LOG = makeTerminalOut('URBUILD', 'TagBlue');
 
 /// CONFIGURATION /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

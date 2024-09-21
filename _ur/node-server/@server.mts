@@ -31,7 +31,7 @@ import * as CONSTANTS from './constants-urnet.mts';
 
 /// TYPES /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { PhaseName, PhaseDefinition } from '../common/class-phase-machine.ts';
+import type { PhaseID, PhaseDefinition } from '../common/class-phase-machine.ts';
 type InitOptions = {};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -108,4 +108,4 @@ export {
 // export types
 export type { BuildOptions, WatchOptions, NotifyCallback } from './appbuilder.mts';
 export type { InitOptions };
-export type { PhaseName, PhaseDefinition };
+export type { PhaseID, PhaseDefinition };

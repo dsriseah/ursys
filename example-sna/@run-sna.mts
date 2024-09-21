@@ -1,9 +1,10 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  SNA Server Component
+  SNA Test Module
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
+import PATH from 'node:path';
 import { SNA, PR } from '@ursys/core';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -11,25 +12,15 @@ import { SNA, PR } from '@ursys/core';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('server', 'TagGreen');
+const LOG = PR('SNA-RUN', 'TagCyan');
+const sna_project_dir = PATH.dirname(process.argv[1]);
 
-/// LIFECYCLE HOOKS ///////////////////////////////////////////////////////////
+/// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-SNA.Hook('LOAD_CONFIG', () => {
-  LOG('SNA Server Component LOAD_CONFIG');
-});
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-SNA.Hook('EXPRESS_READY', () => {
-  LOG('SNA Server Component EXPRESS_READY');
-  SNA.AddMessageHandler('NET:RECEIVE_DATA', data => {
-    LOG(`SNA Server Component Received Data: ${data}`);
-  });
-});
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-SNA.Hook('SRV_READY', () => {
-  LOG('SNA Server Component SRV_READY');
-});
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-LOG('SNA Server Component Loaded');
+LOG('SNA Appserver Starting');
+await SNA.Build(sna_project_dir);
+await SNA.Start();
+LOG(SNA.Status().message);

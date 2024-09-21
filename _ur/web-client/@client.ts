@@ -12,14 +12,15 @@ import * as PROMPTS from '../common/util-prompts.ts';
 import * as TEXT from '../common/util-text.js';
 import * as NORM from '../common/util-data-norm.ts';
 // typescript classes
-import OpSequencer from '../common/class-op-seq.ts';
-import StateMgr from '../common/class-state-mgr.ts';
 import * as CLIENT_EP from './urnet-browser.ts';
 import * as UID from '../common/module-uid.ts';
+import OpSequencer from '../common/class-op-seq.ts';
+import StateMgr from '../common/class-state-mgr.ts';
 import NetSocket from '../common/class-urnet-socket.ts';
 import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetPacket from '../common/class-urnet-packet.ts';
 import PhaseMachine from '../common/class-phase-machine.ts';
+import * as SNA from './sna-web.ts';
 // constants
 import {
   HTTP_CLIENT_INFO,
@@ -58,27 +59,30 @@ function ClientTest(): void {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  //
+  // moduiles
   PROMPTS,
   TEXT,
   NORM,
+  SNA,
   // typescript classes, libraries
   CONSTANT,
   CLASS,
   LIB,
   // services
-  CLIENT_EP, // endpoint for browser
-  // temporary test exports
+  CLIENT_EP, // endpoint for browsers (deprecated by SNA)
+  // classes
   StateMgr,
-  ClientTest
+  OpSequencer,
+  NetSocket,
+  NetEndpoint,
+  NetPacket,
+  PhaseMachine
 };
-
-// debugging helpers
+/// debugging helpers
 export {
   makeStyleFormatter as ConsoleStyler // style formatter for browser
 };
-
-// PhaseMachine Interface
+/// PhaseMachine Interface
 export {
   NewPhaseMachine,
   HookPhase,

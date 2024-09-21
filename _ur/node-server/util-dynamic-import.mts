@@ -15,7 +15,7 @@ import { DetectedRootDir, AbsLocalPath } from './file.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = makeTerminalOut('SNA.SVC', 'TagCyan');
+const LOG = makeTerminalOut('DIMPORT', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { BLU, YEL, RED, DIM, NRM } = ANSI;

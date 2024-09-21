@@ -30,7 +30,7 @@ const { BLU, YEL, RED, DIM, NRM } = ANSI;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = makeTerminalOut('SNA.SVC', 'TagCyan');
+const LOG = makeTerminalOut('SNA', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let PM: PhaseMachine;
@@ -173,16 +173,24 @@ function SNA_Hook(phase: PhaseID, fn: HookFunction) {
 /** API: return the current phase machine state */
 function SNA_Status(): ReturnObj {
   const fn = 'SNA_Status:';
-  const status = {};
+  const status: { [key: string]: any } = {};
+
   if (PM === undefined)
-    Object.assign(status, { phaseGroup: undefined, phase: undefined });
+    Object.assign(status, {
+      phaseGroup: undefined,
+      phase: undefined,
+      message: 'SNA PhaseMachine is undefined'
+    });
   else {
     const { cur_group, cur_phase } = PM;
+    const lastPhase = PM.getLastPhase();
     Object.assign(status, {
       phaseGroup: PM.cur_group,
       phase: PM.cur_phase,
-      completed: cur_phase === 'SRV_READY'
+      completed: cur_phase === lastPhase
     });
+    status.message = `SNA current lifecycle: '${cur_group}/${cur_phase}'`;
+    if (status.completed) status.message += ' [completed]';
   }
   return status;
 }

@@ -40,7 +40,7 @@ type WSOptions = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const { DIM, NRM } = ANSI;
-const LOG = makeTerminalOut('UR.SERVE', 'TagBlue');
+const LOG = makeTerminalOut('URSERVE', 'TagBlue');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let APP: express.Application; // express app instance, init by ListenHTTP
 let SERVER: http.Server; // http server instance, init by ListenHTTP
