@@ -12,6 +12,7 @@
 
 import { NORM } from '@ursys/core';
 import { Find, Query } from './util-data-search.ts';
+import { ItemSet } from './class-abstract-itemset.ts';
 import { RecordSet } from './class-data-recordset.ts';
 const { NormItems, NormIDs } = NORM;
 
@@ -22,7 +23,6 @@ import type {
   UR_NewItem,
   UR_Item,
   UR_ItemList,
-  I_BagInstance,
   UR_BagRef,
   UR_BagType,
   //
@@ -37,20 +37,20 @@ type ItemListOptions = {
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class ItemList implements I_BagInstance {
-  //
-  name: UR_BagRef; // name of this collection
-  _type: UR_BagType; // type of this collection (.e.g ItemList);
+class ItemList extends ItemSet {
+  // from base class
+  // name: UR_BagRef; // name of this collection
+  // _type: UR_BagType; // type of this collection (.e.g ItemList);
+  // _prefix: string; // when set, this is the prefix for the ids
+  // _ord_digits: number; // if _prefix is set, then number of zero-padded digits
+  // _ord_highest: number; // current highest ordinal
   _list: UR_ItemList; // list storage
-  _prefix: string; // when set, this is the prefix for the ids
-  _ord_digits: number; // if _prefix is set, then number of zero-padded digits
-  //
-  _ord_highest: number; // current highest ordinal
 
   /** constuctor takes ItemListOptions. If there are no options defined,
    *  the ids created will be simple integers. If you define an idPrefix,
    *  then the ids will be the prefix + zero-padded number */
   constructor(col_name: string, opt?: ItemListOptions) {
+    super(col_name);
     const fn = 'ItemList:';
     this._list = [];
     this._type = this.constructor.name as UR_BagType;
@@ -69,27 +69,13 @@ class ItemList implements I_BagInstance {
   }
 
   /// LIST ID METHODS ///
-  /// note: these are slow routines that could be cached for performance if listmanager is
-  /// split into two classes
 
-  /** decode an id into its _prefix and number */
-  decodeID(id: UR_EntID): [string, number] {
-    const fn = 'decodeID:';
-    // get the part of id after _prefix
-    if (!id.startsWith(this._prefix))
-      throw Error(`${fn} id ${id} does not match _prefix ${this._prefix}`);
-    const ord = id.slice(this._prefix.length);
-    return [this._prefix, parseInt(ord)];
-  }
-
-  /** find the highest id in the _list. EntityIDs are _prefix string + padded number, so
-   *  we can just sort the _list and return the last one */
-  newID(): UR_EntID {
-    const fn = 'newID:';
-    let id;
+  // ItemSet base methods: decodeID, newID
+  _maxID(): number {
+    let id: number;
     // if ord_highest is set, we can just increment it since we don't reuse ids
     if (this._ord_highest > 0) {
-      id = (++this._ord_highest).toString();
+      id = ++this._ord_highest;
     } else {
       // otherwise, we need to scan the existing list
       let maxID = 0;
@@ -98,10 +84,8 @@ class ItemList implements I_BagInstance {
         if (ord > maxID) maxID = ord;
       }
       this._ord_highest = maxID;
-      id = (++this._ord_highest).toString();
     }
-    const idstr = this._prefix ? id.padStart(this._ord_digits, '0') : id;
-    return `${this._prefix}${idstr}`;
+    return this._ord_highest;
   }
 
   /// LIST METHODS ///
@@ -289,21 +273,15 @@ class ItemList implements I_BagInstance {
     return items;
   }
 
-  /** getter for the _list, returning unwrapped items */
-  get items() {
-    const { items } = this.read();
-    return items;
-  }
-
-  /// STATIC METHODS ///
+  /// SEARCH METHODS ///
 
   /** Search for matching items in the list using options, return found items */
-  static Find(items: UR_Item[], criteria?: SearchOptions): UR_Item[] {
+  find(items: UR_Item[], criteria?: SearchOptions): UR_Item[] {
     return Find(items, criteria);
   }
 
   /** Search for matching items in the list, return Recordset */
-  static Query(items: UR_Item[], criteria?: SearchOptions): RecordSet {
+  query(items: UR_Item[], criteria?: SearchOptions): RecordSet {
     return Query(items, criteria);
   }
 }

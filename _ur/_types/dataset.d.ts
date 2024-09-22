@@ -61,10 +61,6 @@ export type UR_BagRef = string; // snake_case
 /// a UR_Dataset is a collection of multiple bags of items, organized by
 /// type of bag (e.g. documents, itemlists, etc.)
 export type UR_BagType = 'DocFolder' | 'ItemList';
-export interface I_BagInstance {
-  name: UR_BagRef;
-  _type: UR_BagType;
-}
 export type UR_Dataset = {
   Schema?: UR_SchemaID; // see https://github.com/dsriseah/ursys/discussions/22
   DocFolder?: { [foldername: UR_BagRef]: any };

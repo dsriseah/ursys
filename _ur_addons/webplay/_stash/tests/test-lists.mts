@@ -20,7 +20,7 @@ test('instantiation', () => {
 test('list creation', () => {
   // there should be no lists
   const list = DATA.createItemList('mylist', { idPrefix: 'li' });
-  expect(list.items).toMatchObject([]);
+  expect(list.getItems()).toMatchObject([]);
 });
 
 test('list item by-ref or value', () => {
