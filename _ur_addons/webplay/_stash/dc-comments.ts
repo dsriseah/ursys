@@ -7,7 +7,7 @@
 
 import { ConsoleStyler } from '@ursys/core';
 import { Endpoint, HookPhase, AddMessageHandler } from '../webplay-svc-client.ts';
-import { DataManager } from './lib/class-data-mgr.ts';
+import { DataSet } from './lib/class-data-dataset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,7 +22,7 @@ const LOG = console.log.bind(console);
 const DCA = true; // log debug calls
 const DSN = true; // log debug sync
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATA = new DataManager();
+const DATA = new DataSet('comments');
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,7 +42,7 @@ async function m_Compare() {
     accToken: 'myAccess'
   });
   // LOG(...PR('DC-Comments Data'), ...cdata.items);
-  const items = DATA.getItemList('comments').items;
+  const items = DATA.getItemList('comments').getItems();
   // LOG(...PR('DC-Comments List'), ...items);
   // compare list and cdata.items
   if (items.length !== cdata.items.length) {

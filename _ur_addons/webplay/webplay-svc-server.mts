@@ -46,7 +46,6 @@ const { AddMessageHandler, RemoveMessageHandler, GetServerEndpoint } = APPSERV;
 /** HELPER: import all server modules in the scripts directory. Hide dependent
  *  scripts in subdirectory of scripts folder. */
 async function m_ImportServerModules(tsOpt?: TSOptions): Promise<string[]> {
-  const fn = 'm_ImportServerModules:';
   try {
     const mtsFilter = file => file.endsWith('.mts');
     const stashFiles = (await FS.promises.readdir('./_stash')).filter(mtsFilter);
@@ -56,14 +55,20 @@ async function m_ImportServerModules(tsOpt?: TSOptions): Promise<string[]> {
       config: []
     };
     // load stash and scratch modules
-    for (const file of stashFiles) await import(`./_stash/${file}`);
-    for (const file of scratchFiles) await import(`./_scratch/${file}`);
+    for (const file of stashFiles) {
+      if (DBG) LOG(`importing stash file: ${BLU}${file}${NRM}`);
+      await import(`./_stash/${file}`);
+    }
+    for (const file of scratchFiles) {
+      if (DBG) LOG(`importing scratch file: ${BLU}${file}${NRM}`);
+      await import(`./_scratch/${file}`);
+    }
     // return the list of imported files
     return [...stashFiles, ...scratchFiles];
   } catch (error) {
     if (error.message.includes(`find package '_ur`))
-      LOG(`${RED}${fn} webplay modules may not use tsconfig paths for imports${NRM}`);
-    throw Error(`${fn} Error during dynamic import: ${error.message}`);
+      LOG(`${RED}webplay modules may not use tsconfig paths for imports${NRM}`);
+    throw Error(`${YEL}Error during dynamic import: ${error.message}${NRM}`);
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

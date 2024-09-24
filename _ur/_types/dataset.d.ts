@@ -50,21 +50,20 @@ export type UR_DataSyncObj = {
 /// an UR_Item is a union of MatchObj with UR_EntID
 export type UR_NewItem = DataObj; // { [key: string]: any }
 export type UR_Item = UR_EntID_Obj & DataObj; // { _id: UR_EntID; [key: string]: any }
+/// an UR_Doc is an object with an _id field and a set of properties
 export type UR_Doc = UR_EntID_Obj & DataObj; // doc is a single item
-/// there are multiple ways to organize UR_Items into a "bag"
-export type UR_ItemList = UR_Item[];
-export type UR_DocFolder = { [_id: UR_EntID]: UR_Doc };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// REFS identify a unique "bag" of items in a data model, despite the type
-/// of bag it is (e.g. documents, itemlists, etc.)
-export type UR_BagRef = string; // snake_case
+/// BinRefID identifies a unique "bin" of items of the same data type.
+export type UR_BinRefID = string; // snake_case
 /// a UR_Dataset is a collection of multiple bags of items, organized by
 /// type of bag (e.g. documents, itemlists, etc.)
-export type UR_BagType = 'DocFolder' | 'ItemList';
+export type UR_ItemList = UR_Item[];
+export type UR_DocFolder = { [_id: UR_EntID]: UR_Doc };
+export type UR_BinType = 'DocFolder' | 'ItemList';
 export type UR_Dataset = {
   Schema?: UR_SchemaID; // see https://github.com/dsriseah/ursys/discussions/22
-  DocFolder?: { [foldername: UR_BagRef]: any };
-  ItemList?: { [listname: UR_BagRef]: any };
+  DocFolders?: { [foldername: UR_BinRefID]: UR_DocFolder };
+  ItemLists?: { [listname: UR_BinRefID]: UR_ItemList };
   // additional items
   // see https://github.com/dsriseah/ursys/discussions/25
   // files
@@ -72,18 +71,6 @@ export type UR_Dataset = {
   // logs
   // templates
   // config
-};
-
-/// REQUESTING DATA ///////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export type BagRequest = {
-  bagRef: UR_BagRef;
-  ids?: UR_EntID[];
-  items?: UR_Item[];
-};
-export type BagResponse = {
-  bagRef: UR_BagRef;
-  items: UR_Item[];
 };
 
 /// DATASET OP TYPES //////////////////////////////////////////////////////////
@@ -187,31 +174,3 @@ type UR_Template = {
     [templateProperty: PropName]: any;
   };
 };
-
-/// DATABASE TYPE DECLARATIONS ////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** settings for initializing a collection on create */
-type CollectionOptions = {
-  [key: string]: any;
-};
-/** settings for initializing a database on create or load */
-type DatabaseOptions = {
-  [key: string]: any;
-};
-
-/// DATABASE RECORD TYPES /////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Records are stored in Collections */
-type RecordID = string; // the id of a record
-type RecordFields = {
-  [field: string]: any; // fields of a record
-};
-type Record = {
-  _id?: RecordID; // may not be defined on create
-  fields: RecordFields;
-};
-
-/// DATABASE OPERATIONS ///////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** returned by whole-database operations */
-type DatabaseStatus = 'loaded' | 'saved' | 'flushed' | 'closed';

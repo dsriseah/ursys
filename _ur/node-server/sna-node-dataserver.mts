@@ -1,44 +1,74 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  srv-comments is the server-side component of a comment module 
+  SNA-NODE-DATASERVER is the server-side Dataset Manager that uses the 
+
+  A Dataset contains several named "bins" of a particular data type
+  that can be opened and closed. 
+
+  This is a module that is dependent on SNA, as it draws on the SNA server
+  lifecycle to manage its initialization. To use it in an SNA program,
+  you just need to import the module
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR, PROMPTS } from '@ursys/core';
-import * as LOKI from './lib/module-loki.mts';
-import tsm_data from './lib/class-data-dataset.ts';
-import {
-  HookPhase,
-  AddMessageHandler,
-  GetServerEndpoint
-} from '../webplay-svc-server.mts';
-import { UR_MachineState } from '../webplay-svc-server.mts';
+import { DataSet } from '../common/class-data-dataset.ts';
+import { ItemSet } from '../common/class-abstract-itemset.ts';
+import { AddMessageHandler, GetServerEndpoint, Hook } from './sna-node.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { DataSet } = tsm_data;
-import type { UR_BinRefID, UR_DataSyncObj } from '../../../_ur/_types/dataset.d.ts';
+import type { ReturnObj, UR_BinRefID, UR_BinType } from '../_types/dataset.d.ts';
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type SyncOptions = {
+  syncType: 'pull' | 'push' | 'both';
+  syncURI: string;
+  autoSync: boolean;
+};
+type BinOptions = SyncOptions & {
+  binType: UR_BinType;
+  autoCreate: boolean;
+};
+type DatasetStore = {
+  [dataset_name: string]: DataSet;
+};
+type BinOpResult = ReturnObj & { bin?: ItemSet; binName?: UR_BinRefID };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { BLU, YEL, RED, DIM, NRM } = PROMPTS.ANSI;
-const LOG = PR('COMMENT', 'TagYellow');
+const DBG = false;
+const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATA = new DataSet('comments');
+/// to start, we just have one dataset, but for the future we could support
+/// multiple ones.
+const DS_DICT: DatasetStore = { 'default': new DataSet('default') };
+const DATA = DS_DICT.default;
 let SEQ_NUM = 0; // very predictable sequence number
 
-/// IMPORTED API METHODS //////////////////////////////////////////////////////
+/// INITIALIZATION METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { PromiseUseDatabase } = LOKI;
-
-/// DUMMY LIST MANAGER ////////////////////////////////////////////////////////
+async function LoadFromDirectory(pathToDataset: string) {}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const m_dummy_data = [
-  { text: 'AAA' }, //
-  { text: 'BBB' }
-];
+async function LoadFromURI(datasetURI: string) {}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function LoadFromArchive(pathToZip: string) {}
 
-/// GUARD FUNCTIONS ///////////////////////////////////////////////////////////
+/// DATASET ACCESS METHODS ////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** given a bin reference, open the bin and return the ItemSet */
+function OpenBin(binName: UR_BinRefID, options: BinOptions): BinOpResult {
+  const { binType, autoCreate } = options;
+  let bin = DATA.openBin(binName);
+  return { bin };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** given an itemset, close the bin and return the bin name if successful */
+function CloseBin(itemset: ItemSet): BinOpResult {
+  const { name } = itemset;
+  let binName = DATA.closeBin(name);
+  return { binName };
+}
+
+/// URNET MESSAGE HELPERS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_CheckDataParams(data: any) {
   const { cName, accToken, ids, items } = data;
@@ -46,8 +76,8 @@ function m_CheckDataParams(data: any) {
   if (accToken === undefined) return { error: 'cType, accToken is required' };
   if (!cName) return { error: 'cName is required' };
   if (typeof cName !== 'string') return { error: 'cName must be a string' };
-  if (DATA.getItemList(cName) === undefined)
-    return { error: `list ${cName} not found` };
+  if (DATA.getBin(cName) === undefined)
+    return { error: `itemset ${cName} not found` };
   // optional params
   if (ids) {
     if (!Array.isArray(ids)) return { error: 'ids must be an array' };
@@ -63,8 +93,6 @@ function m_CheckDataParams(data: any) {
   const cType = 'ItemList';
   return { cName, cType, accToken, ids, items };
 }
-
-/// CLIENT SYNC HELPER ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_NotifyClients(cName: UR_BinRefID, cType: string, data: any) {
   const EP = GetServerEndpoint();
@@ -72,34 +100,15 @@ function m_NotifyClients(cName: UR_BinRefID, cType: string, data: any) {
   EP.netSignal('SYNC:CLI_DATA', { cName, cType, seqNum, ...data });
 }
 
-/// LIFECYCLE /////////////////////////////////////////////////////////////////
+/// URNET DATA MESSAGE API ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function Init() {
-  const current_state = UR_MachineState();
-  await PromiseUseDatabase('comments.loki');
-
-  /** initialize the list */
-  const opt = {
-    // idPrefix: 'cmt'
-  };
-  const list = DATA.createItemList('comments', opt);
-  list.add(m_dummy_data);
-
-  /** dummy handler example */
-  AddMessageHandler('NET:DC_HANDLER', data => {
-    data = { status: 'OK' };
-    return data;
-  });
-
-  /// COLLECTION INIT ///
-
+function HookServerDataSync() {
   AddMessageHandler('SYNC:SRV_DATA_INIT', async (params: any) => {
-    const { cName, error } = m_CheckDataParams(params);
+    const { cName, cType, accToken, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(cName);
-    list.clear();
-    list.add(m_dummy_data);
-    const items = list.getItems();
+    const itemset = DATA.getBin(cName);
+    itemset.clear();
+    const items = itemset.getItems();
     return { items };
   });
 
@@ -107,18 +116,16 @@ async function Init() {
   AddMessageHandler('SYNC:SRV_DATA_GET', async (params: any) => {
     const { cName, cType, accToken, ids, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(cName);
-    return list.read(ids);
+    const itemset = DATA.getBin(cName);
+    return itemset.read(ids);
   });
-
-  /// DATA MUTATION HANDLERS ///
 
   /** accept item[], return { added, error } */
   AddMessageHandler('SYNC:SRV_DATA_ADD', async (params: any) => {
     const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(cName);
-    const addObj = list.add(items);
+    const itemset = DATA.getBin(cName);
+    const addObj = itemset.add(items);
     m_NotifyClients(cName, cType, addObj);
     return addObj;
   });
@@ -127,8 +134,8 @@ async function Init() {
   AddMessageHandler('SYNC:SRV_DATA_UPDATE', async (params: any) => {
     const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(cName);
-    const updObj = list.update(items);
+    const itemset = DATA.getBin(cName);
+    const updObj = itemset.update(items);
     m_NotifyClients(cName, cType, updObj);
     return updObj;
   });
@@ -137,8 +144,8 @@ async function Init() {
   AddMessageHandler('SYNC:SRV_DATA_WRITE', async (params: any) => {
     const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(cName);
-    const writObj = list.write(items);
+    const itemset = DATA.getBin(cName);
+    const writObj = itemset.write(items);
     m_NotifyClients(cName, cType, writObj);
     return writObj;
   });
@@ -147,8 +154,8 @@ async function Init() {
   AddMessageHandler('SYNC:SRV_DATA_REPLACE', async (params: any) => {
     const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(cName);
-    const oldItems = list.replace(items); // returns the old items
+    const itemset = DATA.getBin(cName);
+    const oldItems = itemset.replace(items); // returns the old items
     const replaced = [...items];
     m_NotifyClients(cName, cType, { replaced, oldItems });
     return oldItems;
@@ -158,25 +165,25 @@ async function Init() {
   AddMessageHandler('SYNC:SRV_DATA_DELETE', async (params: any) => {
     const { cName, cType, accToken, ids, error } = m_CheckDataParams(params);
     if (error) return { error };
-    const list = DATA.getItemList(cName);
-    const result = list.deleteIDs(ids);
+    const itemset = DATA.getBin(cName);
+    const result = itemset.deleteIDs(ids);
     m_NotifyClients(cName, cType, result);
     return result;
   });
 }
 
-/// RUNTIME ///////////////////////////////////////////////////////////////////
+/// RUNTIME HOOKS /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-(() => {
-  LOG('Hook SRV_INIT');
-  HookPhase('URSYS/SRV_INIT', Init);
-})();
+/** declare the data message handler when the express server is ready,
+ *  just before listening */
+Hook('EXPRESS_READY', HookServerDataSync);
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  // DATA
-  DATA,
-  // LIFECYCLE
-  Init // () => void
+  LoadFromDirectory, //
+  LoadFromURI,
+  LoadFromArchive,
+  OpenBin,
+  CloseBin
 };

@@ -14,9 +14,9 @@ const { NormDocIDs, NormDoc, NormDocFolder } = NORM;
 import type {
   DataObj, // { [key: string]: any }
   UR_EntID, // string
-  UR_BagRef, // string
-  UR_Doc, // { _ref: UR_BagRef; [key: string]: any }
-  UR_DocFolder, // { [ref_name: UR_BagRef]: UR_Doc }
+  UR_BinRefID, // string
+  UR_Doc, // { _ref: UR_BinRefID; [key: string]: any }
+  UR_DocFolder, // { [ref_name: UR_BinRefID]: UR_Doc }
   UR_Item // { _id: UR_EntID; [key: string]: any }
 } from '../../../../_ur/_types/dataset.d.ts';
 
@@ -31,7 +31,7 @@ class DocFolder {
   //
   collection_name: string;
   collection_type: string;
-  _DOCS: { [ref_name: UR_BagRef]: UR_DocFolder };
+  _DOCS: { [ref_name: UR_BinRefID]: UR_DocFolder };
   //
   constructor(col_name?: string) {
     if (this._DOCS === undefined) this._DOCS = {};
