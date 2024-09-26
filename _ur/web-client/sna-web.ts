@@ -17,7 +17,7 @@ import type {
   HookFunction,
   HookEvent
 } from '../common/class-phase-machine.ts';
-import type { ReturnObj } from '../_types/dataset';
+import type { OpReturn } from '../_types/dataset';
 import type { NM_Handler } from '../_types/urnet';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -177,7 +177,7 @@ function SNA_Hook(phase: PhaseID, fn: HookFunction) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the current phase machine state */
-function SNA_Status(): ReturnObj {
+function SNA_Status(): OpReturn {
   const fn = 'SNA_Status:';
   const status: { [key: string]: any } = {};
 

@@ -15,8 +15,38 @@ import type {
   UR_BinRefID,
   UR_BinType,
   //
-  SearchOptions
+  SearchOptions,
+  OpReturn
 } from '../_types/dataset';
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** SyncOp is the operations that can be performed on a dataset via
+ *  the SYNC:SRV_DATA protocol. */
+type SyncOp =
+  | 'DATA_INIT' // SYNC:SRV_DATA_INIT clears data
+  | 'DATA_GET' // SYNC:SRV_DATA_GET ( ids? )
+  | 'DATA_ADD' // SYNC:SRV_DATA_ADD ( items )
+  | 'DATA_UPDATE' // SYNC:SRV_DATA_UPDATE ( items )
+  | 'DATA_WRITE' // SYNC:SRV_DATA_WRITE ( items )
+  | 'DATA_DELETE' // SYNC:SRV_DATA_DELETE ( ids )
+  | 'DATE_REPLACE'; // SYNC:SRV_DATA_REPLACE ( items )
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** SyncData is sent from a dataset source to a client that implements
+ *  the SYN:CLI_SYNC protocol. */
+type SyncData = {
+  cName: UR_BinRefID;
+  accToken: string;
+  items?: UR_Item[];
+  ids?: UR_EntID[];
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** implement functions needed to write data to a remote datastore
+ *  . writeData is the async method that writes data to remote datastore
+ *  . handleError is the method that handles the return object from writeData
+ */
+type RemoteStoreAdapter = {
+  writeData: (op: SyncOp, data: SyncData) => Promise<OpReturn>;
+  handleError: (opResult: OpReturn) => OpReturn;
+};
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,6 +57,8 @@ abstract class ItemSet {
   _prefix: string; // when set, this is the prefix for the ids
   _ord_digits: number; // if _prefix is set, then number of zero-padded digits
   _ord_highest: number; // current highest ordinal
+  _actions: { op: SyncOp; data: SyncData }[]; // list of actions to be performed on the server
+  _remote: RemoteStoreAdapter; // adapter to write data to the server
 
   /// INITIALIZE ///
 
@@ -38,6 +70,7 @@ abstract class ItemSet {
     this._prefix = '';
     this._ord_digits = 3;
     this._ord_highest = 0;
+    this._actions = [];
   }
 
   /// SERIALIZATION METHODS ///
@@ -47,6 +80,57 @@ abstract class ItemSet {
 
   /** API: deserialize data structure into the appropriate JSON */
   abstract deserializeFromJSON(json: string): void;
+
+  /// ADAPTER METHODS ///
+
+  /** API: define the remote data adapter */
+  setRemoteDataAdapter(adapter: RemoteStoreAdapter): void {
+    const fn = 'setRemoteDataAdapter:';
+    // check adapter integrity
+    if (!adapter) throw Error(`${fn} adapter must be type RemoteStoreAdapter`);
+    const { writeData, handleError } = adapter;
+    if (typeof writeData !== 'function')
+      throw Error(`${fn} adapter must have writeData method`);
+    if (typeof handleError !== 'function')
+      throw Error(`${fn} adapter must have handleError method`);
+    this._remote = adapter;
+  }
+
+  /** API: queue an operation to persist data to the server, if this itemset
+   *  has a server-side data store. */
+  queueRemoteDataOp(op: SyncOp, data: SyncData): void {
+    const fn = 'queueRemoteDataOp:';
+    if (!this._remote) {
+      console.error(`${fn} no remote data adapter set`);
+      return;
+    }
+    this._actions.push({ op, data });
+    this.processOpQueue();
+  }
+
+  /** SUPPORT: process the operation queue until it is clear */
+  private async processOpQueue(): Promise<void> {
+    const fn = 'processOpQueue:';
+    if (!this._remote) {
+      console.error(`${fn} no remote data adapter set`);
+      return;
+    }
+    if (this._actions.length === 0) return;
+    // process all actions in the queue
+    while (this._actions.length > 0) {
+      const { op, data } = this._actions.shift();
+      // wait for the result of the writeData operation
+      const result = await this._remote.writeData(op, data);
+      // if there is an error, use implementation-specific error handling
+      // to determine if the error is fatal or not. it's up to the
+      // handleError method return error if it couldn't handle it.
+      if (result.error) {
+        const errHandled = this._remote.handleError(result);
+        if (!errHandled.error) return;
+        throw Error(`${fn} fatal writeData error: ${errHandled.error}`);
+      }
+    }
+  }
 
   /// ID METHODS ///
 
@@ -145,3 +229,4 @@ export default ItemSet; // the class
 export {
   ItemSet // the class
 };
+export type { SyncOp, SyncData };

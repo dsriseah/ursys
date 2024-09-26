@@ -16,12 +16,12 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { DataSet } from '../common/class-data-dataset.ts';
-import { ItemSet } from '../common/class-data-itemset.ts';
+import { ItemSet, SyncData, SyncOp } from '../common/class-data-itemset.ts';
 import { AddMessageHandler, GetServerEndpoint, Hook } from './sna-node.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { ReturnObj, UR_BinRefID, UR_BinType } from '../_types/dataset.d.ts';
+import type { OpReturn, UR_BinRefID, UR_BinType } from '../_types/dataset.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SyncOptions = {
   syncType: 'pull' | 'push' | 'both';
@@ -35,7 +35,7 @@ type BinOptions = SyncOptions & {
 type DatasetStore = {
   [dataset_name: string]: DataSet;
 };
-type BinOpResult = ReturnObj & { bin?: ItemSet; binName?: UR_BinRefID };
+type BinOpResult = OpReturn & { bin?: ItemSet; binName?: UR_BinRefID };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -74,7 +74,7 @@ function CloseBin(itemset: ItemSet): BinOpResult {
 
 /// URNET MESSAGE HELPERS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_CheckDataParams(data: any) {
+function m_CheckSyncData(data: SyncData) {
   const { cName, accToken, ids, items } = data;
   // required params
   if (accToken === undefined) return { error: 'cType, accToken is required' };
@@ -107,8 +107,8 @@ function m_NotifyClients(cName: UR_BinRefID, cType: string, data: any) {
 /// URNET DATA HANDLING API ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function HookServerDataSync() {
-  AddMessageHandler('SYNC:SRV_DATA_INIT', async (params: any) => {
-    const { cName, cType, accToken, error } = m_CheckDataParams(params);
+  AddMessageHandler('SYNC:SRV_DATA_INIT', async (params: SyncData) => {
+    const { cName, cType, accToken, error } = m_CheckSyncData(params);
     if (error) return { error };
     const itemset = DATA.getBin(cName);
     itemset.clear();
@@ -117,16 +117,16 @@ function HookServerDataSync() {
   });
 
   /** accept optional id[], return { items, error } */
-  AddMessageHandler('SYNC:SRV_DATA_GET', async (params: any) => {
-    const { cName, cType, accToken, ids, error } = m_CheckDataParams(params);
+  AddMessageHandler('SYNC:SRV_DATA_GET', async (params: SyncData) => {
+    const { cName, cType, accToken, ids, error } = m_CheckSyncData(params);
     if (error) return { error };
     const itemset = DATA.getBin(cName);
     return itemset.read(ids);
   });
 
   /** accept item[], return { added, error } */
-  AddMessageHandler('SYNC:SRV_DATA_ADD', async (params: any) => {
-    const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
+  AddMessageHandler('SYNC:SRV_DATA_ADD', async (params: SyncData) => {
+    const { cName, cType, accToken, items, error } = m_CheckSyncData(params);
     if (error) return { error };
     const itemset = DATA.getBin(cName);
     const addObj = itemset.add(items);
@@ -135,8 +135,8 @@ function HookServerDataSync() {
   });
 
   /** accept item[], return { updated, error } */
-  AddMessageHandler('SYNC:SRV_DATA_UPDATE', async (params: any) => {
-    const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
+  AddMessageHandler('SYNC:SRV_DATA_UPDATE', async (params: SyncData) => {
+    const { cName, cType, accToken, items, error } = m_CheckSyncData(params);
     if (error) return { error };
     const itemset = DATA.getBin(cName);
     const updObj = itemset.update(items);
@@ -145,8 +145,8 @@ function HookServerDataSync() {
   });
 
   /** accepts item[], return { added, updated, error } */
-  AddMessageHandler('SYNC:SRV_DATA_WRITE', async (params: any) => {
-    const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
+  AddMessageHandler('SYNC:SRV_DATA_WRITE', async (params: SyncData) => {
+    const { cName, cType, accToken, items, error } = m_CheckSyncData(params);
     if (error) return { error };
     const itemset = DATA.getBin(cName);
     const writObj = itemset.write(items);
@@ -155,8 +155,8 @@ function HookServerDataSync() {
   });
 
   /** accepts item[], return { replace, error } */
-  AddMessageHandler('SYNC:SRV_DATA_REPLACE', async (params: any) => {
-    const { cName, cType, accToken, items, error } = m_CheckDataParams(params);
+  AddMessageHandler('SYNC:SRV_DATA_REPLACE', async (params: SyncData) => {
+    const { cName, cType, accToken, items, error } = m_CheckSyncData(params);
     if (error) return { error };
     const itemset = DATA.getBin(cName);
     const oldItems = itemset.replace(items); // returns the old items
@@ -166,8 +166,8 @@ function HookServerDataSync() {
   });
 
   /** accepts id[], returning deleted:items[] */
-  AddMessageHandler('SYNC:SRV_DATA_DELETE', async (params: any) => {
-    const { cName, cType, accToken, ids, error } = m_CheckDataParams(params);
+  AddMessageHandler('SYNC:SRV_DATA_DELETE', async (params: SyncData) => {
+    const { cName, cType, accToken, ids, error } = m_CheckSyncData(params);
     if (error) return { error };
     const itemset = DATA.getBin(cName);
     const result = itemset.deleteIDs(ids);

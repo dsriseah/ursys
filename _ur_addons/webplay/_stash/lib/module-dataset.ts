@@ -14,7 +14,7 @@ import { ItemSet } from './class-abstract-itemset.ts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
-  ReturnObj,
+  OpReturn,
   UR_BinRefID,
   UR_BinType
 } from '../../../../_ur/_types/dataset';
@@ -31,7 +31,7 @@ type BinOptions = SyncOptions & {
 type DatasetStore = {
   [dataset_name: string]: DataSet;
 };
-type BinOpResult = ReturnObj & { bin?: ItemSet; binName?: UR_BinRefID };
+type BinOpResult = OpReturn & { bin?: ItemSet; binName?: UR_BinRefID };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

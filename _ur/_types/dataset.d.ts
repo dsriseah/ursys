@@ -28,9 +28,9 @@ export type UR_EntID_Obj = { _id: UR_EntID };
 /// we use various object conventions
 export type DataObj = { [key: string]: any };
 export type ErrObj = { error?: string; errorCode?: string; errorInfo?: string };
-export type ReturnObj = DataObj & ErrObj;
+export type OpReturn = DataObj & ErrObj;
 /// we use UR_DataMethod functions to modify data and datasets
-export type UR_DataMethod = (data: DataObj, options?: DataObj) => ReturnObj;
+export type UR_DataMethod = (data: DataObj, options?: DataObj) => OpReturn;
 export type UR_DataSyncObj = {
   cName: BagName;
   cType: BagClass;

@@ -17,7 +17,7 @@ import * as IMPORT from './util-dynamic-import.mts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { BuildOptions } from './appbuilder.mts';
-import type { ReturnObj } from '../_types/dataset.d.ts';
+import type { OpReturn } from '../_types/dataset.d.ts';
 import type {
   PhaseID,
   HookFunction,
@@ -171,7 +171,7 @@ function SNA_Hook(phase: PhaseID, fn: HookFunction) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the current phase machine state */
-function SNA_Status(): ReturnObj {
+function SNA_Status(): OpReturn {
   const fn = 'SNA_Status:';
   const status: { [key: string]: any } = {};
 
