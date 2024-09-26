@@ -10,7 +10,7 @@
 
 import { NORM } from '@ursys/core';
 import { ItemList } from './class-data-itemlist.ts';
-import { ItemSet } from './class-abstract-itemset.ts';
+import { ItemSet } from './class-data-itemset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

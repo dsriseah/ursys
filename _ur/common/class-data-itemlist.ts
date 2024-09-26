@@ -12,7 +12,7 @@
 
 import { NORM } from '@ursys/core';
 import { Find, Query } from './util-data-search.ts';
-import { ItemSet } from './class-abstract-itemset.ts';
+import { ItemSet } from './class-data-itemset.ts';
 import { RecordSet } from './class-data-recordset.ts';
 const { NormItems, NormIDs } = NORM;
 
@@ -27,7 +27,7 @@ import type {
   UR_BinType,
   //
   SearchOptions
-} from '../../../../_ur/_types/dataset';
+} from '../_types/dataset';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type ItemListOptions = {
   idPrefix?: string; // prefix to use for ids, otherwise simple ids

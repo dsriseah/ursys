@@ -145,7 +145,7 @@ class NetEndpoint {
     this.cli_sck_timer = null; // socket aging placeholder
   }
 
-  /** API: initialize this endpoint's client server, providing a hardcoded
+  /** SERVER API: initialize this endpoint's client server, providing a hardcoded
    *  server UADDR that is distinct from those used by client pools
    */
   public configAsServer(srv_addr: NP_Address) {
@@ -157,7 +157,7 @@ class NetEndpoint {
     }
     this.uaddr = srv_addr;
     this.svc_map = new ServiceMap(srv_addr);
-    // make sure we don't nuke
+    // make sure we don't nuke existing sockets on accidental double-invocation
     if (this.client_socks !== undefined)
       LOG(PR, this.uaddr, `already configured`, [...this.client_socks.keys()]);
     this.client_socks = new Map<NP_Address, I_NetSocket>();
@@ -171,7 +171,7 @@ class NetEndpoint {
     });
   }
 
-  /** API: Server data event handler for incoming data from a client connection.
+  /** SERVER API: Server data event handler for incoming data from a client connection.
    *  This is the mirror to _ingestServerPacket() function used by client endpoints.
    *  This is the entry point for incoming data from clients */
   public _ingestClientPacket(jsonData: string, socket: I_NetSocket): NetPacket {
@@ -196,7 +196,7 @@ class NetEndpoint {
     this.dispatchPacket(pkt);
   }
 
-  /** API: when a client connects to this endpoint, register it as a socket and
+  /** SERVER API: when a client connects to this endpoint, register it as a socket and
    *  allocate a uaddr for it */
   public addClient(socket: I_NetSocket): NP_Address {
     const fn = 'addClient:';
@@ -212,7 +212,7 @@ class NetEndpoint {
     return new_uaddr;
   }
 
-  /** API: when a client disconnects from this endpoint, delete its socket and
+  /** SERVER API: when a client disconnects from this endpoint, delete its socket and
    *  remove all message forwarding */
   public removeClient(uaddr_obj: NP_Address | I_NetSocket): NP_Address {
     const fn = 'removeClient:';
@@ -231,14 +231,14 @@ class NetEndpoint {
     return uaddr;
   }
 
-  /** API: given a uaddr, return the socket */
+  /** SERVER API: given a uaddr, return the socket */
   public getClient(uaddr: NP_Address): I_NetSocket {
     const fn = 'getClient:';
     if (this.client_socks === undefined) return undefined;
     return this.client_socks.get(uaddr);
   }
 
-  /** API: start a timer to check for dead sockets */
+  /** SERVER API: start a timer to check for dead sockets */
   public enableClientAging(activate: boolean) {
     const fn = 'enableClientAging:';
     if (activate) {
@@ -259,7 +259,7 @@ class NetEndpoint {
     LOG(PR, this.uaddr, `timer stopped`);
   }
 
-  /** support: handle auth packet if the session.auth is not defined */
+  /** SERVER SUPPORT: handle auth packet if the session.auth is not defined */
   private _handleAuthRequest(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     if (!socket.authenticated()) {
       pkt.setDir('res');
@@ -284,7 +284,7 @@ class NetEndpoint {
     return undefined;
   }
 
-  /** support: handle registration packet */
+  /** SERVER SUPPORT: handle registration packet */
   private _handleRegRequest(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     if (!pkt.isBadRegPkt(socket)) {
       pkt.setDir('res');
@@ -310,7 +310,7 @@ class NetEndpoint {
     return undefined;
   }
 
-  /** support: handle client dynamic definitions */
+  /** SERVER SUPPORT: handle client dynamic definitions */
   private _handleDeclRequest(pkt: NetPacket, socket: I_NetSocket): NetPacket {
     if (pkt.msg_type === '_decl') {
       pkt.setDir('res');
@@ -341,7 +341,7 @@ class NetEndpoint {
 
   /** client connection handshaking - - - - - - - - - - - - - - - - - - - - **/
 
-  /** API: client endpoints need to have an "address" assigned to them,
+  /** CLIENT API: client endpoints need to have an "address" assigned to them,
    *  otherwise the endpoint will not work */
   public async connectAsClient(
     gateway: I_NetSocket,
@@ -379,7 +379,7 @@ class NetEndpoint {
     throw Error(`${fn} arg must be identity`);
   }
 
-  /** API: Client data event handler for incoming data from the gateway. This is
+  /** CLIENT API: Client data event handler for incoming data from the gateway. This is
    *  the mirror to _ingestClientPacket() function that is used by servers. This
    *  is entry point for incoming data from server
    */
@@ -400,7 +400,7 @@ class NetEndpoint {
     this.dispatchPacket(pkt);
   }
 
-  /** API: register client with client endpoint info */
+  /** CLIENT API: register client with client endpoint info */
   public async declareClientProperties(info: TClientReg): Promise<NP_Data> {
     const fn = 'declareClientProperties:';
     if (!this.cli_gateway) throw Error(`${fn} no gateway`);
@@ -426,7 +426,7 @@ class NetEndpoint {
     throw Error(`${fn} unexpected response`, regData);
   }
 
-  /** API: declare client messages */
+  /** CLIENT API: declare client messages */
   public async declareClientMessages() {
     const fn = 'declareClientMessages:';
     const msg_list = this.getNetMessageNames();
@@ -442,7 +442,7 @@ class NetEndpoint {
     return response;
   }
 
-  /** support: handle authentication response packet directly rather than through
+  /** CLIENT SUPPORT: handle authentication response packet directly rather than through
    *  the netcall interface in dispatchPacket() */
   private _handleAuthResponse(pkt: NetPacket): boolean {
     const fn = '_handleAuthResponse:';
@@ -453,7 +453,7 @@ class NetEndpoint {
     return true;
   }
 
-  /** support: handle registration response packet directly rather than through
+  /** CLIENT SUPPORT: handle registration response packet directly rather than through
    *  the netcall interface in dispatchPacket() */
   private _handleRegResponse(pkt: NetPacket): boolean {
     const fn = '_handleRegResponse:';
@@ -465,7 +465,7 @@ class NetEndpoint {
     return true;
   }
 
-  /** support: handle declaration packet */
+  /** CLIENT SUPPORT: handle declaration packet */
   private _handleDeclResponse(pkt: NetPacket): boolean {
     const fn = '_handleDeclResponse:';
     if (pkt.msg_type !== '_decl') return false;

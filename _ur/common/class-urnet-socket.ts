@@ -65,18 +65,30 @@ class NetSocket implements I_NetSocket {
     this.onDataFunc = onData.bind(connectObj);
   }
 
+  /** method for sending packets, using stored implementation-specific function */
   send(pkt: NetPacket) {
     this.sendFunc(pkt);
   }
 
+  /** method for receiving packets, using stored implementation-specific function
+   *  that invokes the NetEndpoint's appropriate ingest method
+   */
+  onData(pkt: NetPacket) {
+    this.onDataFunc(pkt);
+  }
+
+  /** method for closing the connection, using stored implementation-specific
+   * function */
   close() {
     this.closeFunc();
   }
 
+  /* returns the native connector object, varies by implementation */
   getConnector() {
     return this.connector;
   }
 
+  /** TODO: placeholder for authentication method */
   authenticated() {
     let a = this.auth !== undefined;
     return a;

@@ -16,7 +16,7 @@ import type {
   UR_BinType,
   //
   SearchOptions
-} from '../../../../_ur/_types/dataset';
+} from '../_types/dataset';
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

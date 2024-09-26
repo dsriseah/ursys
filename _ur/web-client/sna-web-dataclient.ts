@@ -21,7 +21,7 @@ const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DATA = new DataSet('comments');
 
-/// URNET DATA MESSAGE API ////////////////////////////////////////////////////
+/// URNET DATA SYNC API ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function HookClientDataSync() {
   AddMessageHandler('SYNC:CLI_DATA', (sync: UR_DataSyncObj) => {
@@ -50,6 +50,10 @@ function HookClientDataSync() {
     // if (Array.isArray(skipped)) LOG(...PR('SKIPPED:', skipped));
   });
 }
+
+/// DATASET API ///////////////////////////////////////////////////////////////
+/// for direct interfacing to the dataset manager (client side instance)
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

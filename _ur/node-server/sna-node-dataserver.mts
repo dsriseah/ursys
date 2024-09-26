@@ -7,12 +7,16 @@
 
   This is a module that is dependent on SNA, as it draws on the SNA server
   lifecycle to manage its initialization. To use it in an SNA program,
-  you just need to import the module
+  you just need to import the module.
+
+  This module implements the `SYNC:SRV` protocol for receiving requests to
+  access and mutate a dataset consisting of multiple collection bins of
+  type ItemSet. 
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { DataSet } from '../common/class-data-dataset.ts';
-import { ItemSet } from '../common/class-abstract-itemset.ts';
+import { ItemSet } from '../common/class-data-itemset.ts';
 import { AddMessageHandler, GetServerEndpoint, Hook } from './sna-node.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -100,7 +104,7 @@ function m_NotifyClients(cName: UR_BinRefID, cType: string, data: any) {
   EP.netSignal('SYNC:CLI_DATA', { cName, cType, seqNum, ...data });
 }
 
-/// URNET DATA MESSAGE API ////////////////////////////////////////////////////
+/// URNET DATA HANDLING API ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function HookServerDataSync() {
   AddMessageHandler('SYNC:SRV_DATA_INIT', async (params: any) => {
@@ -171,6 +175,10 @@ function HookServerDataSync() {
     return result;
   });
 }
+
+/// DATASET API ///////////////////////////////////////////////////////////////
+/// for direct interfacing to the dataset manager (server-side instance)
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /// RUNTIME HOOKS /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

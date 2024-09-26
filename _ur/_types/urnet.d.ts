@@ -67,9 +67,12 @@ export type NS_Options = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** this is the socket-ish object that we use to send data to the wire */
 export interface I_NetSocket {
+  // essential socket methods that rely on provided NS_Options
+  send: NS_SendFunc; // method send pkt TO other side
+  onData: NS_DataFunc; // method receive pkt FROM other side
+  close: NS_CloseFunc; // method close connection
+  //
   connector?: any; // the original connection object (if needed)
-  send: NS_SendFunc;
-  close: NS_CloseFunc; // close function
   uaddr?: NP_Address; // assigned uaddr for this socket-ish object
   auth?: any; // whatever authentication is needed for this socket
   msglist?: NP_Msg[]; // messages queued for this socket
