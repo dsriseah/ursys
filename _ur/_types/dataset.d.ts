@@ -29,23 +29,6 @@ export type UR_EntID_Obj = { _id: UR_EntID };
 export type DataObj = { [key: string]: any };
 export type ErrObj = { error?: string; errorCode?: string; errorInfo?: string };
 export type OpReturn = DataObj & ErrObj;
-/// we use UR_DataMethod functions to modify data and datasets
-export type UR_DataMethod = (data: DataObj, options?: DataObj) => OpReturn;
-export type UR_DataSyncObj = {
-  cName: BagName;
-  cType: BagClass;
-  seqNum: number;
-  //
-  status?: string;
-  error?: string;
-  skipped?: UR_EntID[];
-  //
-  items?: UR_Item[];
-  updated?: UR_Item[];
-  added?: UR_Item[];
-  deleted?: UR_Item[];
-  replaced?: UR_Item[];
-};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// an UR_Item is a union of MatchObj with UR_EntID
 export type UR_NewItem = DataObj; // { [key: string]: any }
@@ -150,6 +133,56 @@ export type ItemStatsOptions = {
 export type ItemStatsResult = {
   groups?: { [test: string]: UR_Item[] };
   [stat: string]: any;
+};
+
+/// DATASET SYNC TYPES ////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** SyncOp is the operations that can be performed on a dataset via
+ *  the SYNC:SRV_DATA protocol. */
+export type SyncOp =
+  | 'DATA_INIT' // SYNC:SRV_DATA_INIT clears data
+  | 'DATA_GET' // SYNC:SRV_DATA_GET ( ids? )
+  | 'DATA_ADD' // SYNC:SRV_DATA_ADD ( items )
+  | 'DATA_UPDATE' // SYNC:SRV_DATA_UPDATE ( items )
+  | 'DATA_WRITE' // SYNC:SRV_DATA_WRITE ( items )
+  | 'DATA_DELETE' // SYNC:SRV_DATA_DELETE ( ids )
+  | 'DATA_REPLACE'; // SYNC:SRV_DATA_REPLACE ( items )
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** sent from a dataset source to a client that implements the SYN:CLI_SYNC
+ *  protocol. */
+export type SyncDataReq = {
+  cName: UR_BinRefID;
+  accToken?: string;
+  items?: UR_Item[];
+  ids?: UR_EntID[];
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** received from a dataset source by listeners to the dataset itself */
+export type SyncDataRes = {
+  cName: UR_BinRefID;
+  cType: UR_BinType;
+  op: SyncOp;
+  seqNum: number;
+  // meta
+  status?: string;
+  error?: string;
+  skipped?: UR_EntID[];
+  //
+  items?: UR_Item[];
+  added?: UR_Item[];
+  updated?: UR_Item[];
+  deleted?: UR_Item[];
+  replaced?: UR_Item[];
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** implement functions needed to write data to a remote datastore
+ *  . writeData is the async method that writes data to remote datastore
+ *  . handleError is the method that handles the return object from writeData
+ */
+export type RemoteStoreAdapter = {
+  accToken: string;
+  writeData: (op: SyncOp, data: SyncDataReq) => Promise<OpReturn>;
+  handleError: (opResult: OpReturn) => OpReturn;
 };
 
 /// RESOURCE TYPES ////////////////////////////////////////////////////////////

@@ -262,8 +262,17 @@ function AddMessageHandler(message: NP_Msg, msgHandler: NM_Handler) {
 /** API: To remove a service, remove the packet handler from the endpoint.
  *  If the handler is not provided, all handlers for the message are removed.
  */
-function RemoveMessageHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
+function DeleteMessageHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
   EP.deleteMessageHandler(message, pktHandlr);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API:delare message handlers and register after authentation to be added to
+ *  URNET message network */
+async function RegisterMessages() {
+  // declare messages to server
+  const resdata = await EP.declareClientMessages();
+  // LOG(...PR(`RegisterMessages: ${resdata.error || 'success'}`));
+  // LOG(resdata);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Get the APP instance for adding middleware */
@@ -314,7 +323,8 @@ export {
   StopWSS, // stop the websocket server
   // register URNET services
   AddMessageHandler,
-  RemoveMessageHandler,
+  DeleteMessageHandler,
+  RegisterMessages,
   // expose instances
   GetAppInstance,
   GetServerEndpoint

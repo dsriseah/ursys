@@ -17,7 +17,7 @@ import { UR_MachineState } from '../webplay-svc-server.mts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { DataSet } = tsm_data;
-import type { UR_BinRefID, UR_DataSyncObj } from '../../../_ur/_types/dataset.d.ts';
+import type { UR_BinRefID, SyncDataRes } from '../../../_ur/_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -11,7 +11,7 @@ import { DataSet } from './lib/class-data-dataset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { UR_DataSyncObj } from '../../../_ur/_types/dataset.d.ts';
+import type { SyncDataRes } from '../../../_ur/_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -65,7 +65,7 @@ async function m_Compare() {
   :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
   HookPhase('WEBPLAY/NET_REGISTER', () => {
     // client implements these sync handlers
-    AddMessageHandler('SYNC:CLI_DATA', (sync: UR_DataSyncObj) => {
+    AddMessageHandler('SYNC:CLI_DATA', (sync: SyncDataRes) => {
       const { cName, cType, seqNum, status, error, skipped } = sync;
       const { items, updated, added, deleted, replaced } = sync;
       const list = DATA.getItemList(cName);

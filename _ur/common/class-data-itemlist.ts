@@ -117,6 +117,7 @@ class ItemList extends ItemSet {
     if (!Array.isArray(items))
       return { error: `${fn} items must be an array of objects` };
     if (items.length === 0) return { error: `${fn} items array is empty` };
+
     // make sure that items do not have _id fields and assign new ones
     const copies = items.map(item => ({ ...item }));
     for (let item of copies) {
@@ -130,9 +131,10 @@ class ItemList extends ItemSet {
       if (this._list.find(obj => obj._id === item._id))
         return { error: `${fn} item ${item._id} already exists in ${this.name}` };
     }
-    // add the items to the _list
-    this._list.push(...(copies as UR_Item[]));
-    return { added: [...this._list] }; // return a copy of the _list
+    // add the items to the _list if no remote
+    const added = [...(copies as UR_Item[])];
+    this._list.push(...added);
+    return { added }; // return a copy of the _list
   }
 
   /** return the entire _list or the subset of ids
