@@ -61,8 +61,23 @@ async function SNA_LifecycleStart() {
         'EXPRESS_LISTEN', // express server is listening
         'URNET_LISTEN' // ursys network is listening on socket-ish connection
       ],
-      PHASE_RUN: ['SRV_START', 'SRV_RUN'],
-      PHASE_READY: ['SRV_READY']
+      PHASE_RUN: [
+        'SRV_START', // server process start hook
+        'SRV_RUN' // server process run hook
+      ],
+      PHASE_READY: [
+        'SRV_READY' // server is ready to run
+      ],
+      PHASE_SHUTDOWN: [
+        'SRV_KILLED', // server process kill signal detected
+        'SRV_TERMINATED', // server process terminate detected
+        'SRV_CLOSE', // server process close hook
+        'SRV_STOP' // server proccess stop hook
+      ],
+      PHASE_DISCONNECT: [
+        'SRV_DISCONNECT' // server upstream host disconnect hook
+      ],
+      PHASE_ERROR: ['SRV_ERROR']
     });
   LOG(`${fn} Executing Phase Groups`);
   await RunPhaseGroup('SNA/PHASE_INIT');
@@ -89,7 +104,8 @@ function SNA_LifecycleStatus(): OpReturn {
     });
   else {
     const { cur_group, cur_phase } = PM;
-    const lastPhase = PM.getLastPhase();
+    const lastPhaseGroup = PM.getPhaseList('PHASE_READY');
+    const lastPhase = lastPhaseGroup[lastPhaseGroup.length - 1];
     Object.assign(status, {
       phaseGroup: PM.cur_group,
       phase: PM.cur_phase,

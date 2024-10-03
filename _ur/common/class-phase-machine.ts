@@ -162,22 +162,24 @@ class PhaseMachine {
   set cur_group(group: PhaseID) {
     this.pm_state._cur_group = group;
   }
-  /** getter: return current phase */
+  /** return current phase */
   get cur_phase() {
     return this.pm_state._cur_phase;
   }
-  /** getter: return current phase group */
+  /** return current phase group */
   get cur_group() {
     return this.pm_state._cur_group;
   }
 
-  /** getter: return last phase */
-  getLastPhase() {
-    const groups = Object.keys(this.phase_def);
-    const lastGroup = groups[groups.length - 1];
-    const phases = this.phase_def[lastGroup];
-    const lastPhase = phases[phases.length - 1];
-    return lastPhase;
+  /** return the list of phasegroups or phases in the group */
+  getPhaseList(phase?: PhaseID): string[] {
+    if (phase === undefined) {
+      const groups = Object.keys(this.phase_def);
+      return groups;
+    }
+    const group = this.phase_def[phase];
+    if (group === undefined) return [];
+    return group;
   }
 
   /// PHASE OPERATIONS ///

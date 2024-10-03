@@ -61,7 +61,14 @@ async function SNA_LifecycleStart() {
         'APP_RESET', // app sets initial settings
         'APP_START', // app starts running
         'APP_RUN' // app is running (terminal phase)
-      ]
+      ],
+      /* independent groups */
+      PHASE_SHUTDOWN: [
+        'APP_CLOSE', // app is close hook
+        'NET_DISCONNECT', // network disconnected hook
+        'APP_STOP' // app stop hook
+      ],
+      PHASE_ERROR: ['APP_ERROR']
     });
 
   // run phase groups in order
@@ -96,7 +103,8 @@ function SNA_LifecycleStatus(): OpReturn {
     });
   else {
     const { cur_group, cur_phase } = PM;
-    const lastPhase = PM.getLastPhase();
+    const lastPhaseGroup = PM.getPhaseList('PHASE_RUN');
+    const lastPhase = lastPhaseGroup[lastPhaseGroup.length - 1];
     Object.assign(status, {
       phaseGroup: PM.cur_group,
       phase: PM.cur_phase,
