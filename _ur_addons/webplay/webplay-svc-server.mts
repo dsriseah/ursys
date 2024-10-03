@@ -39,7 +39,7 @@ const m_rebuild_subs = new Set<Function>();
 /// IMPORTED HELPER METHODS ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { HookPhase, RunPhaseGroup, GetMachine, GetDanglingHooks } = PhaseMachine; // static
-const { AddMessageHandler, RemoveMessageHandler, GetServerEndpoint } = APPSERV;
+const { AddMessageHandler, RemoveMessageHandler, ServerEndpoint } = APPSERV;
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -125,7 +125,7 @@ async function UR_Build() {
     }
     // is this a file in the client?
     if (changed.endsWith('.ts')) {
-      const EP = APPSERV.GetServerEndpoint();
+      const EP = APPSERV.ServerEndpoint();
       EP.netSignal('NET:UR_HOT_RELOAD_APP', { changed });
     }
   };
@@ -222,7 +222,7 @@ export {
   //
   AddMessageHandler,
   RemoveMessageHandler,
-  GetServerEndpoint
+  ServerEndpoint
 };
 
 export {

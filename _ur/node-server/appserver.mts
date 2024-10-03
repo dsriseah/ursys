@@ -281,7 +281,7 @@ function GetAppInstance(): express.Application {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Get the ENDPOINT instance for inspection */
-function GetServerEndpoint(): NetEndpoint {
+function ServerEndpoint(): NetEndpoint {
   return EP;
 }
 
@@ -327,5 +327,5 @@ export {
   RegisterMessages,
   // expose instances
   GetAppInstance,
-  GetServerEndpoint
+  ServerEndpoint
 };

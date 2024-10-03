@@ -6,7 +6,11 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler } from '@ursys/core';
-import { Endpoint, HookPhase, AddMessageHandler } from '../webplay-svc-client.ts';
+import {
+  ClientEndpoint,
+  HookPhase,
+  AddMessageHandler
+} from '../webplay-svc-client.ts';
 import { DataSet } from './lib/class-data-dataset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -36,7 +40,7 @@ function m_Info(label?: string, data?: any) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function m_Compare() {
-  const EP = Endpoint();
+  const EP = ClientEndpoint();
   let cdata = await EP.netCall('SYNC:SRV_DATA_GET', {
     cName: 'comments',
     accToken: 'myAccess'
@@ -117,7 +121,7 @@ async function m_Compare() {
   :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
   HookPhase('WEBPLAY/LOAD_DATA', async () => {
     const fn = 'LOAD_DATA:';
-    const EP = Endpoint();
+    const EP = ClientEndpoint();
     let retdata = await EP.netCall('SYNC:SRV_DATA_GET', {
       cName: 'comments',
       accToken: 'myAccess'
@@ -146,7 +150,7 @@ async function m_Compare() {
   HookPhase('WEBPLAY/APP_READY', async () => {
     const fn = 'APP_READY:';
     const accToken = 'myAccess';
-    const EP = Endpoint();
+    const EP = ClientEndpoint();
 
     let added, updated, deleted, retdata;
 
@@ -281,7 +285,7 @@ async function m_Compare() {
     APP_RUN is when the app is starting to run, used to start main processes.
   :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
   HookPhase('WEBPLAY/APP_RUN', () => {
-    const EP = Endpoint();
+    const EP = ClientEndpoint();
     EP.netCall('NET:DC_HANDLER', { data: 'hello' }).then(data => {
       // LOG(...PR('DC-Handler Response'), data);
     });

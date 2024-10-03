@@ -5,7 +5,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
-import { SNA_Build } from './sna-node-serve.mts';
+import { SNA_Build } from './sna-node-urnet-server.mts';
 import {
   SNA_Hook,
   SNA_LifecycleStatus,
@@ -70,5 +70,5 @@ export {
   AddMessageHandler,
   DeleteMessageHandler,
   RegisterMessages,
-  GetServerEndpoint
-} from './sna-node-serve.mts';
+  ServerEndpoint
+} from './sna-node-urnet-server.mts';

@@ -1,8 +1,18 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   SNA-WEB-DATACLIENT is the client-side data manager that mirrors a 
-  server-side dataset manager. It uses the URNET network to communicate
-  changes with the server.
+  server-side dataset. It uses URNET network to perform data operations with
+  SNA-NODE-DATASERVER
+
+  A Dataset contains several named "bins" of ItemSet collections which are
+  formally as a bucket with a schema. Datasets are in-memory object stores
+  intended for real-time manipulation of data.
+
+  Method Summary
+
+  - Get, Add, Update, Delete, Replace, Init
+  - SetRemoteDataAdapter, QueueRemoteDataOp
+  - m_ProcessOpQueue
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 

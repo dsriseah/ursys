@@ -52,24 +52,22 @@ function m_NormDataObj(obj: DataObj): [DataObj, foundID: string] {
   }
   return [norm, foundID];
 }
+/// DATA FORMAT CHECKING //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Normalize a single Item, which is DataObj plus _id field. It leverages
+/// datasets are standardized collections of objects, defined in ursys.d.ts
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Normalize a single Item, which is DataObj plus _id field. It leverages
  *  m_NormDataObj to normalize the object and detect the _id field which
  *  is roundabout */
-function m_NormItem(item: UR_Item, schema?: any): UR_Item {
-  const fn = ' m_NormItem:';
+function NormItem(item: UR_Item, schema?: any): UR_Item {
+  const fn = ' NormItem:';
   // first normalize the base object
   let [dataObj, foundID] = m_NormDataObj(item);
   dataObj._id = foundID;
   return dataObj as UR_Item;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-/// DATA FORMAT CHECKING //////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// datasets are standardized collections of objects, defined in ursys.d.ts
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Given an array of objects, return a new array of objects that are
+/** API: Given an array of objects, return a new array of objects that are
  *  guaranteed to have an _id field, or undefined if any object doesn't have
  *  an _id field. The copied objects are also filtered for suspicious
  *  property strings that are HTML or script tags
@@ -78,14 +76,14 @@ function NormItems(items: UR_Item[], schema?: any): [UR_Item[], error?: string] 
   const fn = 'NormItems:';
   const normeds = [];
   for (const item of items) {
-    const normed = m_NormItem(item, schema);
+    const normed = NormItem(item, schema);
     if (normed === undefined) return [undefined, `${fn} invalid item ${item}`];
     normeds.push(normed);
   }
   return [normeds, undefined];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Given an array of IDs, return a new array of ids that are guaranteed
+/** API: Given an array of IDs, return a new array of ids that are guaranteed
  *  to be strings, or undefined if any id is not a string */
 function NormIDs(ids: string[] | number[]): UR_EntID[] {
   const fn = 'NormItemIDs:';
@@ -94,7 +92,7 @@ function NormIDs(ids: string[] | number[]): UR_EntID[] {
 
 /// ITEM CLONING //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** make a deep clone of an array by copying arrays and object by value
+/** API: make a deep clone of an array by copying arrays and object by value
  */
 function DeepCloneArray(arr: any[]): any[] {
   const fn = 'DeepCloneArray:';
@@ -106,7 +104,7 @@ function DeepCloneArray(arr: any[]): any[] {
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** make a deep clone of an object by copying arrays and object by value
+/** API: make a deep clone of an object by copying arrays and object by value
  */
 function DeepCloneObject(obj: any): any {
   const fn = 'DeepCloneObject:';
@@ -128,7 +126,7 @@ function DeepCloneObject(obj: any): any {
   return clone;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** make a shallow clone of an object by copying arrays and object by value
+/** API: make a shallow clone of an object by copying arrays and object by value
  */
 function DeepClone(obj: any): any {
   // walk object and clone arrays and objects
@@ -152,7 +150,7 @@ function DeepClone(obj: any): any {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  m_NormItem, // normalize a single object for serialized storage
+  NormItem, // normalize a single object for serialized storage
   NormItems, // normalize multiple objects for storage
   NormIDs, // addar should be strings
   //

@@ -66,8 +66,8 @@ function SNA_NetConnect(): Promise<boolean> {
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the NetEndpoint instance */
-function Endpoint() {
-  if (!EP) throw Error('Endpoint not initialized');
+function ClientEndpoint() {
+  if (!EP) throw Error('ClientEndpoint not initialized');
   return EP;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -96,7 +96,7 @@ export {
   //
   SNA_NetConnect,
   //
-  Endpoint,
+  ClientEndpoint,
   RegisterMessages,
   AddMessageHandler,
   DeleteMessageHandler

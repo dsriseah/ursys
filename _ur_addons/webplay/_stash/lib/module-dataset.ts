@@ -31,7 +31,7 @@ type BinOptions = SyncOptions & {
 type DatasetStore = {
   [dataset_name: string]: DataSet;
 };
-type BinOpResult = OpReturn & { bin?: ItemSet; binName?: UR_BinRefID };
+type BinOpRes = OpReturn & { bin?: ItemSet; binName?: UR_BinRefID };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -53,14 +53,14 @@ async function LoadFromArchive(pathToZip: string) {}
 /// DATASET ACCESS METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a bin reference, open the bin and return the ItemSet */
-function Open(ref: UR_BinRefID, options: BinOptions): BinOpResult {
+function Open(ref: UR_BinRefID, options: BinOptions): BinOpRes {
   const DS = DS_DICT.default;
   let bin = DS.openBin(ref);
   return { bin };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given an itemset, close the bin and return the bin name if successful */
-function Close(itemset: ItemSet): BinOpResult {
+function Close(itemset: ItemSet): BinOpRes {
   const { name } = itemset;
   const DS = DS_DICT.default;
   let binName = DS.closeBin(name);

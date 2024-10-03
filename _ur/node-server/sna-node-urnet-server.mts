@@ -107,7 +107,7 @@ function m_NotifyCallback(payload: { changed: string }) {
   }
   // is this a file in the client?
   if (changed.endsWith('.ts')) {
-    const EP = APPSERV.GetServerEndpoint();
+    const EP = APPSERV.ServerEndpoint();
     EP.netSignal('NET:UR_HOT_RELOAD_APP', { changed });
   }
 }
@@ -122,5 +122,5 @@ export {
   AddMessageHandler,
   DeleteMessageHandler,
   RegisterMessages,
-  GetServerEndpoint
+  ServerEndpoint
 } from './appserver.mts';

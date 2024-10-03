@@ -1,23 +1,23 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  SNA-NODE-DATASERVER is the server-side Dataset Manager that uses the 
+  SNA-NODE-DATASERVER is the server-side Dataset Manager that handles
+  requests from SNA-WEB-DATACLIENT. It uses URNET to handle incoming
+  data requests and optionally sync changes back to the client.
 
-  A Dataset contains several named "bins" of a particular data type
-  that can be opened and closed. 
+  A Dataset contains several named "bins" of ItemSet collections which are
+  formally as a bucket with a schema. Datasets are in-memory object stores
+  intended for real-time manipulation of data. The server is responsible for
+  persisting data between sessions.
 
-  This is a module that is dependent on SNA, as it draws on the SNA server
-  lifecycle to manage its initialization. To use it in an SNA program,
-  you just need to import the module.
-
-  This module implements the `SYNC:SRV` protocol for receiving requests to
-  access and mutate a dataset consisting of multiple collection bins of
-  type ItemSet. 
+  - LoadFromDirectory, LoadFromURI, LoadFromArchive
+  - OpenBin, CloseBin
+  - m_CheckSyncData, m_NotifyClients
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { DataSet } from '../common/class-data-dataset.ts';
 import { ItemSet } from '../common/class-data-itemset.ts';
-import { AddMessageHandler, GetServerEndpoint } from './sna-node-serve.mts';
+import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
 import { SNA_Hook } from './sna-node-hooks.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ type BinOptions = SyncOptions & {
 type DatasetStore = {
   [dataset_name: string]: DataSet;
 };
-type BinOpResult = OpReturn & { bin?: ItemSet; binName?: UR_BinRefID };
+type BinOpRes = OpReturn & { bin?: ItemSet; binName?: UR_BinRefID };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -66,14 +66,14 @@ async function LoadFromArchive(pathToZip: string) {}
 /// DATASET ACCESS METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a bin reference, open the bin and return the ItemSet */
-function OpenBin(binName: UR_BinRefID, options: BinOptions): BinOpResult {
+function OpenBin(binName: UR_BinRefID, options: BinOptions): BinOpRes {
   const { binType, autoCreate } = options;
   let bin = DATA.openBin(binName);
   return { bin };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given an itemset, close the bin and return the bin name if successful */
-function CloseBin(itemset: ItemSet): BinOpResult {
+function CloseBin(itemset: ItemSet): BinOpRes {
   const { name } = itemset;
   let binName = DATA.closeBin(name);
   return { binName };
@@ -106,7 +106,7 @@ function m_CheckSyncData(data: SyncDataReq) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_NotifyClients(cName: UR_BinRefID, cType: string, data: any) {
-  const EP = GetServerEndpoint();
+  const EP = ServerEndpoint();
   const seqNum = SEQ_NUM++;
   EP.netSignal('SYNC:CLI_DATA', { cName, cType, seqNum, ...data });
 }
@@ -196,9 +196,9 @@ SNA_Hook('EXPRESS_READY', HookServerDataSync);
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  LoadFromDirectory, //
-  LoadFromURI,
-  LoadFromArchive,
-  OpenBin,
-  CloseBin
+  LoadFromDirectory, // pathToDataset => void
+  LoadFromURI, // datasetURI => void
+  LoadFromArchive, // pathToZip => void
+  OpenBin, // binName, options => BinOpRes
+  CloseBin // itemset => BinOpRes
 };

@@ -17,6 +17,7 @@ import type {
   UR_BinType,
   //
   SearchOptions,
+  SyncDataRes,
   OpReturn
 } from '../_types/dataset';
 import type { EVM_Name, EVM_Listener } from './class-event-machine';
@@ -30,6 +31,7 @@ abstract class ItemSet {
   _prefix: string; // when set, this is the prefix for the ids
   _ord_digits: number; // if _prefix is set, then number of zero-padded digits
   _ord_highest: number; // current highest ordinal
+  _notifier: EventMachine; // event machine for listeners
 
   /// INITIALIZE ///
 
@@ -147,7 +149,7 @@ abstract class ItemSet {
   }
 
   /** notify listeners of 'change' event */
-  changeNotifier(data: SyncDataRes): void {
+  notifyChange(data: SyncDataRes): void {
     if (this._notifier) this._notifier.emit('change', data);
   }
 

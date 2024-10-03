@@ -10,11 +10,9 @@
 import { ConsoleStyler } from '../common/util-prompts.ts';
 import {
   SNA_NetConnect,
-  Endpoint,
   AddMessageHandler,
-  DeleteMessageHandler,
   RegisterMessages
-} from './sna-web-urnet.ts';
+} from './sna-web-urnet-client.ts';
 import {
   SNA_LifecycleStart,
   SNA_LifecycleStatus,
@@ -65,10 +63,19 @@ export {
   // sna process
   SNA_Start as Start,
   SNA_Status as Status,
-  SNA_Hook as Hook,
-  // ursys api
-  Endpoint,
+  SNA_Hook as Hook
+};
+export {
+  // phase machine static methods
+  HookPhase,
+  RunPhaseGroup,
+  GetMachine,
+  GetDanglingHooks
+} from './sna-web-hooks.ts';
+export {
+  // urnet static methods
   AddMessageHandler,
   DeleteMessageHandler,
-  RegisterMessages
-};
+  RegisterMessages,
+  ClientEndpoint
+} from './sna-web-urnet-client.ts';

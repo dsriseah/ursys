@@ -104,8 +104,8 @@ function Disconnect(seconds = TIMEOUT) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the NetEndpoint instance */
-function Endpoint() {
-  if (!EP) throw Error('Endpoint not initialized');
+function ClientEndpoint() {
+  if (!EP) throw Error('ClientEndpoint not initialized');
   return EP;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -191,6 +191,6 @@ export {
   RegisterMessages, // declare message handlers and register with server
   AddMessageHandler, // add a message handler to the NetEndpoint instance
   //
-  Endpoint, // return the NetEndpoint instance
+  ClientEndpoint, // return the NetEndpoint instance
   HookPhase // add a callback to an event
 };

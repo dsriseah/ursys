@@ -10,7 +10,7 @@ import tsm_data from './lib/class-data-dataset.ts';
 import {
   HookPhase,
   AddMessageHandler,
-  GetServerEndpoint
+  ServerEndpoint
 } from '../webplay-svc-server.mts';
 import { UR_MachineState } from '../webplay-svc-server.mts';
 
@@ -67,7 +67,7 @@ function m_CheckDataParams(data: any) {
 /// CLIENT SYNC HELPER ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_NotifyClients(cName: UR_BinRefID, cType: string, data: any) {
-  const EP = GetServerEndpoint();
+  const EP = ServerEndpoint();
   const seqNum = SEQ_NUM++;
   EP.netSignal('SYNC:CLI_DATA', { cName, cType, seqNum, ...data });
 }

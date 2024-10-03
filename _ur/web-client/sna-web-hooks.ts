@@ -14,7 +14,6 @@ import { ConsoleStyler } from '../common/util-prompts.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
 import type { OpReturn } from '../_types/dataset';
-import type { NM_Handler } from '../_types/urnet';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -115,8 +114,10 @@ export {
   // sna process
   SNA_Hook,
   SNA_LifecycleStart,
-  SNA_LifecycleStatus,
-  // ursys lifecycle
+  SNA_LifecycleStatus
+};
+export {
+  // phase machine static methods
   HookPhase,
   RunPhaseGroup,
   GetMachine,
