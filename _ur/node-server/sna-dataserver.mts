@@ -9,6 +9,8 @@
   intended for real-time manipulation of data. The server is responsible for
   persisting data between sessions.
 
+  Method Summary
+
   - LoadFromDirectory, LoadFromURI, LoadFromArchive
   - OpenBin, CloseBin
   - m_CheckSyncData, m_NotifyClients

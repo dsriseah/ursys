@@ -3,8 +3,20 @@
   DataSet is a storage class for managing different "bins" of the same type
   of collection.
 
-  This is a class that manages lists of items in a dataset
-  in serializable form.
+  class Dataset
+    getBin, getBinByType, 
+    createBin, deleteBin, openBin, closeBin
+    createItemList, clearItemList, getItemList
+    createDocFolder, clearDocFolder, getDocFolder
+
+  A "bin" is a named collection that is stored in the dataset. A dataset
+  is associated with a home location called a "bucket". 
+
+  Bins are instances of ItemSet, which exposes the following methods:
+    add, read, update, replace, write, deleteIDs, delete, clear, getItems
+    find, query
+    on, off
+    serializeToJSON, deserializeFromJSON
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 

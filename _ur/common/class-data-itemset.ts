@@ -1,6 +1,13 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  ItemSet is the base class for all collection classes.
+  ItemSet is the abstract base class for all collection classes.
+
+  abstract class ItemSet
+    add, read, update, replace, write, deleteIDs, delete, clear, getItems
+    find, query
+    decodeID, _maxID, newID
+    on, off, notifyChange
+    serializeToJSON, deserializeFromJSON
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
