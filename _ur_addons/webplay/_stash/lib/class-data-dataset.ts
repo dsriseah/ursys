@@ -10,13 +10,13 @@
 
 import { NORM } from '@ursys/core';
 import { ItemList } from './class-data-itemlist.ts';
-import { ItemSet } from './class-abstract-itemset.ts';
+import { DataBin } from './class-abstract-itemset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
-  UR_BinRefID,
-  UR_BinType,
+  DataBinID,
+  DataBinType,
   UR_SchemaID
 } from '../../../../_ur/_types/dataset';
 import type { ItemListOptions } from './class-data-itemlist.ts';
@@ -26,12 +26,12 @@ import type { ItemListOptions } from './class-data-itemlist.ts';
 const DBG = false;
 const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const CTYPES = ['DocFolder', 'ItemList']; // mirror UR_BinType
+const CTYPES = ['DocFolder', 'ItemList']; // mirror DataBinType
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if the given bag type is recognized */
-function m_IsValidBinType(cType: UR_BinType): boolean {
+function m_IsValidBinType(cType: DataBinType): boolean {
   return CTYPES.includes(cType);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,9 +49,9 @@ class DataSet {
   //
   dataset_name: string; // the name of this list manager
   dataset_schema: UR_SchemaID; // the schema of the dataset
-  open_bins: Set<UR_BinRefID>; // open bins are subject to sync
+  open_bins: Set<DataBinID>; // open bins are subject to sync
   //
-  LISTS: { [ref_name: UR_BinRefID]: ItemList };
+  LISTS: { [ref_name: DataBinID]: ItemList };
   // see https://github.com/dsriseah/ursys/discussions/25 for other bin types
   // docfolders
   // files
@@ -74,7 +74,7 @@ class DataSet {
   }
 
   /** private: mark a bin as open */
-  _markBinOpen(binName: UR_BinRefID) {
+  _markBinOpen(binName: DataBinID) {
     const fn = '_markBinOpen:';
     if (this.open_bins.has(binName))
       throw Error(`${fn} bin '${binName}' is already open`);
@@ -82,7 +82,7 @@ class DataSet {
   }
 
   /** private: mark a bin as closed */
-  _markBinClosed(binName: UR_BinRefID) {
+  _markBinClosed(binName: DataBinID) {
     const fn = '_markBinClosed:';
     if (!this.open_bins.has(binName))
       throw Error(`${fn} bin '${binName}' is already closed`);
@@ -93,13 +93,13 @@ class DataSet {
 
   /** API: Given a bin name, return the bin. Since bin names are unique, this
    *  method will return just one bin. */
-  openBin(binName: UR_BinRefID, binType?: UR_BinType): ItemSet {
-    const fn = 'openBin:';
+  openDataBin(binName: DataBinID, binType?: DataBinType): DataBin {
+    const fn = 'openDataBin:';
     // if binType is passed, use that for lazy API
     if (binType && m_IsValidBinType(binType))
       return this.openBinByType(binName, binType);
     // otherwise look for the bins
-    let bin: ItemSet;
+    let bin: DataBin;
     // search first bin
     bin = this.LISTS[binName];
     // search subsequent bins...
@@ -109,9 +109,9 @@ class DataSet {
   }
 
   /** API: Given a bin name and type, return the bin. */
-  openBinByType(binName: UR_BinRefID, binType: UR_BinType): ItemSet {
+  openBinByType(binName: DataBinID, binType: DataBinType): DataBin {
     const fn = 'openBinByType:';
-    let bin: ItemSet;
+    let bin: DataBin;
     switch (binType) {
       case 'ItemList':
         bin = this.getItemList(binName);
@@ -123,8 +123,8 @@ class DataSet {
   }
 
   /** API: close bin */
-  closeBin(binName: UR_BinRefID): UR_BinRefID {
-    const fn = 'closeBin:';
+  closeDataBin(binName: DataBinID): DataBinID {
+    const fn = 'closeDataBin:';
     if (this.LISTS[binName] === undefined)
       throw Error(`${fn} bin '${binName}' not found`);
     this._markBinClosed(binName);
@@ -132,9 +132,9 @@ class DataSet {
   }
 
   /** API: create a new bin by name and type. */
-  createBin(binName: UR_BinRefID, binType: UR_BinType): ItemSet {
-    const fn = 'createBin:';
-    let bin: ItemSet;
+  createDataBin(binName: DataBinID, binType: DataBinType): DataBin {
+    const fn = 'createDataBin:';
+    let bin: DataBin;
     switch (binType) {
       case 'ItemList':
         bin = this.createItemList(binName);
@@ -146,8 +146,8 @@ class DataSet {
   }
 
   /** API: close a bin by name */
-  deleteBin(binName: UR_BinRefID): void {
-    const fn = 'closeBin:';
+  deleteDataBin(binName: DataBinID): void {
+    const fn = 'closeDataBin:';
     if (this.LISTS[binName] === undefined)
       throw Error(`${fn} bin '${binName}' not found`);
     delete this.LISTS[binName];

@@ -4,7 +4,7 @@
   requests from SNA-WEB-DATACLIENT. It uses URNET to handle incoming
   data requests and optionally sync changes back to the client.
 
-  A Dataset contains several named "bins" of ItemSet collections which are
+  A Dataset contains several named "bins" of DataBin collections which are
   formally as a bucket with a schema. Datasets are in-memory object stores
   intended for real-time manipulation of data. The server is responsible for
   persisting data between sessions.
@@ -18,7 +18,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { DataSet } from '../common/class-data-dataset.ts';
-import { ItemSet } from '../common/class-data-itemset.ts';
+import { DataBin } from '../common/class-data-itemset.ts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
 import { SNA_Hook } from './sna-node-hooks.mts';
 
@@ -26,8 +26,8 @@ import { SNA_Hook } from './sna-node-hooks.mts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   OpReturn,
-  UR_BinRefID,
-  UR_BinType,
+  DataBinID,
+  DataBinType,
   SyncDataReq,
   SyncOp
 } from '../_types/dataset.d.ts';
@@ -38,13 +38,13 @@ type SyncOptions = {
   autoSync: boolean;
 };
 type BinOptions = SyncOptions & {
-  binType: UR_BinType;
+  binType: DataBinType;
   autoCreate: boolean;
 };
 type DatasetStore = {
   [dataset_name: string]: DataSet;
 };
-type BinOpRes = OpReturn & { bin?: ItemSet; binName?: UR_BinRefID };
+type BinOpRes = OpReturn & { bin?: DataBin; binName?: DataBinID };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -67,17 +67,17 @@ async function LoadFromArchive(pathToZip: string) {}
 
 /// DATASET ACCESS METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** given a bin reference, open the bin and return the ItemSet */
-function OpenBin(binName: UR_BinRefID, options: BinOptions): BinOpRes {
+/** given a bin reference, open the bin and return the DataBin */
+function OpenBin(binName: DataBinID, options: BinOptions): BinOpRes {
   const { binType, autoCreate } = options;
-  let bin = DATA.openBin(binName);
+  let bin = DATA.openDataBin(binName);
   return { bin };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given an itemset, close the bin and return the bin name if successful */
-function CloseBin(itemset: ItemSet): BinOpRes {
+function CloseBin(itemset: DataBin): BinOpRes {
   const { name } = itemset;
-  let binName = DATA.closeBin(name);
+  let binName = DATA.closeDataBin(name);
   return { binName };
 }
 
@@ -89,7 +89,7 @@ function m_CheckSyncData(data: SyncDataReq) {
   if (accToken === undefined) return { error: 'cType, accToken is required' };
   if (!cName) return { error: 'cName is required' };
   if (typeof cName !== 'string') return { error: 'cName must be a string' };
-  if (DATA.getBin(cName) === undefined)
+  if (DATA.getDataBin(cName) === undefined)
     return { error: `itemset ${cName} not found` };
   // optional params
   if (ids) {
@@ -107,7 +107,7 @@ function m_CheckSyncData(data: SyncDataReq) {
   return { cName, cType, accToken, ids, items };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_NotifyClients(cName: UR_BinRefID, cType: string, data: any) {
+function m_NotifyClients(cName: DataBinID, cType: string, data: any) {
   const EP = ServerEndpoint();
   const seqNum = SEQ_NUM++;
   EP.netSignal('SYNC:CLI_DATA', { cName, cType, seqNum, ...data });
@@ -119,7 +119,7 @@ function HookServerDataSync() {
   AddMessageHandler('SYNC:SRV_DATA_INIT', async (params: SyncDataReq) => {
     const { cName, cType, accToken, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getBin(cName);
+    const itemset = DATA.getDataBin(cName);
     itemset.clear();
     const items = itemset.getItems();
     return { items };
@@ -129,7 +129,7 @@ function HookServerDataSync() {
   AddMessageHandler('SYNC:SRV_DATA_GET', async (params: SyncDataReq) => {
     const { cName, cType, accToken, ids, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getBin(cName);
+    const itemset = DATA.getDataBin(cName);
     return itemset.read(ids);
   });
 
@@ -137,7 +137,7 @@ function HookServerDataSync() {
   AddMessageHandler('SYNC:SRV_DATA_ADD', async (params: SyncDataReq) => {
     const { cName, cType, accToken, items, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getBin(cName);
+    const itemset = DATA.getDataBin(cName);
     const addObj = itemset.add(items);
     m_NotifyClients(cName, cType, addObj);
     return addObj;
@@ -147,7 +147,7 @@ function HookServerDataSync() {
   AddMessageHandler('SYNC:SRV_DATA_UPDATE', async (params: SyncDataReq) => {
     const { cName, cType, accToken, items, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getBin(cName);
+    const itemset = DATA.getDataBin(cName);
     const updObj = itemset.update(items);
     m_NotifyClients(cName, cType, updObj);
     return updObj;
@@ -157,7 +157,7 @@ function HookServerDataSync() {
   AddMessageHandler('SYNC:SRV_DATA_WRITE', async (params: SyncDataReq) => {
     const { cName, cType, accToken, items, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getBin(cName);
+    const itemset = DATA.getDataBin(cName);
     const writObj = itemset.write(items);
     m_NotifyClients(cName, cType, writObj);
     return writObj;
@@ -167,7 +167,7 @@ function HookServerDataSync() {
   AddMessageHandler('SYNC:SRV_DATA_REPLACE', async (params: SyncDataReq) => {
     const { cName, cType, accToken, items, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getBin(cName);
+    const itemset = DATA.getDataBin(cName);
     const oldItems = itemset.replace(items); // returns the old items
     const replaced = [...items];
     m_NotifyClients(cName, cType, { replaced, oldItems });
@@ -178,7 +178,7 @@ function HookServerDataSync() {
   AddMessageHandler('SYNC:SRV_DATA_DELETE', async (params: SyncDataReq) => {
     const { cName, cType, accToken, ids, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getBin(cName);
+    const itemset = DATA.getDataBin(cName);
     const result = itemset.deleteIDs(ids);
     m_NotifyClients(cName, cType, result);
     return result;

@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  ItemSet is the base class for all collection classes.
+  DataBin is the base class for all collection classes.
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -12,18 +12,18 @@ import type {
   UR_EntID,
   UR_NewItem,
   UR_Item,
-  UR_BinRefID,
-  UR_BinType,
+  DataBinID,
+  DataBinType,
   //
   SearchOptions
 } from '../../../../_ur/_types/dataset';
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-abstract class ItemSet {
+abstract class DataBin {
   //
-  name: UR_BinRefID; // name of this collection
-  _type: UR_BinType; // type of this collection (.e.g ItemList);
+  name: DataBinID; // name of this collection
+  _type: DataBinType; // type of this collection (.e.g ItemList);
   _prefix: string; // when set, this is the prefix for the ids
   _ord_digits: number; // if _prefix is set, then number of zero-padded digits
   _ord_highest: number; // current highest ordinal
@@ -141,7 +141,7 @@ abstract class ItemSet {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default ItemSet; // the class
+export default DataBin; // the class
 export {
-  ItemSet // the class
+  DataBin // the class
 };

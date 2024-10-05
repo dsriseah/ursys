@@ -17,7 +17,7 @@ import { UR_MachineState } from '../webplay-svc-server.mts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { DataSet } = tsm_data;
-import type { UR_BinRefID, SyncDataRes } from '../../../_ur/_types/dataset.d.ts';
+import type { DataBinID, SyncDataRes } from '../../../_ur/_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -66,7 +66,7 @@ function m_CheckDataParams(data: any) {
 
 /// CLIENT SYNC HELPER ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_NotifyClients(cName: UR_BinRefID, cType: string, data: any) {
+function m_NotifyClients(cName: DataBinID, cType: string, data: any) {
   const EP = ServerEndpoint();
   const seqNum = SEQ_NUM++;
   EP.netSignal('SYNC:CLI_DATA', { cName, cType, seqNum, ...data });

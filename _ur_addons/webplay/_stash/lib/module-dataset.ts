@@ -9,14 +9,14 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { DataSet } from './class-data-dataset.ts';
-import { ItemSet } from './class-abstract-itemset.ts';
+import { DataBin } from './class-abstract-itemset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   OpReturn,
-  UR_BinRefID,
-  UR_BinType
+  DataBinID,
+  DataBinType
 } from '../../../../_ur/_types/dataset';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SyncOptions = {
@@ -25,13 +25,13 @@ type SyncOptions = {
   autoSync: boolean;
 };
 type BinOptions = SyncOptions & {
-  binType: UR_BinType;
+  binType: DataBinType;
   autoCreate: boolean;
 };
 type DatasetStore = {
   [dataset_name: string]: DataSet;
 };
-type BinOpRes = OpReturn & { bin?: ItemSet; binName?: UR_BinRefID };
+type BinOpRes = OpReturn & { bin?: DataBin; binName?: DataBinID };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -52,18 +52,18 @@ async function LoadFromArchive(pathToZip: string) {}
 
 /// DATASET ACCESS METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** given a bin reference, open the bin and return the ItemSet */
-function Open(ref: UR_BinRefID, options: BinOptions): BinOpRes {
+/** given a bin reference, open the bin and return the DataBin */
+function Open(ref: DataBinID, options: BinOptions): BinOpRes {
   const DS = DS_DICT.default;
-  let bin = DS.openBin(ref);
+  let bin = DS.openDataBin(ref);
   return { bin };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given an itemset, close the bin and return the bin name if successful */
-function Close(itemset: ItemSet): BinOpRes {
+function Close(itemset: DataBin): BinOpRes {
   const { name } = itemset;
   const DS = DS_DICT.default;
-  let binName = DS.closeBin(name);
+  let binName = DS.closeDataBin(name);
   return { binName };
 }
 

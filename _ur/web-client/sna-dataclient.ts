@@ -4,7 +4,7 @@
   server-side dataset. It uses URNET network to perform data operations with
   SNA-NODE-DATASERVER
 
-  A Dataset contains several named "bins" of ItemSet collections which are
+  A Dataset contains several named "bins" of DataBin collections which are
   formally as a bucket with a schema. Datasets are in-memory object stores
   intended for real-time manipulation of data.
 
@@ -107,7 +107,7 @@ async function Add(cName: string, items: UR_Item[]) {
     QueueRemoteDataOp('DATA_ADD', data);
     return;
   }
-  const itemset = DATA.getBin(cName);
+  const itemset = DATA.getDataBin(cName);
   if (itemset) return itemset.add(items);
   throw Error(`Add: itemset ${cName} not found`);
 }
@@ -118,7 +118,7 @@ function Update(cName: string, items: UR_Item[]) {
     QueueRemoteDataOp('DATA_UPDATE', data);
     return;
   }
-  const itemset = DATA.getBin(cName);
+  const itemset = DATA.getDataBin(cName);
   if (itemset) return itemset.update(items);
   throw Error(`Update: itemset ${cName} not found`);
 }
@@ -129,7 +129,7 @@ function Delete(cName: string, items: UR_Item[]) {
     QueueRemoteDataOp('DATA_DELETE', data);
     return;
   }
-  const itemset = DATA.getBin(cName);
+  const itemset = DATA.getDataBin(cName);
   if (itemset) return itemset.delete(items);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -139,7 +139,7 @@ function Replace(cName: string, items: UR_Item[]) {
     QueueRemoteDataOp('DATA_REPLACE', data);
     return;
   }
-  const itemset = DATA.getBin(cName);
+  const itemset = DATA.getDataBin(cName);
   if (itemset) return itemset.replace(items);
   throw Error(`Replace: itemset ${cName} not found`);
 }
@@ -156,7 +156,7 @@ Hook('NET_READY', function () {
   AddMessageHandler('SYNC:CLI_DATA', (sync: SyncDataRes) => {
     const { cName, cType, seqNum, status, error, skipped } = sync;
     const { items, updated, added, deleted, replaced } = sync;
-    const itemset = DATA.getBin(cName);
+    const itemset = DATA.getDataBin(cName);
 
     /*** handle error conditions ***/
     if (itemset === undefined) {

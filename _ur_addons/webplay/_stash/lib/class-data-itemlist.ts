@@ -12,7 +12,7 @@
 
 import { NORM } from '@ursys/core';
 import { Find, Query } from './util-data-search.ts';
-import { ItemSet } from './class-abstract-itemset.ts';
+import { DataBin } from './class-abstract-itemset.ts';
 import { RecordSet } from './class-data-recordset.ts';
 const { NormItems, NormIDs } = NORM;
 
@@ -23,8 +23,8 @@ import type {
   UR_NewItem,
   UR_Item,
   UR_ItemList,
-  UR_BinRefID,
-  UR_BinType,
+  DataBinID,
+  DataBinType,
   //
   SearchOptions
 } from '../../../../_ur/_types/dataset';
@@ -37,10 +37,10 @@ type ItemListOptions = {
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class ItemList extends ItemSet {
+class ItemList extends DataBin {
   // from base class
-  // name: UR_BinRefID; // name of this collection
-  // _type: UR_BinType; // type of this collection (.e.g ItemList);
+  // name: DataBinID; // name of this collection
+  // _type: DataBinType; // type of this collection (.e.g ItemList);
   // _prefix: string; // when set, this is the prefix for the ids
   // _ord_digits: number; // if _prefix is set, then number of zero-padded digits
   // _ord_highest: number; // current highest ordinal
@@ -55,7 +55,7 @@ class ItemList extends ItemSet {
     super(col_name);
     const fn = 'ItemList:';
     this._list = [];
-    this._type = this.constructor.name as UR_BinType;
+    this._type = this.constructor.name as DataBinType;
     let { idPrefix, startOrd, ordDigits } = opt || {};
     if (col_name === undefined) throw Error(`${fn} collection name is required`);
     if (typeof col_name !== 'string')
@@ -90,7 +90,7 @@ class ItemList extends ItemSet {
 
   /// LIST ID METHODS ///
 
-  // ItemSet base methods: decodeID, newID
+  // DataBin base methods: decodeID, newID
   _maxID(): number {
     let id: number;
     // if ord_highest is set, we can just increment it since we don't reuse ids

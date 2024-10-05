@@ -1,8 +1,8 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  ItemSet is the abstract base class for all collection classes.
+  DataBin is the abstract base class for all collection classes.
 
-  abstract class ItemSet
+  abstract class DataBin
     add, read, update, replace, write, deleteIDs, delete, clear, getItems
     find, query
     decodeID, _maxID, newID
@@ -20,8 +20,8 @@ import type {
   UR_EntID,
   UR_NewItem,
   UR_Item,
-  UR_BinRefID,
-  UR_BinType,
+  DataBinID,
+  DataBinType,
   //
   SearchOptions,
   SyncDataRes,
@@ -31,10 +31,10 @@ import type { EVM_Name, EVM_Listener } from './class-event-machine';
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-abstract class ItemSet {
+abstract class DataBin {
   //
-  name: UR_BinRefID; // name of this collection
-  _type: UR_BinType; // type of this collection (.e.g ItemList);
+  name: DataBinID; // name of this collection
+  _type: DataBinType; // type of this collection (.e.g ItemList);
   _prefix: string; // when set, this is the prefix for the ids
   _ord_digits: number; // if _prefix is set, then number of zero-padded digits
   _ord_highest: number; // current highest ordinal
@@ -171,7 +171,7 @@ abstract class ItemSet {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default ItemSet; // the class
+export default DataBin; // the class
 export {
-  ItemSet // the class
+  DataBin // the class
 };

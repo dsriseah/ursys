@@ -37,16 +37,16 @@ export type UR_Item = UR_EntID_Obj & DataObj; // { _id: UR_EntID; [key: string]:
 export type UR_Doc = UR_EntID_Obj & DataObj; // doc is a single item
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// BinRefID identifies a unique "bin" of items of the same data type.
-export type UR_BinRefID = string; // snake_case
+export type DataBinID = string; // snake_case
 /// a UR_Dataset is a collection of multiple bags of items, organized by
 /// type of bag (e.g. documents, itemlists, etc.)
 export type UR_ItemList = UR_Item[];
 export type UR_DocFolder = { [_id: UR_EntID]: UR_Doc };
-export type UR_BinType = 'DocFolder' | 'ItemList';
+export type DataBinType = 'DocFolder' | 'ItemList';
 export type UR_Dataset = {
   Schema?: UR_SchemaID; // see https://github.com/dsriseah/ursys/discussions/22
-  DocFolders?: { [foldername: UR_BinRefID]: UR_DocFolder };
-  ItemLists?: { [listname: UR_BinRefID]: UR_ItemList };
+  DocFolders?: { [foldername: DataBinID]: UR_DocFolder };
+  ItemLists?: { [listname: DataBinID]: UR_ItemList };
   // additional items
   // see https://github.com/dsriseah/ursys/discussions/25
   // files
@@ -151,7 +151,7 @@ export type SyncOp =
 /** sent from a dataset source to a client that implements the SYN:CLI_SYNC
  *  protocol. */
 export type SyncDataReq = {
-  cName: UR_BinRefID;
+  cName: DataBinID;
   accToken?: string;
   items?: UR_Item[];
   ids?: UR_EntID[];
@@ -159,8 +159,8 @@ export type SyncDataReq = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** received from a dataset source by listeners to the dataset itself */
 export type SyncDataRes = {
-  cName: UR_BinRefID;
-  cType: UR_BinType;
+  cName: DataBinID;
+  cType: DataBinType;
   op: SyncOp;
   seqNum: number;
   // meta
