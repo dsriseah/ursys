@@ -6,7 +6,7 @@
   will be simple integers. If you define an idPrefix, then the ids will be
   the prefix + zero-padded number. See ItemListOptions for more details.
 
-  Its sibbling class is DocFolder. Its parent manager is DataSet.
+  Its sibbling class is DocFolder. Its parent manager is Datastore.
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 

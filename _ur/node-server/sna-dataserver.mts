@@ -1,10 +1,10 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  SNA-NODE-DATASERVER is the server-side Dataset Manager that handles
+  SNA-NODE-DATASERVER is the server-side Datastore Manager that handles
   requests from SNA-WEB-DATACLIENT. It uses URNET to handle incoming
   data requests and optionally sync changes back to the client.
 
-  A Dataset contains several named "bins" of DataBin collections which are
+  A Datastore contains several named "bins" of DataBin collections which are
   formally as a bucket with a schema. Datasets are in-memory object stores
   intended for real-time manipulation of data. The server is responsible for
   persisting data between sessions.
@@ -17,7 +17,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { DataSet } from '../common/class-data-dataset.ts';
+import { Datastore } from '../common/class-data-datastore.ts';
 import { DataBin } from '../common/abstract-data-databin.ts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
 import { SNA_Hook } from './sna-node-hooks.mts';
@@ -42,7 +42,7 @@ type BinOptions = SyncOptions & {
   autoCreate: boolean;
 };
 type DatasetStore = {
-  [dataset_name: string]: DataSet;
+  [dataset_name: string]: Datastore;
 };
 type BinOpRes = OpReturn & { bin?: DataBin; binName?: DataBinID };
 
@@ -53,7 +53,7 @@ const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// to start, we just have one dataset, but for the future we could support
 /// multiple ones.
-const DS_DICT: DatasetStore = { 'default': new DataSet('default') };
+const DS_DICT: DatasetStore = { 'default': new Datastore('default') };
 const DATA = DS_DICT.default;
 let SEQ_NUM = 0; // very predictable sequence number
 
@@ -184,10 +184,6 @@ function HookServerDataSync() {
     return result;
   });
 }
-
-/// DATASET API ///////////////////////////////////////////////////////////////
-/// for direct interfacing to the dataset manager (server-side instance)
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /// RUNTIME HOOKS /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -4,7 +4,7 @@
   server-side dataset. It uses URNET network to perform data operations with
   SNA-NODE-DATASERVER
 
-  A Dataset contains several named "bins" of DataBin collections which are
+  A Datastore contains several named "bins" of DataBin collections which are
   formally as a bucket with a schema. Datasets are in-memory object stores
   intended for real-time manipulation of data.
 
@@ -18,7 +18,7 @@
 
 import { ConsoleStyler } from '@ursys/core';
 import { Hook, AddMessageHandler } from './sna-web.ts';
-import { DataSet } from '../common/class-data-dataset.ts';
+import { Datastore } from '../common/class-data-datastore.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ import type {
 const PR = ConsoleStyler('SNA-DC', 'TagBlue');
 const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATA = new DataSet('comments');
+const DATA = new Datastore('comments');
 let REMOTE: RemoteStoreAdapter;
 let ACTIONS: { op: SyncOp; data: SyncDataReq }[] = [];
 

@@ -1,9 +1,9 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  DataSet is a storage class for managing different "bins" of the same type
+  Datastore is a storage class for managing different "bins" of the same type
   of collection.
 
-  class Dataset
+  class Datastore
     getDataBin, getDataBinByType, 
     createDataBin, deleteDataBin, openDataBin, closeDataBin
     createItemList, clearItemList, getItemList
@@ -53,7 +53,7 @@ function m_IsValidBinName(bName: string): boolean {
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** knows how to manage the different kinds of collections */
-class DataSet {
+class Datastore {
   //
   dataset_name: string; // the name of this list manager
   dataset_schema: UR_SchemaID; // the schema of the dataset
@@ -212,7 +212,7 @@ class DataSet {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default DataSet; // the class
+export default Datastore; // the class
 export {
-  DataSet // the class
+  Datastore // the class
 };
