@@ -14,7 +14,7 @@ import { DataBin } from './class-abstract-itemset.ts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
-  OpReturn,
+  OpResult,
   DataBinID,
   DataBinType
 } from '../../../../_ur/_types/dataset';

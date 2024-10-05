@@ -18,14 +18,14 @@ import * as FILE from './file.mts';
 
 /// TYPES DECLARATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpReturn } from '~ur/types/dataset.d.ts';
+import type { OpResult } from '~ur/types/dataset.d.ts';
 
 /// SUPPORT METHODS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** break string of form 'addon' or 'addon/@entry' into parts
  *  addonName and entryName (no extension)
  */
-function m_DecodeAddonName(shortPath: string): OpReturn {
+function m_DecodeAddonName(shortPath: string): OpResult {
   let addonName, entryName;
   // required argument
   if (typeof shortPath !== 'string') {
@@ -84,7 +84,7 @@ function DecodeAddonArgs(argv: string[]): string[] {
  *  addonName, entryName, and entryFile and reconcile with addon directory
  *  context: called from the urcli launcher script
  */
-function ValidateAddon(addon: string): OpReturn {
+function ValidateAddon(addon: string): OpResult {
   const ADDONS = PATH.join(FILE.DetectedRootDir(), '_ur_addons');
   if (!FILE.DirExists(ADDONS)) {
     return { err: `directory ${ADDONS} does not exist` };

@@ -25,7 +25,7 @@ import type {
   //
   SearchOptions,
   SyncDataRes,
-  OpReturn
+  OpResult
 } from '../_types/dataset';
 import type { EVM_Name, EVM_Listener } from './class-event-machine.ts';
 

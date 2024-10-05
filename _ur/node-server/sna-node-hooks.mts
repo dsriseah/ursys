@@ -19,7 +19,7 @@ import {
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
-import type { OpReturn } from '../_types/dataset.d.ts';
+import type { OpResult } from '../_types/dataset.d.ts';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -92,7 +92,7 @@ async function SNA_LifecycleStart() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the current phase machine state */
-function SNA_LifecycleStatus(): OpReturn {
+function SNA_LifecycleStatus(): OpResult {
   const fn = 'SNA_LifecycleStatus:';
   const status: { [key: string]: any } = {};
 

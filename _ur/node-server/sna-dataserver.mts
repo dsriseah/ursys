@@ -25,7 +25,7 @@ import { SNA_Hook } from './sna-node-hooks.mts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
-  OpReturn,
+  OpResult,
   DataBinID,
   DataBinType,
   SyncDataReq,
@@ -44,7 +44,7 @@ type BinOptions = SyncOptions & {
 type DatasetStore = {
   [dataset_name: string]: Datastore;
 };
-type BinOpRes = OpReturn & { bin?: DataBin; binName?: DataBinID };
+type BinOpRes = OpResult & { bin?: DataBin; binName?: DataBinID };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

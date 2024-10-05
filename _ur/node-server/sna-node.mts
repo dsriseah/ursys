@@ -15,7 +15,7 @@ import {
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpReturn } from '../_types/dataset.d.ts';
+import type { OpResult } from '../_types/dataset.d.ts';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,7 +42,7 @@ async function SNA_Start() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the current phase machine state */
-function SNA_Status(): OpReturn {
+function SNA_Status(): OpResult {
   const fn = 'SNA_Status:';
   const dooks = GetDanglingHooks();
   const status = SNA_LifecycleStatus();
