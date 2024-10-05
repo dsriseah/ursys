@@ -65,7 +65,7 @@ async function LoadFromURI(datasetURI: string) {}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function LoadFromArchive(pathToZip: string) {}
 
-/// DATASET ACCESS METHODS ////////////////////////////////////////////////////
+/// DATASTORE ACCESS METHODS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a bin reference, open the bin and return the DataBin */
 function OpenBin(binName: DataBinID, options: BinOptions): BinOpRes {

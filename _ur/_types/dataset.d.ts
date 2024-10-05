@@ -18,7 +18,7 @@ type SchemaVersion = `version=${string}`; // e.g. 'version=1.0.0'
 type SchemaTag = string; // colon separated list of tags
 export type UR_SchemaID = `${SchemaRoot}:${SchemaName}:${SchemaVersion}:${SchemaTag}`;
 
-/// DATASET CONVENTIONS ///////////////////////////////////////////////////////
+/// DATASTORE CONVENTIONS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// data models have objects with an _id field that uniquely identifies
 /// each entity in the dataset called a UID.
@@ -56,7 +56,7 @@ export type UR_Datastore = {
   // config
 };
 
-/// DATASET SYNC TYPES ////////////////////////////////////////////////////////
+/// DATASTORE SYNC TYPES //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** SyncOp is the operations that can be performed on a dataset via
  *  the SYNC:SRV_DATA protocol. */
@@ -106,7 +106,7 @@ export type RemoteStoreAdapter = {
   handleError: (opResult: OpResult) => OpResult;
 };
 
-/// DATASET OP TYPES //////////////////////////////////////////////////////////
+/// DATASTORE OP TYPES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type RangeType =
   | `gt ${string | number}`

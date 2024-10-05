@@ -31,7 +31,7 @@ type BinOptions = SyncOptions & {
 type DatasetStore = {
   [dataset_name: string]: DataSet;
 };
-type BinOpRes = OpReturn & { bin?: DataBin; binName?: DataBinID };
+type BinOpRes = OpResult & { bin?: DataBin; binName?: DataBinID };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -50,7 +50,7 @@ async function LoadFromURI(datasetURI: string) {}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function LoadFromArchive(pathToZip: string) {}
 
-/// DATASET ACCESS METHODS ////////////////////////////////////////////////////
+/// DATASTORE ACCESS METHODS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a bin reference, open the bin and return the DataBin */
 function Open(ref: DataBinID, options: BinOptions): BinOpRes {

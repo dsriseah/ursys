@@ -40,7 +40,7 @@ const DATA = new Datastore('comments');
 let REMOTE: RemoteStoreAdapter;
 let ACTIONS: { op: SyncOp; data: SyncDataReq }[] = [];
 
-/// DATASET REMOTE API ////////////////////////////////////////////////////////
+/// DATASTORE REMOTE API //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// for direct interfacing to the dataset manager (client side instance)
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -94,7 +94,7 @@ function QueueRemoteDataOp(op: SyncOp, data: SyncDataReq): void {
   m_ProcessOpQueue();
 }
 
-/// DATASET OPERATIONS ////////////////////////////////////////////////////////
+/// DATASTORE OPERATIONS //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Get(cName: string, ids: string[]) {
   const data: SyncDataReq = { cName, ids };
