@@ -18,7 +18,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { DataSet } from '../common/class-data-dataset.ts';
-import { DataBin } from '../common/class-data-itemset.ts';
+import { DataBin } from '../common/abstract-data-databin.ts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
 import { SNA_Hook } from './sna-node-hooks.mts';
 

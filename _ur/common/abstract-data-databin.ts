@@ -27,7 +27,7 @@ import type {
   SyncDataRes,
   OpReturn
 } from '../_types/dataset';
-import type { EVM_Name, EVM_Listener } from './class-event-machine';
+import type { EVM_Name, EVM_Listener } from './class-event-machine.ts';
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

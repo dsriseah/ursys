@@ -12,7 +12,7 @@
 
 import { NORM } from '@ursys/core';
 import { Find, Query } from './util-data-search.ts';
-import { DataBin } from './class-data-itemset.ts';
+import { DataBin } from './abstract-data-databin.ts';
 import { RecordSet } from './class-data-recordset.ts';
 const { NormItems, NormIDs } = NORM;
 

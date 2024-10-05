@@ -22,7 +22,7 @@
 
 import { NORM } from '@ursys/core';
 import { ItemList } from './class-data-itemlist.ts';
-import { DataBin } from './class-data-itemset.ts';
+import { DataBin } from './abstract-data-databin.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
