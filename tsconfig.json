@@ -39,7 +39,9 @@
       "~ur/common/*": ["./_ur/common/*"],
       "~ur/server/*": ["./_ur/node-server/*"],
       "~ur/web/*": ["./_ur_addons/*"],
-      "~ur/types/*": ["./_ur/_types/*"]
+      "~ur/types/*": ["./_ur/_types/*"],
+      // module resolution
+      "@ursys/types": ["./_ur/@ur-types.d.ts"]
     },
 
     // when set, typeRoots looks ONLY at these paths for type resolution
