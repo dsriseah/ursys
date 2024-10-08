@@ -13,7 +13,7 @@ import { ConsoleStyler } from '../common/util-prompts.ts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
-import type { OpResult } from '../_types/dataset';
+import type { OpResult } from '../@ur-types.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

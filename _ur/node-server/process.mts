@@ -18,7 +18,7 @@ import * as FILE from './file.mts';
 
 /// TYPES DECLARATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpResult } from '~ur/types/dataset.d.ts';
+import type { OpResult } from '../_types/dataset.d.ts';
 
 /// SUPPORT METHODS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

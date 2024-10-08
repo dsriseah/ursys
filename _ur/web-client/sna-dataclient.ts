@@ -29,7 +29,7 @@ import type {
   SyncDataRes,
   UR_Item,
   UR_EntID
-} from '../_types/dataset';
+} from '../@ur-types.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

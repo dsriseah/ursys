@@ -56,7 +56,7 @@ import { NormalizeData } from './util-urnet.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_ID, NP_Address, NP_Msg, NP_Data } from '~ur/types/urnet.d.ts';
+import type { NP_ID, NP_Address, NP_Msg, NP_Data } from '../_types/urnet.d.ts';
 import type { I_NetSocket } from './class-urnet-socket.ts';
 import type { THandlerFunc } from './class-urnet-servicemap.ts';
 

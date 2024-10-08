@@ -27,13 +27,13 @@ import NetPacket from './class-urnet-packet.ts';
 
 /// TYPE IMPORTS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { I_NetSocket, NP_Address, NP_Msg } from '~ur/types/urnet.d.ts';
+import type { I_NetSocket, NP_Address, NP_Msg } from '../_types/urnet.d.ts';
 import type {
   NS_SendFunc,
   NS_DataFunc,
   NS_CloseFunc,
   NS_Options
-} from '~ur/types/urnet.d.ts';
+} from '../_types/urnet.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

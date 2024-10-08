@@ -14,6 +14,7 @@
   },
   "browser": "./_dist/client-cjs.js",
   "main": "./_dist/server.cjs",
+  "types": "./@ur-types.d.ts",
   "exports": {
     "node": {
       "import": "./_dist/server-esm.mjs",
