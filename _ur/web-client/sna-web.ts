@@ -36,10 +36,11 @@ async function SNA_Start() {
   SNA_Hook('DOM_READY', SNA_NetConnect);
   SNA_Hook('NET_CONNECT', async (p, m) => {
     AddMessageHandler('NET:UR_HOT_RELOAD_APP', () => {
+      LOG(...PR('Hot Reload Requested'));
       window.location.reload();
     });
   });
-  SNA_Hook('APP_CONFIG', async (p, m) => {
+  SNA_Hook('NET_DECLARE', async (p, m) => {
     await RegisterMessages();
   });
 

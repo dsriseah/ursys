@@ -5,7 +5,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { SNA, ConsoleStyler } from '@ursys/core';
-import * as COMMENTS from './datacore/dc-comments.ts';
+import COMMENTS from './datacore/dc-comments.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,6 +23,7 @@ SNA.Hook('LOAD_CONFIG', () => {});
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
   LOG(...PR('SNA Client Component Loaded'));
+  COMMENTS.Init();
   await SNA.Start();
   LOG(...PR(SNA.Status().message));
 })();

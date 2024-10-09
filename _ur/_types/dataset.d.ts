@@ -4,6 +4,9 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
+import type { DataObj, OpResult } from './ursys.d.ts';
+export type * from './ursys.d.ts';
+
 /// BASE TYPES ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** identifier strings for types of collections in the URSYS ecosystem */
@@ -25,10 +28,6 @@ export type UR_SchemaID = `${SchemaRoot}:${SchemaName}:${SchemaVersion}:${Schema
 type IntString = `${string}`; // this is an integer padding string
 export type UR_EntID = `${string}${IntString}`; // a unique identifier
 export type UR_EntID_Obj = { _id: UR_EntID };
-/// we use various object conventions
-export type DataObj = { [key: string]: any };
-export type ErrObj = { error?: string; errorCode?: string; errorInfo?: string };
-export type OpResult = DataObj & ErrObj;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// an UR_Item is a union of MatchObj with UR_EntID
 export type UR_NewItem = DataObj; // { [key: string]: any }

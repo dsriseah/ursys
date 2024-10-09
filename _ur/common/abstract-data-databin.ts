@@ -27,7 +27,7 @@ import type {
   SyncDataRes,
   OpResult
 } from '../_types/dataset';
-import type { EVM_Name, EVM_Listener } from './class-event-machine.ts';
+import type { SNA_EvtName, SNA_EvtHandler } from '../_types/sna.d.ts';
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -145,13 +145,13 @@ abstract class DataBin {
   /// NOTIFIER METHODS ///
 
   /** add a listener to the event machine */
-  on(event: EVM_Name, lis: EVM_Listener): void {
+  on(event: SNA_EvtName, lis: SNA_EvtHandler): void {
     if (!this._notifier) this._notifier = new EventMachine('itemset');
     this._notifier.on(event, lis);
   }
 
   /** remove a listener from the event machine */
-  off(event: EVM_Name, lis: EVM_Listener): void {
+  off(event: SNA_EvtName, lis: SNA_EvtHandler): void {
     if (this._notifier) this._notifier.off(event, lis);
   }
 

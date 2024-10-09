@@ -10,25 +10,34 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { SNA, DataBin } from '@ursys/core';
+import { SNA, DataBin, ConsoleStyler } from '@ursys/core';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj, SyncDataRes } from '@ursys/types';
+import type { DataObj, SyncDataRes, SNA_Module } from '@ursys/types';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const LOG = console.log.bind(console);
+const PR = ConsoleStyler('DEV', 'TagPink');
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_PlaceholderConfig(uri: string, opt: DataObj) {}
+function m_PlaceholderConfig(uri: string, opt: DataObj) {
+  LOG(...PR('m_PlaceholderConfig'), uri, opt);
+}
 function m_PlaceholderRequestAccess(authToken?: string) {
+  LOG(...PR('m_PlaceholderRequestAccess'), authToken);
   return Promise.resolve('dummy-access-token');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_UpdateDerivedData() {}
+function m_UpdateDerivedData() {
+  LOG(...PR('m_UpdateDerivedData'));
+  // update the derived data
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_PlaceholderOpenDataBin(name: string) {
+  LOG(...PR('m_PlaceholderOpenDataBin'), name);
   return Promise.resolve({} as DataBin);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,6 +45,7 @@ function m_PlaceholderOpenDataBin(name: string) {
  *  if authToken is not provided, the URNET authToken that's already
  *  established will be used. */
 async function m_Connect(uri: string, authToken?: string) {
+  LOG(...PR('m_Connect'), uri, authToken);
   // given: datastore URI and authToken
   const mode = 'remote';
   const adapter = undefined;
@@ -65,7 +75,7 @@ async function m_Connect(uri: string, authToken?: string) {
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// API: Use the high-level operation, not database terminology
+/** API: Use the high-level operation, not database terminology */
 async function DoSomething() {
   // manipulate comments.update, comments.read, etc
   // do not use NETCALLS for talking to database, as the DataBin class
@@ -77,21 +87,39 @@ async function DoSomething() {
   // updates are handled by data return handler above
 }
 
-// API: Notififiers
-function Subscribe(evtType, evtHandler) {
+/// SNA INTEGRATION ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: component initialization hook*/
+function SNA_Init() {
+  LOG(...PR('INIT'), 'dc-comments');
+  SNA.Hook('LOAD_DATA', m_Connect);
+  SNA.Hook('APP_CONFIG', () => {
+    console.log('app is ready to configure');
+  });
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Notifiers */
+function SNA_Subscribe(evtType, evtHandler) {
   // if (evtType === 'change') {
   //   comments.on('change', evtHandler);
   // }
 }
-
-/// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
+function SNA_Ubsubscribe(evtType, evtHandler) {
+  // if (evtType === 'change') {
+  //   comments.off('change', evtHandler);
+  // }
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// SNA HOOK: initialize at the appropriate stage
-SNA.Hook('LOAD_DATA', m_Connect);
-SNA.Hook('APP_CONFIG', () => {
-  console.log('app is ready to configure');
-});
+const SNA_MODULE: SNA_Module = {
+  Init: SNA_Init,
+  On: SNA_Subscribe,
+  Off: SNA_Ubsubscribe
+};
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export { DoSomething, Subscribe };
+export default SNA_MODULE;
+export {
+  // static methods
+  DoSomething
+};

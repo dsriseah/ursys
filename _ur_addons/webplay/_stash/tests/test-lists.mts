@@ -10,7 +10,7 @@ import { DataSet } from '../lib/class-data-dataset.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATA = new DataSet();
+const DATA = new DataSet('test');
 
 test('instantiation', () => {
   expect(DATA).toBeDefined();

@@ -20,13 +20,13 @@
 
 /// TYPES & INTERFACES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj } from '../_types/dataset.d.ts';
+import type { DataObj } from '../_types/ursys.d.ts';
 import type { DataEncoding } from './declare-encodings.ts';
+import type { SNA_EvtName, SNA_EvtHandler } from '../_types/sna.d.ts';
+
 type EVM_Class = string; // lower_snake_case
-type EVM_Name = string; // camelCase
-type EVM_Listener = (evt: EVM_Name, param: DataObj) => void;
 type EVM_Descriptor = {
-  name: EVM_Name; // name of the event
+  name: SNA_EvtName; // name of the event
   description?: string; // description of the event
   [prop: DataEncoding]: string; // description of each prop
 };
@@ -47,8 +47,8 @@ const m_machines: Map<EVM_Class, EventMachine> = new Map();
 class EventMachine {
   //
   emClass: EVM_Class;
-  listeners: Map<EVM_Name, Set<EVM_Listener>>;
-  eventNames: Map<EVM_Name, EVM_Descriptor>;
+  listeners: Map<SNA_EvtName, Set<SNA_EvtHandler>>;
+  eventNames: Map<SNA_EvtName, EVM_Descriptor>;
 
   /// INITIALIZATION ///
 
@@ -71,7 +71,7 @@ class EventMachine {
   /// EVENT NAME REGISTRATION ///
 
   /** validate event names  */
-  _okEvent(eventName: EVM_Name) {
+  _okEvent(eventName: SNA_EvtName) {
     let validType = typeof eventName === 'string' && eventName.length > 0;
     validType = validType && eventName[0] === eventName[0].toLowerCase();
     if (this.eventNames !== undefined)
@@ -80,7 +80,7 @@ class EventMachine {
   }
 
   /** define event descriptions for the event machine */
-  defineEvent(eventName: EVM_Name, eventDesc: EVM_Descriptor) {
+  defineEvent(eventName: SNA_EvtName, eventDesc: EVM_Descriptor) {
     if (!this._okEvent(eventName)) throw Error(`bad event name ${eventName}`);
     if (this.eventNames.has(eventName)) throw Error('Event name already defined');
     if (this.eventNames === undefined) this.eventNames = new Map();
@@ -90,7 +90,7 @@ class EventMachine {
   /// EVENT MACHINE METHODS ///
 
   /** Add a listener for an event */
-  on(eventName: EVM_Name, listener: EVM_Listener) {
+  on(eventName: SNA_EvtName, listener: SNA_EvtHandler) {
     if (!this._okEvent(eventName)) throw Error(`bad event name ${eventName}`);
     if (!this.listeners.has(eventName)) {
       this.listeners.set(eventName, new Set());
@@ -99,7 +99,7 @@ class EventMachine {
   }
 
   /** Remove a listener for an event */
-  off(eventName: EVM_Name, listener: EVM_Listener) {
+  off(eventName: SNA_EvtName, listener: SNA_EvtHandler) {
     if (!this._okEvent(eventName)) throw Error(`bad event name ${eventName}`);
     if (this.listeners.has(eventName)) {
       this.listeners.get(eventName).delete(listener);
@@ -107,9 +107,9 @@ class EventMachine {
   }
 
   /** Add a one-time listener for an event */
-  once(eventName: EVM_Name, listener: EVM_Listener) {
+  once(eventName: SNA_EvtName, listener: SNA_EvtHandler) {
     if (!this._okEvent(eventName)) throw Error(`bad event name ${eventName}`);
-    const onceListener = (eventName: EVM_Name, param: DataObj) => {
+    const onceListener = (eventName: SNA_EvtName, param: DataObj) => {
       listener(eventName, param);
       this.off(eventName, onceListener);
     };
@@ -117,7 +117,7 @@ class EventMachine {
   }
 
   /** Emit an event with optional arguments */
-  emit(eventName: EVM_Name, param: DataObj) {
+  emit(eventName: SNA_EvtName, param: DataObj) {
     if (!this._okEvent(eventName)) throw Error(`bad event name ${eventName}`);
     if (this.listeners.has(eventName)) {
       this.listeners.get(eventName).forEach(listener => {
@@ -133,4 +133,4 @@ class EventMachine {
 export default EventMachine;
 /// accessible from mts files via import EM from './class-event-machine.ts'
 export { EventMachine };
-export type { EVM_Name, EVM_Listener };
+export type { SNA_EvtName, SNA_EvtHandler };
