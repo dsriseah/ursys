@@ -5,13 +5,14 @@
   Conventions (see 
   directories should end with a slash
 
-
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 import FSE from 'fs-extra';
 import PATH from 'node:path';
 import PROMPT from '../common/util-prompts.ts';
+import * as CRYPTO from 'node:crypto';
 import * as url from 'url';
+import { pipeline } from 'node:stream/promises';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -188,12 +189,12 @@ function RemoveDir(dirpath): boolean {
 
 /// PATH UTILITIES ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Make a string relative to the project root, returning a normalized path */
+/** make a string relative to the project root, returning a normalized path */
 function AbsLocalPath(subdir: string): string {
   return u_path(subdir);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Make a string that removes the DetectedRootDir() portion of the path */
+/** make a string that removes the DetectedRootDir() portion of the path */
 function RelLocalPath(subdir: string): string {
   const p = u_path(subdir);
   return u_short(p);
@@ -263,6 +264,17 @@ async function UnsafeWriteFile(filepath, rawdata) {
   file.end(); // if this is missing, close event will never fire.
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** synchronous JSON write */
+function WriteJSON(filepath, obj = {}) {
+  FSE.writeFileSync(filepath, JSON.stringify(obj, null, 2));
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** syncronous JSON read */
+function ReadJSON(filepath) {
+  let rawdata = FSE.readFileSync(filepath);
+  return JSON.parse(rawdata);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function AsyncReadJSON(filepath) {
   const rawdata = (await AsyncReadFile(filepath)) as any;
   return JSON.parse(rawdata);
@@ -281,6 +293,54 @@ async function UnlinkFile(filepath) {
     if (err.code === 'ENOENT') return false;
     console.log(err.code);
   }
+}
+/// FILE HASHING //////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** given a filepath, return the hash of the file */
+async function AsyncFileHash(filepath, algo = 'md5') {
+  const hash = CRYPTO.createHash(algo);
+  const stream = FSE.createReadStream(filepath);
+  await pipeline(stream, async data => hash.update(data));
+  return hash.digest('hex');
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type HashInfo = { filepath: string; filename: string; ext: string; hash: string };
+async function FilesHashInfo(filepaths, algo = 'md5'): Promise<HashInfo[]> {
+  const hashInfo = [];
+  for (let fp of filepaths) {
+    const pathInfo = GetPathInfo(fp);
+    const hash = await AsyncFileHash(fp, algo);
+    const { filename, ext } = pathInfo;
+    hashInfo.push({ filepath: fp, filename, ext, hash });
+  }
+  return hashInfo;
+}
+
+/// EXTRA PATH HELPERS ////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** given a string '//a//a//aaa/', returns 'a/a/aaa' */
+function TrimPath(p: string = ''): string {
+  p = PATH.join(p); // remove any duped /
+  // remove leading and trailing slashes
+  if (p.startsWith('/')) p = p.slice(1);
+  if (p.endsWith('/')) p = p.slice(0, -1);
+  return p;
+}
+
+/// DECODER METHODS ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetPathInfo(path: string) {
+  const bn = PATH.basename(path);
+  const en = PATH.extname(path).slice(1); // remove leading .
+  const dn = PATH.dirname(path);
+  return {
+    isDir: en.length === 0,
+    isFile: en.length > 0,
+    filename: `${bn}.${en}`,
+    dirname: dn,
+    basename: bn,
+    ext: en
+  };
 }
 
 /// SYNCHRONOUS TESTS /////////////////////////////////////////////////////////
@@ -311,15 +371,23 @@ export {
   DetectedAddonDir,
   AbsLocalPath,
   RelLocalPath,
+  TrimPath,
+  GetPathInfo,
+  AsyncFileHash,
+  // directory read
+  GetDirContent,
   Files,
+  FilesHashInfo,
   Subdirs,
-  //
+  // file read/write
   ReadFile,
   AsyncReadFile,
   UnsafeWriteFile,
+  ReadJSON,
+  WriteJSON,
   AsyncReadJSON,
   AsyncWriteJSON,
-  //
+  // delete
   UnlinkFile,
   //
   Test

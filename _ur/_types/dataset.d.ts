@@ -44,15 +44,17 @@ export type UR_DocFolder = { [_id: UR_EntID]: UR_Doc };
 /// type of bag (e.g. documents, itemlists, etc.)
 export type UR_Datastore = {
   Schema?: UR_SchemaID; // see https://github.com/dsriseah/ursys/discussions/22
+  // see https://github.com/dsriseah/ursys/discussions/25 for more on this list
   DocFolders?: { [foldername: DataBinID]: UR_DocFolder };
   ItemLists?: { [listname: DataBinID]: UR_ItemList };
-  // additional items
-  // see https://github.com/dsriseah/ursys/discussions/25
-  // files
-  // state
-  // logs
+  // stringlist
+  // filelist
+  // appconfig
+  // runconfig
+  // runstate
+  // runlogs
+  // runsessions
   // templates
-  // config
 };
 
 /// DATASTORE SYNC TYPES //////////////////////////////////////////////////////
