@@ -5,10 +5,7 @@
     "allowImportingTsExtensions": true,
     "typeRoots": ["./_types/"],
     "paths": {
-      "~ur/common/*": ["./common/*"],
-      "~ur/server/*": ["./node-server/*"],
-      "~ur/web/*": ["./web-client/*"],
-      "~ur/types/*": ["./_types/*"]
+      "tsconfig/types": ["./_ur/@ur-types.d.ts"]
     },
     "strict": false,
     "esModuleInterop": true,

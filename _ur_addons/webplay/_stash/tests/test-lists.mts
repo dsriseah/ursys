@@ -5,7 +5,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import type { UR_NewItem } from '~ur/types/dataset.d.ts';
+import type { UR_NewItem } from 'tsconfig/types';
 import { DataSet } from '../lib/class-data-dataset.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
