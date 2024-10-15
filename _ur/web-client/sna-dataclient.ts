@@ -18,7 +18,7 @@
 
 import { ConsoleStyler } from '@ursys/core';
 import { Hook, AddMessageHandler } from './sna-web.ts';
-import { Dataset } from '../common/class-data-datastore.ts';
+import { Dataset } from '../common/class-data-dataset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
