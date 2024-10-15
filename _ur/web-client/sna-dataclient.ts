@@ -16,7 +16,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler } from '@ursys/core';
+import { ConsoleStyler } from '../common/util-prompts.ts';
 import { Hook, AddMessageHandler } from './sna-web.ts';
 import { Dataset } from '../common/class-data-dataset.ts';
 import { IsValidDataURI, DecodeDataConfig } from '../common/util-data-asset.ts';

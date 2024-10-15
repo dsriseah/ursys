@@ -10,11 +10,10 @@
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { NORM } from '@ursys/core';
+import { NormItems, NormIDs } from './util-data-norm.ts';
 import { Find, Query } from './util-data-search.ts';
 import { DataBin } from './abstract-data-databin.ts';
 import { RecordSet } from './class-data-recordset.ts';
-const { NormItems, NormIDs } = NORM;
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
