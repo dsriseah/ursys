@@ -80,3 +80,7 @@ export interface I_NetSocket {
   label?: string; // name of the socket-ish object
   authenticated?: () => boolean;
 }
+
+/// FORWARDED CLASS TYPES /////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type { NetEndpoint } from '../common/class-urnet-endpoint.ts';

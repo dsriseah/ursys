@@ -19,18 +19,24 @@
 import { ConsoleStyler } from '@ursys/core';
 import { Hook, AddMessageHandler } from './sna-web.ts';
 import { Dataset } from '../common/class-data-dataset.ts';
+import { IsValidDataURI, DecodeDataConfig } from '../common/util-data-asset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
+  OpResult,
   RemoteStoreAdapter,
   SyncOp,
   SyncDataReq,
   SyncDataRes,
   UR_Item,
-  UR_EntID,
-  UR_DatasetURI
+  UR_DatasetURI,
+  UR_DatasetObj,
+  ConfigOptions,
+  SearchOptions,
+  RecordSet
 } from '../@ur-types.d.ts';
+//
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,6 +49,32 @@ let REMOTE: RemoteStoreAdapter;
 let ACTIONS: { op: SyncOp; data: SyncDataReq }[] = [];
 
 /// DATASET LOCAL API /////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** creates a new Dataset with the associated dataURI but does not perform
+ *  any operations */
+async function Configure(
+  dataURI: UR_DatasetURI,
+  opt: ConfigOptions
+): Promise<OpResult> {
+  const fn = 'SetDataURI:';
+  if (!IsValidDataURI(dataURI)) return { error: 'invalid dataURI' };
+  const { error } = DecodeDataConfig(opt);
+  if (error) return { error };
+  DS_URI = dataURI;
+  DATA = new Dataset(DS_URI);
+  DATA.setStorageMode(opt);
+  return { dataURI, configOpt: opt };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function SetDataFromObject(data: UR_DatasetObj): Promise<OpResult> {
+  if (DATA === undefined) return { error: 'no dataset set' };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function LoadData(): Promise<OpResult> {
+  const fn = 'LoadDataset:';
+  if (DATA === undefined) return { error: 'no dataset set' };
+  // load the dataset from the server
+}
 
 /// DATASET REMOTE API ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -127,6 +159,17 @@ function Update(binID: string, items: UR_Item[]) {
   throw Error(`Update: itemset ${binID} not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function Write(binID: string, items: UR_Item[]) {
+  const data: SyncDataReq = { binID, items };
+  if (REMOTE) {
+    QueueRemoteDataOp('DATA_WRITE', data);
+    return;
+  }
+  const itemset = DATA.getDataBin(binID);
+  if (itemset) return itemset.write(items);
+  throw Error(`Write: itemset ${binID} not found`);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Delete(binID: string, items: UR_Item[]) {
   const data: SyncDataReq = { binID, items };
   if (REMOTE) {
@@ -135,6 +178,16 @@ function Delete(binID: string, items: UR_Item[]) {
   }
   const itemset = DATA.getDataBin(binID);
   if (itemset) return itemset.delete(items);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function DeleteIDs(binID: string, ids: string[]) {
+  const data: SyncDataReq = { binID, ids };
+  if (REMOTE) {
+    QueueRemoteDataOp('DATA_DELETE', data);
+    return;
+  }
+  const itemset = DATA.getDataBin(binID);
+  if (itemset) return itemset.deleteIDs(ids);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Replace(binID: string, items: UR_Item[]) {
@@ -151,6 +204,18 @@ function Replace(binID: string, items: UR_Item[]) {
 function Init(binID: string): void {
   const data: SyncDataReq = { binID };
   QueueRemoteDataOp('DATA_INIT', data);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function Find(binID: string, crit?: SearchOptions): Promise<UR_Item[]> {
+  const itemset = DATA.getDataBin(binID);
+  if (itemset) return itemset.find(crit);
+  throw Error(`Find: itemset ${binID} not found`);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function Query(binID: string, query: SearchOptions): Promise<RecordSet> {
+  const itemset = DATA.getDataBin(binID);
+  if (itemset) return itemset.query(query);
+  throw Error(`Query: itemset ${binID} not found`);
 }
 
 /// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
@@ -188,13 +253,18 @@ Hook('NET_READY', function () {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
+  Configure,
   // data operations
   Get,
   Add,
   Update,
+  Write,
   Delete,
+  DeleteIDs,
   Replace,
   Init,
+  Find,
+  Query,
   // remote data adapter
   SetRemoteDataAdapter,
   QueueRemoteDataOp

@@ -7,7 +7,8 @@
 import type { DataObj, OpResult } from './ursys.d.ts';
 export type * from './ursys.d.ts';
 export type { DataBin } from './class-data-databin.ts';
-export type { Dataset } from './class-data-datastore.ts';
+export type { Dataset, ConfigOptions } from './class-data-dataset.ts';
+export type { RecordSet } from './class-data-recordset.ts';
 
 /// BASE TYPES ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -20,9 +20,10 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { NORM } from '@ursys/core';
 import { ItemList } from './class-data-itemlist.ts';
+import { DecodeDataURI } from './util-data-asset.ts';
 import { DataBin } from './abstract-data-databin.ts';
+import { DecodeDataConfig } from './util-data-asset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -30,6 +31,9 @@ import type { DataBinID, DataBinType, UR_SchemaID } from '../_types/dataset';
 import type { ItemListOptions } from './class-data-itemlist.ts';
 type DataAccessTok = string;
 type DataAccessTokSet = Set<DataAccessTok>;
+type ConfigOptions = {
+  mode: 'local' | 'sync' | 'sync-read' | 'sync-write';
+};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,7 +46,7 @@ const CTYPES = ['DocFolder', 'ItemList']; // mirror DataBinType
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if the dataURI is a valid dataset URI */
 function m_IsValidDatasetURI(dataURI: string): boolean {
-  return NORM(dataURI) === dataURI;
+  return DecodeDataURI(dataURI).error === undefined;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if the given bag type is recognized */
@@ -103,6 +107,14 @@ class Dataset {
     if (!this.open_bins.has(binName))
       throw Error(`${fn} bin '${binName}' is already closed`);
     this.open_bins.delete(binName);
+  }
+
+  /// STORAGE SETUP ///
+
+  /** set flags that affect how dataset handles calls to and from
+   *  collections */
+  setStorageMode(opt: ConfigOptions) {
+    console.log('would set up storage options');
   }
 
   /// UNIVERSAL BIN METHODS ///
@@ -224,3 +236,4 @@ export default Dataset; // the class
 export {
   Dataset // the class
 };
+export type { ConfigOptions }; // the types

@@ -298,12 +298,14 @@ class ItemList extends DataBin {
   /// SEARCH METHODS ///
 
   /** Search for matching items in the list using options, return found items */
-  find(items: UR_Item[], criteria?: SearchOptions): UR_Item[] {
+  find(criteria?: SearchOptions): UR_Item[] {
+    const items = this._list;
     return Find(items, criteria);
   }
 
   /** Search for matching items in the list, return Recordset */
-  query(items: UR_Item[], criteria?: SearchOptions): RecordSet {
+  query(criteria?: SearchOptions): RecordSet {
+    const items = this._list;
     return Query(items, criteria);
   }
 }

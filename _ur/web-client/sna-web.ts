@@ -58,13 +58,44 @@ function SNA_Status() {
   };
 }
 
+/// SNA MODULES EXPORTS ///////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import {
+  Configure,
+  Get,
+  Add,
+  Update,
+  Write,
+  Delete,
+  DeleteIDs,
+  Replace,
+  Init,
+  Find,
+  Query
+} from './sna-dataclient.ts';
+const MOD_DataClient = {
+  Configure,
+  Get,
+  Add,
+  Update,
+  Write,
+  Delete,
+  DeleteIDs,
+  Replace,
+  Init,
+  Find,
+  Query
+};
+
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   // sna process
   SNA_Start as Start,
   SNA_Status as Status,
-  SNA_Hook as Hook
+  SNA_Hook as Hook,
+  // sna modules
+  MOD_DataClient
 };
 export {
   // phase machine static methods

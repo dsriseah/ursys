@@ -14,65 +14,52 @@ import { SNA, DataBin, ConsoleStyler } from '@ursys/core';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj, Dataset, SyncDataRes } from '@ursys/types';
-import type { NetEndpoint, SNA_Module } from '@ursys/types';
+import type { DataObj, SyncDataRes } from '@ursys/types';
+import type { SNA_Module } from '@ursys/types';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('DEV', 'TagPink');
-let COMMENT_BIN: DataBin; // set ddataURIng initial m_LoadData()
-let DATASET: Dataset;
-let EP: NetEndpoint;
+const DCLI = SNA.MOD_DataClient;
+let COMMENT_BIN: DataBin; // set ddataURIng initial LoadDataHook()
 
-/// HELPER METHODS ////////////////////////////////////////////////////////////
+/// APP LIFECYCLE METHODS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_UpdateDerivedData() {
-  LOG(...PR('m_UpdateDerivedData'));
+/** given dataset dataURI */
+async function LoadDataHook(dataURI: string) {
+  LOG(...PR('LoadDataHook'), dataURI);
+  const opts = { mode: 'local' };
+  const resConfig = await DCLI.Configure({ dataURI, opts });
+  const resData = await DCLI.LoadData();
+  if (resData.error) throw Error(`onData ${resData.error}`);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** example of using dataclient */
+async function DoSomething() {
+  const comment123 = DCLI.Get('comments', ['123']);
+  const resAdd = await DCLI.Add('comments', [{ text: '' }, { text: '' }]);
+  const resQuery = await DCLI.Query('comments', { id: '123' });
+}
+
+/// DATA LIFECYCLE METHODS ////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** handle data change */
+function HandleDataChange(sync: SyncDataRes) {
+  LOG(...PR('HandleDataChange'));
+  UpdateDerivedData();
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** after data change */
+function UpdateDerivedData() {
+  LOG(...PR('UpdateDerivedData'));
   // update the derived data
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_PlaceholderOpenDataBin(name: string) {
-  LOG(...PR('m_PlaceholderOpenDataBin'), name);
-  return Promise.resolve({} as DataBin);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** given dataset uri and authtoken, connect to the datastore
- *  if authToken is not provided, the URNET authToken that's already
- *  established will be used. */
-async function m_Connect(uri: string, authToken?: string) {
-  LOG(...PR('m_Connect'), uri, authToken);
-  // given: datastore URI and authToken
-  const mode = 'remote';
-  const adapter = undefined;
-  const returnMode = 'data';
-  const batchEnable = false;
-
-  m_PlaceholderConfig(uri, {
-    // uri is either a string key or a URI
-    mode: 'remote', // local, remote, remote-ro, remote-wo
-    adapter, // instance of DatastoreAdapter
-    returnMode, // return items, ids or just error (default 'data')
-    batchEnable // whether to allow server to batch by tick rate
-  });
-  const accToken = await m_PlaceholderRequestAccess(authToken);
-  if (!accToken) throw Error('access denied');
-  // if requestAccess succeeded, then datastore instance saves accToken
-
-  // open the comments databin from the set
-  const comments: DataBin = await m_PlaceholderOpenDataBin('comments');
-  // the contents of the COMMENTS dataset are synced with server
-
-  // data return handler
-  comments.on('change', (sync: SyncDataRes) => {
-    m_UpdateDerivedData();
-  });
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Use the high-level operation, not database terminology */
-async function DoSomething() {
+async function DoSomethingEx() {
   // manipulate comments.update, comments.read, etc
   // do not use NETCALLS for talking to database, as the DataBin class
   // handles all that stuff automatically
@@ -82,13 +69,15 @@ async function DoSomething() {
   // the updated values are provided for debugging only
   // updates are handled by data return handler above
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function AddComment(cmo: DataObj) {}
 
 /// SNA INTEGRATION ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: component initialization hook*/
 function SNA_Init() {
   LOG(...PR('INIT'), 'dc-comments');
-  SNA.Hook('LOAD_DATA', m_Connect);
+  SNA.Hook('LOAD_DATA', LoadDataHook);
   SNA.Hook('APP_CONFIG', () => {
     console.log('app is ready to configure');
   });

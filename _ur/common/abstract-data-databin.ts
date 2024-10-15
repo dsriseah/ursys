@@ -162,11 +162,13 @@ abstract class DataBin {
 
   /// SEARCH METHODS ///
 
-  /** Search for matching items in the list using options, return found items */
-  abstract find(items: UR_Item[], criteria?: SearchOptions): UR_Item[];
+  /** Search for matching items in the list using options, return found items.
+   *  The implementor should provide the items from the instance */
+  abstract find(criteria?: SearchOptions): UR_Item[];
 
-  /** Search for matching items in the list, return Recordset */
-  abstract query(items: UR_Item[], criteria?: SearchOptions): RecordSet;
+  /** Search for matching items in the list, return Recordset,
+   *  The implementor should provide the items from the instance */
+  abstract query(criteria?: SearchOptions): RecordSet;
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
