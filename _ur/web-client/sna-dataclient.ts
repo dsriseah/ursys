@@ -37,7 +37,7 @@ import type {
 const PR = ConsoleStyler('SNA-DC', 'TagBlue');
 const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATA = new Dataset('AppDataURI');
+let DATA: Dataset;
 let DS_URI: UR_DatasetURI;
 let REMOTE: RemoteStoreAdapter;
 let ACTIONS: { op: SyncOp; data: SyncDataReq }[] = [];

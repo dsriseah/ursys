@@ -50,9 +50,9 @@ export type DataBinType = 'DocFolder' | 'ItemList';
 export type UR_ItemList = UR_Item[];
 export type UR_DocFolder = { [_id: UR_EntID]: UR_Doc };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// a UR_Dataset is a collection of multiple bags of items, organized by
+/// a UR_DatasetObj is a collection of multiple bags of items, organized by
 /// type of bag (e.g. documents, itemlists, etc.)
-export type UR_Dataset = {
+export type UR_DatasetObj = {
   _schema?: UR_SchemaID; // see https://github.com/dsriseah/ursys/discussions/22
   _dataURI: UR_DatasetURI;
   // see https://github.com/dsriseah/ursys/discussions/25 for more on this list

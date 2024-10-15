@@ -14,22 +14,18 @@ import { SNA, DataBin, ConsoleStyler } from '@ursys/core';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj, SyncDataRes, SNA_Module } from '@ursys/types';
+import type { DataObj, Dataset, SyncDataRes } from '@ursys/types';
+import type { NetEndpoint, SNA_Module } from '@ursys/types';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('DEV', 'TagPink');
+let COMMENT_BIN: DataBin; // set ddataURIng initial m_LoadData()
+let DATASET: Dataset;
+let EP: NetEndpoint;
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_PlaceholderConfig(uri: string, opt: DataObj) {
-  LOG(...PR('m_PlaceholderConfig'), uri, opt);
-}
-function m_PlaceholderRequestAccess(authToken?: string) {
-  LOG(...PR('m_PlaceholderRequestAccess'), authToken);
-  return Promise.resolve('dummy-access-token');
-}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_UpdateDerivedData() {
   LOG(...PR('m_UpdateDerivedData'));

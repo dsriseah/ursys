@@ -1,11 +1,15 @@
 /*//////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  File System Asset Helpers
-
-  File operations specific to handling asset media
+  Asset and Dataset Utility Module 
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
+/// TYPE DECLARATIONS /////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import type { OpResult } from '../_types/dataset';
+
+/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DATASET_DIRNAMES = [
   // see dataset.d.ts UR_Dataset
   'docfolder',
