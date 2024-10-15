@@ -14,7 +14,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 import { APPSTATE, TIME, UDATA } from './mock-core.ts';
-import { ReactDOM, DATASTORE, EDITORTYPE, ARROW_RIGHT } from './mock-core.ts';
+import { ReactDOM, DATASET, EDITORTYPE, ARROW_RIGHT } from './mock-core.ts';
 import * as DC from './dc-comment.ts';
 import * as AC from './ac-comment.ts';
 
@@ -337,7 +337,7 @@ function GetUnreadComments() {
  */
 function AddComment(cobj) {
   // This just generates a new ID, but doesn't update the DB
-  DATASTORE.PromiseNewCommentID().then(newCommentID => {
+  DATASET.PromiseNewCommentID().then(newCommentID => {
     cobj.cid = newCommentID;
     AC.AddComment(cobj); // creates a comment vobject
     m_SetAppStateCommentVObjs();

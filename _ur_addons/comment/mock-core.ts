@@ -28,7 +28,7 @@ const UDATA = {
   NetCall: async (key: string, any?) => Object.create(null)
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATASTORE = {
+const DATASET = {
   PromiseNewCommentID: async () => 'new-comment-id'
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -52,7 +52,7 @@ export {
   TIME,
   // netcreate mocks
   UDATA,
-  DATASTORE,
+  DATASET,
   // netcreate constant mocks
   EDITORTYPE,
   ARROW_RIGHT,

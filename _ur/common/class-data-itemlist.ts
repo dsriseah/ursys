@@ -6,7 +6,7 @@
   will be simple integers. If you define an idPrefix, then the ids will be
   the prefix + zero-padded number. See ItemListOptions for more details.
 
-  Its sibbling class is DocFolder. Its parent manager is Datastore.
+  Its sibling class is DocFolder. Its parent manager is Dataset.
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -35,7 +35,7 @@ type ItemListOptions = {
   ordDigits?: number; // number of digits (default 3)
 };
 
-/// CLASS DECLARATION //////////////////////////////////////////////////////////
+/// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class ItemList extends DataBin {
   // from base class

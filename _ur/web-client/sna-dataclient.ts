@@ -4,7 +4,7 @@
   server-side dataset. It uses URNET network to perform data operations with
   SNA-NODE-DATASERVER
 
-  A Datastore contains several named "bins" of DataBin collections which are
+  A Dataset contains several named "bins" of DataBin collections which are
   formally as a bucket with a schema. Datasets are in-memory object stores
   intended for real-time manipulation of data.
 
@@ -18,7 +18,7 @@
 
 import { ConsoleStyler } from '@ursys/core';
 import { Hook, AddMessageHandler } from './sna-web.ts';
-import { Datastore } from '../common/class-data-datastore.ts';
+import { Dataset } from '../common/class-data-datastore.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,8 @@ import type {
   SyncDataReq,
   SyncDataRes,
   UR_Item,
-  UR_EntID
+  UR_EntID,
+  UR_DatasetURI
 } from '../@ur-types.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -36,11 +37,14 @@ import type {
 const PR = ConsoleStyler('SNA-DC', 'TagBlue');
 const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATA = new Datastore('comments');
+const DATA = new Dataset('AppDataURI');
+let DS_URI: UR_DatasetURI;
 let REMOTE: RemoteStoreAdapter;
 let ACTIONS: { op: SyncOp; data: SyncDataReq }[] = [];
 
-/// DATASTORE REMOTE API //////////////////////////////////////////////////////
+/// DATASET LOCAL API /////////////////////////////////////////////////////////
+
+/// DATASET REMOTE API ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// for direct interfacing to the dataset manager (client side instance)
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -94,58 +98,58 @@ function QueueRemoteDataOp(op: SyncOp, data: SyncDataReq): void {
   m_ProcessOpQueue();
 }
 
-/// DATASTORE OPERATIONS //////////////////////////////////////////////////////
+/// DATASET OPERATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Get(cName: string, ids: string[]) {
-  const data: SyncDataReq = { cName, ids };
+function Get(binID: string, ids: string[]) {
+  const data: SyncDataReq = { binID, ids };
   QueueRemoteDataOp('DATA_GET', data);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function Add(cName: string, items: UR_Item[]) {
-  const data: SyncDataReq = { cName, items };
+async function Add(binID: string, items: UR_Item[]) {
+  const data: SyncDataReq = { binID, items };
   if (REMOTE) {
     QueueRemoteDataOp('DATA_ADD', data);
     return;
   }
-  const itemset = DATA.getDataBin(cName);
+  const itemset = DATA.getDataBin(binID);
   if (itemset) return itemset.add(items);
-  throw Error(`Add: itemset ${cName} not found`);
+  throw Error(`Add: itemset ${binID} not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Update(cName: string, items: UR_Item[]) {
-  const data: SyncDataReq = { cName, items };
+function Update(binID: string, items: UR_Item[]) {
+  const data: SyncDataReq = { binID, items };
   if (REMOTE) {
     QueueRemoteDataOp('DATA_UPDATE', data);
     return;
   }
-  const itemset = DATA.getDataBin(cName);
+  const itemset = DATA.getDataBin(binID);
   if (itemset) return itemset.update(items);
-  throw Error(`Update: itemset ${cName} not found`);
+  throw Error(`Update: itemset ${binID} not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Delete(cName: string, items: UR_Item[]) {
-  const data: SyncDataReq = { cName, items };
+function Delete(binID: string, items: UR_Item[]) {
+  const data: SyncDataReq = { binID, items };
   if (REMOTE) {
     QueueRemoteDataOp('DATA_DELETE', data);
     return;
   }
-  const itemset = DATA.getDataBin(cName);
+  const itemset = DATA.getDataBin(binID);
   if (itemset) return itemset.delete(items);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Replace(cName: string, items: UR_Item[]) {
-  const data: SyncDataReq = { cName, items };
+function Replace(binID: string, items: UR_Item[]) {
+  const data: SyncDataReq = { binID, items };
   if (REMOTE) {
     QueueRemoteDataOp('DATA_REPLACE', data);
     return;
   }
-  const itemset = DATA.getDataBin(cName);
+  const itemset = DATA.getDataBin(binID);
   if (itemset) return itemset.replace(items);
-  throw Error(`Replace: itemset ${cName} not found`);
+  throw Error(`Replace: itemset ${binID} not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Init(cName: string): void {
-  const data: SyncDataReq = { cName };
+function Init(binID: string): void {
+  const data: SyncDataReq = { binID };
   QueueRemoteDataOp('DATA_INIT', data);
 }
 
@@ -154,13 +158,13 @@ function Init(cName: string): void {
 /** handle incoming data sync messages from dataserver */
 Hook('NET_READY', function () {
   AddMessageHandler('SYNC:CLI_DATA', (sync: SyncDataRes) => {
-    const { cName, cType, seqNum, status, error, skipped } = sync;
+    const { binID, binType, seqNum, status, error, skipped } = sync;
     const { items, updated, added, deleted, replaced } = sync;
-    const itemset = DATA.getDataBin(cName);
+    const itemset = DATA.getDataBin(binID);
 
     /*** handle error conditions ***/
     if (itemset === undefined) {
-      LOG(...PR('ERROR: Bin not found:', cName));
+      LOG(...PR('ERROR: Bin not found:', binID));
       return;
     }
     if (error) {

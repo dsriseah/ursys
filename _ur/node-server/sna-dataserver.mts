@@ -1,10 +1,10 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  SNA-NODE-DATASERVER is the server-side Datastore Manager that handles
+  SNA-NODE-DATASERVER is the server-side Dataset Manager that handles
   requests from SNA-WEB-DATACLIENT. It uses URNET to handle incoming
   data requests and optionally sync changes back to the client.
 
-  A Datastore contains several named "bins" of DataBin collections which are
+  A Dataset contains several named "bins" of DataBin collections which are
   formally as a bucket with a schema. Datasets are in-memory object stores
   intended for real-time manipulation of data. The server is responsible for
   persisting data between sessions.
@@ -17,7 +17,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { Datastore } from '../common/class-data-datastore.ts';
+import { Dataset } from '../common/class-data-datastore.ts';
 import { DataBin } from '../common/abstract-data-databin.ts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
 import { SNA_Hook } from './sna-node-hooks.mts';
@@ -29,6 +29,7 @@ import type {
   DataBinID,
   DataBinType,
   SyncDataReq,
+  DatastoreReq,
   SyncOp
 } from '../_types/dataset.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,7 +43,7 @@ type BinOptions = SyncOptions & {
   autoCreate: boolean;
 };
 type DatasetStore = {
-  [dataset_name: string]: Datastore;
+  [dataset_name: string]: Dataset;
 };
 type BinOpRes = OpResult & { bin?: DataBin; binName?: DataBinID };
 
@@ -53,7 +54,7 @@ const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// to start, we just have one dataset, but for the future we could support
 /// multiple ones.
-const DS_DICT: DatasetStore = { 'default': new Datastore('default') };
+const DS_DICT: DatasetStore = { 'default': new Dataset('default') };
 const DATA = DS_DICT.default;
 let SEQ_NUM = 0; // very predictable sequence number
 
@@ -65,7 +66,7 @@ async function LoadFromURI(datasetURI: string) {}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function LoadFromArchive(pathToZip: string) {}
 
-/// DATASTORE ACCESS METHODS //////////////////////////////////////////////////
+/// DATASET ACCESS METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a bin reference, open the bin and return the DataBin */
 function OpenBin(binName: DataBinID, options: BinOptions): BinOpRes {
@@ -83,6 +84,7 @@ function CloseBin(itemset: DataBin): BinOpRes {
 
 /// URNET MESSAGE HELPERS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** confirm that parameters are correct for synchronizing data */
 function m_CheckSyncData(data: SyncDataReq) {
   const { cName, accToken, ids, items } = data;
   // required params
@@ -107,10 +109,28 @@ function m_CheckSyncData(data: SyncDataReq) {
   return { cName, cType, accToken, ids, items };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** confirm that parameters are correct for connecting to a datastore */
+function m_CheckDatastoreData(data: DatastoreReq) {
+  const { dataURI, authToken } = data;
+  if (!dataURI) return { error: 'dataURI is required' };
+  if (typeof dataURI !== 'string') return { error: 'dataURI must be a string' };
+  return { dataURI, authToken };
+}
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function m_NotifyClients(cName: DataBinID, cType: string, data: any) {
   const EP = ServerEndpoint();
   const seqNum = SEQ_NUM++;
   EP.netSignal('SYNC:CLI_DATA', { cName, cType, seqNum, ...data });
+}
+
+/// URNET DATASET CONNECTION //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function HookDatastoreServices() {
+  /** accept */
+  AddMessageHandler('SYNC:SRV_LOAD_DATASTORE', async (params: DatastoreReq) => {
+    const { dataURI } = m_CheckDatastoreData(params);
+  });
 }
 
 /// URNET DATA HANDLING API ///////////////////////////////////////////////////

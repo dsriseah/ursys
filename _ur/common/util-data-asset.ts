@@ -7,7 +7,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 const DATASET_DIRNAMES = [
-  // see dataset.d.ts UR_Datastore
+  // see dataset.d.ts UR_Dataset
   'docfolder',
   'itemlist',
   'stringlist',

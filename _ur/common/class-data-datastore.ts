@@ -1,9 +1,9 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  Datastore is a storage class for managing different "bins" of the same type
+  Dataset is a storage class for managing different "bins" of the same type
   of collection.
 
-  class Datastore
+  class Dataset
     getDataBin, getDataBinByType, 
     createDataBin, deleteDataBin, openDataBin, closeDataBin
     createItemList, clearItemList, getItemList
@@ -28,6 +28,8 @@ import { DataBin } from './abstract-data-databin.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { DataBinID, DataBinType, UR_SchemaID } from '../_types/dataset';
 import type { ItemListOptions } from './class-data-itemlist.ts';
+type DataAccessTok = string;
+type DataAccessTokSet = Set<DataAccessTok>;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -37,6 +39,11 @@ const LOG = console.log.bind(console);
 const CTYPES = ['DocFolder', 'ItemList']; // mirror DataBinType
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return true if the dataURI is a valid dataset URI */
+function m_IsValidDatasetURI(dataURI: string): boolean {
+  return NORM(dataURI) === dataURI;
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if the given bag type is recognized */
 function m_IsValidBinType(cType: DataBinType): boolean {
@@ -50,14 +57,15 @@ function m_IsValidBinName(bName: string): boolean {
   return noSpaces && snakeCase;
 }
 
-/// CLASS DECLARATION //////////////////////////////////////////////////////////
+/// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** knows how to manage the different kinds of collections */
-class Datastore {
+class Dataset {
   //
   dataset_name: string; // the name of this list manager
   dataset_schema: UR_SchemaID; // the schema of the dataset
   open_bins: Set<DataBinID>; // open bins are subject to sync
+  acc_toks: Map<DataBinID, DataAccessTokSet>; // access tokens for each bin
   //
   LISTS: { [ref_name: DataBinID]: ItemList };
   // see https://github.com/dsriseah/ursys/discussions/25 for other bin types
@@ -70,8 +78,8 @@ class Datastore {
 
   /// CONSTRUCTOR ///
 
-  constructor(dsname: string) {
-    if (dsname && m_IsValidBinName(dsname)) this.dataset_name = dsname;
+  constructor(dataURI: string) {
+    if (dataURI && m_IsValidBinName(dataURI)) this.dataset_name = dataURI;
     this._init();
   }
 
@@ -212,7 +220,7 @@ class Datastore {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default Datastore; // the class
+export default Dataset; // the class
 export {
-  Datastore // the class
+  Dataset // the class
 };
