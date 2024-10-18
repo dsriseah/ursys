@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "ts-node-esm ../_ur/npm-scripts/@build-core.mts && ts-node-esm ./@run-sna.mts"
+    "dev": "ts-node-esm --transpile-only ../_ur/npm-scripts/@build-core.mts && ts-node-esm  --transpile-only ./@run-sna.mts",
+    "gen": "ts-node-esm  --transpile-only ../_ur/npm-scripts/@build-core.mts && ts-node-esm  --transpile-only ./util/gen-dataset-json.mts"
   },
   "author": "dsriseah",
   "license": "MIT",
   "dependencies": {
-    "@ursys/core": "file:../_ur"
+    "@ursys/core": "file:../_ur",
+    "txtgen": "^3.0.7"
   }
 }

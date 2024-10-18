@@ -12,10 +12,10 @@ import type { OpResult } from '../_types/dataset';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DATASET_DIRNAMES = [
   // see dataset.d.ts UR_Dataset
-  'docfolder',
-  'itemlist',
-  'stringlist',
-  'filelist',
+  'docfolders',
+  'itemlists',
+  'stringlists',
+  'filelists',
   'appconfig',
   'runconfig',
   'runstate',

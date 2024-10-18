@@ -86,13 +86,13 @@ function CloseBin(itemset: DataBin): BinOpRes {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** confirm that parameters are correct for synchronizing data */
 function m_CheckSyncData(data: SyncDataReq) {
-  const { cName, accToken, ids, items } = data;
+  const { binID, accToken, ids, items } = data;
   // required params
   if (accToken === undefined) return { error: 'cType, accToken is required' };
-  if (!cName) return { error: 'cName is required' };
-  if (typeof cName !== 'string') return { error: 'cName must be a string' };
-  if (DATA.getDataBin(cName) === undefined)
-    return { error: `itemset ${cName} not found` };
+  if (!binID) return { error: 'binID is required' };
+  if (typeof binID !== 'string') return { error: 'binID must be a string' };
+  if (DATA.getDataBin(binID) === undefined)
+    return { error: `itemset ${binID} not found` };
   // optional params
   if (ids) {
     if (!Array.isArray(ids)) return { error: 'ids must be an array' };
@@ -106,7 +106,7 @@ function m_CheckSyncData(data: SyncDataReq) {
   }
   // everything good, then return the data
   const cType = 'ItemList';
-  return { cName, cType, accToken, ids, items };
+  return { binID, cType, accToken, ids, items };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** confirm that parameters are correct for connecting to a datastore */
@@ -118,10 +118,10 @@ function m_CheckDatastoreData(data: DatastoreReq) {
 }
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_NotifyClients(cName: DataBinID, cType: string, data: any) {
+function m_NotifyClients(binID: DataBinID, cType: string, data: any) {
   const EP = ServerEndpoint();
   const seqNum = SEQ_NUM++;
-  EP.netSignal('SYNC:CLI_DATA', { cName, cType, seqNum, ...data });
+  EP.netSignal('SYNC:CLI_DATA', { binID, cType, seqNum, ...data });
 }
 
 /// URNET DATASET CONNECTION //////////////////////////////////////////////////
@@ -137,9 +137,9 @@ function HookDatastoreServices() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function HookServerDataSync() {
   AddMessageHandler('SYNC:SRV_DATA_INIT', async (params: SyncDataReq) => {
-    const { cName, cType, accToken, error } = m_CheckSyncData(params);
+    const { binID, cType, accToken, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getDataBin(cName);
+    const itemset = DATA.getDataBin(binID);
     itemset.clear();
     const items = itemset.getItems();
     return { items };
@@ -147,60 +147,60 @@ function HookServerDataSync() {
 
   /** accept optional id[], return { items, error } */
   AddMessageHandler('SYNC:SRV_DATA_GET', async (params: SyncDataReq) => {
-    const { cName, cType, accToken, ids, error } = m_CheckSyncData(params);
+    const { binID, cType, accToken, ids, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getDataBin(cName);
+    const itemset = DATA.getDataBin(binID);
     return itemset.read(ids);
   });
 
   /** accept item[], return { added, error } */
   AddMessageHandler('SYNC:SRV_DATA_ADD', async (params: SyncDataReq) => {
-    const { cName, cType, accToken, items, error } = m_CheckSyncData(params);
+    const { binID, cType, accToken, items, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getDataBin(cName);
+    const itemset = DATA.getDataBin(binID);
     const addObj = itemset.add(items);
-    m_NotifyClients(cName, cType, addObj);
+    m_NotifyClients(binID, cType, addObj);
     return addObj;
   });
 
   /** accept item[], return { updated, error } */
   AddMessageHandler('SYNC:SRV_DATA_UPDATE', async (params: SyncDataReq) => {
-    const { cName, cType, accToken, items, error } = m_CheckSyncData(params);
+    const { binID, cType, accToken, items, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getDataBin(cName);
+    const itemset = DATA.getDataBin(binID);
     const updObj = itemset.update(items);
-    m_NotifyClients(cName, cType, updObj);
+    m_NotifyClients(binID, cType, updObj);
     return updObj;
   });
 
   /** accepts item[], return { added, updated, error } */
   AddMessageHandler('SYNC:SRV_DATA_WRITE', async (params: SyncDataReq) => {
-    const { cName, cType, accToken, items, error } = m_CheckSyncData(params);
+    const { binID, cType, accToken, items, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getDataBin(cName);
+    const itemset = DATA.getDataBin(binID);
     const writObj = itemset.write(items);
-    m_NotifyClients(cName, cType, writObj);
+    m_NotifyClients(binID, cType, writObj);
     return writObj;
   });
 
   /** accepts item[], return { replace, error } */
   AddMessageHandler('SYNC:SRV_DATA_REPLACE', async (params: SyncDataReq) => {
-    const { cName, cType, accToken, items, error } = m_CheckSyncData(params);
+    const { binID, cType, accToken, items, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getDataBin(cName);
+    const itemset = DATA.getDataBin(binID);
     const oldItems = itemset.replace(items); // returns the old items
     const replaced = [...items];
-    m_NotifyClients(cName, cType, { replaced, oldItems });
+    m_NotifyClients(binID, cType, { replaced, oldItems });
     return oldItems;
   });
 
   /** accepts id[], returning deleted:items[] */
   AddMessageHandler('SYNC:SRV_DATA_DELETE', async (params: SyncDataReq) => {
-    const { cName, cType, accToken, ids, error } = m_CheckSyncData(params);
+    const { binID, cType, accToken, ids, error } = m_CheckSyncData(params);
     if (error) return { error };
-    const itemset = DATA.getDataBin(cName);
+    const itemset = DATA.getDataBin(binID);
     const result = itemset.deleteIDs(ids);
-    m_NotifyClients(cName, cType, result);
+    m_NotifyClients(binID, cType, result);
     return result;
   });
 }

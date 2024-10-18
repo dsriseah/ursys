@@ -27,6 +27,14 @@ const { BLU, YEL, RED, DIM, NRM } = ANSI;
 const LOG = makeTerminalOut('SNA.NET', 'TagCyan');
 const DBG = true;
 
+/// API: SERVER RUNTIME ///////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: return the root directory, runtime directory */
+function SNA_RuntimeInfo() {
+  const { asset_dir, output_dir, runtime_dir } = APPBUILD.GetBuildOptions();
+  return { asset_dir, output_dir, runtime_dir };
+}
+
 /// API: BUILD APPSERVER //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: SNA_Build imports scripts provided folder. Hide dependent scripts in
@@ -116,7 +124,8 @@ function m_NotifyCallback(payload: { changed: string }) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   // sna process
-  SNA_Build
+  SNA_Build,
+  SNA_RuntimeInfo
 };
 export {
   AddMessageHandler,

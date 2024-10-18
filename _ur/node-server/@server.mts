@@ -10,6 +10,7 @@
 import * as ADDON from './ur-addon-mgr.mts';
 import * as APPSERV from './appserver.mts';
 import * as APPBUILD from './appbuilder.mts';
+import * as ASSET from '../common/util-data-asset.ts';
 import * as FILE from './file.mts';
 import * as PROC from './process.mts';
 import * as TEXT from '../common/util-text.ts';
@@ -87,6 +88,7 @@ export {
   // server-based services
   APPSERV, // application server
   APPBUILD, // application builder
+  ASSET, // asset management
   //
   SNA, // Sri New Architecture (SNA)
   ADDON, // ur module manager,

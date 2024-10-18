@@ -211,26 +211,3 @@ export type ItemStatsResult = {
   groups?: { [test: string]: UR_Item[] };
   [stat: string]: any;
 };
-
-/// RESOURCE TYPES ////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Resources are file-based data structures that conform to a schema */
-export type ResourceUID = string; // unique snake_case resource identifier
-export type ResourceKey = string; // non-unique resource URI
-export type ManifestItem = {
-  res_name: ResourceKey; // type of resource
-  uri: string; // location of resource
-  [propertyName: PropName]: any; // related properties for resource
-};
-export type TemplateUID = string; // must be unique within a schema
-
-/// TEMPLATE TYPES ////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** A template is a collection of properties defined in schema */
-type UR_Template = {
-  _schema: UR_SchemaID;
-  template_name: BagName;
-  fields: {
-    [templateProperty: PropName]: any;
-  };
-};

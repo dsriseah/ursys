@@ -5,7 +5,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
-import { SNA_Build } from './sna-node-urnet-server.mts';
+import { SNA_Build, SNA_RuntimeInfo } from './sna-node-urnet-server.mts';
 import {
   SNA_Hook,
   SNA_LifecycleStatus,
@@ -58,7 +58,8 @@ export {
   SNA_Build as Build,
   SNA_Start as Start,
   SNA_Status as Status,
-  SNA_Hook as Hook
+  SNA_Hook as Hook,
+  SNA_RuntimeInfo as RuntimeInfo
 };
 export {
   HookPhase,

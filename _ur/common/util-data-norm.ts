@@ -23,11 +23,11 @@ import type { UR_EntID, DataObj, UR_Item } from '../_types/dataset.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given an ID, return a new ID that is guaranteed to be a string by converting
  *  numbers to strings */
-function m_NormItemID(id: UR_EntID): UR_EntID {
-  const fn = 'm_NormItemID:';
+function m_NormEntityID(id: UR_EntID): UR_EntID {
+  const fn = 'm_NormEntityID:';
   if (typeof id === 'string') return id;
   if (typeof id === 'number') return String(id);
-  throw Error(`${fn} invalid id ${id} typeof ${typeof id}`);
+  return undefined;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Shallow normalize a single DataObj, which does not have _id field.
@@ -39,7 +39,8 @@ function m_NormDataObj(obj: DataObj): [DataObj, foundID: string] {
   const norm = {};
   for (const key of Object.keys(obj)) {
     if (key === '_id') {
-      foundID = m_NormItemID(obj[key]);
+      foundID = m_NormEntityID(obj[key]);
+      if (foundID === undefined) throw Error(`${fn} invalid _id ${obj[key]}`);
       continue;
     }
     if (typeof obj[key] === 'string') {
@@ -87,7 +88,9 @@ function NormItems(items: UR_Item[], schema?: any): [UR_Item[], error?: string] 
  *  to be strings, or undefined if any id is not a string */
 function NormIDs(ids: string[] | number[]): UR_EntID[] {
   const fn = 'NormItemIDs:';
-  return ids.map(id => m_NormItemID(id));
+  let normed = ids.map(id => m_NormEntityID(id));
+  // if any ids in normed are undefined, return undefined
+  if (normed.includes(undefined)) return undefined;
 }
 
 /// ITEM CLONING //////////////////////////////////////////////////////////////
@@ -150,9 +153,10 @@ function DeepClone(obj: any): any {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
+  m_NormEntityID as NormEntID, // normalize an ID
   NormItem, // normalize a single object for serialized storage
   NormItems, // normalize multiple objects for storage
-  NormIDs, // addar should be strings
+  NormIDs, //  should be strings
   //
   DeepClone,
   DeepCloneObject,

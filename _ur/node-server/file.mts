@@ -63,28 +63,31 @@ const u_short = p => {
 
 /// DETECTION METHODS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Scan for parent directory that contains a file that uniquely appears in it
+ *  Optionally pass any directory below the root of the project */
+function FindParentDir(rootFile: string, startDir?: string): string {
+  const fileUrl = import.meta.url || `file://${process.cwd()}`;
+  let currentDir = startDir || url.fileURLToPath(new URL('.', fileUrl));
+  // declare check function
+  const u_check_dir = dir => FSE.existsSync(PATH.join(dir, rootFile));
+  // walk up the directory tree
+  while (currentDir !== PATH.parse(currentDir).root) {
+    if (u_check_dir(currentDir)) return currentDir;
+    currentDir = PATH.resolve(currentDir, '..');
+  }
+  return undefined;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Scan for parent directory that contains a file that uniquely appears in the
  *  root directory of the project.  To work, pass any directory below the
  *  root of the project. By default, it searches for the .nvmrc file that's
- *  always in an URSYS repo.
- */
-function DetectedRootDir(rootfile: string = '.nvmrc'): string {
+ *  always in an URSYS repo. */
+function DetectedRootDir(rootFile: string = '.nvmrc'): string {
   if (typeof ROOT === 'string') return ROOT;
-  const fileUrl = import.meta.url || `file://${process.cwd()}`;
-  let currentDir = url.fileURLToPath(new URL('.', fileUrl));
-  const check_dir = dir => FSE.existsSync(PATH.join(dir, rootfile));
-  // walk through parent directories until root is reached
-  while (currentDir !== PATH.parse(currentDir).root) {
-    // LOG(`DetectedRootDir: checking ${currentDir}`);
-    if (check_dir(currentDir)) {
-      ROOT = currentDir;
-      return ROOT;
-    }
-    currentDir = PATH.resolve(currentDir, '..');
-  }
-  // If reached root and file not found by loop
-  return undefined;
+  ROOT = FindParentDir(rootFile);
+  return ROOT;
 }
+
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** when run from an addon directory, return the path to the addon directory
  *  and the detected addon name */
@@ -369,6 +372,7 @@ export {
   GetRootDirs,
   DetectedRootDir,
   DetectedAddonDir,
+  FindParentDir,
   AbsLocalPath,
   RelLocalPath,
   TrimPath,

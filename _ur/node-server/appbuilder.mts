@@ -18,6 +18,7 @@ type BuildOptions = {
   source_dir?: string; // base directory for javascript sources
   asset_dir?: string; // path to static assets to copy
   output_dir?: string; // path to write bundle and assets
+  runtime_dir?: string; // (opt) path to runtime data directory
   //
   entry_file?: string; // main entry file for the app
   index_file?: string; // default index file for web server
@@ -39,6 +40,7 @@ const DBG = false;
 let SRC_JS: string; // javascript sources to build
 let SRC_ASSETS: string; // asset sources
 let PUBLIC: string; // destination for built files, copied assets
+let RUNTIME: string; // convenience runtime data directory
 let BUNDLE_NAME: string; // name of the bundle file
 let NOTIFY_CB: NotifyCallback; // callback to notify on build
 let ENTRY_FILE: string; // default entry file for the app
@@ -60,6 +62,7 @@ function GetBuildOptions(): BuildOptions {
     source_dir: SRC_JS,
     asset_dir: SRC_ASSETS,
     output_dir: PUBLIC,
+    runtime_dir: RUNTIME,
     //
     entry_file: ENTRY_FILE,
     index_file: INDEX_FILE,
@@ -76,6 +79,7 @@ function SetBuildOptions(opts: BuildOptions) {
     source_dir,
     asset_dir,
     output_dir,
+    runtime_dir,
     entry_file,
     index_file,
     bundle_name,
@@ -86,6 +90,7 @@ function SetBuildOptions(opts: BuildOptions) {
   SRC_JS = source_dir;
   SRC_ASSETS = asset_dir;
   PUBLIC = output_dir;
+  RUNTIME = runtime_dir || `${source_dir}/_runtime`;
   ENTRY_FILE = entry_file;
   INDEX_FILE = index_file;
   BUNDLE_NAME = bundle_name;
