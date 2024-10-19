@@ -11,11 +11,12 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { SNA, DataBin, ConsoleStyler } from '@ursys/core';
+import DUMMY_DATA from './dataset-dummy.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj, SyncDataRes } from '@ursys/types';
-import type { SNA_Module } from '@ursys/types';
+import type { DataObj, SyncDataRes, OpResult } from 'tsconfig/types';
+import type { SNA_Module, SNA_EvtName } from 'tsconfig/types';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,12 +28,18 @@ let COMMENT_BIN: DataBin; // set ddataURIng initial LoadDataHook()
 /// APP LIFECYCLE METHODS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given dataset dataURI */
-async function LoadDataHook(dataURI: string) {
+async function LoadDataHook() {
+  let dataURI = 'sri.org:bucket-1234/sna-app/project-one';
   LOG(...PR('LoadDataHook'), dataURI);
   const opts = { mode: 'local' };
-  const resConfig = await DCLI.Configure({ dataURI, opts });
-  const resData = await DCLI.LoadData();
-  if (resData.error) throw Error(`onData ${resData.error}`);
+  let res: OpResult;
+  res = await DCLI.Configure(dataURI, opts);
+  if (res.error) throw Error(`Configure ${res.error}`);
+  res = await DCLI.SetDataFromObject(DUMMY_DATA);
+  if (res.error) throw Error(`SetDataFromObject ${res.error}`);
+  res = DCLI.Subscribe('comments', HandleDataEvent);
+  if (res.error) throw Error(`Subscribe ${res.error}`);
+  // after DCLI.LoadData(), notification to HandleDataEvent should occur
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** example of using dataclient */
@@ -44,16 +51,18 @@ async function DoSomething() {
 
 /// DATA LIFECYCLE METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** handle data change */
-function HandleDataChange(sync: SyncDataRes) {
-  LOG(...PR('HandleDataChange'));
+/** handle data change from subscriber */
+function HandleDataEvent(evt: SNA_EvtName, data: SyncDataRes) {
+  LOG(...PR(`HandleDataEvent: '${evt}' with data:`), data);
   UpdateDerivedData();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** after data change */
 function UpdateDerivedData() {
-  LOG(...PR('UpdateDerivedData'));
+  LOG(...PR('UpdateDerivedData:'));
   // update the derived data
+  const items = DCLI.Get('comments');
+  LOG(...PR('grabbing items to derive'), items);
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
@@ -77,19 +86,29 @@ async function AddComment(cmo: DataObj) {}
 /** API: component initialization hook*/
 function SNA_Init() {
   LOG(...PR('INIT'), 'dc-comments');
-  SNA.Hook('LOAD_DATA', LoadDataHook);
+  SNA.Hook('LOAD_DATA', () => LoadDataHook());
   SNA.Hook('APP_CONFIG', () => {
-    console.log('app is ready to configure');
+    console.log('APP_CONFIG: ');
+    const items = DCLI.Get('comments');
+    console.log('APP_CONFIG: loaded items', items);
+    let res: OpResult;
+    const sriItem = { author: 'Sri', text: 'hello' };
+    console.log('APP_CONFIG: adding item', sriItem);
+    res = DCLI.Add('comments', [sriItem]);
+    console.log('result of DCLI.Add', res);
+    // should fire HandleDataEvent
   });
 }
+
+/// OUR OWN NOTIFIERS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Notifiers */
-function SNA_Subscribe(evtType, evtHandler) {
+function SNA_Sub(evtType, evtHandler) {
   // if (evtType === 'change') {
   //   comments.on('change', evtHandler);
   // }
 }
-function SNA_Ubsubscribe(evtType, evtHandler) {
+function SNA_Unsub(evtType, evtHandler) {
   // if (evtType === 'change') {
   //   comments.off('change', evtHandler);
   // }
@@ -97,14 +116,19 @@ function SNA_Ubsubscribe(evtType, evtHandler) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const SNA_MODULE: SNA_Module = {
   Init: SNA_Init,
-  On: SNA_Subscribe,
-  Off: SNA_Ubsubscribe
+  On: SNA_Sub,
+  Off: SNA_Unsub
 };
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default SNA_MODULE;
 export {
-  // static methods
+  // SNA MODULE META
+  // used for SNA to initialize and manage the module
+  SNA_Init as Init,
+  SNA_Sub as On,
+  SNA_Unsub as Off,
+  // API
   DoSomething
 };
