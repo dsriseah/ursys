@@ -52,6 +52,10 @@ function SNA_Status(): OpResult {
   };
 }
 
+/// SNA MODULES PACKAGING /////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import * as MOD_DataServer from './sna-dataserver.mts';
+
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
@@ -59,7 +63,9 @@ export {
   SNA_Start as Start,
   SNA_Status as Status,
   SNA_Hook as Hook,
-  SNA_RuntimeInfo as RuntimeInfo
+  SNA_RuntimeInfo as RuntimeInfo,
+  // sna modules
+  MOD_DataServer
 };
 export {
   HookPhase,

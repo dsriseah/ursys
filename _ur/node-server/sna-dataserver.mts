@@ -128,7 +128,7 @@ function m_NotifyClients(binID: DataBinID, cType: string, data: any) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function HookDatastoreServices() {
   /** accept */
-  AddMessageHandler('SYNC:SRV_LOAD_DATASTORE', async (params: DatastoreReq) => {
+  AddMessageHandler('SYNC:SRV_DSET_LOAD', async (params: DatastoreReq) => {
     const { dataURI } = m_CheckDatastoreData(params);
   });
 }
@@ -141,7 +141,7 @@ function HookServerDataSync() {
     if (error) return { error };
     const itemset = DATA.getDataBin(binID);
     itemset.clear();
-    const items = itemset.getItems();
+    const items = itemset.get();
     return { items };
   });
 
@@ -210,6 +210,7 @@ function HookServerDataSync() {
 /** declare the data message handler when the express server is ready,
  *  just before listening */
 SNA_Hook('EXPRESS_READY', HookServerDataSync);
+SNA_Hook('EXPRESS_READY', HookDatastoreServices);
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

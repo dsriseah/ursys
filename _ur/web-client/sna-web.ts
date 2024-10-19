@@ -58,34 +58,9 @@ function SNA_Status() {
   };
 }
 
-/// SNA MODULES EXPORTS ///////////////////////////////////////////////////////
+/// SNA MODULES PACKAGING /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import {
-  Configure,
-  Get,
-  Add,
-  Update,
-  Write,
-  Delete,
-  DeleteIDs,
-  Replace,
-  Init,
-  Find,
-  Query
-} from './sna-dataclient.ts';
-const MOD_DataClient = {
-  Configure,
-  Get,
-  Add,
-  Update,
-  Write,
-  Delete,
-  DeleteIDs,
-  Replace,
-  Init,
-  Find,
-  Query
-};
+import * as MOD_DataClient from './sna-dataclient.ts';
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
