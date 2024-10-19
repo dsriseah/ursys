@@ -7,29 +7,39 @@
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { OpResult } from '../_types/dataset';
+import type { DataBinID, DataBinType } from '../_types/dataset';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATASET_DIRNAMES = [
-  // see dataset.d.ts UR_Dataset
-  'docfolders',
-  'itemlists',
-  'stringlists',
-  'filelists',
-  'appconfig',
-  'runconfig',
-  'runstate',
-  'runlogs',
-  'templates'
-];
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DATASET_MODES = ['local', 'sync', 'sync-read', 'sync-write'];
+const DATASET_INFO = {
+  'DocFolders': { dir: 'docfolders', type: 'DocFolder' },
+  'ItemLists': { dir: 'itemlists', type: 'ItemList' }
+  // 'StringLists': { dir: 'StringList' },
+  // 'FileLists': { dir: 'filelists' },
+  // 'AppConfig': { dir: 'appconfig' },
+  // 'RunConfig': { dir: 'runconfig' },
+  // 'RunState': { dir: 'runstate' },
+  // 'RunLogs': { dir: 'runlogs' },
+  // 'RunSessions': { dir: 'runsessions' },
+  // 'Templates': { dir: 'templates' }
+};
+/** derived constants - - - - - - - - - - - - - - - - - - - - - - - - - - - **/
+const DATASET_BINS = Object.keys(DATASET_INFO) as DataBinType[];
+const DATASET_DIRS = Object.values(DATASET_INFO).map(v => v.dir);
+
+/// ACCESSORS /////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return a copy of the dataset databin keys */
+function GetDatasetObjectProps() {
+  return [...DATASET_BINS];
+}
 
 /// ASSET API METHODS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** returns true if the given dirname is a valid asset directory name */
 function IsAssetDirname(dirname: string): boolean {
-  return DATASET_DIRNAMES.includes(dirname);
+  return DATASET_DIRS.includes(dirname);
 }
 
 /// DATASET API METHODS ///////////////////////////////////////////////////////
@@ -39,7 +49,10 @@ function DecodeDataURI(dataURI: string): OpResult {
   // `${OrgDomain}:${BucketID}/${InstanceID}?${SetQuery}`
   if (typeof dataURI !== 'string') return { error: 'not a string' };
   const [param1, param2, ...extra] = dataURI.split(':');
-  if (extra) return { error: 'invalid segments in dataURI' };
+  if (extra.length > 0) {
+    console.log('extra', extra);
+    return { error: 'unexpected extra segments in dataURI' };
+  }
   if (param2 === undefined) return { error: 'missing bucket/instance' };
   const [param3, queryTags] = param2.split('?');
   if (param3 === undefined) return { error: 'missing uri segment' };
@@ -55,7 +68,7 @@ function DecodeDataURI(dataURI: string): OpResult {
 function DecodeDataConfig(configObj: any): OpResult {
   if (configObj === undefined) return { error: 'missing configObj' };
   const { mode } = configObj;
-  if (!mode.includes(DATASET_MODES)) return { error: 'invalid mode' };
+  if (!DATASET_MODES.includes(mode)) return { error: 'invalid mode' };
   return { mode };
 }
 
@@ -71,17 +84,21 @@ function IsValidDataConfig(configObj: any): boolean {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default {
+const MOD = {
   IsAssetDirname,
   IsValidDataURI,
   IsValidDataConfig,
   DecodeDataURI,
-  DecodeDataConfig
+  DecodeDataConfig,
+  GetDatasetObjectProps
 };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export default MOD;
 export {
   IsAssetDirname,
   IsValidDataURI,
   IsValidDataConfig,
   DecodeDataURI,
-  DecodeDataConfig
+  DecodeDataConfig,
+  GetDatasetObjectProps
 };

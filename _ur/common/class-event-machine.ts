@@ -54,14 +54,14 @@ class EventMachine {
 
   /** require a unique class name for the event machine */
   constructor(emClass: EVM_Class) {
-    if (!this._okClass(emClass)) throw Error(`bad emClass ${emClass}`);
+    if (!this._okClassName(emClass)) throw Error(`bad classname ${emClass}`);
     this.emClass = emClass;
     this.listeners = new Map();
     m_machines.set(emClass, this);
   }
 
   /** validate event class name, which must be lower_snake_case */
-  _okClass(eventClass: EVM_Class) {
+  _okClassName(eventClass: EVM_Class) {
     let validClass = typeof eventClass === 'string' && eventClass.length > 0;
     validClass = validClass && eventClass.indexOf('_') !== -1;
     validClass = validClass && eventClass === eventClass.toLowerCase();
@@ -71,7 +71,7 @@ class EventMachine {
   /// EVENT NAME REGISTRATION ///
 
   /** validate event names  */
-  _okEvent(eventName: SNA_EvtName) {
+  _okEventName(eventName: SNA_EvtName) {
     let validType = typeof eventName === 'string' && eventName.length > 0;
     validType = validType && eventName[0] === eventName[0].toLowerCase();
     if (this.eventNames !== undefined)
@@ -81,7 +81,7 @@ class EventMachine {
 
   /** define event descriptions for the event machine */
   defineEvent(eventName: SNA_EvtName, eventDesc: EVM_Descriptor) {
-    if (!this._okEvent(eventName)) throw Error(`bad event name ${eventName}`);
+    if (!this._okEventName(eventName)) throw Error(`bad event name ${eventName}`);
     if (this.eventNames.has(eventName)) throw Error('Event name already defined');
     if (this.eventNames === undefined) this.eventNames = new Map();
     this.eventNames.set(eventName, eventDesc);
@@ -89,26 +89,27 @@ class EventMachine {
 
   /// EVENT MACHINE METHODS ///
 
-  /** Add a listener for an event */
+  /** Add a listener for an event. You can subscribe '*' wildcard event handlers */
   on(eventName: SNA_EvtName, listener: SNA_EvtHandler) {
-    if (!this._okEvent(eventName)) throw Error(`bad event name ${eventName}`);
+    if (!this._okEventName(eventName)) throw Error(`bad event name ${eventName}`);
     if (!this.listeners.has(eventName)) {
       this.listeners.set(eventName, new Set());
     }
     this.listeners.get(eventName).add(listener);
   }
 
-  /** Remove a listener for an event */
+  /** Remove a listener for an event. Remove '*' wildcard events here too */
   off(eventName: SNA_EvtName, listener: SNA_EvtHandler) {
-    if (!this._okEvent(eventName)) throw Error(`bad event name ${eventName}`);
+    if (!this._okEventName(eventName)) throw Error(`bad event name ${eventName}`);
     if (this.listeners.has(eventName)) {
       this.listeners.get(eventName).delete(listener);
     }
   }
 
-  /** Add a one-time listener for an event */
+  /** Add a one-time listener for an event. Wildcard '*' listeners are disallowed. */
   once(eventName: SNA_EvtName, listener: SNA_EvtHandler) {
-    if (!this._okEvent(eventName)) throw Error(`bad event name ${eventName}`);
+    if (!this._okEventName(eventName)) throw Error(`bad event name ${eventName}`);
+    if (eventName === '*') throw Error('wildcard once events are not allowed');
     const onceListener = (eventName: SNA_EvtName, param: DataObj) => {
       listener(eventName, param);
       this.off(eventName, onceListener);
@@ -116,14 +117,25 @@ class EventMachine {
     this.on(eventName, onceListener);
   }
 
-  /** Emit an event with optional arguments */
-  emit(eventName: SNA_EvtName, param: DataObj) {
-    if (!this._okEvent(eventName)) throw Error(`bad event name ${eventName}`);
+  /** Emit an event with optional arguments. Wildcard event listeners are registered to
+   *  '*' and fired on every event */
+  emit(eventName: SNA_EvtName, param?: DataObj) {
+    if (!this._okEventName(eventName)) throw Error(`bad event name ${eventName}`);
+    const dispatchTo = new Set<SNA_EvtHandler>();
     if (this.listeners.has(eventName)) {
       this.listeners.get(eventName).forEach(listener => {
-        listener(eventName, param);
+        dispatchTo.add(listener);
       });
     }
+    if (this.listeners.has('*')) {
+      this.listeners.get('*').forEach(listener => {
+        dispatchTo.add(listener);
+      });
+    }
+    dispatchTo.forEach(listener => {
+      listener(eventName, param);
+    });
+    dispatchTo.clear();
   }
 }
 

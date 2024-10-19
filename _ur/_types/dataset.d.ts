@@ -59,7 +59,7 @@ export type UR_DatasetObj = {
   // see https://github.com/dsriseah/ursys/discussions/25 for more on this list
   DocFolders?: { [foldername: DataBinID]: UR_DocFolder };
   ItemLists?: { [listname: DataBinID]: UR_ItemList };
-  // stringlist
+  // stringlists
   // filelist
   // appconfig
   // runconfig
@@ -67,6 +67,7 @@ export type UR_DatasetObj = {
   // runlogs
   // runsessions
   // templates
+  // Also see util-data-assets.ts for the equivalent foldernames
 };
 
 /// DATASET SYNC TYPES ////////////////////////////////////////////////////////
@@ -110,7 +111,7 @@ export type SyncDataRes = {
   binID: DataBinID;
   binType: DataBinType;
   op: SyncOp;
-  seqNum: number;
+  seqNum?: number;
   // meta
   status?: string;
   error?: string;

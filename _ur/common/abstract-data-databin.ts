@@ -3,7 +3,7 @@
   DataBin is the abstract base class for all collection classes.
 
   abstract class DataBin
-    add, read, update, replace, write, deleteIDs, delete, clear, getItems
+    add, read, update, replace, write, deleteIDs, delete, clear, get
     find, query
     decodeID, _maxID, newID
     on, off, notifyChange
@@ -24,10 +24,15 @@ import type {
   DataBinType,
   //
   SearchOptions,
+  DataObj,
   SyncDataRes,
   OpResult
 } from '../_types/dataset';
 import type { SNA_EvtName, SNA_EvtHandler } from '../_types/sna.d.ts';
+
+/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DBG = true;
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -140,24 +145,26 @@ abstract class DataBin {
   abstract clear(): void;
 
   /** alternative getter returning unwrapped items */
-  abstract getItems(ids?: UR_EntID[]): any[];
+  abstract get(ids?: UR_EntID[]): any[];
 
   /// NOTIFIER METHODS ///
 
   /** add a listener to the event machine */
   on(event: SNA_EvtName, lis: SNA_EvtHandler): void {
-    if (!this._notifier) this._notifier = new EventMachine('itemset');
+    if (!this._notifier) this._notifier = new EventMachine(`databin_${this.name}`);
     this._notifier.on(event, lis);
   }
 
   /** remove a listener from the event machine */
   off(event: SNA_EvtName, lis: SNA_EvtHandler): void {
     if (this._notifier) this._notifier.off(event, lis);
+    throw Error(`off: no notifier for listener ${lis.name}`);
   }
 
   /** notify listeners of 'change' event */
-  notifyChange(data: SyncDataRes): void {
-    if (this._notifier) this._notifier.emit('change', data);
+  notify(evt: SNA_EvtName, data: DataObj): void {
+    if (typeof evt !== 'string') throw Error('notify: evt must be a string');
+    if (this._notifier) this._notifier.emit(evt, data);
   }
 
   /// SEARCH METHODS ///

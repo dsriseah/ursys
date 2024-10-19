@@ -133,6 +133,8 @@ class ItemList extends DataBin {
     // add the items to the _list if no remote
     const added = [...(copies as UR_Item[])];
     this._list.push(...added);
+    // notify subs
+    this.notify('add', { added });
     return { added }; // return a copy of the _list
   }
 
@@ -289,7 +291,7 @@ class ItemList extends DataBin {
   }
 
   /** alternative getter returning unwrapped items */
-  getItems(ids?: UR_EntID[]): UR_Item[] {
+  get(ids?: UR_EntID[]): UR_Item[] {
     const { items } = this.read(ids);
     return items;
   }

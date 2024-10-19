@@ -13,7 +13,7 @@
   is associated with a home location called a "bucket". 
 
   Bins are instances of DataBin, which exposes the following methods:
-    add, read, update, replace, write, deleteIDs, delete, clear, getItems
+    add, read, update, replace, write, deleteIDs, delete, clear, get
     find, query
     on, off
     serializeToJSON, deserializeFromJSON
@@ -114,7 +114,8 @@ class Dataset {
   /** set flags that affect how dataset handles calls to and from
    *  collections */
   setStorageMode(opt: ConfigOptions) {
-    console.log('would set up storage options');
+    const fn = 'setStorageMode:';
+    console.log(`${fn} would set storage mode to ${opt.mode}`);
   }
 
   /// UNIVERSAL BIN METHODS ///
@@ -131,7 +132,10 @@ class Dataset {
     // search first bin
     bin = this.LISTS[binName];
     // search subsequent bins...
-    if (bin === undefined) throw Error(`${fn} bin '${binName}' not found`);
+    if (bin === undefined) {
+      console.log(`${fn} LISTS`, this.LISTS);
+      throw Error(`${fn} bin '${binName}' not found`);
+    }
     return bin;
   }
 
@@ -152,6 +156,7 @@ class Dataset {
   /** API: create a new bin by name and type. */
   createDataBin(binName: DataBinID, binType: DataBinType): DataBin {
     const fn = 'createDataBin:';
+    LOG(`${fn} creating binName: ${binName}, binType: ${binType}`);
     let bin: DataBin;
     switch (binType) {
       case 'ItemList':

@@ -16,6 +16,8 @@ export type SNA_EvtOn = (evt: string, param: DataObj) => void;
 export type SNA_EvtOff = (evt: string, param: DataObj) => void;
 export type SNA_EvtOnce = (evt: string, param: DataObj) => void;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// for code modules, exporting default SNA with SNA_Module is a suggested
+/// practice
 export type SNA_Module = {
   Init: SNA_ModInit;
   On: SNA_EvtOn;
