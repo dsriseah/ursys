@@ -6,8 +6,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { NORM } from '@ursys/core';
-const { NormDocIDs, NormDoc, NormDocFolder } = NORM;
+import { NormDocIDs, NormDoc, NormDocFolder } from './util-data-norm.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -18,7 +17,7 @@ import type {
   UR_Doc, // { _ref: DataBinID; [key: string]: any }
   UR_DocFolder, // { [ref_name: DataBinID]: UR_Doc }
   UR_Item // { _id: UR_EntID; [key: string]: any }
-} from '../../../../_ur/_types/dataset.d.ts';
+} from '../_types/dataset';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

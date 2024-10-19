@@ -11,7 +11,7 @@ import {
   m_EnforceFlags,
   m_GetCriteria
 } from '../lib/util-data-search.ts';
-import type { SearchOptions } from '../../../../_ur/_types/dataset.d.ts';
+import type { SearchOptions } from '../_types/dataset.js';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

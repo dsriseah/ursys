@@ -5,9 +5,8 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import { DocFolder } from '../lib/class-data-docfolder.ts';
-
-import type { UR_Doc } from '../../../../_ur/_types/dataset.d.ts';
+import { DocFolder } from '../common/class-data-docfolder.ts';
+import type { UR_Doc } from '../_types/dataset.js';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

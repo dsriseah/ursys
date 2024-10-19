@@ -6,21 +6,21 @@
 
 import { expect, test } from 'vitest';
 import type { UR_NewItem } from 'tsconfig/types';
-import { DataSet } from '../lib/class-data-dataset.ts';
+import { Dataset } from '../common/class-data-dataset.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATA = new DataSet('test');
+const DATA = new Dataset('test');
 
 test('instantiation', () => {
   expect(DATA).toBeDefined();
-  expect(DATA).toBeInstanceOf(DataSet);
+  expect(DATA).toBeInstanceOf(Dataset);
 });
 
 test('list creation', () => {
   // there should be no lists
   const list = DATA.createItemList('mylist', { idPrefix: 'li' });
-  expect(list.getItems()).toMatchObject([]);
+  expect(list.get()).toMatchObject([]);
 });
 
 test('list item by-ref or value', () => {

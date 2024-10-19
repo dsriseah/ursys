@@ -9,7 +9,7 @@ import { RecordSet } from '../lib/class-data-recordset.ts';
 
 /// TYPE IMPORTS & DEFINITIONS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { UR_Item } from '../../../../_ur/_types/dataset.d.ts';
+import type { UR_Item } from '../_types/dataset.js';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
