@@ -7,7 +7,7 @@
 import type { DataObj, OpResult } from './ursys.d.ts';
 export type * from './ursys.d.ts';
 export type { DataBin } from './class-data-databin.ts';
-export type { Dataset, ConfigOptions } from './class-data-dataset.ts';
+export type { Dataset, SyncOptions } from './class-data-dataset.ts';
 export type { RecordSet } from './class-data-recordset.ts';
 
 /// BASE TYPES ////////////////////////////////////////////////////////////////
@@ -72,16 +72,29 @@ export type UR_DatasetObj = {
 
 /// DATASET SYNC TYPES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** SyncOp is the operations that can be performed on a dataset via
- *  the SYNC:SRV_DATA protocol. */
-export type SyncOp =
-  | 'DATA_INIT' // SYNC:SRV_DATA_INIT clears data
-  | 'DATA_GET' // SYNC:SRV_DATA_GET ( ids? )
-  | 'DATA_ADD' // SYNC:SRV_DATA_ADD ( items )
-  | 'DATA_UPDATE' // SYNC:SRV_DATA_UPDATE ( items )
-  | 'DATA_WRITE' // SYNC:SRV_DATA_WRITE ( items )
-  | 'DATA_DELETE' // SYNC:SRV_DATA_DELETE ( ids )
-  | 'DATA_REPLACE'; // SYNC:SRV_DATA_REPLACE ( items )
+/** SyncDataOp is the operations that can be performed on a dataset via
+ *  the SYNC:SRV_DATA protocol. See util-data-asset for lookup tables */
+export type SyncDataOp =
+  | 'CLEAR'
+  | 'GET'
+  | 'ADD'
+  | 'UPDATE'
+  | 'WRITE'
+  | 'DELETE'
+  | 'REPLACE'
+  | 'FIND'
+  | 'QUERY';
+/** Mode of operation for a dataset source */
+export type SyncDataMode = 'local' | 'local-ro' | 'sync' | 'sync-ro';
+/** these flags are derived from value of SyncDataMode */
+export type SyncDataFlags = {
+  readOnly?: boolean;
+  remote: RemoteStoreAdapter;
+  initOnly?: boolean;
+};
+export type SyncDataOptions = {
+  mode: SyncDataMode;
+};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** sent to dataset source by inquiring clients SYNC:SRV */
 export type DatastoreReq = {
@@ -101,16 +114,18 @@ export type DatastoreRes = {
 /** sent from a dataset source by inquiring clients SYNC:SRV */
 export type SyncDataReq = {
   binID: DataBinID;
+  op: SyncDataOp;
   accToken?: string;
   items?: UR_Item[];
   ids?: UR_EntID[];
+  searchOpt?: SearchOptions;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** sent from a dataset source to a inquiring client SYNC:CLI */
 export type SyncDataRes = {
   binID: DataBinID;
   binType: DataBinType;
-  op: SyncOp;
+  op: SyncDataOp;
   seqNum?: number;
   // meta
   status?: string;
@@ -125,12 +140,12 @@ export type SyncDataRes = {
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** implement functions needed to write data to a remote datastore
- *  . writeData is the async method that writes data to remote datastore
- *  . handleError is the method that handles the return object from writeData
+ *  . syncData is the async method that writes data to remote datastore
+ *  . handleError is the method that handles the return object from syncData
  */
 export type RemoteStoreAdapter = {
   accToken: string;
-  writeData: (op: SyncOp, data: SyncDataReq) => Promise<OpResult>;
+  syncData: (syncPacket: SyncDataReq) => Promise<OpResult>;
   handleError: (opResult: OpResult) => OpResult;
 };
 

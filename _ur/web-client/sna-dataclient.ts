@@ -17,30 +17,29 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler } from '../common/util-prompts.ts';
-import { Hook, AddMessageHandler } from './sna-web.ts';
-import { Dataset } from '../common/class-data-dataset.ts';
 import {
-  DecodeDataURI,
-  DecodeDataConfig,
-  GetDatasetObjectProps
-} from '../common/util-data-asset.ts';
+  Hook,
+  AddMessageHandler,
+  ClientEndpoint,
+  RegisterMessages
+} from './sna-web.ts';
+import { Dataset } from '../common/class-data-dataset.ts';
+import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   OpResult,
   RemoteStoreAdapter,
-  SyncOp,
+  SyncDataOptions,
   SyncDataReq,
   SyncDataRes,
   UR_Item,
   UR_DatasetURI,
   UR_DatasetObj,
-  ConfigOptions,
   SearchOptions,
   RecordSet,
-  SNA_EvtHandler,
-  SNA_EvtName
+  SNA_EvtHandler
 } from '../@ur-types.d.ts';
 //
 
@@ -50,34 +49,107 @@ const PR = ConsoleStyler('SNA-DC', 'TagBlue');
 const LOG = console.log.bind(console);
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let DSET: Dataset;
-let DS_URI: UR_DatasetURI;
-let REMOTE: RemoteStoreAdapter;
-let ACTIONS: { op: SyncOp; data: SyncDataReq }[] = [];
+let DSET: Dataset; // singleton instance of the dataset
+let DS_URI: UR_DatasetURI; // the dataset URI
+
+/// DEFAULT SNA-DATASERVER REMOTE ///////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let F_ReadOnly: boolean = false; // set to true to prevent remote writes
+let F_SyncInit: boolean = false; // set to true to sync data on init
+let REMOTE: RemoteStoreAdapter; // the remote data adapter
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const LocalAdapter: RemoteStoreAdapter = {
+  accToken: '',
+  syncData: async (syncReq: SyncDataReq) => {
+    const EP = ClientEndpoint();
+    if (EP) {
+      const res = await EP.netCall('SYNC:SRV_DATA', syncReq);
+      return res;
+    }
+  },
+  handleError: (result: OpResult) => {
+    return { error: 'no remote data adapter set' };
+  }
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** 'SYNC:DATA_CLI' handler for incoming data sync messages from dataserver */
+function HandleSyncData(sync: SyncDataRes) {
+  const { binID, binType, seqNum, status, error, skipped } = sync;
+  const { items, updated, added, deleted, replaced } = sync;
+  const bin = DSET.getDataBin(binID);
+
+  /*** handle error conditions ***/
+  if (bin === undefined) {
+    LOG(...PR('ERROR: Bin not found:', binID));
+    return;
+  }
+  if (error) {
+    LOG(...PR('ERROR:', error));
+    return;
+  }
+  if (Array.isArray(skipped)) {
+    LOG(...PR('ERROR: skipped:', skipped));
+    return;
+  }
+  /*** handle change arrays ***/
+  if (Array.isArray(items)) bin.write(items);
+  if (Array.isArray(updated)) bin.update(updated);
+  if (Array.isArray(added)) bin.add(added);
+  if (Array.isArray(deleted)) bin.delete(deleted);
+  if (Array.isArray(replaced)) bin.replace(replaced);
+}
 
 /// DATASET LOCAL API /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** creates a new Dataset with the associated dsURI but does not perform
- *  any operations
+ *  any operations.
  *  dataURI looks like 'sri.org:bucket-1234/sna-app/project-one'
  */
-async function Configure(
-  dsURI: UR_DatasetURI,
-  opt: ConfigOptions
-): Promise<OpResult> {
+async function Configure(dsURI: UR_DatasetURI, opt: SyncDataOptions) {
   const fn = 'SetDataURI:';
+  if (DSET !== undefined) throw Error(`${fn} dataset already set`);
+  //
   let res: OpResult;
   res = DecodeDataURI(dsURI);
   if (res.error) return { error: `DecodeDataURI ${res.error}` };
-  const { mode } = DecodeDataConfig(opt);
+  res = DecodeDataConfig(opt);
   if (res.error) return { error: `DecodeDataConfig ${res.error}` };
-  // make sure that the dataset is not already set
-  if (DSET !== undefined) throw Error(`${fn} dataset already set`);
+  const { mode } = res;
   // configure!
   DS_URI = dsURI;
   DSET = new Dataset(DS_URI);
-  DSET.setStorageMode(mode);
-  return { dsURI, configOpt: opt };
+  switch (mode) {
+    case 'local':
+      F_ReadOnly = false;
+      F_SyncInit = false;
+      REMOTE = undefined;
+      break;
+    case 'local-ro':
+      F_ReadOnly = true;
+      F_SyncInit = false;
+      REMOTE = undefined;
+      break;
+    case 'sync':
+      F_ReadOnly = false;
+      F_SyncInit = true;
+      REMOTE = LocalAdapter;
+      break;
+    case 'sync-ro':
+      F_ReadOnly = true;
+      F_SyncInit = true;
+      REMOTE = LocalAdapter;
+      break;
+    default:
+      return { error: `unknown mode ${mode}` };
+  }
+  if (REMOTE) {
+    AddMessageHandler('SYNC:CLI_DATA', HandleSyncData);
+
+    await RegisterMessages();
+  }
+  // return the dataset URI, adapter, messages
+  // it's up to the caller to register messages
+  return { dsURI, adapter: REMOTE, handlers: ['SYNC:CLI_DATA'] };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** sets the dataset's content from a UR_DatasetObj. must be called after
@@ -114,154 +186,138 @@ async function SetDataFromConfigURI(): Promise<OpResult> {
   // TODO: hook dataserver updates to the dataset and notify subscribers
 }
 
-/// DATASET REMOTE API ////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// for direct interfacing to the dataset manager (client side instance)
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** SUPPORT: process the operation queue until it is clear */
-async function m_ProcessOpQueue(): Promise<void> {
-  const fn = 'm_ProcessOpQueue:';
-  if (REMOTE === undefined) {
-    console.error(`${fn} no remote data adapter set`);
-    return;
-  }
-  if (ACTIONS.length === 0) return;
-  // process all actions in the queue
-  while (ACTIONS.length > 0) {
-    const { op, data } = ACTIONS.shift();
-    // wait for the result of the writeData operation
-    const result = await REMOTE.writeData(op, data);
-    // if there is an error, use implementation-specific error handling
-    // to determine if the error is fatal or not. it's up to the
-    // handleError method return error if it couldn't handle it.
-    if (result.error) {
-      const errHandled = REMOTE.handleError(result);
-      if (!errHandled.error) return;
-      throw Error(`${fn} fatal writeData error: ${errHandled.error}`);
-    }
-  }
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: define the remote data adapter */
-function SetRemoteDataAdapter(adapter: RemoteStoreAdapter): void {
-  const fn = 'SetRemoteDataAdapter:';
-  // check adapter integrity
-  if (!adapter) throw Error(`${fn} adapter must be type RemoteStoreAdapter`);
-  const { writeData, handleError, accToken } = adapter;
-  if (typeof writeData !== 'function')
-    throw Error(`${fn} adapter must have writeData method`);
-  if (typeof handleError !== 'function')
-    throw Error(`${fn} adapter must have handleError method`);
-  if (typeof accToken !== 'string')
-    throw Error(`${fn} adapter must have accToken string`);
-  REMOTE = adapter;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: queue an operation to persist data to the server, if one is defined */
-function QueueRemoteDataOp(op: SyncOp, data: SyncDataReq): void {
-  const fn = 'QueueRemoteDataOp:';
-  if (REMOTE === undefined) {
-    console.error(`${fn} no remote data adapter set`);
-    return;
-  }
-  ACTIONS.push({ op, data });
-  m_ProcessOpQueue();
-}
-
 /// DATASET OPERATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Get(binID: string, ids: string[]) {
-  const data: SyncDataReq = { binID, ids };
+async function Get(binID: string, ids: string[]): Promise<OpResult> {
+  const syncReq: SyncDataReq = { op: 'GET', binID, ids };
   if (REMOTE) {
-    QueueRemoteDataOp('DATA_GET', data);
-    return;
+    const res = await REMOTE.syncData(syncReq);
+    return res;
   }
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.get(ids);
   throw Error(`Get: bin ${binID} not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Add(binID: string, items: UR_Item[]): OpResult {
-  const data: SyncDataReq = { binID, items };
+async function Add(binID: string, items: UR_Item[]): Promise<OpResult> {
+  if (F_ReadOnly) return { error: 'readonly mode' };
+  const syncReq: SyncDataReq = { op: 'ADD', binID, items };
   if (REMOTE) {
-    QueueRemoteDataOp('DATA_ADD', data);
-    return { queued: true };
+    const res = await REMOTE.syncData(syncReq);
+    return res;
   }
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.add(items);
   throw Error(`Add: bin ${binID} not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Update(binID: string, items: UR_Item[]) {
-  const data: SyncDataReq = { binID, items };
+async function Update(binID: string, items: UR_Item[]): Promise<OpResult> {
+  if (F_ReadOnly) return { error: 'readonly mode' };
+  const syncReq: SyncDataReq = { op: 'UPDATE', binID, items };
   if (REMOTE) {
-    QueueRemoteDataOp('DATA_UPDATE', data);
-    return;
+    const res = await REMOTE.syncData(syncReq);
+    return res;
   }
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.update(items);
   throw Error(`Update: bin ${binID} not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Write(binID: string, items: UR_Item[]) {
-  const data: SyncDataReq = { binID, items };
+async function Write(binID: string, items: UR_Item[]): Promise<OpResult> {
+  if (F_ReadOnly) return { error: 'readonly mode' };
+  const syncReq: SyncDataReq = { op: 'WRITE', binID, items };
   if (REMOTE) {
-    QueueRemoteDataOp('DATA_WRITE', data);
-    return;
+    const res = await REMOTE.syncData(syncReq);
+    return res;
   }
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.write(items);
   throw Error(`Write: bin ${binID} not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Delete(binID: string, items: UR_Item[]) {
-  const data: SyncDataReq = { binID, items };
+async function Delete(binID: string, items: UR_Item[]): Promise<OpResult> {
+  if (F_ReadOnly) return { error: 'readonly mode' };
+  const syncReq: SyncDataReq = { op: 'DELETE', binID, items };
   if (REMOTE) {
-    QueueRemoteDataOp('DATA_DELETE', data);
-    return;
+    const res = await REMOTE.syncData(syncReq);
+    return res;
   }
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.delete(items);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function DeleteIDs(binID: string, ids: string[]) {
-  const data: SyncDataReq = { binID, ids };
+async function DeleteIDs(binID: string, ids: string[]): Promise<OpResult> {
+  if (F_ReadOnly) return { error: 'readonly mode' };
+  const syncReq: SyncDataReq = { op: 'DELETE', binID, ids };
   if (REMOTE) {
-    QueueRemoteDataOp('DATA_DELETE', data);
-    return;
+    const res = await REMOTE.syncData(syncReq);
+    return res;
   }
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.deleteIDs(ids);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Replace(binID: string, items: UR_Item[]) {
-  const data: SyncDataReq = { binID, items };
+async function Replace(binID: string, items: UR_Item[]): Promise<OpResult> {
+  if (F_ReadOnly) return { error: 'readonly mode' };
+  const syncReq: SyncDataReq = { op: 'REPLACE', binID, items };
   if (REMOTE) {
-    QueueRemoteDataOp('DATA_REPLACE', data);
-    return;
+    const res = await REMOTE.syncData(syncReq);
+    return res;
   }
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.replace(items);
   throw Error(`Replace: bin ${binID} not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Init(binID: string): void {
-  const data: SyncDataReq = { binID };
-  QueueRemoteDataOp('DATA_INIT', data);
+async function Clear(binID: string): Promise<OpResult> {
+  if (F_ReadOnly) return { error: 'readonly mode' };
+  const syncReq: SyncDataReq = { op: 'CLEAR', binID };
+  if (REMOTE) {
+    const res = await REMOTE.syncData(syncReq);
+    return res;
+  }
+  const bin = DSET.getDataBin(binID);
+  bin.clear();
+  if (bin) return {};
+  throw Error(`Clear: bin ${binID} not found`);
 }
 
 /// SEARCH METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** search for matches in the local dataset, which is assumed to be up-to
+ *  date if synched mode is set */
 async function Find(binID: string, crit?: SearchOptions): Promise<UR_Item[]> {
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.find(crit);
   throw Error(`Find: bin ${binID} not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** use to Find in datasets other than what is configured. good for one-time
+ *  queries to remote datasets */
+async function DS_RemoteFind(
+  dsURI: UR_DatasetURI,
+  binID: string,
+  crit?: SearchOptions
+): Promise<UR_Item[]> {
+  return [];
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/* return a RecordSet of items that match the query criteria in the local
+ * dataset, which is assumed to be up-to-date if synched mode is set */
 async function Query(binID: string, query: SearchOptions): Promise<RecordSet> {
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.query(query);
   throw Error(`Query: bin ${binID} not found`);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** use to Query datasets other than what is configured. good for one-time
+ *  queries to remote datasets */
+async function DS_RemoteQuery(
+  dsURI: UR_DatasetURI,
+  binID: string,
+  query: SearchOptions
+): Promise<RecordSet> {
+  return { binID, query, items: [] };
 }
 
 /// NOTIFIERS /////////////////////////////////////////////////////////////////
@@ -286,38 +342,6 @@ function Unsubscribe(binID: string, evHdl: SNA_EvtHandler) {
   if (bin) bin.off('*', evHdl);
 }
 
-/// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** handle incoming data sync messages from dataserver */
-Hook('NET_READY', function () {
-  AddMessageHandler('SYNC:CLI_DATA', (sync: SyncDataRes) => {
-    const { binID, binType, seqNum, status, error, skipped } = sync;
-    const { items, updated, added, deleted, replaced } = sync;
-    const bin = DSET.getDataBin(binID);
-
-    /*** handle error conditions ***/
-    if (bin === undefined) {
-      LOG(...PR('ERROR: Bin not found:', binID));
-      return;
-    }
-    if (error) {
-      LOG(...PR('ERROR:', error));
-      return;
-    }
-    if (Array.isArray(skipped)) {
-      LOG(...PR('ERROR: skipped:', skipped));
-      return;
-    }
-
-    /*** handle change arrays ***/
-    if (Array.isArray(items)) bin.write(items);
-    if (Array.isArray(updated)) bin.update(updated);
-    if (Array.isArray(added)) bin.add(added);
-    if (Array.isArray(deleted)) bin.delete(deleted);
-    if (Array.isArray(replaced)) bin.replace(replaced);
-  });
-});
-
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
@@ -333,13 +357,10 @@ export {
   Delete,
   DeleteIDs,
   Replace,
-  Init,
+  Clear,
   Find,
   Query,
   // data notification
   Subscribe as Subscribe,
-  Unsubscribe as Unsubscribe,
-  // remote data adapter
-  SetRemoteDataAdapter,
-  QueueRemoteDataOp
+  Unsubscribe as Unsubscribe
 };

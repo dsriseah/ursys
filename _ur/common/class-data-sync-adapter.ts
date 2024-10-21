@@ -7,7 +7,7 @@
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
-  SyncOp,
+  SyncDataOp,
   DataBinID,
   UR_Item,
   UR_EntID,
@@ -48,7 +48,7 @@ abstract class DataSyncAdapter {
   abstract getData(cName: DataBinID, ids?: UR_EntID[]): Promise<SyncDataRes>;
   abstract addData(cName: DataBinID, items: UR_Item[]): Promise<SyncDataRes>;
   abstract updateData(cName: DataBinID, items: UR_Item[]): Promise<SyncDataRes>;
-  abstract writeData(cName: DataBinID, items: UR_Item[]): Promise<SyncDataRes>;
+  abstract syncData(cName: DataBinID, items: UR_Item[]): Promise<SyncDataRes>;
   abstract deleteData(cName: DataBinID, ids: UR_EntID[]): Promise<SyncDataRes>;
   abstract replaceData(cName: DataBinID, items: UR_Item[]): Promise<SyncDataRes>;
   abstract clearData(cName: DataBinID): Promise<SyncDataRes>;

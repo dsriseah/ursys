@@ -21,19 +21,21 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ItemList } from './class-data-itemlist.ts';
-import { DecodeDataURI } from './util-data-asset.ts';
+import { DecodeDataURI } from './util-data-ops.ts';
 import { DataBin } from './abstract-data-databin.ts';
-import { DecodeDataConfig } from './util-data-asset.ts';
+import { DecodeDataConfig } from './util-data-ops.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataBinID, DataBinType, UR_SchemaID } from '../_types/dataset';
+import type {
+  DataBinID,
+  DataBinType,
+  UR_SchemaID,
+  SyncDataOptions
+} from '../_types/dataset';
 import type { ItemListOptions } from './class-data-itemlist.ts';
 type DataAccessTok = string;
 type DataAccessTokSet = Set<DataAccessTok>;
-type ConfigOptions = {
-  mode: 'local' | 'sync' | 'sync-read' | 'sync-write';
-};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -107,15 +109,6 @@ class Dataset {
     if (!this.open_bins.has(binName))
       throw Error(`${fn} bin '${binName}' is already closed`);
     this.open_bins.delete(binName);
-  }
-
-  /// STORAGE SETUP ///
-
-  /** set flags that affect how dataset handles calls to and from
-   *  collections */
-  setStorageMode(opt: ConfigOptions) {
-    const fn = 'setStorageMode:';
-    console.log(`${fn} would set storage mode to ${opt.mode}`);
   }
 
   /// UNIVERSAL BIN METHODS ///
@@ -241,4 +234,3 @@ export default Dataset; // the class
 export {
   Dataset // the class
 };
-export type { ConfigOptions }; // the types

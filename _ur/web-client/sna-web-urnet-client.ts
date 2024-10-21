@@ -74,10 +74,8 @@ function ClientEndpoint() {
 /** API:delare message handlers and register after authentation to be added to
  *  URNET message network */
 async function RegisterMessages() {
-  // declare messages to server
   const resdata = await EP.declareClientMessages();
-  // LOG(...PR(`RegisterMessages: ${resdata.error || 'success'}`));
-  // LOG(resdata);
+  return resdata;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: add the message handler */

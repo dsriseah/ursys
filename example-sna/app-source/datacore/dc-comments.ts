@@ -35,6 +35,7 @@ async function LoadDataHook() {
   let res: OpResult;
   res = await DCLI.Configure(dataURI, opts);
   if (res.error) throw Error(`Configure ${res.error}`);
+  const { adapter, handlers } = res;
   res = await DCLI.SetDataFromObject(DUMMY_DATA);
   if (res.error) throw Error(`SetDataFromObject ${res.error}`);
   res = DCLI.Subscribe('comments', HandleDataEvent);
@@ -58,10 +59,10 @@ function HandleDataEvent(evt: SNA_EvtName, data: SyncDataRes) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** after data change */
-function UpdateDerivedData() {
+async function UpdateDerivedData() {
   LOG(...PR('UpdateDerivedData:'));
   // update the derived data
-  const items = DCLI.Get('comments');
+  const items = await DCLI.Get('comments');
   LOG(...PR('grabbing items to derive'), items);
 }
 
@@ -87,14 +88,14 @@ async function AddComment(cmo: DataObj) {}
 function SNA_Init() {
   LOG(...PR('INIT'), 'dc-comments');
   SNA.Hook('LOAD_DATA', () => LoadDataHook());
-  SNA.Hook('APP_CONFIG', () => {
+  SNA.Hook('APP_CONFIG', async () => {
     console.log('APP_CONFIG: ');
-    const items = DCLI.Get('comments');
+    const items = await DCLI.Get('comments');
     console.log('APP_CONFIG: loaded items', items);
     let res: OpResult;
     const sriItem = { author: 'Sri', text: 'hello' };
     console.log('APP_CONFIG: adding item', sriItem);
-    res = DCLI.Add('comments', [sriItem]);
+    res = await DCLI.Add('comments', [sriItem]);
     console.log('result of DCLI.Add', res);
     // should fire HandleDataEvent
   });

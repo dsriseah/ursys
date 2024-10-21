@@ -7,11 +7,11 @@
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { OpResult } from '../_types/dataset';
-import type { DataBinID, DataBinType } from '../_types/dataset';
+import type { DataBinType, SyncDataOp, SyncDataMode } from '../_types/dataset';
 
-/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// DATASET CONSTANTS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATASET_MODES = ['local', 'sync', 'sync-read', 'sync-write'];
+const DATASET_MODES: SyncDataMode[] = ['local', 'local-ro', 'sync', 'sync-ro'];
 const DATASET_INFO = {
   'DocFolders': { dir: 'docfolders', type: 'DocFolder' },
   'ItemLists': { dir: 'itemlists', type: 'ItemList' }
@@ -25,8 +25,14 @@ const DATASET_INFO = {
   // 'Templates': { dir: 'templates' }
 };
 /** derived constants - - - - - - - - - - - - - - - - - - - - - - - - - - - **/
-const DATASET_BINS = Object.keys(DATASET_INFO) as DataBinType[];
+const DATASET_BINS: DataBinType[] = Object.keys(DATASET_INFO) as DataBinType[];
 const DATASET_DIRS = Object.values(DATASET_INFO).map(v => v.dir);
+
+/// DATASYNC CONSTANTS /////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const DATA_SYNCOPS: SyncDataOp[] = [];
+DATA_SYNCOPS.push('CLEAR', 'GET', 'ADD', 'UPDATE', 'WRITE', 'DELETE', 'REPLACE');
+DATA_SYNCOPS.push('FIND', 'QUERY');
 
 /// ACCESSORS /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,6 +46,10 @@ function GetDatasetObjectProps() {
 /** returns true if the given dirname is a valid asset directory name */
 function IsAssetDirname(dirname: string): boolean {
   return DATASET_DIRS.includes(dirname);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function IsDataSyncOp(op: SyncDataOp): boolean {
+  return DATA_SYNCOPS.includes(op);
 }
 
 /// DATASET API METHODS ///////////////////////////////////////////////////////
@@ -89,6 +99,7 @@ const MOD = {
   IsAssetDirname,
   IsValidDataURI,
   IsValidDataConfig,
+  IsDataSyncOp,
   DecodeDataURI,
   DecodeDataConfig,
   GetDatasetObjectProps
@@ -99,6 +110,7 @@ export {
   IsAssetDirname,
   IsValidDataURI,
   IsValidDataConfig,
+  IsDataSyncOp,
   DecodeDataURI,
   DecodeDataConfig,
   GetDatasetObjectProps
