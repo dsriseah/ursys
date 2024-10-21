@@ -65,6 +65,7 @@ function DecodeDataURI(dataURI: string): OpResult {
   };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** check the values of DataClient config object */
 function DecodeDataConfig(configObj: any): OpResult {
   if (configObj === undefined) return { error: 'missing configObj' };
   const { mode } = configObj;

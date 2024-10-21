@@ -69,14 +69,13 @@ async function Configure(
   let res: OpResult;
   res = DecodeDataURI(dsURI);
   if (res.error) return { error: `DecodeDataURI ${res.error}` };
-  res = DecodeDataConfig(opt);
+  const { mode } = DecodeDataConfig(opt);
   if (res.error) return { error: `DecodeDataConfig ${res.error}` };
   // make sure that the dataset is not already set
   if (DSET !== undefined) throw Error(`${fn} dataset already set`);
   // configure!
   DS_URI = dsURI;
   DSET = new Dataset(DS_URI);
-  const { mode } = opt;
   DSET.setStorageMode(mode);
   return { dsURI, configOpt: opt };
 }
@@ -87,6 +86,7 @@ async function SetDataFromObject(data: UR_DatasetObj): Promise<OpResult> {
   if (DSET === undefined) return { error: 'must call Configure() first' };
   const { _dataURI } = data;
   if (_dataURI !== DS_URI) return { error: 'dataURI mismatch' };
+
   // create the bins manually
   const { ItemLists } = data;
   for (const [binID, items] of Object.entries(ItemLists)) {
@@ -94,7 +94,13 @@ async function SetDataFromObject(data: UR_DatasetObj): Promise<OpResult> {
     const bin = DSET.createDataBin(binID, 'ItemList');
     bin.write(items);
   }
-  // TODO: notify all subscribers of the new data?
+
+  /*/ 
+  note: implementors of databin (e.g. ItemList) fire notifications
+  for data changes, which registed via the Subscribe() API below
+  /*/
+
+  // return the dataURI and the list of ItemLists
   return { dataURI: DS_URI, ItemLists: Object.keys(ItemLists) };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

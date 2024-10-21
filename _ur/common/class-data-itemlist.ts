@@ -174,7 +174,10 @@ class ItemList extends DataBin {
         return { error: `${fn} item ${item._id} not found in ${this.name}` };
       Object.assign(this._list[idx], item);
     }
-    return { updated: [...this._list] }; // return a copy of the _list
+    // notify subs
+    const updated = [...this._list]; // use a copy of the list
+    this.notify('update', { updated });
+    return { updated };
   }
 
   /** Overwrite the objects. Unlike ListUpdate, this will not merge but replace
@@ -207,7 +210,10 @@ class ItemList extends DataBin {
       skipped.length > 0
         ? `${fn} ${skipped.length} items not found in ${this.name}`
         : undefined;
-    return { replaced, skipped, error }; // return a copy of the _list
+
+    // notify subs
+    this.notify('replace', { replaced, skipped, error });
+    return { replaced, skipped, error }; // return results
   }
 
   /** Add the items to the _list. If an already exists in the _list, update it
@@ -235,13 +241,15 @@ class ItemList extends DataBin {
         updated.push({ ...this._list[idx] });
       }
     }
+    // notify subs
+    this.notify('write', { updated, added });
     return { added, updated }; // return a copy of the _list
   }
 
   /** Delete the objects in the _list with the ids provided. If there are any
    *  ids that don't exist in the _list, return { error }. Return a copy of the
    *  deleted items if successful */
-  deleteIDs(ids: UR_EntID[]): { deleted?: UR_Item[]; error?: string } {
+  deleteIDs(ids: UR_EntID[]): { deletedIDs?: UR_Item[]; error?: string } {
     const fn = 'deleteIDs:';
     if (!Array.isArray(ids) || ids === undefined)
       return { error: `${fn} ids must be an array` };
@@ -254,13 +262,15 @@ class ItemList extends DataBin {
       itemIDs.push(id);
     }
     // good to go, delete the items
-    const deleted = [];
+    const deletedIDs = [];
     for (const id of itemIDs) {
       const idx = this._list.findIndex(obj => obj._id === id);
       const item = this._list.splice(idx, 1);
-      deleted.push(...item);
+      deletedIDs.push(...item);
     }
-    return { deleted }; // return a copy of the _list
+    // notify subs
+    this.notify('deleteID', { deletedIDs });
+    return { deletedIDs }; // return a copy of the _list
   }
 
   /** Given a set of objects, delete them from the _list by looking-up their id
@@ -281,6 +291,8 @@ class ItemList extends DataBin {
       const del_item = this._list.splice(idx, 1);
       deleted.push(...del_item);
     }
+    // notify subs
+    this.notify('delete', { deleted });
     return { deleted }; // return a copy of the _list
   }
 
@@ -288,6 +300,8 @@ class ItemList extends DataBin {
   clear() {
     this._list = [];
     this._ord_highest = 0;
+    // notify subs
+    this.notify('clear', {});
   }
 
   /** alternative getter returning unwrapped items */
