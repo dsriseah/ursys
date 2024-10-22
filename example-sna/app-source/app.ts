@@ -41,10 +41,11 @@ SNA.Hook('LOAD_CONFIG', () => {});
   //    and datasetURI
   const auth_token = 'server-provided-jwt';
   const datasetURI = 'sri.org:bucket-1234/sna-app/project-one';
+  const datasetMode = 'local';
 
   // 4. register all SNA components
   SNA.RegisterComponent(COMMENTS);
-  SNA.GlobalConfigure({ dataset: { uri: datasetURI } });
+  SNA.GlobalConfigure({ dataset: { uri: datasetURI, mode: datasetMode } });
 
   // 5. after all modules are initialized, start the SNA lifecycle
   await SNA.Start();

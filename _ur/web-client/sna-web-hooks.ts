@@ -83,7 +83,8 @@ async function SNA_LifecycleStart() {
         'NET_REGISTER', // hook for registration info
         'NET_READY', // ursys network is active and registered
         'NET_DECLARE', // hook for declaring messages to URNET
-        'NET_ACTIVE' // system is listen for messages
+        'NET_ACTIVE', // system is listen for messages
+        'NET_DATASET' // hook for dataset connection
       ],
       PHASE_LOAD: [
         'LOAD_DATA', // load data from server

@@ -27,14 +27,8 @@ const DCLI = SNA.MOD_DataClient;
 /// APP LIFECYCLE METHODS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given dataset dataURI */
-async function LoadDataHook() {
-  let dataURI = 'sri.org:bucket-1234/sna-app/project-one';
-  LOG(...PR('LoadDataHook'), dataURI);
-  const opts = { mode: 'local' };
+async function HOOK_LoadDataLocal() {
   let res: OpResult;
-  res = await DCLI.Configure(dataURI, opts);
-  if (res.error) throw Error(`Configure ${res.error}`);
-  const { adapter, handlers } = res;
   res = await DCLI.SetDataFromObject(DUMMY_DATA);
   if (res.error) throw Error(`SetDataFromObject ${res.error}`);
   res = DCLI.Subscribe('comments', HandleDataEvent);
@@ -88,7 +82,7 @@ function SNA_PreConfig(data: any): OpResult {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SNA_PreHook() {
-  SNA.Hook('LOAD_DATA', () => LoadDataHook());
+  SNA.Hook('LOAD_DATA', () => HOOK_LoadDataLocal());
   SNA.Hook('APP_CONFIG', async () => {
     console.log('APP_CONFIG: ');
     const items = await DCLI.Get('comments');

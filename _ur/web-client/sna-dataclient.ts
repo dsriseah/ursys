@@ -35,6 +35,7 @@ import type {
   SyncDataOptions,
   SyncDataReq,
   SyncDataRes,
+  SyncDataMode,
   UR_Item,
   UR_DatasetURI,
   UR_DatasetObj,
@@ -53,19 +54,42 @@ const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let DSET: Dataset; // singleton instance of the dataset
 let DS_URI: UR_DatasetURI; // the dataset URI
+let DS_MODE: SyncDataMode; // the dataset mode
 
 /// HELPERS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** receives global config object to initialize local settings */
-function m_PreConfigHandler(config: DataObj) {
+function m_PreConfigHandler(config: DataObj): OpResult {
   const { dataset } = config;
   if (dataset) {
-    if (dataset.uri) DS_URI = dataset.uri;
+    const { uri, mode } = dataset;
+    if (!uri) return { error: 'missing uri property' };
+    if (!mode) return { error: 'missing mode property' };
+    DS_URI = uri;
+    DS_MODE = mode;
+    return { uri, mode };
   }
+  return { error: 'missing dataset property' };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** opportunity to register hooks before the lifecycle starts */
-function m_AddLifecycleHooks() {}
+/** invoked during SNA:LOAD_DATA phase, after PreConfig has configured
+ *  the dataset URI and mode. The purpose of this code is to just set up
+ *  the datalink; afterwards, datacore modules can just open/load bins */
+async function HOOK_NetDataset() {
+  const fn = 'HOOK_LoadData:';
+  let dataURI = DS_URI;
+  LOG(...PR(`${fn} establishing datalink to ${dataURI}`));
+  const opts = { mode: DS_MODE };
+  let res: OpResult;
+  res = await Configure(dataURI, opts);
+  if (res.error) throw Error(`Configure ${res.error}`);
+  const { adapter, handlers } = res;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** here is the opportunity to register hooks before the lifecycle starts */
+function m_AddLifecycleHooks() {
+  Hook('NET_DATASET', HOOK_NetDataset);
+}
 
 /// DEFAULT SNA-DATASERVER REMOTE ///////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
