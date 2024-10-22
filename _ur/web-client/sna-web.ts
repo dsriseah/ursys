@@ -49,7 +49,7 @@ async function SNA_Start() {
     await RegisterMessages();
   });
   // now start the lifecycle
-  SNA_LifecycleStart();
+  await SNA_LifecycleStart();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: retrieve SNA status object */
