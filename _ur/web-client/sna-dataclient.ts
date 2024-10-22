@@ -39,7 +39,8 @@ import type {
   UR_DatasetObj,
   SearchOptions,
   RecordSet,
-  SNA_EvtHandler
+  SNA_EvtHandler,
+  SNA_Module
 } from '../@ur-types.d.ts';
 //
 
@@ -344,12 +345,24 @@ function Unsubscribe(binID: string, evHdl: SNA_EvtHandler) {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const SNA_MODULE: SNA_Module = {
+  _name: 'dataclient',
+  Configure: data => data,
+  Init: () => {},
+  Subscribe,
+  Unsubscribe
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export default SNA_MODULE;
 export {
-  // data initialization
+  // SNA module methods
   Configure,
+  Subscribe,
+  Unsubscribe,
+  // api data initialization
   SetDataFromObject,
   SetDataFromConfigURI,
-  // data operations
+  // api data operations
   Get,
   Add,
   Update,
@@ -359,8 +372,5 @@ export {
   Replace,
   Clear,
   Find,
-  Query,
-  // data notification
-  Subscribe as Subscribe,
-  Unsubscribe as Unsubscribe
+  Query
 };

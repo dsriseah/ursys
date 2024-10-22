@@ -14,11 +14,13 @@ import {
   RegisterMessages
 } from './sna-web-urnet-client.ts';
 import {
+  SNA_RegisterComponent,
   SNA_LifecycleStart,
   SNA_LifecycleStatus,
   SNA_Hook,
   GetDanglingHooks
 } from './sna-web-hooks.ts';
+import DATACLIENT from './sna-dataclient.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +34,9 @@ const PR = ConsoleStyler('SNA', 'TagCyan');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: initialize the server's lifecycle */
 async function SNA_Start() {
-  // prepare hooks before starting the lifecycle
+  // register system-level SNA components
+  SNA_RegisterComponent(DATACLIENT);
+  // prepare own hooks before starting the lifecycle
   SNA_Hook('DOM_READY', SNA_NetConnect);
   SNA_Hook('NET_CONNECT', async (p, m) => {
     AddMessageHandler('NET:UR_HOT_RELOAD_APP', () => {
@@ -43,7 +47,6 @@ async function SNA_Start() {
   SNA_Hook('NET_DECLARE', async (p, m) => {
     await RegisterMessages();
   });
-
   // now start the lifecycle
   SNA_LifecycleStart();
 }
@@ -66,6 +69,7 @@ import * as MOD_DataClient from './sna-dataclient.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   // sna process
+  SNA_RegisterComponent as RegisterComponent,
   SNA_Start as Start,
   SNA_Status as Status,
   SNA_Hook as Hook,

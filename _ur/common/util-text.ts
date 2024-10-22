@@ -40,8 +40,46 @@ function PreprocessDataText(str: string): string {
   return normalizedStr + '\n';
 }
 
+/// CASE CHECKS ///////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function IsSnakeCase(str: string) {
+  const noSpaces = !/\s/.test(str);
+  const snakeCase = /^[a-z_]+$/.test(str);
+  return noSpaces && snakeCase;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function IsCamelCase(str: string) {
+  const noSpaces = !/\s/.test(str);
+  const camelCase = /^[a-z]+[A-Z][a-z]*$/.test(str);
+  return noSpaces && camelCase;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function IsPascalCase(str: string) {
+  const noSpaces = !/\s/.test(str);
+  const pascalCase = /^[A-Z][a-z]*$/.test(str);
+  return noSpaces && pascalCase;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function IsKebabCase(str: string) {
+  const noSpaces = !/\s/.test(str);
+  const kebabCase = /^[a-z]+(-[a-z]+)*$/.test(str);
+  return noSpaces && kebabCase;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function IsUpperSnakeCase(str: string) {
+  const noSpaces = !/\s/.test(str);
+  const upperSnakeCase = /^[A-Z_]+$/.test(str);
+  return noSpaces && upperSnakeCase;
+}
+
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
+  IsSnakeCase, // check if a string is in snake_case format
+  IsCamelCase, // check if a string is in camelCase format
+  IsPascalCase, // check if a string is in PascalCase format
+  IsKebabCase, // check if a string is in kebab-case format
+  IsUpperSnakeCase, // check if a string is in UPPER_SNAKE_CASE
+  //
   PreprocessDataText // process a multi-line string for parsing
 };

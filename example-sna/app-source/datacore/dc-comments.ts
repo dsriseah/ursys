@@ -23,7 +23,6 @@ import type { SNA_Module, SNA_EvtName } from 'tsconfig/types';
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('DEV', 'TagPink');
 const DCLI = SNA.MOD_DataClient;
-let COMMENT_BIN: DataBin; // set ddataURIng initial LoadDataHook()
 
 /// APP LIFECYCLE METHODS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -82,11 +81,13 @@ async function DoSomethingEx() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function AddComment(cmo: DataObj) {}
 
-/// SNA INTEGRATION ///////////////////////////////////////////////////////////
+/// SNA MODULE CONFIGURATION //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: component initialization hook*/
+function SNA_Configure(data: any): OpResult {
+  return data;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SNA_Init() {
-  LOG(...PR('INIT'), 'dc-comments');
   SNA.Hook('LOAD_DATA', () => LoadDataHook());
   SNA.Hook('APP_CONFIG', async () => {
     console.log('APP_CONFIG: ');
@@ -100,36 +101,30 @@ function SNA_Init() {
     // should fire HandleDataEvent
   });
 }
-
-/// OUR OWN NOTIFIERS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Notifiers */
-function SNA_Sub(evtType, evtHandler) {
-  // if (evtType === 'change') {
-  //   comments.on('change', evtHandler);
-  // }
-}
-function SNA_Unsub(evtType, evtHandler) {
-  // if (evtType === 'change') {
-  //   comments.off('change', evtHandler);
-  // }
-}
+function SNA_Subscribe(evtType: SNA_EvtName, evtHandler: Function) {}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const SNA_MODULE: SNA_Module = {
-  Init: SNA_Init,
-  On: SNA_Sub,
-  Off: SNA_Unsub
-};
+function SNA_Unsubscribe(evtType: SNA_EvtName, evtHandler: Function) {}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const SNA_MODULE: SNA_Module = {
+  _name: 'comments',
+  Configure: SNA_Configure,
+  Init: SNA_Init,
+  Subscribe: SNA_Subscribe,
+  Unsubscribe: SNA_Unsubscribe
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default SNA_MODULE;
 export {
-  // SNA MODULE META
-  // used for SNA to initialize and manage the module
+  // sna module methods
+  SNA_Configure as Configure,
   SNA_Init as Init,
-  SNA_Sub as On,
-  SNA_Unsub as Off,
-  // API
-  DoSomething
+  SNA_Subscribe as Subscribe,
+  SNA_Unsubscribe as Unsubscribe,
+  // api methods
+  DoSomething,
+  DoSomethingEx,
+  AddComment
 };

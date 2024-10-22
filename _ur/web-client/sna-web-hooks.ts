@@ -9,22 +9,43 @@
 
 import { PhaseMachine } from '../common/class-phase-machine.ts';
 import { ConsoleStyler } from '../common/util-prompts.ts';
+import { IsSnakeCase } from '../common/util-text.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
-import type { OpResult } from '../@ur-types.d.ts';
+import type { SNA_Module, OpResult } from '../@ur-types.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('SNA.HOOK', 'TagCyan');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let COMPONENTS: Set<SNA_Module> = new Set();
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let PM: PhaseMachine;
 
 /// DEREFERENCED STATIC METHODS ///////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { HookPhase, RunPhaseGroup, GetMachine, GetDanglingHooks } = PhaseMachine;
+
+/// SNA COMPONENT REGISTRATION ////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: register a component with the SNA lifecycle */
+function SNA_RegisterComponent(component: SNA_Module) {
+  const fn = 'SNA_RegisterComponent:';
+  const { _name, Init } = component;
+  if (typeof _name !== 'string')
+    throw Error(`${fn} bad SNA component: missing _name`);
+  if (!IsSnakeCase(_name))
+    throw Error(`${fn} bad SNA component: _name must be snake_case`);
+  if (typeof Init !== 'function')
+    throw Error(`${fn} bad SNA component: missing Init function`);
+  if (COMPONENTS.has(component))
+    LOG(...PR(`SNA_Module '${_name}' already registered`));
+  LOG(...PR(`Registering SNA_Module: '${_name}'`));
+  COMPONENTS.add(component);
+}
 
 /// SNA LIFECYCLE /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -70,6 +91,15 @@ async function SNA_LifecycleStart() {
       ],
       PHASE_ERROR: ['APP_ERROR']
     });
+
+  // initialize all registered components
+  for (const component of COMPONENTS) {
+    const { Init, _name } = component;
+    if (component.Init) {
+      LOG(...PR(`Initializing SNA_Module '${_name}'`));
+      Init();
+    }
+  }
 
   // run phase groups in order
   await RunPhaseGroup('SNA/PHASE_BOOT');
@@ -120,6 +150,7 @@ function SNA_LifecycleStatus(): OpResult {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   // sna process
+  SNA_RegisterComponent,
   SNA_Hook,
   SNA_LifecycleStart,
   SNA_LifecycleStatus
