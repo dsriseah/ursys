@@ -47,7 +47,7 @@ import type {
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const PR = ConsoleStyler('SNA-DC', 'TagBlue');
+const PR = ConsoleStyler('SNA.DC', 'TagBlue');
 const LOG = console.log.bind(console);
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

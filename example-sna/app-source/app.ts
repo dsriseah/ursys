@@ -19,7 +19,7 @@ import COMMENTS from './datacore/dc-comments.ts';
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(this);
-const PR = ConsoleStyler('client', 'TagGreen');
+const PR = ConsoleStyler('App.ts', 'TagGreen');
 
 /// LIFECYCLE HOOKS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

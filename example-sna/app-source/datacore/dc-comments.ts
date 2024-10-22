@@ -21,7 +21,7 @@ import type { SNA_Module, SNA_EvtName } from 'tsconfig/types';
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
-const PR = ConsoleStyler('DEV', 'TagPink');
+const PR = ConsoleStyler('Comments', 'TagPink');
 const DCLI = SNA.MOD_DataClient;
 
 /// APP LIFECYCLE METHODS /////////////////////////////////////////////////////
