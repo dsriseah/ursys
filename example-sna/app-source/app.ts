@@ -44,6 +44,7 @@ SNA.Hook('LOAD_CONFIG', () => {});
 
   // 4. register all SNA components
   SNA.RegisterComponent(COMMENTS);
+  SNA.GlobalConfigure({ dataset: { uri: datasetURI } });
 
   // 5. after all modules are initialized, start the SNA lifecycle
   await SNA.Start();

@@ -29,6 +29,7 @@ import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops.ts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
+  DataObj,
   OpResult,
   RemoteStoreAdapter,
   SyncDataOptions,
@@ -52,6 +53,19 @@ const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let DSET: Dataset; // singleton instance of the dataset
 let DS_URI: UR_DatasetURI; // the dataset URI
+
+/// HELPERS ///////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** receives global config object to initialize local settings */
+function m_PreConfigHandler(config: DataObj) {
+  const { dataset } = config;
+  if (dataset) {
+    if (dataset.uri) DS_URI = dataset.uri;
+  }
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** opportunity to register hooks before the lifecycle starts */
+function m_AddLifecycleHooks() {}
 
 /// DEFAULT SNA-DATASERVER REMOTE ///////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -347,8 +361,8 @@ function Unsubscribe(binID: string, evHdl: SNA_EvtHandler) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const SNA_MODULE: SNA_Module = {
   _name: 'dataclient',
-  Configure: data => data,
-  Init: () => {},
+  PreConfig: m_PreConfigHandler,
+  PreHook: m_AddLifecycleHooks,
   Subscribe,
   Unsubscribe
 };

@@ -11,8 +11,9 @@ import { DataObj, OpResult } from './ursys.d.ts';
 /// an SNA module uses the sna-hooks, sna-urnet, and sna-monitor modules to
 /// add itself to the overall SNA lifecycle.
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export type SNA_ModConfig = (DataObj) => OpResult;
-export type SNA_ModInit = () => void;
+export type MOD_PreConfig = (DataObj) => void; // called before lifecycle
+export type MOD_PreHook = () => void; // called before lifecycle
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type SNA_EvtOn = (evt: string, param: DataObj) => void;
 export type SNA_EvtOff = (evt: string, param: DataObj) => void;
 export type SNA_EvtOnce = (evt: string, param: DataObj) => void;
@@ -21,8 +22,8 @@ export type SNA_EvtOnce = (evt: string, param: DataObj) => void;
 /// practice
 export type SNA_Module = {
   _name: string;
-  Configure: SNA_ModConfig;
-  Init: SNA_ModInit;
+  PreConfig: MOD_PreConfig;
+  PreHook: MOD_PreHook;
   Subscribe: SNA_EvtOn;
   Unsubscribe: SNA_EvtOff;
 };

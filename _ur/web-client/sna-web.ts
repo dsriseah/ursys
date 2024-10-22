@@ -15,6 +15,7 @@ import {
 } from './sna-web-urnet-client.ts';
 import {
   SNA_RegisterComponent,
+  SNA_GlobalConfig,
   SNA_LifecycleStart,
   SNA_LifecycleStatus,
   SNA_Hook,
@@ -70,6 +71,7 @@ import * as MOD_DataClient from './sna-dataclient.ts';
 export {
   // sna process
   SNA_RegisterComponent as RegisterComponent,
+  SNA_GlobalConfig as GlobalConfigure,
   SNA_Start as Start,
   SNA_Status as Status,
   SNA_Hook as Hook,

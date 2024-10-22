@@ -83,11 +83,11 @@ async function AddComment(cmo: DataObj) {}
 
 /// SNA MODULE CONFIGURATION //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SNA_Configure(data: any): OpResult {
+function SNA_PreConfig(data: any): OpResult {
   return data;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SNA_Init() {
+function SNA_PreHook() {
   SNA.Hook('LOAD_DATA', () => LoadDataHook());
   SNA.Hook('APP_CONFIG', async () => {
     console.log('APP_CONFIG: ');
@@ -110,8 +110,8 @@ function SNA_Unsubscribe(evtType: SNA_EvtName, evtHandler: Function) {}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const SNA_MODULE: SNA_Module = {
   _name: 'comments',
-  Configure: SNA_Configure,
-  Init: SNA_Init,
+  PreConfig: SNA_PreConfig,
+  PreHook: SNA_PreHook,
   Subscribe: SNA_Subscribe,
   Unsubscribe: SNA_Unsubscribe
 };
@@ -119,8 +119,8 @@ const SNA_MODULE: SNA_Module = {
 export default SNA_MODULE;
 export {
   // sna module methods
-  SNA_Configure as Configure,
-  SNA_Init as Init,
+  SNA_PreConfig as PreConfig,
+  SNA_PreHook as PreHook,
   SNA_Subscribe as Subscribe,
   SNA_Unsubscribe as Unsubscribe,
   // api methods
