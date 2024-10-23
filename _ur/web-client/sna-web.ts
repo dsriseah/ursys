@@ -71,7 +71,7 @@ import * as MOD_DataClient from './sna-dataclient.ts';
 export {
   // sna process
   SNA_RegisterComponent as RegisterComponent,
-  SNA_GlobalConfig as GlobalConfigure,
+  SNA_GlobalConfig as GlobalConfig,
   SNA_Start as Start,
   SNA_Status as Status,
   SNA_Hook as Hook,

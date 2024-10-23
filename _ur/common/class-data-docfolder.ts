@@ -18,6 +18,7 @@ import type {
   UR_DocFolder, // { [ref_name: DataBinID]: UR_Doc }
   UR_Item // { _id: UR_EntID; [key: string]: any }
 } from '../_types/dataset';
+type DocFolderOptions = { idPrefix?: string; ordDigits?: number };
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,14 +27,16 @@ const LOG = console.log.bind(console);
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class DocFolder {
-  //
-  collection_name: string;
-  collection_type: string;
-  _DOCS: { [ref_name: DataBinID]: UR_DocFolder };
-  //
-  constructor(col_name?: string) {
-    if (this._DOCS === undefined) this._DOCS = {};
+class DocFolder extends DataBin {
+  // from base class
+  // name: DataBinID; // name of this collection
+  // _type: DataBinType; // type of this collection (.e.g ItemList);
+  // _prefix: string; // when set, this is the prefix for the ids
+  // _ord_digits: number; // if _prefix is set, then number of zero-padded digits
+  // _ord_highest: number; // current highest ordinal
+  _folder: UR_DocFolder; // list storage
+  constructor(col_name: string, opt?: DocFolderOptions) {
+    if (this._folder === undefined) this._folder = {};
     if (col_name) this.collection_name = col_name;
     this.collection_type = this.constructor.name;
   }

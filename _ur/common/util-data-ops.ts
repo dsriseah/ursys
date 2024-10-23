@@ -6,7 +6,7 @@
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpResult } from '../_types/dataset';
+import type { OpResult, DatasetOp } from '../_types/dataset';
 import type { DataBinType, SyncDataOp, SyncDataMode } from '../_types/dataset';
 
 /// DATASET CONSTANTS /////////////////////////////////////////////////////////
@@ -33,6 +33,7 @@ const DATASET_DIRS = Object.values(DATASET_INFO).map(v => v.dir);
 const DATA_SYNCOPS: SyncDataOp[] = [];
 DATA_SYNCOPS.push('CLEAR', 'GET', 'ADD', 'UPDATE', 'WRITE', 'DELETE', 'REPLACE');
 DATA_SYNCOPS.push('FIND', 'QUERY');
+const DATASET_OPS: DatasetOp[] = ['LOAD', 'UNLOAD', 'PERSIST', 'GET_MANIFEST', 'GET'];
 
 /// ACCESSORS /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -50,6 +51,10 @@ function IsAssetDirname(dirname: string): boolean {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function IsDataSyncOp(op: SyncDataOp): boolean {
   return DATA_SYNCOPS.includes(op);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function IsDatasetOp(op: DatasetOp): boolean {
+  return DATASET_OPS.includes(op);
 }
 
 /// DATASET API METHODS ///////////////////////////////////////////////////////
@@ -100,6 +105,7 @@ const MOD = {
   IsValidDataURI,
   IsValidDataConfig,
   IsDataSyncOp,
+  IsDatasetOp,
   DecodeDataURI,
   DecodeDataConfig,
   GetDatasetObjectProps
@@ -111,6 +117,7 @@ export {
   IsValidDataURI,
   IsValidDataConfig,
   IsDataSyncOp,
+  IsDatasetOp,
   DecodeDataURI,
   DecodeDataConfig,
   GetDatasetObjectProps

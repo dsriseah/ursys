@@ -21,6 +21,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ItemList } from './class-data-itemlist.ts';
+import { DocFolder } from './class-data-docfolder.ts';
 import { DecodeDataURI } from './util-data-ops.ts';
 import { DataBin } from './abstract-data-databin.ts';
 import { DecodeDataConfig } from './util-data-ops.ts';
@@ -74,6 +75,7 @@ class Dataset {
   acc_toks: Map<DataBinID, DataAccessTokSet>; // access tokens for each bin
   //
   LISTS: { [ref_name: DataBinID]: ItemList };
+  FOLDERS: { [ref_name: DataBinID]: DocFolder };
   // see https://github.com/dsriseah/ursys/discussions/25 for other bin types
   // docfolders
   // files
@@ -93,6 +95,7 @@ class Dataset {
   _init() {
     this.open_bins = new Set();
     this.LISTS = {};
+    this.FOLDERS = {};
   }
 
   /** private: mark a bin as open */
@@ -122,13 +125,11 @@ class Dataset {
       return this.getDataBinByType(binName, binType);
     // otherwise look for the bins
     let bin: DataBin;
-    // search first bin
+    // search all bins
     bin = this.LISTS[binName];
-    // search subsequent bins...
-    if (bin === undefined) {
-      console.log(`${fn} LISTS`, this.LISTS);
-      throw Error(`${fn} bin '${binName}' not found`);
-    }
+    // if (!bin) bin = this.FOLDERS[binName];
+
+    // return found bin or undefined
     return bin;
   }
 
@@ -140,9 +141,9 @@ class Dataset {
       case 'ItemList':
         bin = this.getItemList(binName);
         break;
-      default:
-        throw Error(`${fn} bin type '${binType}' not recognized`);
     }
+
+    // return found bin or undefined
     return bin;
   }
 

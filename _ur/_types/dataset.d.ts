@@ -70,45 +70,62 @@ export type UR_DatasetObj = {
   // Also see util-data-assets.ts for the equivalent foldernames
 };
 
-/// DATASET SYNC TYPES ////////////////////////////////////////////////////////
+/// DATASET MANAGEMENT TYPES //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type DatasetOp =
+  | 'LOAD' // load a complete dataset into memory
+  | 'UNLOAD' // unload a dataset from memory
+  | 'PERSIST' // write the dataset back persistent storage
+  | 'GET_MANIFEST' // get the manifest of the dataset
+  | 'GET'; // get the entire dataset or BinID as JSON
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** sent to dataset source by inquiring clients SYNC:SRV */
+export type DatasetReq = {
+  dataURI: string;
+  authToken?: string;
+  op: DatasetOp;
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** sent from dataset source to inquiring clients SYNC:CLI */
+export type DatasetRes = {
+  dataURI?: string;
+  accToken?: string;
+  // meta
+  status?: string;
+  error?: string;
+};
+
+/// DATASET BIN SYNC TYPES ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** SyncDataOp is the operations that can be performed on a dataset via
  *  the SYNC:SRV_DATA protocol. See util-data-asset for lookup tables */
 export type SyncDataOp =
-  | 'CLEAR'
-  | 'GET'
-  | 'ADD'
-  | 'UPDATE'
-  | 'WRITE'
-  | 'DELETE'
-  | 'REPLACE'
-  | 'FIND'
-  | 'QUERY';
+  | 'CLEAR' // erase contents of databin
+  | 'GET' // get contents/items of databin
+  | 'ADD' // add new items to databin, new ids assigned
+  | 'UPDATE' // update items in databin
+  | 'WRITE' // update/add items in databin
+  | 'DELETE' // delete items or ids from databin
+  | 'REPLACE' // replace items in databin
+  | 'FIND' // find items in databin
+  | 'QUERY'; // query items in databin, returning recordset
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Mode of operation for a dataset source */
-export type SyncDataMode = 'local' | 'local-ro' | 'sync' | 'sync-ro';
+export type SyncDataMode =
+  | 'local' // local only, no sync
+  | 'local-ro' // local only, read-only
+  | 'sync' // sync with remote
+  | 'sync-ro'; // sync updates from remote, read-only
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** these flags are derived from value of SyncDataMode */
 export type SyncDataFlags = {
   readOnly?: boolean;
   remote: RemoteStoreAdapter;
   initOnly?: boolean;
 };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type SyncDataOptions = {
   mode: SyncDataMode;
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** sent to dataset source by inquiring clients SYNC:SRV */
-export type DatastoreReq = {
-  dataURI: string;
-  authToken?: string;
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** sent from dataset source to inquiring clients SYNC:CLI */
-export type DatastoreRes = {
-  dataURI?: string;
-  accToken?: string;
-  // meta
-  status?: string;
-  error?: string;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** sent from a dataset source by inquiring clients SYNC:SRV */
@@ -145,7 +162,8 @@ export type SyncDataRes = {
  */
 export type RemoteStoreAdapter = {
   accToken: string;
-  syncData: (syncPacket: SyncDataReq) => Promise<OpResult>;
+  selectDataset: (dsReq: DatasetReq) => Promise<DatasetRes>;
+  syncData: (synReq: SyncDataReq) => Promise<SyncDataRes>;
   handleError: (opResult: OpResult) => OpResult;
 };
 
