@@ -18,7 +18,7 @@ import type { NM_Handler } from '../@ur-types.d.ts';
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
-const PR = ConsoleStyler('SNA.NET', 'TagCyan');
+const PR = ConsoleStyler('SNA.UNET', 'TagCyan');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let SERVER_LINK: WebSocket;
 let EP: NetEndpoint = new NetEndpoint();

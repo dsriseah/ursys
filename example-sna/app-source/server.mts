@@ -1,6 +1,11 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  SNA Server Component
+  SNA Server Entry Point
+
+  This is a server module entry point that's imported dynamically by
+  @run-sna.mts. By the time this module is loaded, the webapp and appserver
+  have already been built. 
+
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -32,4 +37,19 @@ SNA.Hook('SRV_READY', () => {
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-LOG('SNA Server Component Loaded');
+(async () => {
+  LOG('SNA Server Entry Loaded');
+
+  // Set the global configuration object
+  // SNA.GlobalConfig({});
+
+  // Register all SNA components
+  // SNA.RegisterComponent(SNA_Module)
+
+  // After all modules are initialized, start the SNA lifecycle this will
+  // call PreConfig() and PreHook() all all registered modules.
+  await SNA.Start();
+
+  // system is started
+  LOG(SNA.Status().message);
+})();

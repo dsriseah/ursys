@@ -48,7 +48,7 @@ import type {
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const PR = ConsoleStyler('SNA.DC', 'TagBlue');
+const PR = ConsoleStyler('SNA.DCI', 'TagBlue');
 const LOG = console.log.bind(console);
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -140,8 +140,7 @@ function HandleSyncData(sync: SyncDataRes) {
 
 /// DATASET LOCAL API /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** creates a new Dataset with the associated dsURI but does not perform
- *  any operations.
+/** initialized a new Dataset with dsURI without performing ops.
  *  dataURI looks like 'sri.org:bucket-1234/sna-app/project-one'
  */
 async function Configure(dsURI: UR_DatasetURI, opt: SyncDataOptions) {
@@ -183,7 +182,6 @@ async function Configure(dsURI: UR_DatasetURI, opt: SyncDataOptions) {
   }
   if (REMOTE) {
     AddMessageHandler('SYNC:CLI_DATA', HandleSyncData);
-
     await RegisterMessages();
   }
   // return the dataset URI, adapter, messages
@@ -231,11 +229,12 @@ async function Get(binID: string, ids: string[]): Promise<OpResult> {
   const syncReq: SyncDataReq = { op: 'GET', binID, ids };
   if (REMOTE) {
     const res = await REMOTE.syncData(syncReq);
+    LOG(...PR('Get:', binID, res));
     return res;
   }
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.get(ids);
-  throw Error(`Get: bin ${binID} not found`);
+  throw Error(`Get: bin [${binID}] not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Add(binID: string, items: UR_Item[]): Promise<OpResult> {
@@ -247,7 +246,7 @@ async function Add(binID: string, items: UR_Item[]): Promise<OpResult> {
   }
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.add(items);
-  throw Error(`Add: bin ${binID} not found`);
+  throw Error(`Add: bin [${binID}] not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Update(binID: string, items: UR_Item[]): Promise<OpResult> {
@@ -259,7 +258,7 @@ async function Update(binID: string, items: UR_Item[]): Promise<OpResult> {
   }
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.update(items);
-  throw Error(`Update: bin ${binID} not found`);
+  throw Error(`Update: bin [${binID}] not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Write(binID: string, items: UR_Item[]): Promise<OpResult> {
@@ -271,7 +270,7 @@ async function Write(binID: string, items: UR_Item[]): Promise<OpResult> {
   }
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.write(items);
-  throw Error(`Write: bin ${binID} not found`);
+  throw Error(`Write: bin [${binID}] not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Delete(binID: string, items: UR_Item[]): Promise<OpResult> {
@@ -305,7 +304,7 @@ async function Replace(binID: string, items: UR_Item[]): Promise<OpResult> {
   }
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.replace(items);
-  throw Error(`Replace: bin ${binID} not found`);
+  throw Error(`Replace: bin [${binID}] not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Clear(binID: string): Promise<OpResult> {
@@ -318,7 +317,7 @@ async function Clear(binID: string): Promise<OpResult> {
   const bin = DSET.getDataBin(binID);
   bin.clear();
   if (bin) return {};
-  throw Error(`Clear: bin ${binID} not found`);
+  throw Error(`Clear: bin [${binID}] not found`);
 }
 
 /// SEARCH METHODS ////////////////////////////////////////////////////////////
@@ -328,7 +327,7 @@ async function Clear(binID: string): Promise<OpResult> {
 async function Find(binID: string, crit?: SearchOptions): Promise<UR_Item[]> {
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.find(crit);
-  throw Error(`Find: bin ${binID} not found`);
+  throw Error(`Find: bin [${binID}] not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** use to Find in datasets other than what is configured. good for one-time
@@ -346,7 +345,7 @@ async function DS_RemoteFind(
 async function Query(binID: string, query: SearchOptions): Promise<RecordSet> {
   const bin = DSET.getDataBin(binID);
   if (bin) return bin.query(query);
-  throw Error(`Query: bin ${binID} not found`);
+  throw Error(`Query: bin [${binID}] not found`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** use to Query datasets other than what is configured. good for one-time
@@ -372,7 +371,7 @@ function Subscribe(binID: string, evHdl: SNA_EvtHandler): OpResult {
     return { binID, eventName: '*', success: true };
   }
   if (DBG) LOG(...PR('Subscribe:', binID, 'not found'));
-  return { error: `bin ${binID} not found` };
+  return { error: `bin [${binID}] not found` };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Unsubscribe(binID: string, evHdl: SNA_EvtHandler) {

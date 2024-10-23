@@ -84,14 +84,13 @@ function SNA_PreConfig(data: any): OpResult {
 function SNA_PreHook() {
   SNA.Hook('LOAD_DATA', () => HOOK_LoadDataLocal());
   SNA.Hook('APP_CONFIG', async () => {
-    console.log('APP_CONFIG: ');
     const items = await DCLI.Get('comments');
-    console.log('APP_CONFIG: loaded items', items);
+    LOG(...PR('APP_CONFIG: loaded items', items));
     let res: OpResult;
     const sriItem = { author: 'Sri', text: 'hello' };
-    console.log('APP_CONFIG: adding item', sriItem);
+    LOG(...PR('APP_CONFIG: adding item', sriItem));
     res = await DCLI.Add('comments', [sriItem]);
-    console.log('result of DCLI.Add', res);
+    LOG(...PR('result of DCLI.Add', res));
     // should fire HandleDataEvent
   });
 }

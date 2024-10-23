@@ -24,7 +24,7 @@ const { BLU, YEL, RED, DIM, NRM } = ANSI;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = makeTerminalOut('SNA.NET', 'TagCyan');
+const LOG = makeTerminalOut('SNA.UNET', 'TagCyan');
 const DBG = true;
 
 /// API: SERVER RUNTIME ///////////////////////////////////////////////////////
@@ -43,8 +43,7 @@ function SNA_RuntimeInfo() {
  *  Can be called after URNET_READY (e.g. APP_READY)
  */
 async function SNA_Build(rootDir: string): Promise<void> {
-  const fn = 'SNA_Build:';
-  LOG(`${fn} Building SNA Sources`);
+  LOG(`SNA Build: Transpiling and bundling components`);
   const source_dir = PATH.join(rootDir, 'app-source');
   const asset_dir = PATH.join(rootDir, 'app-static');
   const output_dir = PATH.join(rootDir, '_public');
@@ -56,8 +55,8 @@ async function SNA_Build(rootDir: string): Promise<void> {
 
   const { entryFile, tsFiles } = await IMPORT.ImportClientModules(source_dir);
   if (tsFiles.length)
-    LOG(`${fn} Client Components: ${YEL}${tsFiles.join(' ')}${NRM}`);
-  else LOG(`${fn} No client components found in ${source_dir}`);
+    LOG(`Bundled client components: ${YEL}${tsFiles.join(' ')}${NRM}`);
+  else LOG(`No client components found in ${source_dir}`);
 
   /// BUILD APP ///
 
@@ -100,8 +99,8 @@ async function SNA_Build(rootDir: string): Promise<void> {
   /// server being up and running to handle URNET messages
   const mtsFiles = await IMPORT.ImportServerModules(source_dir);
   if (mtsFiles.length)
-    LOG(`${fn} Server Components: ${YEL}${mtsFiles.join(' ')}${NRM}`);
-  else LOG(`${fn} No server components found in ${source_dir}`);
+    LOG(`Loaded server components: ${YEL}${mtsFiles.join(' ')}${NRM}`);
+  else LOG(`No server components found in ${source_dir}`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: used by SNA_Build() to configure watch dirs for hot reload */

@@ -19,7 +19,7 @@ import COMMENTS from './datacore/dc-comments.ts';
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(this);
-const PR = ConsoleStyler('App.ts', 'TagGreen');
+const PR = ConsoleStyler('app', 'TagGreen');
 
 /// LIFECYCLE HOOKS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,7 +28,7 @@ SNA.Hook('LOAD_CONFIG', () => {});
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
-  LOG(...PR('SNA Client Component Loaded'));
+  LOG(...PR('SNA Client Entry Loaded'));
 
   // 0. the app is hosted at a url that provides app context
   // 1. the initial socket connection returns a user-salt and uaddr

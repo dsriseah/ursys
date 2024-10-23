@@ -27,7 +27,7 @@ const { BLU, YEL, RED, DIM, NRM } = ANSI;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = makeTerminalOut('SNA', 'TagCyan');
+const LOG = makeTerminalOut('SNA.HOOK', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let PM: PhaseMachine;
@@ -79,7 +79,7 @@ async function SNA_LifecycleStart() {
       ],
       PHASE_ERROR: ['SRV_ERROR']
     });
-  LOG(`${fn} Executing Phase Groups`);
+  if (DBG) LOG(`SNA Node Lifecycle Starting`);
   await RunPhaseGroup('SNA/PHASE_INIT');
   await RunPhaseGroup('SNA/PHASE_LOAD');
   await RunPhaseGroup('SNA/PHASE_CONNECT');

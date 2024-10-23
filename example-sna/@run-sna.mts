@@ -12,7 +12,7 @@ import { SNA, PR } from '@ursys/core';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('SNA-RUN', 'TagCyan');
+const LOG = PR('@run-sna', 'TagCyan');
 const sna_project_dir = PATH.dirname(process.argv[1]);
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
@@ -22,5 +22,3 @@ const sna_project_dir = PATH.dirname(process.argv[1]);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 LOG('SNA Appserver Starting');
 await SNA.Build(sna_project_dir);
-await SNA.Start();
-LOG(SNA.Status().message);
