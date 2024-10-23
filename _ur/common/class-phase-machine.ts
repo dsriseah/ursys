@@ -357,8 +357,8 @@ function HookPhase(selector: HookSelector, fn: HookFunction) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Run all hooks associated with the selector in 'enter', 'exec', and
  *  'exit' order */
-function RunPhaseGroup(selector: HookSelector) {
-  PhaseMachine.RunPhaseGroup(selector);
+async function RunPhaseGroup(selector: HookSelector) {
+  await PhaseMachine.RunPhaseGroup(selector);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return a list of all pending machines that have not been hooked.

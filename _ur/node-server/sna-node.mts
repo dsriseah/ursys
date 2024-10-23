@@ -38,7 +38,7 @@ const DBG = true;
 /** API: initialize the server's lifecycle */
 async function SNA_Start() {
   const fn = 'SNA_Start:';
-  SNA_LifecycleStart();
+  await SNA_LifecycleStart();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the current phase machine state */
