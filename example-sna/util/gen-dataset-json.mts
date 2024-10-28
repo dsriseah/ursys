@@ -225,5 +225,8 @@ function WriteCommentJSON(filename: string, data: any) {
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 MakeComments();
-WriteCommentJSON('comments.json', COMMENTS);
+const data_bin_obj = {
+  comments: { name: 'comments', _prefix: '', _ord_digits: 3, items: COMMENTS }
+};
+WriteCommentJSON('comments.json', data_bin_obj);
 // MakeDerivedData();
