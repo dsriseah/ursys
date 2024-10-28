@@ -41,6 +41,32 @@ class DocFolder extends DataBin {
     this.collection_type = this.constructor.name;
   }
 
+  /// SERIALIZATION METHODS ///
+
+  /** API: create a new instance from a compatible state object */
+  _setFromDataObj(data: DataObj) {}
+
+  /** API: return a data object that represents the current state */
+  _getDataObj(): DataObj {
+    return {};
+  }
+
+  /** API: serialize JSON into the appropriate data structure */
+  _serializeToJSON(): string {
+    const sobj = {
+      ...this
+    };
+    return JSON.stringify(sobj);
+  }
+
+  /** API: deserialize data structure into the appropriate JSON */
+  _deserializeFromJSON(json: string): void {
+    const sobj = JSON.parse(json);
+    Object.keys(sobj).forEach(key => {
+      this[key] = sobj[key];
+    });
+  }
+
   /// DOCUMENT FOLDER METHODS ///
 
   /** Given the name of a doc, create a new doc and return the doc

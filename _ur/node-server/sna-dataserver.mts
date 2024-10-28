@@ -17,11 +17,14 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
+import * as FILE from './file.mts';
+import * as PATH from 'node:path';
 import { Dataset } from '../common/class-data-dataset.ts';
 import { DataBin } from '../common/abstract-data-databin.ts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
-import { IsDataSyncOp } from '../common/util-data-ops.ts';
+import { IsDataSyncOp, IsDatasetOp } from '../common/util-data-ops.ts';
 import { SNA_Hook } from './sna-node-hooks.mts';
+import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -30,8 +33,9 @@ import type {
   DataBinID,
   DataBinType,
   SyncDataReq,
-  DatastoreReq,
-  SyncDataOp
+  DatasetReq,
+  SyncDataOp,
+  UR_DatasetObj
 } from '../_types/dataset.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SyncOptions = {
@@ -51,13 +55,13 @@ type BinOpRes = OpResult & { bin?: DataBin; binName?: DataBinID };
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const LOG = console.log.bind(console);
+const LOG = makeTerminalOut('SNA.DSRV', 'TagBlue');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// to start, we just have one dataset, but for the future we could support
-/// multiple ones.
-const DS_DICT: DatasetStore = { 'default': new Dataset('default') };
-const DATA = DS_DICT.default;
-let SEQ_NUM = 0; // very predictable sequence number
+/// multiple ones in a DatasetStore
+let DSET: Dataset;
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let SEQ_NUM = 0; // predictable sequence number to order updates
 
 /// INITIALIZATION METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -72,14 +76,14 @@ async function LoadFromArchive(pathToZip: string) {}
 /** given a bin reference, open the bin and return the DataBin */
 function OpenBin(binName: DataBinID, options: BinOptions): BinOpRes {
   const { binType, autoCreate } = options;
-  let bin = DATA.openDataBin(binName);
+  let bin = DSET.openDataBin(binName);
   return { bin };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** given an itemset, close the bin and return the bin name if successful */
-function CloseBin(itemset: DataBin): BinOpRes {
-  const { name } = itemset;
-  let binName = DATA.closeDataBin(name);
+/** given an databin, close the bin and return the bin name if successful */
+function CloseBin(bin: DataBin): BinOpRes {
+  const { name } = bin;
+  let binName = DSET.closeDataBin(name);
   return { binName };
 }
 
@@ -89,12 +93,12 @@ function CloseBin(itemset: DataBin): BinOpRes {
 function DecodeSyncReq(syncReq: SyncDataReq) {
   const { accToken, op, binID, ids, items, searchOpt } = syncReq;
   // required params
-  if (accToken === undefined) return { error: 'binType, accToken is required' };
-  if (!IsDataSyncOp(op) === false) return { error: `op ${op} not recognized` };
+  // TODO: if (accToken === undefined) return { error: 'accToken is required' };
+  if (IsDataSyncOp(op) === false) return { error: `op ${op} not recognized` };
   if (!binID) return { error: 'binID is required' };
   if (typeof binID !== 'string') return { error: 'binID must be a string' };
-  if (DATA.getDataBin(binID) === undefined)
-    return { error: `itemset ${binID} not found` };
+  if (DSET.getDataBin(binID) === undefined)
+    return { error: `bin [${binID}] not found` };
   // optional params
   if (ids) {
     if (!Array.isArray(ids)) return { error: 'ids must be an array' };
@@ -120,11 +124,15 @@ function DecodeSyncReq(syncReq: SyncDataReq) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** confirm that parameters are correct for connecting to a datastore */
-function m_CheckDatastoreData(data: DatastoreReq) {
-  const { dataURI, authToken } = data;
-  if (!dataURI) return { error: 'dataURI is required' };
-  if (typeof dataURI !== 'string') return { error: 'dataURI must be a string' };
-  return { dataURI, authToken };
+function m_CheckDatasetReq(req: DatasetReq) {
+  const fn = 'm_CheckDatasetReq:';
+  const { dataURI, authToken, op } = req;
+  if (!dataURI) return { error: `${fn} dataURI is required` };
+  // TODO: check authToken?
+  if (!op) return { error: `${fn} op is required` };
+  if (!IsDatasetOp(op)) return { error: `${fn} op [${op}] not recognized` };
+  if (typeof dataURI !== 'string') return { error: `${fn} dataURI must be a string` };
+  return { dataURI, authToken, op };
 }
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -137,54 +145,139 @@ function m_NotifyClients(binID: DataBinID, binType: string, data: any) {
 /// URNET DATASET CONNECTION //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** implements dataset-level services */
-function HookDatastoreServices() {
-  /** accept */
-  AddMessageHandler('SYNC:SRV_DSET_LOAD', async (params: DatastoreReq) => {
-    const { dataURI } = m_CheckDatastoreData(params);
-    // TODO: implement data loading
+function HookDatasetServices() {
+  const fn = 'HookDatasetServices:';
+  /** accept authToken and dataURI, return accToken, status, error */
+  AddMessageHandler('SYNC:SRV_DSET', async (params: DatasetReq) => {
+    if (DSET !== undefined) {
+      return { status: 'loaded', data: DSET._getDataObj() };
+    }
+
+    const { dataURI, authToken, op, error } = m_CheckDatasetReq(params);
+    if (error) return { error };
+    // TODO: check authToken against datasetURI
+    // TODO: use dataURI to locate the stored data
+    // TODO: load the stored data
+
+    /** mock data loading from filesystem, decide where it goes later */
+    const mock_GetDataFromFilesystem = () => {
+      // dummy hardcoded load
+      const rootDir = FILE.DetectedRootDir();
+      const dataPath = PATH.join(rootDir, '_ur/tests/data/');
+      const jsonFile = PATH.join(dataPath, 'mock-dataset.json');
+      const data = FILE.ReadJSON(jsonFile);
+      return data;
+    };
+
+    /** mock data initialization of dataset, decide where it goes later */
+    const mock_InitializeDatasetFromData = (
+      dataset: Dataset,
+      inputData: UR_DatasetObj
+    ) => {
+      const { _schema, _dataURI, DocFolders, ItemLists } = inputData;
+      if (_schema) dataset._schema = _schema;
+      if (_dataURI) dataset._dataURI = _dataURI;
+      LOG(`.. initializing dataset: ${dataset.dataset_name} from ${_dataURI}`);
+      if (ItemLists) {
+        for (const [name, dataBinObj] of Object.entries(ItemLists)) {
+          // LOG(`.. 185 dataObj`, dataObj);
+          const bin = dataset.createDataBin(name, 'ItemList');
+          // add the items to the bin
+          const { error, items: i } = bin._setFromDataObj(dataBinObj);
+          if (error) {
+            LOG(`.. error adding items to ItemList [${name}]`, error, bin);
+          } else {
+            LOG(`.. set data objects ${i.length} items to ItemList [${name}]`);
+          }
+        }
+      }
+      LOG('.. dataset initialized', Object.keys(dataset._getDataObj()).join(', '));
+    };
+
+    // process the operations
+
+    let data;
+    let result: OpResult;
+    switch (op) {
+      case 'LOAD':
+        // load the dataset into memory
+        // placeholder process to work out the data loading
+        if (DSET === undefined) {
+          DSET = new Dataset('default');
+          data = mock_GetDataFromFilesystem();
+          mock_InitializeDatasetFromData(DSET, data);
+          result = { status: 'loaded', data: DSET._getDataObj() };
+        } else {
+          result = { status: 'already loaded', data: DSET._getDataObj() };
+        }
+        break;
+      case 'UNLOAD':
+        DSET = undefined;
+        result = { status: 'unloaded' };
+        break;
+      case 'PERSIST':
+        LOG('** would persist dataset to disk');
+        result = { status: 'persisted' };
+        break;
+      case 'GET':
+        result = {
+          status: 'ok',
+          dataURI: DSET._dataURI,
+          schema: DSET._schema,
+          data: DSET._getDataObj()
+        };
+        break;
+      case 'GET_MANIFEST':
+        LOG('** would return manifest');
+        result = { manifest: '{}' };
+        break;
+      default:
+        result = { error: `${fn} op [${op}] not recognized` };
+    } // switch
+    return result;
   });
 }
 
-/// URNET DATA HANDLING API ///////////////////////////////////////////////////
+/// URNET DSET HANDLING API ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** implements databin-level services */
 function HookServerDataSync() {
   AddMessageHandler('SYNC:SRV_DATA', async (syncPacket: SyncDataReq) => {
     const { binID, op, items, ids, searchOpt, error } = DecodeSyncReq(syncPacket);
     if (error) return { error };
-    const bin = DATA.getDataBin(binID);
-    if (bin === undefined) return { error: `bin ${binID} not found` };
-    if (!items && !ids) return { error: 'items or ids required' };
+    const bin = DSET.getDataBin(binID);
+    if (bin === undefined) return { error: `DSRV: bin [${binID}] not found` };
+    if (!items && !ids) return { error: 'DSRV: items or ids required' };
     switch (op) {
       case 'GET':
         if (ids) return bin.read(ids);
         return bin.get();
       case 'ADD':
         if (items) return bin.add(items);
-        return { error: 'items required for ADD operation' };
+        return { error: 'DSRV: items required for ADD operation' };
       case 'UPDATE':
         if (items) return bin.update(items);
-        return { error: 'items required for UPDATE operation' };
+        return { error: 'DSRV: items required for UPDATE operation' };
       case 'WRITE':
         if (items) return bin.write(items);
-        return { error: 'items required for WRITE operation' };
+        return { error: 'DSRV: items required for WRITE operation' };
       case 'DELETE':
         if (ids) return bin.deleteIDs(ids);
         if (items) return bin.delete(items);
-        return { error: 'ids or items required for DELETE operation' };
+        return { error: 'DSRV: ids or items required for DELETE operation' };
       case 'REPLACE':
         if (items) return bin.replace(items);
-        return { error: 'items required for REPLACE operation' };
+        return { error: 'DSRV: items required for REPLACE operation' };
       case 'CLEAR':
         return bin.clear();
       case 'FIND':
         if (searchOpt) return bin.find(searchOpt);
-        return { error: 'searchOpt required for FIND operation' };
+        return { error: 'DSRV: searchOpt required for FIND operation' };
       case 'QUERY':
         if (searchOpt) return bin.query(searchOpt);
-        return { error: 'searchOpt required for QUERY operation' };
+        return { error: 'DSRV: searchOpt required for QUERY operation' };
       default:
-        return { error: `operation ${op} not recognized` };
+        return { error: `DSRV: operation ${op} not recognized` };
     }
   });
 }
@@ -194,7 +287,7 @@ function HookServerDataSync() {
 /** declare the data message handler when the express server is ready,
  *  just before listening */
 SNA_Hook('EXPRESS_READY', HookServerDataSync);
-SNA_Hook('EXPRESS_READY', HookDatastoreServices);
+SNA_Hook('EXPRESS_READY', HookDatasetServices);
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -203,5 +296,5 @@ export {
   LoadFromURI, // datasetURI => void
   LoadFromArchive, // pathToZip => void
   OpenBin, // binName, options => BinOpRes
-  CloseBin // itemset => BinOpRes
+  CloseBin // databin => BinOpRes
 };

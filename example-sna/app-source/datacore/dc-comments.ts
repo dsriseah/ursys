@@ -36,11 +36,27 @@ async function HOOK_LoadDataLocal() {
   // after DCLI.LoadData(), notification to HandleDataEvent should occur
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** using the remote data initialization, assuming dataset is already loaded */
+async function HOOK_LoadDataRemote() {
+  let res: OpResult;
+  res = await DCLI.Subscribe('comments', HandleDataEvent);
+  if (res.error) throw Error(`Subscribe ${res.error}`);
+  res = DCLI.Subscribe('comments', HandleDataEvent);
+  if (res.error) throw Error(`Subscribe ${res.error}`);
+  // after DCLI.Init(), notification to HandleDataEvent should occur
+  DoSomething();
+}
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** example of using dataclient */
 async function DoSomething() {
-  const comment123 = DCLI.Get('comments', ['123']);
-  const resAdd = await DCLI.Add('comments', [{ text: '' }, { text: '' }]);
-  const resQuery = await DCLI.Query('comments', { id: '123' });
+  const fn = 'DoSomething:';
+  const resGet = await DCLI.Get('comments', ['cmt4']);
+  LOG(...PR(fn, 'got cmt4', resGet));
+  const resAdd = await DCLI.Add('comments', [{ text: 'A' }, { text: 'B' }]);
+  LOG(...PR(fn, 'added two comments', resAdd));
+  const resQuery = await DCLI.Query('comments', { id: '1' });
+  LOG(...PR(fn, 'query for id 1', resQuery));
 }
 
 /// DATA LIFECYCLE METHODS ////////////////////////////////////////////////////
@@ -82,7 +98,7 @@ function SNA_PreConfig(data: any): OpResult {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SNA_PreHook() {
-  SNA.Hook('LOAD_DATA', () => HOOK_LoadDataLocal());
+  SNA.Hook('LOAD_DATA', () => HOOK_LoadDataRemote());
   SNA.Hook('APP_CONFIG', async () => {
     const items = await DCLI.Get('comments');
     LOG(...PR('APP_CONFIG: loaded items', items));

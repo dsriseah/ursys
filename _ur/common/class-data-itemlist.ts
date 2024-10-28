@@ -22,6 +22,8 @@ import type {
   UR_NewItem,
   UR_Item,
   UR_ItemList,
+  DataObj,
+  OpResult,
   DataBinID,
   DataBinType,
   //
@@ -71,20 +73,43 @@ class ItemList extends DataBin {
 
   /// SERIALIZATION METHODS ///
 
+  /** API: create a new instance from a compatible state object */
+  _setFromDataObj(data: DataObj): OpResult {
+    const fn = 'ItemList._setFromDataObj:';
+    let result = super._setFromDataObj(data);
+    if (result.error) return { error: `${fn} ${result.error}` };
+    const { items } = data;
+    if (!Array.isArray(items)) return { error: `${fn} _list must be an array` };
+    const [norm_list, norm_error] = NormItems(items);
+    if (norm_error) return { error: `${fn} ${norm_error}` };
+    this._list = norm_list;
+    return { items: [...this._list] };
+  }
+
+  /** API: return a data object that represents the current state */
+  _getDataObj(): OpResult {
+    const data = super._getDataObj();
+    if (data.error) return { error: data.error };
+    return { ...data, items: [...this._list] };
+  }
+
   /** API: serialize JSON into the appropriate data structure */
-  serializeToJSON(): string {
-    const sobj = {
-      ...this
-    };
-    return JSON.stringify(sobj);
+  _serializeToJSON(): string {
+    const data = this._getDataObj();
+    return JSON.stringify(data);
   }
 
   /** API: deserialize data structure into the appropriate JSON */
-  deserializeFromJSON(json: string): void {
-    const sobj = JSON.parse(json);
-    Object.keys(sobj).forEach(key => {
-      this[key] = sobj[key];
-    });
+  _deserializeFromJSON(json: string): OpResult {
+    const fn = '_deserializeFromJSON:';
+    try {
+      const sobj = JSON.parse(json);
+      const { error } = this._setFromDataObj(sobj);
+      if (error) throw Error(error);
+      return { instance: this };
+    } catch (err) {
+      return { error: `${fn} ${err.message}` };
+    }
   }
 
   /// LIST ID METHODS ///
@@ -99,7 +124,7 @@ class ItemList extends DataBin {
       // otherwise, we need to scan the existing list
       let maxID = 0;
       for (const li of this._list) {
-        const [_prefix, ord] = this.decodeID(li._id);
+        const { _prefix, ord } = this.decodeID(li._id);
         if (ord > maxID) maxID = ord;
       }
       this._ord_highest = maxID;
@@ -150,10 +175,10 @@ class ItemList extends DataBin {
     // otherwise, return the specific objects in the order of the ids array
     // as a copy of the objects
     const items = ids.map(id => this._list.find(obj => obj._id === id));
-    const error = items.includes(undefined)
-      ? `${fn} one or more ids not found in ${this.name}`
-      : undefined;
-    return { items, error };
+    if (items.includes(undefined)) {
+      return { error: `${fn} one or more ids not found in ${this.name}` };
+    }
+    return { items }; // return found items
   }
 
   /** Update the objects in the _list with the items provided through shallow

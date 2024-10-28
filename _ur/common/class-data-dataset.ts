@@ -16,7 +16,7 @@
     add, read, update, replace, write, deleteIDs, delete, clear, get
     find, query
     on, off
-    serializeToJSON, deserializeFromJSON
+    _serializeToJSON, _deserializeFromJSON
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -32,7 +32,12 @@ import type {
   DataBinID,
   DataBinType,
   UR_SchemaID,
-  SyncDataOptions
+  SyncDataOptions,
+  I_DataSerialize,
+  UR_DatasetURI,
+  UR_DatasetObj,
+  UR_ItemList,
+  UR_DocFolder
 } from '../_types/dataset';
 import type { ItemListOptions } from './class-data-itemlist.ts';
 type DataAccessTok = string;
@@ -67,10 +72,11 @@ function m_IsValidBinName(bName: string): boolean {
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** knows how to manage the different kinds of collections */
-class Dataset {
+class Dataset implements I_DataSerialize {
   //
   dataset_name: string; // the name of this list manager
-  dataset_schema: UR_SchemaID; // the schema of the dataset
+  _dataURI: UR_DatasetURI; // the URI of the dataset
+  _schema: UR_SchemaID; // the schema of the dataset
   open_bins: Set<DataBinID>; // open bins are subject to sync
   acc_toks: Map<DataBinID, DataAccessTokSet>; // access tokens for each bin
   //
@@ -114,6 +120,38 @@ class Dataset {
     this.open_bins.delete(binName);
   }
 
+  /// SERIALIZATION METHODS ///
+
+  /** return DataObj representation of the dataset */
+  _getDataObj(): UR_DatasetObj {
+    const lists = {};
+    for (const [binID, bin] of Object.entries(this.LISTS)) {
+      lists[binID] = bin._getDataObj();
+    }
+    return {
+      _schema: this._schema,
+      _dataURI: this._dataURI,
+      ItemLists: lists
+    };
+  }
+
+  /** given a dataset object, set the dataset properties */
+  _setFromDataObj(dataObj: UR_DatasetObj) {
+    this._schema = dataObj._schema;
+    this._dataURI = dataObj._dataURI;
+    console.log('dataset: would check data obj', dataObj);
+    console.log('dataset: would set data obj', dataObj);
+    throw Error('not implemented');
+  }
+
+  _serializeToJSON(): string {
+    return JSON.stringify(this._getDataObj());
+  }
+
+  _deserializeFromJSON(json: string) {
+    this._setFromDataObj(JSON.parse(json));
+  }
+
   /// UNIVERSAL BIN METHODS ///
 
   /** API: Given a bin name, return the bin. Since bin names are unique, this
@@ -150,7 +188,6 @@ class Dataset {
   /** API: create a new bin by name and type. */
   createDataBin(binName: DataBinID, binType: DataBinType): DataBin {
     const fn = 'createDataBin:';
-    LOG(`${fn} creating binName: ${binName}, binType: ${binType}`);
     let bin: DataBin;
     switch (binType) {
       case 'ItemList':

@@ -11,4 +11,5 @@
 /// we use various object conventions
 export type DataObj = { [key: string]: any };
 export type ErrObj = { error?: string; errorCode?: string; errorInfo?: string };
-export type OpResult = DataObj & ErrObj;
+export type StatusObj = { status?: string; statusCode?: number; statusInfo?: string };
+export type OpResult = DataObj & ErrObj & StatusObj;

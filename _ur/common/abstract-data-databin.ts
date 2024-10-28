@@ -4,10 +4,10 @@
 
   abstract class DataBin
     add, read, update, replace, write, deleteIDs, delete, clear, get
-    find, query
+  find, query
     decodeID, _maxID, newID
     on, off, notifyChange
-    serializeToJSON, deserializeFromJSON
+    _serializeToJSON, _deserializeFromJSON
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -20,12 +20,12 @@ import type {
   UR_EntID,
   UR_NewItem,
   UR_Item,
+  //
   DataBinID,
   DataBinType,
   //
   SearchOptions,
   DataObj,
-  SyncDataRes,
   OpResult
 } from '../_types/dataset';
 import type { SNA_EvtName, SNA_EvtHandler } from '../_types/sna.d.ts';
@@ -36,7 +36,8 @@ const DBG = true;
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-abstract class DataBin {
+import type { I_DataAPI, I_DataSerialize } from '../_types/dataset';
+abstract class DataBin implements I_DataAPI, I_DataSerialize {
   //
   name: DataBinID; // name of this collection
   _type: DataBinType; // type of this collection (.e.g ItemList);
@@ -52,6 +53,10 @@ abstract class DataBin {
    *  then the ids will be the prefix + zero-padded number */
   constructor(col_name: string) {
     this.name = col_name;
+    this._init();
+  }
+
+  _init(): void {
     this._prefix = '';
     this._ord_digits = 3;
     this._ord_highest = 0;
@@ -59,22 +64,56 @@ abstract class DataBin {
 
   /// SERIALIZATION METHODS ///
 
+  /** API: create a new instance from a compatible state object */
+  _setFromDataObj(data: DataObj): OpResult {
+    let { name, _prefix, _ord_digits, _ord_highest } = data;
+    // assign defaults if undefined
+    if (_prefix === undefined) _prefix = '';
+    if (_ord_digits === undefined) _ord_digits = 3;
+    if (_ord_highest === undefined) _ord_highest = 0; // todo: scan for highest
+    // required name
+    if (name === undefined) return { error: 'name missing' };
+    if (typeof name !== 'string') return { error: 'name must be a string' };
+    // type checks
+    if (typeof _prefix !== 'string') return { error: '_prefix must be a string' };
+    if (typeof _ord_digits !== 'number')
+      return { error: '_ord_digits must be a number' };
+    if (typeof _ord_highest !== 'number')
+      return { error: '_ord_highest must be a number' };
+    // assign
+    this.name = name;
+    this._prefix = _prefix;
+    this._ord_digits = _ord_digits;
+    this._ord_highest = _ord_highest;
+    return { name, _prefix, _ord_digits, _ord_highest };
+  }
+
+  /** API: return a data object that represents the current state */
+  _getDataObj(): OpResult {
+    return {
+      name: this.name,
+      _prefix: this._prefix,
+      _ord_digits: this._ord_digits,
+      _ord_highest: this._ord_highest
+    };
+  }
+
   /** API: serialize JSON into the appropriate data structure */
-  abstract serializeToJSON(): string;
+  abstract _serializeToJSON(): string;
 
   /** API: deserialize data structure into the appropriate JSON */
-  abstract deserializeFromJSON(json: string): void;
+  abstract _deserializeFromJSON(json: string): OpResult;
 
   /// ID METHODS ///
 
   /** decode an id into its _prefix and number */
-  decodeID(id: UR_EntID): [string, number] {
+  decodeID(id: UR_EntID): OpResult {
     const fn = 'decodeID:';
     // get the part of id after _prefix
     if (!id.startsWith(this._prefix))
-      throw Error(`${fn} id ${id} does not match _prefix ${this._prefix}`);
+      return { error: `${fn} id ${id} does not match _prefix ${this._prefix}` };
     const ord = id.slice(this._prefix.length);
-    return [this._prefix, parseInt(ord)];
+    return { _prefix: this._prefix, _ord: parseInt(ord) };
   }
 
   /** abstract method to return the highest id in the _list, which may
@@ -150,21 +189,23 @@ abstract class DataBin {
   /// NOTIFIER METHODS ///
 
   /** add a listener to the event machine */
-  on(event: SNA_EvtName, lis: SNA_EvtHandler): void {
+  on(event: SNA_EvtName, lis: SNA_EvtHandler): OpResult {
     if (!this._notifier) this._notifier = new EventMachine(`databin_${this.name}`);
     this._notifier.on(event, lis);
+    return {};
   }
 
   /** remove a listener from the event machine */
-  off(event: SNA_EvtName, lis: SNA_EvtHandler): void {
+  off(event: SNA_EvtName, lis: SNA_EvtHandler): OpResult {
     if (this._notifier) this._notifier.off(event, lis);
-    throw Error(`off: no notifier for listener ${lis.name}`);
+    return { error: `off: no notifier for listener ${lis.name}` };
   }
 
   /** notify listeners of 'change' event */
-  notify(evt: SNA_EvtName, data: DataObj): void {
-    if (typeof evt !== 'string') throw Error('notify: evt must be a string');
+  notify(evt: SNA_EvtName, data: DataObj): OpResult {
+    if (typeof evt !== 'string') return { error: 'notify: evt must be a string' };
     if (this._notifier) this._notifier.emit(evt, data);
+    return {};
   }
 
   /// SEARCH METHODS ///

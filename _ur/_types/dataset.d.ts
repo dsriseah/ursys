@@ -6,9 +6,9 @@
 
 import type { DataObj, OpResult } from './ursys.d.ts';
 export type * from './ursys.d.ts';
-export type { DataBin } from './class-data-databin.ts';
-export type { Dataset, SyncOptions } from './class-data-dataset.ts';
-export type { RecordSet } from './class-data-recordset.ts';
+export type { DataBin } from '../common/abstract-data-databin.ts';
+export type { Dataset, SyncOptions } from '../common/class-data-dataset.ts';
+export type { RecordSet } from '../common/class-data-recordset.ts';
 
 /// BASE TYPES ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -30,6 +30,42 @@ type BucketID = string; // e.g. a UUID using / separators
 type InstanceID = string; // e.g. a path to a dataset resource
 type SetQuery = string; // e.g. a query string
 export type UR_DatasetURI = `${OrgDomain}:${BucketID}/${InstanceID}?${SetQuery}`;
+
+/// INTERFACES ////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** used by databin and dataset classes moving data across the network */
+export interface I_DataSerialize {
+  _getDataObj(): DataObj;
+  _setFromDataObj(data: DataObj): void;
+  _serializeToJSON(): string;
+  _deserializeFromJSON(json: string): void;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** required interface for dataAPI (implemented by DataBin abstract class) */
+export interface I_DataAPI {
+  add(items: UR_Item[]): { added?: UR_Item[]; error?: string };
+  read(ids?: UR_EntID[]): { items?: UR_Item[]; error?: string };
+  update(items: UR_Item[]): { updated?: UR_Item[]; error?: string };
+  replace(items: UR_Item[]): {
+    replaced?: UR_Item[];
+    skipped?: UR_Item[];
+    error?: string;
+  };
+  write(items: UR_Item[]): {
+    added?: UR_Item[];
+    updated?: UR_Item[];
+    error?: string;
+  };
+  deleteIDs(ids: UR_EntID[]): { deleted?: UR_Item[]; error?: string };
+  delete(items: UR_Item[]): { deleted?: UR_Item[]; error?: string };
+  clear(): void;
+  get(ids?: UR_EntID[]): any[];
+  on(event: SNA_EvtName, lis: SNA_EvtHandler): void;
+  off(event: SNA_EvtName, lis: SNA_EvtHandler): void;
+  notify(evt: SNA_EvtName, data: DataObj): void;
+  find(criteria?: SearchOptions): UR_Item[];
+  query(criteria?: SearchOptions): RecordSet;
+}
 
 /// DATASET CONVENTIONS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -58,7 +94,15 @@ export type UR_DatasetObj = {
   _dataURI: UR_DatasetURI;
   // see https://github.com/dsriseah/ursys/discussions/25 for more on this list
   DocFolders?: { [foldername: DataBinID]: UR_DocFolder };
-  ItemLists?: { [listname: DataBinID]: UR_ItemList };
+  ItemLists?: {
+    [listname: DataBinID]: {
+      name: DataBinID;
+      _prefix: string;
+      _ord_digits: number;
+      _ord_highest: number;
+      items: UR_ItemList;
+    };
+  };
   // stringlists
   // filelist
   // appconfig
@@ -90,6 +134,8 @@ export type DatasetReq = {
 export type DatasetRes = {
   dataURI?: string;
   accToken?: string;
+  // data
+  data?: UR_DatasetObj;
   // meta
   status?: string;
   error?: string;

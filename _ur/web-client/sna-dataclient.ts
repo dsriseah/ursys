@@ -32,6 +32,8 @@ import type {
   DataObj,
   OpResult,
   RemoteStoreAdapter,
+  DatasetReq,
+  DatasetRes,
   SyncDataOptions,
   SyncDataReq,
   SyncDataRes,
@@ -81,9 +83,11 @@ async function HOOK_NetDataset() {
   LOG(...PR(`${fn} establishing datalink to ${dataURI}`));
   const opts = { mode: DS_MODE };
   let res: OpResult;
-  res = await Configure(dataURI, opts);
+  // configure the dataset
+  res = await Configure(dataURI, opts); // => { adapter, handlers }
   if (res.error) throw Error(`Configure ${res.error}`);
-  const { adapter, handlers } = res;
+  // connect the dataset
+  res = await Activate(); // => { dataURI, ItemLists }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** here is the opportunity to register hooks before the lifecycle starts */
@@ -99,6 +103,13 @@ let REMOTE: RemoteStoreAdapter; // the remote data adapter
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LocalAdapter: RemoteStoreAdapter = {
   accToken: '',
+  selectDataset: async (dsReq: DatasetReq) => {
+    const EP = ClientEndpoint();
+    if (EP) {
+      const res = await EP.netCall('SYNC:SRV_DSET', dsReq);
+      return res;
+    }
+  },
   syncData: async (syncReq: SyncDataReq) => {
     const EP = ClientEndpoint();
     if (EP) {
@@ -189,19 +200,38 @@ async function Configure(dsURI: UR_DatasetURI, opt: SyncDataOptions) {
   return { dsURI, adapter: REMOTE, handlers: ['SYNC:CLI_DATA'] };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** after configure is called, this method connects to the dataset */
+async function Activate() {
+  if (DSET === undefined) return { error: 'must call Configure() first' };
+  if (F_SyncInit) {
+    const res = await REMOTE.selectDataset({ dataURI: DS_URI, op: 'LOAD' });
+    if (res.error) return res;
+    if (res.status === 'ok') {
+      LOG(...PR(`Activate existing dataURI:`, res.dataURI));
+    } else {
+      LOG(...PR(`Activate status [${res.status}]`));
+    }
+    /** now we need to write the data **/
+    LOG(...PR(`data received on activate:`, res.data));
+    await SetDataFromObject(res.data);
+  }
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** sets the dataset's content from a UR_DatasetObj. must be called after
  *  Configure() */
 async function SetDataFromObject(data: UR_DatasetObj): Promise<OpResult> {
+  const fn = 'SetDataFromObject:';
   if (DSET === undefined) return { error: 'must call Configure() first' };
+  LOG(...PR(fn, 'data:', data));
   const { _dataURI } = data;
   if (_dataURI !== DS_URI) return { error: 'dataURI mismatch' };
 
   // create the bins manually
   const { ItemLists } = data;
-  for (const [binID, items] of Object.entries(ItemLists)) {
+  for (const [binID, binDataObj] of Object.entries(ItemLists)) {
     LOG(...PR('SetDataFromObject: creating', binID));
     const bin = DSET.createDataBin(binID, 'ItemList');
-    bin.write(items);
+    bin._setFromDataObj(binDataObj);
   }
 
   /*/ 
@@ -211,16 +241,6 @@ async function SetDataFromObject(data: UR_DatasetObj): Promise<OpResult> {
 
   // return the dataURI and the list of ItemLists
   return { dataURI: DS_URI, ItemLists: Object.keys(ItemLists) };
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** sets the dataset's content from a UR_DatasetURI. must be called after
- *  Configure() */
-async function SetDataFromConfigURI(): Promise<OpResult> {
-  const fn = 'LoadDataset:';
-  if (DSET === undefined) return { error: 'must call Configure() first' };
-  // TODO: load the dataset from the server
-  // TODO: handle 'local' and 'sync' modes
-  // TODO: hook dataserver updates to the dataset and notify subscribers
 }
 
 /// DATASET OPERATIONS ////////////////////////////////////////////////////////
@@ -354,8 +374,8 @@ async function DS_RemoteQuery(
   dsURI: UR_DatasetURI,
   binID: string,
   query: SearchOptions
-): Promise<RecordSet> {
-  return { binID, query, items: [] };
+) /* :Promise<RecordSet> */ {
+  return {};
 }
 
 /// NOTIFIERS /////////////////////////////////////////////////////////////////
@@ -365,6 +385,7 @@ function Subscribe(binID: string, evHdl: SNA_EvtHandler): OpResult {
   if (typeof evHdl !== 'function') return { error: 'evHdl must be a function' };
   if (DSET === undefined) return { error: 'must call Configure() first' };
   const bin = DSET.getDataBin(binID);
+  LOG(...PR('Subscribe:', binID, 'bin', bin, 'dset', DSET));
   if (bin) {
     bin.on('*', evHdl);
     if (DBG) LOG(...PR('Subscribe:', binID, 'subscribed'));
@@ -398,7 +419,6 @@ export {
   Unsubscribe,
   // api data initialization
   SetDataFromObject,
-  SetDataFromConfigURI,
   // api data operations
   Get,
   Add,
