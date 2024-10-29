@@ -62,18 +62,21 @@ export {
   SNA_Build as Build,
   SNA_Start as Start,
   SNA_Status as Status,
+  // sna hook methods
   SNA_Hook as Hook,
   SNA_RuntimeInfo as RuntimeInfo,
   // sna modules
   MOD_DataServer
 };
 export {
+  // sna hook methods
   HookPhase,
   RunPhaseGroup,
   GetMachine,
   GetDanglingHooks
 } from './sna-node-hooks.mts';
 export {
+  // sna network endpoint methods
   AddMessageHandler,
   DeleteMessageHandler,
   RegisterMessages,

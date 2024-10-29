@@ -26,6 +26,7 @@ import type {
   OpResult,
   DataBinID,
   DataBinType,
+  I_DataSerialize,
   //
   SearchOptions
 } from '../_types/dataset';

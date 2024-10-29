@@ -41,8 +41,6 @@ async function HOOK_LoadDataRemote() {
   let res: OpResult;
   res = await DCLI.Subscribe('comments', HandleDataEvent);
   if (res.error) throw Error(`Subscribe ${res.error}`);
-  res = DCLI.Subscribe('comments', HandleDataEvent);
-  if (res.error) throw Error(`Subscribe ${res.error}`);
   // after DCLI.Init(), notification to HandleDataEvent should occur
   DoSomething();
 }
