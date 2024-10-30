@@ -28,7 +28,7 @@ SNA.Hook('LOAD_CONFIG', () => {});
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
-  LOG(...PR('SNA Client Entry Loaded'));
+  LOG(...PR('Initializing Web App'));
 
   // 0. the app is hosted at a url that provides app context
   // 1. the initial socket connection returns a user-salt and uaddr
@@ -52,7 +52,4 @@ SNA.Hook('LOAD_CONFIG', () => {});
   // After all modules are initialized, start the SNA lifecycle this will
   // call PreConfig() and PreHook() all all registered modules.
   await SNA.Start();
-
-  // system is started
-  LOG(...PR(SNA.Status().message));
 })();

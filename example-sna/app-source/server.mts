@@ -38,7 +38,4 @@ SNA.Hook('SRV_READY', () => {
   // After all modules are initialized, start the SNA lifecycle this will
   // call PreConfig() and PreHook() all all registered modules.
   await SNA.Start();
-
-  // system is started
-  LOG(SNA.Status().message);
 })();

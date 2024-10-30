@@ -109,23 +109,21 @@ async function SNA_LifecycleStart() {
       PHASE_ERROR: ['APP_ERROR']
     });
 
-  // initialize all registered components
-  for (const component of COMPONENTS) {
-    const { PreHook, _name } = component;
-    if (component.PreHook) {
-      if (DBG) LOG(...PR(`Initializing SNA_Module '${_name}'`));
-      PreHook();
-    }
-  }
-
   // configure all registered components with global config
   for (const component of COMPONENTS) {
     const { PreConfig, _name } = component;
-    if (typeof PreConfig !== 'function') {
-      throw Error(`${fn} ${_name}.PreConfig is not a function`);
-    } else {
+    if (typeof PreConfig === 'function') {
       if (DBG) LOG(...PR(`Configuring SNA_Module '${_name}'`));
       PreConfig(GLOBAL_CONFIG);
+    }
+  }
+
+  // initialize all registered components
+  for (const component of COMPONENTS) {
+    const { PreHook, _name } = component;
+    if (typeof PreHook === 'function') {
+      if (DBG) LOG(...PR(`Initializing SNA_Module '${_name}'`));
+      PreHook();
     }
   }
 
@@ -142,7 +140,6 @@ async function SNA_LifecycleStart() {
   if (dooks) {
     LOG(...PR(`*** ERROR *** dangling phase hooks detected`), dooks);
   }
-  if (DBG) LOG(...PR(`SNA Web Lifecycle Complete`));
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: shortcut hook for SNA machine */

@@ -37,6 +37,7 @@ const PR = ConsoleStyler('SNA', 'TagCyan');
 async function SNA_Start() {
   // register system-level SNA components
   SNA_RegisterComponent(DATACLIENT);
+
   // prepare own hooks before starting the lifecycle
   SNA_Hook('DOM_READY', SNA_NetConnect);
   SNA_Hook('NET_CONNECT', async (p, m) => {
@@ -48,6 +49,10 @@ async function SNA_Start() {
   SNA_Hook('NET_DECLARE', async (p, m) => {
     await RegisterMessages();
   });
+  SNA_Hook('APP_RUN', () => {
+    LOG(...PR('App Running'));
+  });
+
   // now start the lifecycle
   await SNA_LifecycleStart();
 }

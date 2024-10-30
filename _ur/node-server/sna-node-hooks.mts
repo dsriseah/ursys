@@ -15,11 +15,13 @@ import {
   GetDanglingHooks,
   GetMachine
 } from '../common/class-phase-machine.ts';
+import { IsSnakeCase } from '../common/util-text.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
-import type { OpResult } from '../_types/dataset.d.ts';
+import type { OpResult, DataObj } from '../_types/dataset.d.ts';
+import type { SNA_Module } from '../_types/sna.d.ts';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -30,7 +32,40 @@ const { BLU, YEL, RED, DIM, NRM } = ANSI;
 const LOG = makeTerminalOut('SNA.HOOK', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let COMPONENTS: Set<SNA_Module> = new Set();
+let GLOBAL_CONFIG: DataObj = {};
 let PM: PhaseMachine;
+
+/// SNA COMPONENT REGISTRATION ////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: register a component with the SNA lifecycle */
+function SNA_RegisterComponent(component: SNA_Module) {
+  const fn = 'SNA_RegisterComponent:';
+  const { _name, PreHook } = component;
+  if (typeof _name !== 'string')
+    throw Error(`${fn} bad SNA component: missing _name`);
+  if (!IsSnakeCase(_name))
+    throw Error(`${fn} bad SNA component: _name must be snake_case`);
+  if (typeof PreHook !== 'function')
+    throw Error(`${fn} bad SNA component: missing PreHook function`);
+  if (COMPONENTS.has(component)) LOG(`SNA_Module '${_name}' already registered`);
+  if (DBG) LOG(`Registering SNA_Module: '${_name}'`);
+  COMPONENTS.add(component);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: register a global configuration object, merging with the existing
+ *  configuration */
+function SNA_GlobalConfig(config: DataObj): DataObj {
+  // when no config is provided, return the current global config
+  if (config === undefined) return GLOBAL_CONFIG;
+  // otherwise merge the new config with the existing global config
+  if (Object.keys(GLOBAL_CONFIG).length === 0) {
+    if (DBG) LOG(`Setting SNA Global Configuration`);
+  } else if (DBG) LOG(`Updating SNA Global Configuration`);
+  GLOBAL_CONFIG = Object.assign(GLOBAL_CONFIG, config);
+  // return a copy of the global config
+  return { ...GLOBAL_CONFIG };
+}
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -79,6 +114,26 @@ async function SNA_LifecycleStart() {
       ],
       PHASE_ERROR: ['SRV_ERROR']
     });
+
+  // configure all registered components with global config
+  for (const component of COMPONENTS) {
+    const { PreConfig, _name } = component;
+    if (typeof PreConfig === 'function') {
+      if (DBG) LOG(`Configuring SNA_Module '${_name}'`);
+      PreConfig(GLOBAL_CONFIG);
+    }
+  }
+
+  // initialize all registered components
+  for (const component of COMPONENTS) {
+    const { PreHook, _name } = component;
+    if (typeof PreHook === 'function') {
+      if (DBG) LOG(`Initializing SNA_Module '${_name}'`);
+      PreHook();
+    }
+  }
+
+  // run phase groups in order
   if (DBG) LOG(`SNA Node Lifecycle Starting`);
   await RunPhaseGroup('SNA/PHASE_INIT');
   await RunPhaseGroup('SNA/PHASE_LOAD');
@@ -121,6 +176,8 @@ function SNA_LifecycleStatus(): OpResult {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   // sna process
+  SNA_RegisterComponent,
+  SNA_GlobalConfig,
   SNA_Hook,
   SNA_LifecycleStart,
   SNA_LifecycleStatus,

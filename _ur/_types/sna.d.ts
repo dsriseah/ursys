@@ -22,10 +22,10 @@ export type SNA_EvtOnce = (evt: string, param: DataObj) => void;
 /// practice
 export type SNA_Module = {
   _name: string;
-  PreConfig: MOD_PreConfig;
-  PreHook: MOD_PreHook;
-  Subscribe: SNA_EvtOn;
-  Unsubscribe: SNA_EvtOff;
+  PreConfig?: MOD_PreConfig;
+  PreHook?: MOD_PreHook;
+  Subscribe?: SNA_EvtOn;
+  Unsubscribe?: SNA_EvtOff;
 };
 
 /// SNA EVENT CONVENTIONS /////////////////////////////////////////////////////

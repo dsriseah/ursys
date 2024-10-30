@@ -37,6 +37,7 @@ import type {
   SyncDataOp,
   UR_DatasetObj
 } from '../_types/dataset.d.ts';
+import type { SNA_Module } from '../_types/sna.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SyncOptions = {
   syncType: 'pull' | 'push' | 'both';
@@ -282,15 +283,16 @@ function HookServerDataSync() {
   });
 }
 
-/// RUNTIME HOOKS /////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** declare the data message handler when the express server is ready,
- *  just before listening */
-SNA_Hook('EXPRESS_READY', HookServerDataSync);
-SNA_Hook('EXPRESS_READY', HookDatasetServices);
-
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const SNA_MODULE: SNA_Module = {
+  _name: 'dataserver',
+  PreHook: () => {
+    SNA_Hook('EXPRESS_READY', HookServerDataSync);
+    SNA_Hook('EXPRESS_READY', HookDatasetServices);
+  }
+};
+export default SNA_MODULE;
 export {
   LoadFromDirectory, // pathToDataset => void
   LoadFromURI, // datasetURI => void

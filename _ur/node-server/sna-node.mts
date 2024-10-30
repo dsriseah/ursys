@@ -8,14 +8,19 @@ import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 import { SNA_Build, SNA_RuntimeInfo } from './sna-node-urnet-server.mts';
 import {
   SNA_Hook,
+  SNA_RegisterComponent,
   SNA_LifecycleStatus,
   SNA_LifecycleStart,
   GetDanglingHooks
 } from './sna-node-hooks.mts';
 
+/// SNA MODULES PACKAGING /////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import MOD_DataServer from './sna-dataserver.mts';
+
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpResult } from '../_types/dataset.d.ts';
+import type { OpResult, DataObj } from '../_types/dataset.d.ts';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,18 +31,14 @@ const { BLU, YEL, RED, DIM, NRM } = ANSI;
 const LOG = makeTerminalOut('SNA', 'TagCyan');
 const DBG = true;
 
-/// API: BUILD APPSERVER //////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: SNA_Build imports scripts provided folder. Hide dependent scripts in
- *  subdirectories. It's assumed that .mts files are server-side and .ts files
- *  are app-client side. Imported from sna-node-urnet
- */
-
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: initialize the server's lifecycle */
 async function SNA_Start() {
-  const fn = 'SNA_Start:';
+  SNA_RegisterComponent(MOD_DataServer);
+  // prepare own hooks before starting the lifecycle
+  SNA_Hook('SRV_READY', LOG('Server Ready'));
+  // now start the lifecycle
   await SNA_LifecycleStart();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -51,10 +52,6 @@ function SNA_Status(): OpResult {
     ...status
   };
 }
-
-/// SNA MODULES PACKAGING /////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import * as MOD_DataServer from './sna-dataserver.mts';
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
