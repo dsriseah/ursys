@@ -199,7 +199,7 @@ class PhaseMachine {
    *  returns a Promise, the function will wait for it to resolve before
    *  returning.
    */
-  _promiseHookEvaluation(phid: PhaseID, evt: HookEvent): Promise<void[]> {
+  async _promiseHookEvaluation(phid: PhaseID, evt: HookEvent): Promise<void[]> {
     const fn = '_promiseHookEvaluation:';
     // housekeeping for phase group
     if (phid.startsWith('PHASE_')) this.cur_group = phid;
@@ -213,7 +213,7 @@ class PhaseMachine {
     // got this far, there is a mix of functions and promises
     const promises = [];
     // LOG(`hooks[${phid}]: ${hooks.map(h => h.phase)}`);
-    hooks.forEach(hook => {
+    for (const hook of hooks) {
       const hookFunc = hook[evt]; // { exec: fn, enter: fn, exit: fn }
       // first run the executor function
       if (hookFunc === undefined) return;
@@ -222,9 +222,9 @@ class PhaseMachine {
       if (retval instanceof Promise) {
         promises.push(retval);
       }
-    });
+    }
     // suspend operation until all promises have resolved for this phase
-    if (promises.length > 0) return Promise.all(promises);
+    if (promises.length > 0) return await Promise.all(promises);
   }
 
   /** API: execute all Promises associated with a Phase Group in serial order,
@@ -242,6 +242,7 @@ class PhaseMachine {
     const phaseList = this.phase_def[pgroup];
     if (phaseList.length === 0) return;
     for (const phase of phaseList) {
+      if (DBG) console.log(`${fn} entering group ${phase}`);
       await this._promiseHookEvaluation(phase, 'enter');
       await this._promiseHookEvaluation(phase, 'exec');
       await this._promiseHookEvaluation(phase, 'exit');
