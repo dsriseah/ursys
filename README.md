@@ -1,6 +1,10 @@
+> [!TIP] 
 > See [First Install](https://github.com/dsriseah/ursys/wiki/Installation) for installation instructions. Tested on MacOS and Linux/Ubuntu.
 
 ## Sri's Universal Realtime System (URSYS)
+
+URSYS is a Javascript development framework for webapps that communicate with each other through a server. 
+Background
 
 URSYS originated in learning science research into embodied learning from 2013 to date. The requirements were LAN-based operation, realtime graphics, simulation, video, and motion tracking served from a single laptop to multiple tablet and Chromebook-type devices in a guided classroom environment. 
 
