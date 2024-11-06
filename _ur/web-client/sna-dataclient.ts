@@ -58,43 +58,6 @@ let DSET: Dataset; // singleton instance of the dataset
 let DS_URI: UR_DatasetURI; // the dataset URI
 let DS_MODE: SyncDataMode; // the dataset mode
 
-/// HELPERS ///////////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** receives global config object to initialize local settings */
-function m_PreConfigHandler(config: DataObj): OpResult {
-  const { dataset } = config;
-  if (dataset) {
-    const { uri, mode } = dataset;
-    if (!uri) return { error: 'missing uri property' };
-    if (!mode) return { error: 'missing mode property' };
-    DS_URI = uri;
-    DS_MODE = mode;
-    return { uri, mode };
-  }
-  return { error: 'missing dataset property' };
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** invoked during SNA:LOAD_DATA phase, after PreConfig has configured
- *  the dataset URI and mode. The purpose of this code is to just set up
- *  the datalink; afterwards, datacore modules can just open/load bins */
-async function HOOK_NetDataset() {
-  const fn = 'HOOK_LoadData:';
-  let dataURI = DS_URI;
-  LOG(...PR(`${fn} establishing datalink to ${dataURI}`));
-  const opts = { mode: DS_MODE };
-  let res: OpResult;
-  // configure the dataset
-  res = await Configure(dataURI, opts); // => { adapter, handlers }
-  if (res.error) throw Error(`Configure ${res.error}`);
-  // connect the dataset
-  res = await Activate(); // => { dataURI, ItemLists }
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** here is the opportunity to register hooks before the lifecycle starts */
-function m_AddLifecycleHooks() {
-  Hook('NET_DATASET', HOOK_NetDataset);
-}
-
 /// DEFAULT SNA-DATASERVER REMOTE ///////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let F_ReadOnly: boolean = false; // set to true to prevent remote writes
@@ -378,8 +341,42 @@ async function DS_RemoteQuery(
   return {};
 }
 
-/// NOTIFIERS /////////////////////////////////////////////////////////////////
+/// SNA MODULE API ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** PreConfig is called before the network is available, so starting data
+ *  is provided by the app itself in some way */
+function PreConfig(config: DataObj): OpResult {
+  const { dataset } = config;
+  if (dataset) {
+    const { uri, mode } = dataset;
+    if (!uri) return { error: 'missing uri property' };
+    if (!mode) return { error: 'missing mode property' };
+    DS_URI = uri;
+    DS_MODE = mode;
+    return { uri, mode };
+  }
+  return { error: 'missing dataset property' };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** PreHook is called just before the SNA Lifecycle is started, so here is
+ *  where your module can declare where it needs to do something */
+function PreHook() {
+  // hook into NET_DATASET to initialize dataclient connection to dataserver
+  Hook('NET_DATASET', async () => {
+    const fn = 'HOOK_LoadData:';
+    let dataURI = DS_URI;
+    LOG(...PR(`${fn} establishing datalink to ${dataURI}`));
+    const opts = { mode: DS_MODE };
+    let res: OpResult;
+    // configure the dataset
+    res = await Configure(dataURI, opts); // => { adapter, handlers }
+    if (res.error) throw Error(`Configure ${res.error}`);
+    // connect the dataset
+    res = await Activate(); // => { dataURI, ItemLists }
+  });
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Subscribe to a bin's events. The binID must be a string */
 function Subscribe(binID: string, evHdl: SNA_EvtHandler): OpResult {
   if (typeof binID !== 'string') return { error: 'binID must be a string' };
   if (typeof evHdl !== 'function') return { error: 'evHdl must be a function' };
@@ -395,6 +392,7 @@ function Subscribe(binID: string, evHdl: SNA_EvtHandler): OpResult {
   return { error: `bin [${binID}] not found` };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Unsubscribe from a bin's events. The binID must be a string */
 function Unsubscribe(binID: string, evHdl: SNA_EvtHandler) {
   if (DSET === undefined) return { error: 'must call Configure() first' };
   const bin = DSET.getDataBin(binID);
@@ -403,10 +401,14 @@ function Unsubscribe(binID: string, evHdl: SNA_EvtHandler) {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** SNA_Module defines a component that can participate in the SNA Lifecycle
+ *  by "hooking" into it. Once a SNA_Module is registered, it will be called
+ *  with the PreConfig() and PreHook() methods to allow the module to
+ *  independently manage itself and its data */
 const SNA_MODULE: SNA_Module = {
   _name: 'dataclient',
-  PreConfig: m_PreConfigHandler,
-  PreHook: m_AddLifecycleHooks,
+  PreConfig,
+  PreHook,
   Subscribe,
   Unsubscribe
 };

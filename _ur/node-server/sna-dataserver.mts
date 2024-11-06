@@ -13,7 +13,7 @@
 
   - LoadFromDirectory, LoadFromURI, LoadFromArchive
   - OpenBin, CloseBin
-  - DecodeSyncReq, m_NotifyClients
+  - DecodeSyncReq, _signalClientDataUpdate
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -34,7 +34,6 @@ import type {
   DataBinType,
   SyncDataReq,
   DatasetReq,
-  SyncDataOp,
   UR_DatasetObj
 } from '../_types/dataset.d.ts';
 import type { SNA_Module } from '../_types/sna.d.ts';
@@ -125,8 +124,8 @@ function DecodeSyncReq(syncReq: SyncDataReq) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** confirm that parameters are correct for connecting to a datastore */
-function m_CheckDatasetReq(req: DatasetReq) {
-  const fn = 'm_CheckDatasetReq:';
+function DecodeDatasetReq(req: DatasetReq) {
+  const fn = 'DecodeDatasetReq:';
   const { dataURI, authToken, op } = req;
   if (!dataURI) return { error: `${fn} dataURI is required` };
   // TODO: check authToken?
@@ -137,160 +136,161 @@ function m_CheckDatasetReq(req: DatasetReq) {
 }
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function m_NotifyClients(binID: DataBinID, binType: string, data: any) {
+function _signalClientDataUpdate(binID: DataBinID, binType: string, data: any) {
   const EP = ServerEndpoint();
   const seqNum = SEQ_NUM++;
   EP.netSignal('SYNC:CLI_DATA', { binID, binType, seqNum, ...data });
 }
 
-/// URNET DATASET CONNECTION //////////////////////////////////////////////////
+/// DATASET MANAGER MESSAGE HANDLERS //////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** implements dataset-level services */
-function HookDatasetServices() {
-  const fn = 'HookDatasetServices:';
-  /** accept authToken and dataURI, return accToken, status, error */
-  AddMessageHandler('SYNC:SRV_DSET', async (params: DatasetReq) => {
-    if (DSET !== undefined) {
-      return { status: 'loaded', data: DSET._getDataObj() };
-    }
+async function _asyncHandleDatasetOps(params: DatasetReq) {
+  const fn = '_asyncHandleDatasetOps:';
 
-    const { dataURI, authToken, op, error } = m_CheckDatasetReq(params);
-    if (error) return { error };
-    // TODO: check authToken against datasetURI
-    // TODO: use dataURI to locate the stored data
-    // TODO: load the stored data
+  if (DSET !== undefined) {
+    return { status: 'loaded', data: DSET._getDataObj() };
+  }
 
-    /** mock data loading from filesystem, decide where it goes later */
-    const mock_GetDataFromFilesystem = () => {
-      // dummy hardcoded load
-      const rootDir = FILE.DetectedRootDir();
-      const dataPath = PATH.join(rootDir, '_ur/tests/data/');
-      const jsonFile = PATH.join(dataPath, 'mock-dataset.json');
-      const data = FILE.ReadJSON(jsonFile);
-      return data;
-    };
+  const { dataURI, authToken, op, error } = DecodeDatasetReq(params);
+  if (error) return { error };
+  // TODO: check authToken against datasetURI
+  // TODO: use dataURI to locate the stored data
+  // TODO: load the stored data
 
-    /** mock data initialization of dataset, decide where it goes later */
-    const mock_InitializeDatasetFromData = (
-      dataset: Dataset,
-      inputData: UR_DatasetObj
-    ) => {
-      const { _schema, _dataURI, DocFolders, ItemLists } = inputData;
-      if (_schema) dataset._schema = _schema;
-      if (_dataURI) dataset._dataURI = _dataURI;
-      LOG(`.. initializing dataset: ${dataset.dataset_name} from ${_dataURI}`);
-      if (ItemLists) {
-        for (const [name, dataBinObj] of Object.entries(ItemLists)) {
-          // LOG(`.. 185 dataObj`, dataObj);
-          const bin = dataset.createDataBin(name, 'ItemList');
-          // add the items to the bin
-          const { error, items: i } = bin._setFromDataObj(dataBinObj);
-          if (error) {
-            LOG(`.. error adding items to ItemList [${name}]`, error, bin);
-          } else {
-            LOG(`.. set data objects ${i.length} items to ItemList [${name}]`);
-          }
+  /** mock data loading from filesystem, decide where it goes later */
+  const mock_GetDataFromFilesystem = () => {
+    // dummy hardcoded load
+    const rootDir = FILE.DetectedRootDir();
+    const dataPath = PATH.join(rootDir, '_ur/tests/data/');
+    const jsonFile = PATH.join(dataPath, 'mock-dataset.json');
+    const data = FILE.ReadJSON(jsonFile);
+    return data;
+  };
+
+  /** mock data initialization of dataset, decide where it goes later */
+  const mock_InitializeDatasetFromData = (
+    dataset: Dataset,
+    inputData: UR_DatasetObj
+  ) => {
+    const { _schema, _dataURI, DocFolders, ItemLists } = inputData;
+    if (_schema) dataset._schema = _schema;
+    if (_dataURI) dataset._dataURI = _dataURI;
+    LOG(`.. initializing dataset: ${dataset.dataset_name} from ${_dataURI}`);
+    if (ItemLists) {
+      for (const [name, dataBinObj] of Object.entries(ItemLists)) {
+        // LOG(`.. 185 dataObj`, dataObj);
+        const bin = dataset.createDataBin(name, 'ItemList');
+        // add the items to the bin
+        const { error, items: i } = bin._setFromDataObj(dataBinObj);
+        if (error) {
+          LOG(`.. error adding items to ItemList [${name}]`, error, bin);
+        } else {
+          LOG(`.. set data objects ${i.length} items to ItemList [${name}]`);
         }
       }
-      LOG('.. dataset initialized', Object.keys(dataset._getDataObj()).join(', '));
-    };
-
-    // process the operations
-
-    let data;
-    let result: OpResult;
-    switch (op) {
-      case 'LOAD':
-        // load the dataset into memory
-        // placeholder process to work out the data loading
-        if (DSET === undefined) {
-          DSET = new Dataset('default');
-          data = mock_GetDataFromFilesystem();
-          mock_InitializeDatasetFromData(DSET, data);
-          result = { status: 'loaded', data: DSET._getDataObj() };
-        } else {
-          result = { status: 'already loaded', data: DSET._getDataObj() };
-        }
-        break;
-      case 'UNLOAD':
-        DSET = undefined;
-        result = { status: 'unloaded' };
-        break;
-      case 'PERSIST':
-        LOG('** would persist dataset to disk');
-        result = { status: 'persisted' };
-        break;
-      case 'GET':
-        result = {
-          status: 'ok',
-          dataURI: DSET._dataURI,
-          schema: DSET._schema,
-          data: DSET._getDataObj()
-        };
-        break;
-      case 'GET_MANIFEST':
-        LOG('** would return manifest');
-        result = { manifest: '{}' };
-        break;
-      default:
-        result = { error: `${fn} op [${op}] not recognized` };
-    } // switch
-    return result;
-  });
-}
-
-/// URNET DSET HANDLING API ///////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** implements databin-level services */
-function HookServerDataSync() {
-  AddMessageHandler('SYNC:SRV_DATA', async (syncPacket: SyncDataReq) => {
-    const { binID, op, items, ids, searchOpt, error } = DecodeSyncReq(syncPacket);
-    if (error) return { error };
-    const bin = DSET.getDataBin(binID);
-    if (bin === undefined) return { error: `DSRV: bin [${binID}] not found` };
-    if (!items && !ids) return { error: 'DSRV: items or ids required' };
-    switch (op) {
-      case 'GET':
-        if (ids) return bin.read(ids);
-        return bin.get();
-      case 'ADD':
-        if (items) return bin.add(items);
-        return { error: 'DSRV: items required for ADD operation' };
-      case 'UPDATE':
-        if (items) return bin.update(items);
-        return { error: 'DSRV: items required for UPDATE operation' };
-      case 'WRITE':
-        if (items) return bin.write(items);
-        return { error: 'DSRV: items required for WRITE operation' };
-      case 'DELETE':
-        if (ids) return bin.deleteIDs(ids);
-        if (items) return bin.delete(items);
-        return { error: 'DSRV: ids or items required for DELETE operation' };
-      case 'REPLACE':
-        if (items) return bin.replace(items);
-        return { error: 'DSRV: items required for REPLACE operation' };
-      case 'CLEAR':
-        return bin.clear();
-      case 'FIND':
-        if (searchOpt) return bin.find(searchOpt);
-        return { error: 'DSRV: searchOpt required for FIND operation' };
-      case 'QUERY':
-        if (searchOpt) return bin.query(searchOpt);
-        return { error: 'DSRV: searchOpt required for QUERY operation' };
-      default:
-        return { error: `DSRV: operation ${op} not recognized` };
     }
-  });
+    LOG('.. dataset initialized', Object.keys(dataset._getDataObj()).join(', '));
+  };
+
+  // process the operations
+
+  let data;
+  let result: OpResult;
+  switch (op) {
+    case 'LOAD':
+      // load the dataset into memory
+      // placeholder process to work out the data loading
+      if (DSET === undefined) {
+        DSET = new Dataset('default');
+        data = mock_GetDataFromFilesystem();
+        mock_InitializeDatasetFromData(DSET, data);
+        result = { status: 'loaded', data: DSET._getDataObj() };
+      } else {
+        result = { status: 'already loaded', data: DSET._getDataObj() };
+      }
+      break;
+    case 'UNLOAD':
+      DSET = undefined;
+      result = { status: 'unloaded' };
+      break;
+    case 'PERSIST':
+      LOG('** would persist dataset to disk');
+      result = { status: 'persisted' };
+      break;
+    case 'GET':
+      result = {
+        status: 'ok',
+        dataURI: DSET._dataURI,
+        schema: DSET._schema,
+        data: DSET._getDataObj()
+      };
+      break;
+    case 'GET_MANIFEST':
+      LOG('** would return manifest');
+      result = { manifest: '{}' };
+      break;
+    default:
+      result = { error: `${fn} op [${op}] not recognized` };
+  } // switch
+  return result;
 }
 
+/// DATASYNC MESSAGE HANDLERS /////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function _asyncHandleDataSyncOps(syncPacket: SyncDataReq) {
+  const { binID, op, items, ids, searchOpt, error } = DecodeSyncReq(syncPacket);
+  if (error) return { error };
+  const bin = DSET.getDataBin(binID);
+  if (bin === undefined) return { error: `DSRV: bin [${binID}] not found` };
+  if (!items && !ids) return { error: 'DSRV: items or ids required' };
+  switch (op) {
+    case 'GET':
+      if (ids) return bin.read(ids);
+      return bin.get();
+    case 'ADD':
+      if (items) return bin.add(items);
+      return { error: 'DSRV: items required for ADD operation' };
+    case 'UPDATE':
+      if (items) return bin.update(items);
+      return { error: 'DSRV: items required for UPDATE operation' };
+    case 'WRITE':
+      if (items) return bin.write(items);
+      return { error: 'DSRV: items required for WRITE operation' };
+    case 'DELETE':
+      if (ids) return bin.deleteIDs(ids);
+      if (items) return bin.delete(items);
+      return { error: 'DSRV: ids or items required for DELETE operation' };
+    case 'REPLACE':
+      if (items) return bin.replace(items);
+      return { error: 'DSRV: items required for REPLACE operation' };
+    case 'CLEAR':
+      return bin.clear();
+    case 'FIND':
+      if (searchOpt) return bin.find(searchOpt);
+      return { error: 'DSRV: searchOpt required for FIND operation' };
+    case 'QUERY':
+      if (searchOpt) return bin.query(searchOpt);
+      return { error: 'DSRV: searchOpt required for QUERY operation' };
+    default:
+      return { error: `DSRV: operation ${op} not recognized` };
+  }
+}
+
+/// SNA MODULE API ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** PreHook is called just before the SNA Lifecycle is started, so here is
+ *  where your module can declare where it needs to do something */
+function PreHook() {
+  SNA_Hook('EXPRESS_READY', () => {
+    AddMessageHandler('SYNC:SRV_DSET', _asyncHandleDatasetOps);
+    AddMessageHandler('SYNC:SRV_DATA', _asyncHandleDataSyncOps);
+  });
+}
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const SNA_MODULE: SNA_Module = {
   _name: 'dataserver',
-  PreHook: () => {
-    SNA_Hook('EXPRESS_READY', HookServerDataSync);
-    SNA_Hook('EXPRESS_READY', HookDatasetServices);
-  }
+  PreHook
 };
 export default SNA_MODULE;
 export {
