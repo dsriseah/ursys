@@ -21,6 +21,11 @@ import * as FILE from './file.mts';
 import * as PATH from 'node:path';
 import { Dataset } from '../common/class-data-dataset.ts';
 import { DataBin } from '../common/abstract-data-databin.ts';
+import {
+  DecodeDatasetReq,
+  DecodeSyncReq,
+  DecodeDataURI
+} from '../common/util-data-ops.ts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
 import { IsDataSyncOp, IsDatasetOp } from '../common/util-data-ops.ts';
 import { SNA_Hook } from './sna-node-hooks.mts';
@@ -77,6 +82,7 @@ async function LoadFromArchive(pathToZip: string) {}
 function OpenBin(binName: DataBinID, options: BinOptions): BinOpRes {
   const { binType, autoCreate } = options;
   let bin = DSET.openDataBin(binName);
+  // todo: subscribe to bin updates
   return { bin };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -84,74 +90,30 @@ function OpenBin(binName: DataBinID, options: BinOptions): BinOpRes {
 function CloseBin(bin: DataBin): BinOpRes {
   const { name } = bin;
   let binName = DSET.closeDataBin(name);
+  // todo: unsubscribe to bin updates
   return { binName };
 }
 
-/// URNET MESSAGE HELPERS /////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** confirm that parameters are correct for synchronizing data */
-function DecodeSyncReq(syncReq: SyncDataReq) {
-  const { accToken, op, binID, ids, items, searchOpt } = syncReq;
-  // required params
-  // TODO: if (accToken === undefined) return { error: 'accToken is required' };
-  if (IsDataSyncOp(op) === false) return { error: `op ${op} not recognized` };
-  if (!binID) return { error: 'binID is required' };
-  if (typeof binID !== 'string') return { error: 'binID must be a string' };
-  if (DSET.getDataBin(binID) === undefined)
-    return { error: `bin [${binID}] not found` };
-  // optional params
-  if (ids) {
-    if (!Array.isArray(ids)) return { error: 'ids must be an array' };
-    if (ids.some(id => typeof id !== 'string'))
-      return { error: 'ids must be an array of string IDs' };
-  }
-  if (items) {
-    if (!Array.isArray(items)) return { error: 'items must be an array' };
-    if (items.some(item => typeof item !== 'object'))
-      return { error: 'items must be an array of objects' };
-  }
-  if (searchOpt) {
-    if (typeof searchOpt !== 'object')
-      return { error: 'searchOpt must be an object' };
-    if (Object.keys(searchOpt).length === 0)
-      return { error: 'searchOpt must have at least one key' };
-    if (searchOpt.preFilter || searchOpt.postFilter) {
-      return { error: 'filters not supported for remote ops' };
-    }
-  }
-  // everything good, then return the data
-  return { binID, op, accToken, ids, items, searchOpt };
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** confirm that parameters are correct for connecting to a datastore */
-function DecodeDatasetReq(req: DatasetReq) {
-  const fn = 'DecodeDatasetReq:';
-  const { dataURI, authToken, op } = req;
-  if (!dataURI) return { error: `${fn} dataURI is required` };
-  // TODO: check authToken?
-  if (!op) return { error: `${fn} op is required` };
-  if (!IsDatasetOp(op)) return { error: `${fn} op [${op}] not recognized` };
-  if (typeof dataURI !== 'string') return { error: `${fn} dataURI must be a string` };
-  return { dataURI, authToken, op };
-}
-
+/// SIGNALING METHODS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function _signalClientDataUpdate(binID: DataBinID, binType: string, data: any) {
   const EP = ServerEndpoint();
   const seqNum = SEQ_NUM++;
   EP.netSignal('SYNC:CLI_DATA', { binID, binType, seqNum, ...data });
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /// DATASET MANAGER MESSAGE HANDLERS //////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function _asyncHandleDatasetOps(params: DatasetReq) {
-  const fn = '_asyncHandleDatasetOps:';
+/** handler for SYNC:SRV_DSET messages */
+async function _asyncHandleDatasetOp(opParams: DatasetReq) {
+  const fn = '_asyncHandleDatasetOp:';
 
   if (DSET !== undefined) {
     return { status: 'loaded', data: DSET._getDataObj() };
   }
 
-  const { dataURI, authToken, op, error } = DecodeDatasetReq(params);
+  const { dataURI, authToken, op, error } = DecodeDatasetReq(opParams);
   if (error) return { error };
   // TODO: check authToken against datasetURI
   // TODO: use dataURI to locate the stored data
@@ -198,7 +160,7 @@ async function _asyncHandleDatasetOps(params: DatasetReq) {
   let result: OpResult;
   switch (op) {
     case 'LOAD':
-      // load the dataset into memory
+      // load the dataset into memor
       // placeholder process to work out the data loading
       if (DSET === undefined) {
         DSET = new Dataset('default');
@@ -237,12 +199,15 @@ async function _asyncHandleDatasetOps(params: DatasetReq) {
 
 /// DATASYNC MESSAGE HANDLERS /////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function _asyncHandleDataSyncOps(syncPacket: SyncDataReq) {
-  const { binID, op, items, ids, searchOpt, error } = DecodeSyncReq(syncPacket);
+/** handler for SYNC:SRV_DATA messages */
+async function _asyncHandleDataOp(opParams: SyncDataReq) {
+  const { binID, op, items, ids, searchOpt, error } = DecodeSyncReq(opParams);
   if (error) return { error };
   const bin = DSET.getDataBin(binID);
   if (bin === undefined) return { error: `DSRV: bin [${binID}] not found` };
   if (!items && !ids) return { error: 'DSRV: items or ids required' };
+  // todo: add notification handling
+  // todo: change to return 'success' rather than the data
   switch (op) {
     case 'GET':
       if (ids) return bin.read(ids);
@@ -282,8 +247,8 @@ async function _asyncHandleDataSyncOps(syncPacket: SyncDataReq) {
  *  where your module can declare where it needs to do something */
 function PreHook() {
   SNA_Hook('EXPRESS_READY', () => {
-    AddMessageHandler('SYNC:SRV_DSET', _asyncHandleDatasetOps);
-    AddMessageHandler('SYNC:SRV_DATA', _asyncHandleDataSyncOps);
+    AddMessageHandler('SYNC:SRV_DSET', _asyncHandleDatasetOp);
+    AddMessageHandler('SYNC:SRV_DATA', _asyncHandleDataOp);
   });
 }
 /// EXPORTS ///////////////////////////////////////////////////////////////////
