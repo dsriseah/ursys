@@ -147,7 +147,7 @@ async function SNA_LifecycleStart() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the current phase machine state */
-function SNA_LifecycleStatus(): OpResult {
+function SNA_LifecycleStatus() {
   const fn = 'SNA_LifecycleStatus:';
   const status: { [key: string]: any } = {};
 

@@ -43,7 +43,7 @@ async function SNA_Start() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the current phase machine state */
-function SNA_Status(): OpResult {
+function SNA_Status() {
   const fn = 'SNA_Status:';
   const dooks = GetDanglingHooks();
   const status = SNA_LifecycleStatus();

@@ -53,6 +53,19 @@ function m_NormDataObj(obj: DataObj): [DataObj, foundID: string] {
   }
   return [norm, foundID];
 }
+
+/// STRING VALUE CONVERSION ///////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Normalize a string to detected number or booleans */
+function NormStringToValue(str: string): string | number | boolean {
+  const fn = 'NormString:';
+  if (str === '') return undefined;
+  if (str === 'true') return true;
+  if (str === 'false') return false;
+  if (str.match(/^\d+$/)) return Number(str);
+  return str;
+}
+
 /// DATA FORMAT CHECKING //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// datasets are standardized collections of objects, defined in ursys.d.ts
@@ -157,6 +170,7 @@ export {
   NormItem, // normalize a single object for serialized storage
   NormItems, // normalize multiple objects for storage
   NormIDs, //  should be strings
+  NormStringToValue, // convert string to number or boolean
   //
   DeepClone,
   DeepCloneObject,

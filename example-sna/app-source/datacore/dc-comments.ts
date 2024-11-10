@@ -91,7 +91,7 @@ async function AddComment(cmo: DataObj) {}
 
 /// SNA MODULE CONFIGURATION //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SNA_PreConfig(data: any): OpResult {
+function SNA_PreConfig(data: any) {
   return data;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

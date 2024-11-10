@@ -345,7 +345,7 @@ async function DS_RemoteQuery(
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** PreConfig is called before the network is available, so starting data
  *  is provided by the app itself in some way */
-function PreConfig(config: DataObj): OpResult {
+function PreConfig(config: DataObj) {
   const { dataset } = config;
   if (dataset) {
     const { uri, mode } = dataset;
@@ -377,7 +377,7 @@ function PreHook() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Subscribe to a bin's events. The binID must be a string */
-function Subscribe(binID: string, evHdl: SNA_EvtHandler): OpResult {
+function Subscribe(binID: string, evHdl: SNA_EvtHandler) {
   if (typeof binID !== 'string') return { error: 'binID must be a string' };
   if (typeof evHdl !== 'function') return { error: 'evHdl must be a function' };
   if (DSET === undefined) return { error: 'must call Configure() first' };

@@ -25,7 +25,7 @@ import type { OpResult } from '../_types/dataset.d.ts';
 /** break string of form 'addon' or 'addon/@entry' into parts
  *  addonName and entryName (no extension)
  */
-function m_DecodeAddonName(shortPath: string): OpResult {
+function m_DecodeAddonName(shortPath: string) {
   let addonName, entryName;
   // required argument
   if (typeof shortPath !== 'string') {
@@ -39,7 +39,7 @@ function m_DecodeAddonName(shortPath: string): OpResult {
     entryName = pathbits[1];
   } else if (pathbits.length === 1) {
     addonName = shortPath;
-  } else return { err: `error: '${shortPath}' has too many '@'` };
+  } else return { error: `error: '${shortPath}' has too many '@'` };
 
   // make sure entryJS is a string or undefined
   if (entryName !== undefined && typeof entryName !== 'string')
@@ -84,7 +84,7 @@ function DecodeAddonArgs(argv: string[]): string[] {
  *  addonName, entryName, and entryFile and reconcile with addon directory
  *  context: called from the urcli launcher script
  */
-function ValidateAddon(addon: string): OpResult {
+function ValidateAddon(addon: string) {
   const ADDONS = PATH.join(FILE.DetectedRootDir(), '_ur_addons');
   if (!FILE.DirExists(ADDONS)) {
     return { err: `directory ${ADDONS} does not exist` };

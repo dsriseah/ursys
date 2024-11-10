@@ -39,7 +39,7 @@ type ItemListOptions = {
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class ItemList extends DataBin {
+class ItemList extends DataBin implements I_DataSerialize {
   // from base class
   // name: DataBinID; // name of this collection
   // _type: DataBinType; // type of this collection (.e.g ItemList);
@@ -75,7 +75,7 @@ class ItemList extends DataBin {
   /// SERIALIZATION METHODS ///
 
   /** API: create a new instance from a compatible state object */
-  _setFromDataObj(data: DataObj): OpResult {
+  _setFromDataObj(data: DataObj) {
     const fn = 'ItemList._setFromDataObj:';
     let result = super._setFromDataObj(data);
     if (result.error) return { error: `${fn} ${result.error}` };
@@ -88,7 +88,7 @@ class ItemList extends DataBin {
   }
 
   /** API: return a data object that represents the current state */
-  _getDataObj(): OpResult {
+  _getDataObj() {
     const data = super._getDataObj();
     if (data.error) return { error: data.error };
     return { ...data, items: [...this._list] };

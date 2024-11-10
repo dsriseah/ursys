@@ -2,6 +2,9 @@
 
   AssetServer (initial port from GEMSTEP)
 
+  // TODO: Express Middleware not tested
+  // TODO: Manifest format doesn't yet match dataset.d.ts definitions
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import * as FSE from 'fs-extra';
@@ -11,6 +14,9 @@ import serveIndex from 'serve-index';
 import * as FILE from './file.mts';
 import { GetReqInfo } from './util-express.mts';
 import { IsAssetDirname } from '../common/util-data-ops.ts';
+
+/// TYPE DECLARATIONS /////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,45 +31,44 @@ let m_project_route: string; // the path-to-project (dataset)
 let m_asset_counter = 1000; // asset id counter
 //
 
-/// HELPERS ///////////////////////////////////////////////////////////////////
+/// MANIFEST UTILITIES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** scans the passed dirpath for any manifest JSON files. Returns an array of
  *  manifest objects */
-function m_GetManifestDataArray(dirpath) {
-  const allfiles = FILE.Files(dirpath);
-  const manifests = allfiles
+function m_GetPredefinedManifests(dataPath: string) {
+  const allfiles = FILE.Files(dataPath);
+  const mfiles = allfiles
     .filter(f => f.startsWith(MANIFEST_FILENAME) && f.endsWith('.json'))
     .sort();
-
-  // CASE 1: 1 OR MORE MANIFEST FILES
-  if (manifests.length > 0) {
-    const m = [];
-    for (let f of manifests) {
-      const obj = FILE.ReadJSON(`${dirpath}/${f}`);
-      m.push(obj);
+  // case 1: 1 more more manifest files exist
+  if (mfiles.length > 0) {
+    const manifestObjs = [];
+    for (let f of mfiles) {
+      const obj = FILE.ReadJSON(`${dataPath}/${f}`);
+      manifestObjs.push(obj);
     }
-    return m;
+    return manifestObjs;
   }
-  // CASE 2: NO MANIFEST FILES, return empty array
+  // casee 2: no manifest files found
   return [];
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Return a list of mediafiles for the assetype of the directory, which is
  *  determined by the terminating dirname of the path. */
-async function m_ScanFileAssets(subdirpath) {
-  /* TODO: schema filter logic for extension files */
-  const files = FILE.Files(subdirpath);
-  const hashInfo = await FILE.FilesHashInfo(files);
-  return hashInfo;
+async function m_GetAssetFileInfo(assetPath: string) {
+  const files = FILE.Files(assetPath);
+  const assetInfo = await FILE.FilesHashInfo(files);
+  return assetInfo;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** given list of directories, create the manifest object */
-async function m_AutoGenerateManifest(assetDirs: string[], manifest) {
-  /* TODO: async file scan for each subdir type vs schema */
+/** given list of directories, create the manifest object
+ *  // TODO: update to new manifest format */
+async function m_MakeManifestObj(assetDirs: string[]) {
+  const manifest = {};
   for (const subdir of assetDirs) {
-    const hashInfo = await m_ScanFileAssets(subdir);
+    const assetInfo = await m_GetAssetFileInfo(subdir);
     const entries = [];
-    for (let info of hashInfo) {
+    for (let info of assetInfo) {
       const assetId = m_asset_counter++;
       const { filename, ext, hash } = info;
       const asset = {
@@ -78,6 +83,29 @@ async function m_AutoGenerateManifest(assetDirs: string[], manifest) {
     manifest[subdir] = entries;
   } // end subdir processing
   return manifest;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: given a dataPath, return the manifest object */
+async function GetManifestFromDataPath(dataPath: string) {
+  // bail if the requested path isn't a directory
+  const pathInfo = FILE.GetPathInfo(dataPath);
+  if (pathInfo.isFile) {
+    return { error: `${dataPath} appears to be a file request, not a directory` };
+  }
+  if (FILE.DirExists(dataPath)) {
+    /* is there an predefined manifest file? */
+    const manifestObjs = m_GetPredefinedManifests(dataPath);
+    if (manifestObjs.length > 0) return { manifest: manifestObjs[0] };
+    /* otherwise, generate the manifest from dataPath */
+    const { dirs } = FILE.GetDirContent(dataPath);
+    const assetDirs = dirs.filter(d => IsAssetDirname(d));
+    if (assetDirs.length > 0) {
+      return { manifest: await m_MakeManifestObj(assetDirs) };
+    }
+    // no asset dirs found
+    return { error: `${dataPath} contains no asset directories` };
+  }
+  return { error: `${dataPath} does not exist` };
 }
 
 /// MIDDLEWARE ////////////////////////////////////////////////////////////////
@@ -105,7 +133,7 @@ async function DeliverManifest(req, res, next) {
 
   // if the directory exists, check for manifest files
   if (FILE.DirExists(path)) {
-    const mdata = m_GetManifestDataArray(path);
+    const mdata = m_GetPredefinedManifests(path);
     /** case 1: manifest file found in dir */
     if (mdata.length > 0) {
       res.json(mdata);
@@ -115,7 +143,7 @@ async function DeliverManifest(req, res, next) {
     const { dirs } = FILE.GetDirContent(path);
     const assetDirs = dirs.filter(d => IsAssetDirname(d));
     if (assetDirs.length > 0) {
-      void m_AutoGenerateManifest(assetDirs, manifest).then(result => {
+      m_MakeManifestObj(assetDirs).then(result => {
         res.json(result);
       });
       return;
@@ -125,18 +153,20 @@ async function DeliverManifest(req, res, next) {
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return Express middleware function that serves manifest if ?manifest query
+ *  is present in the URL */
 function AssetManifest_Middleware(opts: { assetPath: string; assetURI: string }) {
   const { assetPath, assetURI } = opts;
   return (req, res, next) => {
     m_asset_path = assetPath;
     m_asset_uri = assetURI;
-    void DeliverManifest(req, res, next);
+    DeliverManifest(req, res, next);
   };
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// create the asset server directory and write id text file
+/** create the asset server directory and write id text file */
 function SetupServer() {
   const fn = 'SetupServer:';
   const assetPath = 'abspath-to/asset-dir';
@@ -159,3 +189,14 @@ function SetupServer() {
     serveIndex(assetPath, { 'icons': true })
   );
 }
+
+/// EXPORTS ///////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export {
+  // express methods
+  SetupServer,
+  AssetManifest_Middleware,
+  DeliverManifest,
+  // manifest generation
+  GetManifestFromDataPath
+};

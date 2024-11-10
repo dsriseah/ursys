@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import type { DataObj, OpResult } from './ursys.d.ts';
+import type { DataObj, ErrObj, OpResult } from './ursys.d.ts';
 export type * from './ursys.d.ts';
 export type { DataBin } from '../common/abstract-data-databin.ts';
 export type { Dataset, SyncOptions } from '../common/class-data-dataset.ts';
@@ -21,15 +21,14 @@ type PropName = string; // camelCase for user, _snake_case for internal
 type SchemaRoot = string; // e.g. 'ursys', 'rapt'
 type SchemaName = string; // e.g. 'resource_type', 'meme', 'netcreate'
 type SchemaVersion = `version=${string}`; // e.g. 'version=1.0.0'
-type SchemaTag = string; // colon separated list of tags
-export type UR_SchemaID = `${SchemaRoot}:${SchemaName}:${SchemaVersion}:${SchemaTag}`;
+type TagString = string; // e.g. 'tag1=foo;tag2' semicolon separated
+export type UR_SchemaID = `${SchemaRoot}:${SchemaName}:${SchemaVersion};${TagString}`;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Identify a dataset uniquely across the world */
 type OrgDomain = string; // e.g. 'ursys.org', 'rapt
-type BucketID = string; // e.g. a UUID using / separators
-type InstanceID = string; // e.g. a path to a dataset resource
-type SetQuery = string; // e.g. a query string
-export type UR_DatasetURI = `${OrgDomain}:${BucketID}/${InstanceID}?${SetQuery}`;
+type BucketID = string; // e.g. a UUID with no / or : characters
+type InstanceID = string; // e.g. a slashpath to a dataset resource
+export type UR_DatasetURI = `${OrgDomain}:${BucketID}/${InstanceID}:${TagString}`;
 
 /// INTERFACES ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -128,6 +127,7 @@ export type UR_Manifest = {
   DocFolders?: string[]; // list of folders in dataset
   // StringLists, FileLists, etc
 };
+export type ManifestObj = UR_Manifest;
 
 /// DATASET MANAGEMENT TYPES //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -136,7 +136,7 @@ export type DatasetOp =
   | 'UNLOAD' // unload a dataset from memory
   | 'PERSIST' // write the dataset back persistent storage
   | 'GET_MANIFEST' // get the manifest of the dataset
-  | 'GET'; // get the entire dataset or BinID as JSON
+  | 'GET_DATA'; // get the entire dataset or BinID as JSON
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** sent to dataset source by inquiring clients SYNC:SRV */
 export type DatasetReq = {

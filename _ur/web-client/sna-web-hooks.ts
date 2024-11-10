@@ -148,7 +148,7 @@ function SNA_Hook(phase: PhaseID, fn: HookFunction) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the current phase machine state */
-function SNA_LifecycleStatus(): OpResult {
+function SNA_LifecycleStatus() {
   const fn = 'SNA_Status:';
   const status: { [key: string]: any } = {};
 

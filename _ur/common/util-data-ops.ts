@@ -4,10 +4,13 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
+import { NormStringToValue } from './util-data-norm.ts';
+
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpResult, DatasetOp, SyncDataReq, DatasetReq } from '../_types/dataset';
+import type { DatasetOp, SyncDataReq, DatasetReq } from '../_types/dataset';
 import type { DataBinType, SyncDataOp, SyncDataMode } from '../_types/dataset';
+import type { UR_Manifest, ManifestObj } from '../_types/dataset';
 
 /// DATASET CONSTANTS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +36,13 @@ const DATASET_DIRS = Object.values(DSET_FSMAP).map(v => v.dir);
 const DATA_SYNCOPS: SyncDataOp[] = [];
 DATA_SYNCOPS.push('CLEAR', 'GET', 'ADD', 'UPDATE', 'WRITE', 'DELETE', 'REPLACE');
 DATA_SYNCOPS.push('FIND', 'QUERY');
-const DATASET_OPS: DatasetOp[] = ['LOAD', 'UNLOAD', 'PERSIST', 'GET_MANIFEST', 'GET'];
+const DATASET_OPS: DatasetOp[] = [
+  'LOAD',
+  'UNLOAD',
+  'PERSIST',
+  'GET_MANIFEST',
+  'GET_DATA'
+];
 
 /// ACCESSORS /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -57,31 +66,60 @@ function IsDatasetOp(op: DatasetOp): boolean {
   return DATASET_OPS.includes(op);
 }
 
+/// MANIFEST DECODE ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** decode and validate the manifest object */
+function DecodeManifest(manifest: UR_Manifest) {
+  const { _schema, _dataURI, _created_on, _created_by, _info } = manifest;
+  if (typeof _schema !== 'string') return { error: 'missing _schema' };
+  if (typeof _dataURI !== 'string') return { error: 'missing _dataURI' };
+  if (typeof _created_on !== 'string') return { error: 'missing _created_on' };
+  if (typeof _created_by !== 'string') return { error: 'missing _created_by' };
+  if (typeof _info !== 'object') return { error: 'missing _info' };
+  const { ItemLists, DocFolders } = manifest;
+  return {
+    _schema,
+    _dataURI,
+    _created_on,
+    _created_by,
+    _info,
+    ItemLists,
+    DocFolders
+  };
+}
+
 /// DATASET API METHODS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** decode a dataURI into its components */
-function DecodeDataURI(dataURI: string): OpResult {
-  // `${OrgDomain}:${BucketID}/${InstanceID}?${SetQuery}`
+function DecodeDataURI(dataURI: string) {
+  // rapt:bucketID/path/to/data:version=1;tag1=foo;tag2
+  // ${OrgDomain}:${BucketID}/${InstanceID}::${TagString}
   if (typeof dataURI !== 'string') return { error: 'not a string' };
-  const [param1, param2, ...extra] = dataURI.split(':');
-  if (extra.length > 0) {
-    console.log('extra', extra);
-    return { error: 'unexpected extra segments in dataURI' };
+  const [orgDomain, param2, param3, ...extra] = dataURI.split(':');
+  if (extra.length > 0) return { error: `extra segment '${extra.join(':')}'` };
+  if (param2 === undefined) return { error: 'missing bucketID' };
+  const [bucketID, ...instancePath] = param2.split('/');
+  if (instancePath && instancePath.length === 0)
+    return { error: 'missing instanceID' };
+  const instanceID = instancePath.join('/');
+  const tags = {};
+  if (param3 !== undefined) {
+    param3.split(';').forEach(tag => {
+      if (tag.length === 0) return;
+      let [key, val] = tag.split('=');
+      tags[key] = NormStringToValue(val);
+    });
   }
-  if (param2 === undefined) return { error: 'missing bucket/instance' };
-  const [param3, queryTags] = param2.split('?');
-  if (param3 === undefined) return { error: 'missing uri segment' };
-  const [bucketID, ...instanceID] = param3.split('/');
   return {
-    orgDomain: param1,
+    orgDomain,
     bucketID,
     instanceID,
-    queryTags
+    tags
   };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** check the values of DataClient config object */
-function DecodeDataConfig(configObj: any): OpResult {
+function DecodeDataConfig(configObj: any) {
   if (configObj === undefined) return { error: 'missing configObj' };
   const { mode } = configObj;
   if (!DSET_MODES.includes(mode)) return { error: 'invalid mode' };
@@ -153,9 +191,11 @@ const MOD = {
   IsDataSyncOp,
   IsDatasetOp,
   DecodeDataURI,
+  DecodeManifest,
   DecodeDataConfig,
-  GetDatasetObjectProps,
-  DecodeSyncReq
+  DecodeDatasetReq,
+  DecodeSyncReq,
+  GetDatasetObjectProps
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default MOD;
@@ -166,8 +206,9 @@ export {
   IsDataSyncOp,
   IsDatasetOp,
   DecodeDataURI,
+  DecodeManifest,
   DecodeDataConfig,
-  GetDatasetObjectProps,
+  DecodeDatasetReq,
   DecodeSyncReq,
-  DecodeDatasetReq
+  GetDatasetObjectProps
 };

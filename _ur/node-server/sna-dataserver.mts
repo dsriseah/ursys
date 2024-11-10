@@ -11,7 +11,7 @@
 
   Method Summary
 
-  - LoadFromDirectory, LoadFromURI, LoadFromArchive
+  - LoadDataset, CloseDataset, PersistDataset
   - OpenBin, CloseBin
   - DecodeSyncReq, _signalClientDataUpdate
 
@@ -19,6 +19,7 @@
 
 import * as FILE from './file.mts';
 import * as PATH from 'node:path';
+import * as DSYNC_STORE from './datasync-fs.mts';
 import { Dataset } from '../common/class-data-dataset.ts';
 import { DataBin } from '../common/abstract-data-databin.ts';
 import {
@@ -64,23 +65,54 @@ const LOG = makeTerminalOut('SNA.DSRV', 'TagBlue');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// to start, we just have one dataset, but for the future we could support
 /// multiple ones in a DatasetStore
-let DSET: Dataset;
+const DSET_DICT: DatasetStore = {};
+let current_dset = ''; // a dataURI
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let SEQ_NUM = 0; // predictable sequence number to order updates
 
-/// INITIALIZATION METHODS ////////////////////////////////////////////////////
+/// DATASET OPERATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function LoadFromDirectory(pathToDataset: string) {}
+/** Load a dataset from the dataURI, return the data object */
+async function LoadDataset(dataURI: string): Promise<OpResult> {
+  let dset = DSET_DICT[dataURI];
+  if (dset) return { status: 'already loaded', manifest: dset.manifest };
+  const { manifest, error } = await DSYNC_STORE.GetManifest(dataURI);
+  if (error) return { error };
+  dset = new Dataset(dataURI, manifest);
+  DSET_DICT[dataURI] = dset;
+  current_dset = dataURI;
+  return { dataset: dset };
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function LoadFromURI(datasetURI: string) {}
+async function CloseDataset(dataURI: string) {
+  return { error: 'not implemented' };
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function LoadFromArchive(pathToZip: string) {}
+async function PersistDataset(dataURI: string) {
+  return { error: 'not implemented' };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function GetDatasetData(dataURI?: string) {
+  const DSET = DSET_DICT[dataURI || current_dset];
+  return {
+    status: 'ok',
+    dataURI: DSET._dataURI,
+    schema: DSET._schema,
+    data: DSET._getDataObj()
+  };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function GetManifest(dataURI?: string) {
+  const DSET = DSET_DICT[dataURI || current_dset];
+  return DSET.getManifest();
+}
 
-/// DATASET ACCESS METHODS ////////////////////////////////////////////////////
+/// DATASET BIN OPERATIONS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a bin reference, open the bin and return the DataBin */
 function OpenBin(binName: DataBinID, options: BinOptions): BinOpRes {
   const { binType, autoCreate } = options;
+  const DSET = DSET_DICT[current_dset];
   let bin = DSET.openDataBin(binName);
   // todo: subscribe to bin updates
   return { bin };
@@ -89,45 +121,35 @@ function OpenBin(binName: DataBinID, options: BinOptions): BinOpRes {
 /** given an databin, close the bin and return the bin name if successful */
 function CloseBin(bin: DataBin): BinOpRes {
   const { name } = bin;
+  const DSET = DSET_DICT[current_dset];
   let binName = DSET.closeDataBin(name);
   // todo: unsubscribe to bin updates
   return { binName };
 }
 
-/// SIGNALING METHODS /////////////////////////////////////////////////////////
+/// DSYNC_STORE OBJECT OPERATIONS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** mock data initialization of dataset, decide where it goes later */
+const InitializeDatasetFromObj = (dataset: Dataset, inputData: UR_DatasetObj) => {
+  dataset._setFromDataObj(inputData);
+};
+
+/// DSYNC_STORE PROTOCOL OPERATIONS //////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** signal clients to update their data */
 function _signalClientDataUpdate(binID: DataBinID, binType: string, data: any) {
   const EP = ServerEndpoint();
   const seqNum = SEQ_NUM++;
   EP.netSignal('SYNC:CLI_DATA', { binID, binType, seqNum, ...data });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-/// DATASET MANAGER MESSAGE HANDLERS //////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** handler for SYNC:SRV_DSET messages */
-async function _asyncHandleDatasetOp(opParams: DatasetReq) {
-  const fn = '_asyncHandleDatasetOp:';
-
-  if (DSET !== undefined) {
-    return { status: 'loaded', data: DSET._getDataObj() };
-  }
-
+/** async handler for SYNC:SRV_DSET messages */
+async function _handleDatasetOp(opParams: DatasetReq) {
+  const fn = '_handleDatasetOp:';
   const { dataURI, authToken, op, error } = DecodeDatasetReq(opParams);
   if (error) return { error };
-  // TODO: check authToken against datasetURI
-  // TODO: use dataURI to locate the stored data
-  // TODO: load the stored data
 
-  /** mock data loading from filesystem, decide where it goes later */
-  const mock_GetDataFromFilesystem = () => {
-    // dummy hardcoded load
-    const rootDir = FILE.DetectedRootDir();
-    const dataPath = PATH.join(rootDir, '_ur/tests/data/');
-    const jsonFile = PATH.join(dataPath, 'mock-dataset.json');
-    const data = FILE.ReadJSON(jsonFile);
-    return data;
-  };
+  // TODO: check authToken against dataURI
 
   /** mock data initialization of dataset, decide where it goes later */
   const mock_InitializeDatasetFromData = (
@@ -160,34 +182,19 @@ async function _asyncHandleDatasetOp(opParams: DatasetReq) {
   let result: OpResult;
   switch (op) {
     case 'LOAD':
-      // load the dataset into memor
-      // placeholder process to work out the data loading
-      if (DSET === undefined) {
-        DSET = new Dataset('default');
-        data = mock_GetDataFromFilesystem();
-        mock_InitializeDatasetFromData(DSET, data);
-        result = { status: 'loaded', data: DSET._getDataObj() };
-      } else {
-        result = { status: 'already loaded', data: DSET._getDataObj() };
-      }
+      result = LoadDataset(dataURI);
       break;
     case 'UNLOAD':
-      DSET = undefined;
-      result = { status: 'unloaded' };
+      result = CloseDataset(dataURI);
       break;
     case 'PERSIST':
-      LOG('** would persist dataset to disk');
-      result = { status: 'persisted' };
+      result = PersistDataset(dataURI);
       break;
-    case 'GET':
-      result = {
-        status: 'ok',
-        dataURI: DSET._dataURI,
-        schema: DSET._schema,
-        data: DSET._getDataObj()
-      };
+    case 'GET_DATA':
+      result = GetDatasetData(dataURI);
       break;
     case 'GET_MANIFEST':
+      result = GetManifest(dataURI);
       LOG('** would return manifest');
       result = { manifest: '{}' };
       break;
@@ -196,13 +203,12 @@ async function _asyncHandleDatasetOp(opParams: DatasetReq) {
   } // switch
   return result;
 }
-
-/// DATASYNC MESSAGE HANDLERS /////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** handler for SYNC:SRV_DATA messages */
-async function _asyncHandleDataOp(opParams: SyncDataReq) {
+/** handler for SYNC:SRV_DATA databin operations */
+async function _handleDataOp(opParams: SyncDataReq) {
   const { binID, op, items, ids, searchOpt, error } = DecodeSyncReq(opParams);
   if (error) return { error };
+  const DSET = DSET_DICT[current_dset];
   const bin = DSET.getDataBin(binID);
   if (bin === undefined) return { error: `DSRV: bin [${binID}] not found` };
   if (!items && !ids) return { error: 'DSRV: items or ids required' };
@@ -247,8 +253,8 @@ async function _asyncHandleDataOp(opParams: SyncDataReq) {
  *  where your module can declare where it needs to do something */
 function PreHook() {
   SNA_Hook('EXPRESS_READY', () => {
-    AddMessageHandler('SYNC:SRV_DSET', _asyncHandleDatasetOp);
-    AddMessageHandler('SYNC:SRV_DATA', _asyncHandleDataOp);
+    AddMessageHandler('SYNC:SRV_DSET', _handleDatasetOp);
+    AddMessageHandler('SYNC:SRV_DATA', _handleDataOp);
   });
 }
 /// EXPORTS ///////////////////////////////////////////////////////////////////
@@ -259,9 +265,9 @@ const SNA_MODULE: SNA_Module = {
 };
 export default SNA_MODULE;
 export {
-  LoadFromDirectory, // pathToDataset => void
-  LoadFromURI, // datasetURI => void
-  LoadFromArchive, // pathToZip => void
+  LoadDataset, // pathToDataset => void
+  CloseDataset, // dataURI => void
+  PersistDataset, // pathToZip => void
   OpenBin, // binName, options => BinOpRes
   CloseBin // databin => BinOpRes
 };

@@ -14,6 +14,10 @@ import * as CRYPTO from 'node:crypto';
 import * as url from 'url';
 import { pipeline } from 'node:stream/promises';
 
+/// TYPE DECLARATIONS //////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type HashInfo = { filepath: string; filename: string; ext: string; hash: string };
+
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = PROMPT.makeTerminalOut('FILE', 'TagGreen');
@@ -307,7 +311,7 @@ async function AsyncFileHash(filepath, algo = 'md5') {
   return hash.digest('hex');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type HashInfo = { filepath: string; filename: string; ext: string; hash: string };
+/** given a list of filepaths, return an array of hash info objects */
 async function FilesHashInfo(filepaths, algo = 'md5'): Promise<HashInfo[]> {
   const hashInfo = [];
   for (let fp of filepaths) {

@@ -38,13 +38,13 @@ SNA.Hook('LOAD_CONFIG', () => {});
   const user_ident = 'salted-username';
   const user_auth = 'salted-password';
   // 3. the server looks-up the user and returns a user-token
-  //    and datasetURI
+  //    and dataURI
   const auth_token = 'server-provided-jwt';
-  const datasetURI = 'sri.org:bucket-1234/sna-app/project-one';
+  const dataURI = 'sri.org:bucket-1234/sna-app/project-one';
   const datasetMode = 'sync';
 
   // Set the global configuration object
-  SNA.GlobalConfig({ dataset: { uri: datasetURI, mode: datasetMode } });
+  SNA.GlobalConfig({ dataset: { uri: dataURI, mode: datasetMode } });
 
   // Register all SNA components
   SNA.RegisterComponent(COMMENTS);

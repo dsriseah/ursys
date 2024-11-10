@@ -22,7 +22,7 @@
 
 import { ItemList } from './class-data-itemlist.ts';
 import { DocFolder } from './class-data-docfolder.ts';
-import { DecodeDataURI } from './util-data-ops.ts';
+import { DecodeDataURI, DecodeManifest } from './util-data-ops.ts';
 import { DataBin } from './abstract-data-databin.ts';
 import { DecodeDataConfig } from './util-data-ops.ts';
 
@@ -32,12 +32,10 @@ import type {
   DataBinID,
   DataBinType,
   UR_SchemaID,
-  SyncDataOptions,
   I_DataSerialize,
   UR_DatasetURI,
-  UR_DatasetObj,
-  UR_ItemList,
-  UR_DocFolder
+  UR_Manifest,
+  UR_DatasetObj
 } from '../_types/dataset';
 import type { ItemListOptions } from './class-data-itemlist.ts';
 type DataAccessTok = string;
@@ -75,6 +73,7 @@ function m_IsValidBinName(bName: string): boolean {
 class Dataset implements I_DataSerialize {
   //
   dataset_name: string; // the name of this list manager
+  manifest: UR_Manifest;
   _dataURI: UR_DatasetURI; // the URI of the dataset
   _schema: UR_SchemaID; // the schema of the dataset
   open_bins: Set<DataBinID>; // open bins are subject to sync
@@ -92,9 +91,11 @@ class Dataset implements I_DataSerialize {
 
   /// CONSTRUCTOR ///
 
-  constructor(dataURI: string) {
+  constructor(dataURI: string, manifest?: UR_Manifest) {
     if (dataURI && m_IsValidBinName(dataURI)) this.dataset_name = dataURI;
     this._init();
+    if (DecodeManifest(manifest) === undefined) throw Error('invalid manifest');
+    this.manifest = manifest;
   }
 
   /** private: initialize the dataset */
@@ -128,20 +129,37 @@ class Dataset implements I_DataSerialize {
     for (const [binID, bin] of Object.entries(this.LISTS)) {
       lists[binID] = bin._getDataObj();
     }
+    const docs = {};
+    for (const [binID, bin] of Object.entries(this.FOLDERS)) {
+      docs[binID] = bin._getDataObj();
+    }
     return {
       _schema: this._schema,
       _dataURI: this._dataURI,
-      ItemLists: lists
+      ItemLists: lists,
+      DocFolders: docs
     };
   }
 
   /** given a dataset object, set the dataset properties */
   _setFromDataObj(dataObj: UR_DatasetObj) {
-    this._schema = dataObj._schema;
-    this._dataURI = dataObj._dataURI;
-    console.log('dataset: would check data obj', dataObj);
-    console.log('dataset: would set data obj', dataObj);
-    throw Error('not implemented');
+    const { _schema, _dataURI, DocFolders, ItemLists } = dataObj;
+    if (_schema) this._schema = _schema;
+    if (_dataURI) this._dataURI = _dataURI;
+    if (ItemLists) {
+      for (const [name, dataBinObj] of Object.entries(ItemLists)) {
+        const bin = this.createDataBin(name, 'ItemList');
+        const { error, items: i } = bin._setFromDataObj(dataBinObj);
+        if (error) LOG(`.. error adding items to ItemList [${name}]`, error, bin);
+      }
+    }
+    if (DocFolders) {
+      for (const [name, dataBinObj] of Object.entries(DocFolders)) {
+        const bin = this.createDataBin(name, 'DocFolder');
+        const { error, items: i } = bin._setFromDataObj(dataBinObj);
+        if (error) LOG(`.. error adding items to DocFolder [${name}]`, error, bin);
+      }
+    }
   }
 
   _serializeToJSON(): string {
@@ -153,6 +171,11 @@ class Dataset implements I_DataSerialize {
   }
 
   /// UNIVERSAL BIN METHODS ///
+
+  /** API: Retrieve the manifest object for the dataset */
+  getManifest(): UR_Manifest {
+    return this.manifest;
+  }
 
   /** API: Given a bin name, return the bin. Since bin names are unique, this
    *  method will return just one bin. */
