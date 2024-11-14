@@ -21,7 +21,7 @@ export type TemplateUID = string; // must be unique within a schema
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** A template is a collection of properties defined in schema */
 export type UR_Template = {
-  _schema: UR_SchemaID;
+  _schema_id: UR_SchemaID;
   template_name: BagName;
   fields: {
     [templateProperty: PropName]: any;

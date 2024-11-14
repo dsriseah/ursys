@@ -72,7 +72,7 @@ let SEQ_NUM = 0; // predictable sequence number to order updates
 
 /// DATASET OPERATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Load a dataset from the dataURI, return the data object */
+/** API: Load a dataset from the dataURI, return the data object */
 async function LoadDataset(dataURI: string): Promise<OpResult> {
   let dset = DSET_DICT[dataURI];
   if (dset) return { status: 'already loaded', manifest: dset.manifest };
@@ -84,24 +84,28 @@ async function LoadDataset(dataURI: string): Promise<OpResult> {
   return { dataset: dset };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: */
 async function CloseDataset(dataURI: string) {
   return { error: 'not implemented' };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: */
 async function PersistDataset(dataURI: string) {
   return { error: 'not implemented' };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: */
 async function GetDatasetData(dataURI?: string) {
   const DSET = DSET_DICT[dataURI || current_dset];
   return {
     status: 'ok',
     dataURI: DSET._dataURI,
-    schema: DSET._schema,
+    schema: DSET._schemaID,
     data: DSET._getDataObj()
   };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: */
 async function GetManifest(dataURI?: string) {
   const DSET = DSET_DICT[dataURI || current_dset];
   return DSET.getManifest();
@@ -109,7 +113,7 @@ async function GetManifest(dataURI?: string) {
 
 /// DATASET BIN OPERATIONS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** given a bin reference, open the bin and return the DataBin */
+/** API: given a bin reference, open the bin and return the DataBin */
 function OpenBin(binName: DataBinID, options: BinOptions): BinOpRes {
   const { binType, autoCreate } = options;
   const DSET = DSET_DICT[current_dset];
@@ -118,7 +122,7 @@ function OpenBin(binName: DataBinID, options: BinOptions): BinOpRes {
   return { bin };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** given an databin, close the bin and return the bin name if successful */
+/** API: given an databin, close the bin and return the bin name if successful */
 function CloseBin(bin: DataBin): BinOpRes {
   const { name } = bin;
   const DSET = DSET_DICT[current_dset];
@@ -129,7 +133,7 @@ function CloseBin(bin: DataBin): BinOpRes {
 
 /// DSYNC_STORE OBJECT OPERATIONS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** mock data initialization of dataset, decide where it goes later */
+/** API: data initialization of dataset */
 const InitializeDatasetFromObj = (dataset: Dataset, inputData: UR_DatasetObj) => {
   dataset._setFromDataObj(inputData);
 };
@@ -156,8 +160,8 @@ async function _handleDatasetOp(opParams: DatasetReq) {
     dataset: Dataset,
     inputData: UR_DatasetObj
   ) => {
-    const { _schema, _dataURI, DocFolders, ItemLists } = inputData;
-    if (_schema) dataset._schema = _schema;
+    const { _schemaID, _dataURI, DocFolders, ItemLists } = inputData;
+    if (_schemaID) dataset._schemaID = _schemaID;
     if (_dataURI) dataset._dataURI = _dataURI;
     LOG(`.. initializing dataset: ${dataset.dataset_name} from ${_dataURI}`);
     if (ItemLists) {

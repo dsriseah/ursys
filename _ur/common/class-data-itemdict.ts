@@ -27,7 +27,7 @@ const LOG = console.log.bind(console);
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class DocFolder extends DataBin {
+class ItemDict extends DataBin {
   // from base class
   // name: DataBinID; // name of this collection
   // _type: DataBinType; // type of this collection (.e.g ItemList);
@@ -272,7 +272,7 @@ class DocFolder extends DataBin {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default DocFolder; // the class
+export default ItemDict; // the class
 export {
-  DocFolder // the class
+  ItemDict // the class
 };

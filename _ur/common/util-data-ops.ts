@@ -8,15 +8,43 @@ import { NormStringToValue } from './util-data-norm.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import type { ErrObj } from '../_types/ursys';
 import type { DatasetOp, SyncDataReq, DatasetReq } from '../_types/dataset';
 import type { DataBinType, SyncDataOp, SyncDataMode } from '../_types/dataset';
-import type { UR_Manifest, ManifestObj } from '../_types/dataset';
+import type { UR_ManifestObj } from '../_types/dataset';
+//
+type DecodedManifest = UR_ManifestObj & ErrObj;
+type DecodedDataURI = {
+  orgDomain?: string;
+  bucketID?: string;
+  instanceID?: string;
+  tags?: any;
+} & ErrObj;
+type DecodedSyncReq = {
+  binID?: string;
+  op?: SyncDataOp;
+  accToken?: string;
+  ids?: string[];
+  items?: any[];
+  searchOpt?: any;
+} & ErrObj;
+type DecodedDatasetReq = {
+  dataURI?: string;
+  authToken?: string;
+  op?: DatasetOp;
+} & ErrObj;
+type DecodedSchema = {
+  root?: string;
+  name?: string;
+  version?: string;
+  tags?: { [tag: string]: any };
+} & ErrObj;
 
 /// DATASET CONSTANTS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DSET_MODES: SyncDataMode[] = ['local', 'local-ro', 'sync', 'sync-ro'];
 const DSET_FSMAP = {
-  'DocFolders': { dir: 'docfolders', type: 'DocFolder' },
+  'DocFolders': { dir: 'docfolders', type: 'ItemDict' },
   'ItemLists': { dir: 'itemlists', type: 'ItemList' }
   // 'StringLists': { dir: 'StringList' },
   // 'FileLists': { dir: 'filelists' },
@@ -66,32 +94,53 @@ function IsDatasetOp(op: DatasetOp): boolean {
   return DATASET_OPS.includes(op);
 }
 
+/// SCHEMA DECODE /////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** inspect schema for validity */
+function DecodeSchemaID(schemaID: string): DecodedSchema {
+  if (typeof schemaID !== 'string') return { error: 'schema must be a string' };
+  const [root, name, param3, ...extra] = schemaID.split(':');
+  if (extra.length > 0) return { error: `extra segment(s) '${extra.join(':')}'` };
+  const [version, ...param4] = param3.split(';');
+  if (version === undefined) return { error: 'missing version tag' };
+  const tags = {};
+  if (param4) {
+    param4.forEach(tag => {
+      if (tag.length === 0) return;
+      let [key, val] = tag.split('=');
+      tags[key] = NormStringToValue(val);
+    });
+  }
+  return {
+    root,
+    name,
+    version,
+    tags
+  };
+}
+
 /// MANIFEST DECODE ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** decode and validate the manifest object */
-function DecodeManifest(manifest: UR_Manifest) {
-  const { _schema, _dataURI, _created_on, _created_by, _info } = manifest;
-  if (typeof _schema !== 'string') return { error: 'missing _schema' };
-  if (typeof _dataURI !== 'string') return { error: 'missing _dataURI' };
-  if (typeof _created_on !== 'string') return { error: 'missing _created_on' };
-  if (typeof _created_by !== 'string') return { error: 'missing _created_by' };
-  if (typeof _info !== 'object') return { error: 'missing _info' };
-  const { ItemLists, DocFolders } = manifest;
+function DecodeManifest(manifest: UR_ManifestObj): DecodedManifest {
+  const { _schemaID, _dataURI, _metaInfo } = manifest;
+  if (typeof _schemaID !== 'string') return { error: 'bad _schemaID' };
+  if (typeof _dataURI !== 'string') return { error: 'bad _dataURI' };
+  if (typeof _metaInfo !== 'object') return { error: 'bad _metaInfo' };
+  const { ItemListURIs, DocFolderURIs } = manifest;
   return {
-    _schema,
+    _schemaID,
     _dataURI,
-    _created_on,
-    _created_by,
-    _info,
-    ItemLists,
-    DocFolders
+    _metaInfo,
+    ItemListURIs,
+    DocFolderURIs
   };
 }
 
 /// DATASET API METHODS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** decode a dataURI into its components */
-function DecodeDataURI(dataURI: string) {
+function DecodeDataURI(dataURI: string): DecodedDataURI {
   // rapt:bucketID/path/to/data:version=1;tag1=foo;tag2
   // ${OrgDomain}:${BucketID}/${InstanceID}::${TagString}
   if (typeof dataURI !== 'string') return { error: 'not a string' };
@@ -139,7 +188,7 @@ function IsValidDataConfig(configObj: any): boolean {
 /// DATASET and DATA PACKETS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** confirm that parameters are correct for synchronizing data */
-function DecodeSyncReq(syncReq: SyncDataReq) {
+function DecodeSyncReq(syncReq: SyncDataReq): DecodedSyncReq {
   const { accToken, op, binID, ids, items, searchOpt } = syncReq;
   // required params
   // TODO: if (accToken === undefined) return { error: 'accToken is required' };
@@ -171,7 +220,7 @@ function DecodeSyncReq(syncReq: SyncDataReq) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** confirm that parameters are correct for connecting to a datastore */
-function DecodeDatasetReq(req: DatasetReq) {
+function DecodeDatasetReq(req: DatasetReq): DecodedDatasetReq {
   const fn = 'DecodeDatasetReq:';
   const { dataURI, authToken, op } = req;
   if (!dataURI) return { error: `${fn} dataURI is required` };
@@ -192,6 +241,7 @@ const MOD = {
   IsDatasetOp,
   DecodeDataURI,
   DecodeManifest,
+  DecodeSchemaID,
   DecodeDataConfig,
   DecodeDatasetReq,
   DecodeSyncReq,
@@ -207,6 +257,7 @@ export {
   IsDatasetOp,
   DecodeDataURI,
   DecodeManifest,
+  DecodeSchemaID,
   DecodeDataConfig,
   DecodeDatasetReq,
   DecodeSyncReq,

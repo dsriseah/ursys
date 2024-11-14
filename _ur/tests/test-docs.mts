@@ -5,16 +5,16 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import { DocFolder } from '../common/class-data-docfolder.ts';
+import { ItemDict } from '../common/class-data-itemdict.ts';
 import type { UR_Doc } from '../_types/dataset.js';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DOCS = new DocFolder();
+const DOCS = new ItemDict();
 
 test('instantiation', () => {
   expect(DOCS).toBeDefined();
-  expect(DOCS).toBeInstanceOf(DocFolder);
+  expect(DOCS).toBeInstanceOf(ItemDict);
 });
 
 test('document creation', () => {

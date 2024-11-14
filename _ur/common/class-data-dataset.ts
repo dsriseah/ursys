@@ -21,7 +21,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ItemList } from './class-data-itemlist.ts';
-import { DocFolder } from './class-data-docfolder.ts';
+import { ItemDict } from './class-data-itemdict.ts';
 import { DecodeDataURI, DecodeManifest } from './util-data-ops.ts';
 import { DataBin } from './abstract-data-databin.ts';
 import { DecodeDataConfig } from './util-data-ops.ts';
@@ -34,7 +34,7 @@ import type {
   UR_SchemaID,
   I_DataSerialize,
   UR_DatasetURI,
-  UR_Manifest,
+  UR_ManifestObj,
   UR_DatasetObj
 } from '../_types/dataset';
 import type { ItemListOptions } from './class-data-itemlist.ts';
@@ -46,7 +46,7 @@ type DataAccessTokSet = Set<DataAccessTok>;
 const DBG = false;
 const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const CTYPES = ['DocFolder', 'ItemList']; // mirror DataBinType
+const CTYPES = ['ItemDict', 'ItemList']; // mirror DataBinType
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -73,14 +73,14 @@ function m_IsValidBinName(bName: string): boolean {
 class Dataset implements I_DataSerialize {
   //
   dataset_name: string; // the name of this list manager
-  manifest: UR_Manifest;
+  manifest: UR_ManifestObj;
   _dataURI: UR_DatasetURI; // the URI of the dataset
-  _schema: UR_SchemaID; // the schema of the dataset
+  _schemaID: UR_SchemaID; // the schema of the dataset
   open_bins: Set<DataBinID>; // open bins are subject to sync
   acc_toks: Map<DataBinID, DataAccessTokSet>; // access tokens for each bin
   //
   LISTS: { [ref_name: DataBinID]: ItemList };
-  FOLDERS: { [ref_name: DataBinID]: DocFolder };
+  FOLDERS: { [ref_name: DataBinID]: ItemDict };
   // see https://github.com/dsriseah/ursys/discussions/25 for other bin types
   // docfolders
   // files
@@ -91,7 +91,7 @@ class Dataset implements I_DataSerialize {
 
   /// CONSTRUCTOR ///
 
-  constructor(dataURI: string, manifest?: UR_Manifest) {
+  constructor(dataURI: string, manifest?: UR_ManifestObj) {
     if (dataURI && m_IsValidBinName(dataURI)) this.dataset_name = dataURI;
     this._init();
     if (DecodeManifest(manifest) === undefined) throw Error('invalid manifest');
@@ -134,7 +134,7 @@ class Dataset implements I_DataSerialize {
       docs[binID] = bin._getDataObj();
     }
     return {
-      _schema: this._schema,
+      _schemaID: this._schemaID,
       _dataURI: this._dataURI,
       ItemLists: lists,
       DocFolders: docs
@@ -143,8 +143,8 @@ class Dataset implements I_DataSerialize {
 
   /** given a dataset object, set the dataset properties */
   _setFromDataObj(dataObj: UR_DatasetObj) {
-    const { _schema, _dataURI, DocFolders, ItemLists } = dataObj;
-    if (_schema) this._schema = _schema;
+    const { _schemaID, _dataURI, DocFolders, ItemLists } = dataObj;
+    if (_schemaID) this._schemaID = _schemaID;
     if (_dataURI) this._dataURI = _dataURI;
     if (ItemLists) {
       for (const [name, dataBinObj] of Object.entries(ItemLists)) {
@@ -155,9 +155,9 @@ class Dataset implements I_DataSerialize {
     }
     if (DocFolders) {
       for (const [name, dataBinObj] of Object.entries(DocFolders)) {
-        const bin = this.createDataBin(name, 'DocFolder');
+        const bin = this.createDataBin(name, 'ItemDict');
         const { error, items: i } = bin._setFromDataObj(dataBinObj);
-        if (error) LOG(`.. error adding items to DocFolder [${name}]`, error, bin);
+        if (error) LOG(`.. error adding items to ItemDict [${name}]`, error, bin);
       }
     }
   }
@@ -173,7 +173,7 @@ class Dataset implements I_DataSerialize {
   /// UNIVERSAL BIN METHODS ///
 
   /** API: Retrieve the manifest object for the dataset */
-  getManifest(): UR_Manifest {
+  getManifest(): UR_ManifestObj {
     return this.manifest;
   }
 

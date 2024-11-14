@@ -1,5 +1,5 @@
 export default {
-  _schema: 'unknown-schema',
+  _schemaID: 'unknown-schema',
   _dataURI: 'sri.org:bucket-1234/sna-app/project-one',
   ItemLists: {
     'comments': [
