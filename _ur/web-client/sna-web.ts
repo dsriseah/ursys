@@ -21,7 +21,6 @@ import {
   SNA_Hook,
   GetDanglingHooks
 } from './sna-web-hooks.ts';
-import DATACLIENT from './sna-dataclient.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,9 +34,6 @@ const PR = ConsoleStyler('SNA', 'TagCyan');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: initialize the server's lifecycle */
 async function SNA_Start() {
-  // register system-level SNA components
-  SNA_RegisterComponent(DATACLIENT);
-
   // prepare own hooks before starting the lifecycle
   SNA_Hook('DOM_READY', SNA_NetConnect);
   SNA_Hook('NET_CONNECT', async (p, m) => {
@@ -69,7 +65,8 @@ function SNA_Status() {
 
 /// SNA MODULES PACKAGING /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import * as MOD_DataClient from './sna-dataclient.ts';
+/// remember to import default, which has _name property set
+import MOD_DataClient from './sna-dataclient.ts';
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

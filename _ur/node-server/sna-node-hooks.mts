@@ -46,8 +46,6 @@ function SNA_RegisterComponent(component: SNA_Module) {
     throw Error(`${fn} bad SNA component: missing _name`);
   if (!IsSnakeCase(_name))
     throw Error(`${fn} bad SNA component: _name must be snake_case`);
-  if (typeof PreHook !== 'function')
-    throw Error(`${fn} bad SNA component: missing PreHook function`);
   if (COMPONENTS.has(component)) LOG(`SNA_Module '${_name}' already registered`);
   if (DBG) LOG(`Registering SNA_Module: '${_name}'`);
   COMPONENTS.add(component);
