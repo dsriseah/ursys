@@ -34,17 +34,29 @@ const PR = ConsoleStyler('SNA', 'TagCyan');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: initialize the server's lifecycle */
 async function SNA_Start() {
-  // prepare own hooks before starting the lifecycle
-  SNA_Hook('DOM_READY', SNA_NetConnect);
-  SNA_Hook('NET_CONNECT', async (p, m) => {
-    AddMessageHandler('NET:UR_HOT_RELOAD_APP', () => {
-      LOG(...PR('Hot Reload Requested'));
-      window.location.reload();
+  // get configuration flags
+  const { no_urnet, no_hmr } = SNA_GlobalConfig();
+  if (no_urnet) {
+    LOG(...PR('** Offline Mode **'));
+    return;
+  } else {
+    // prepare net hooks before starting the lifecycle
+    SNA_Hook('DOM_READY', SNA_NetConnect);
+    SNA_Hook('NET_DECLARE', async (p, m) => {
+      await RegisterMessages();
     });
-  });
-  SNA_Hook('NET_DECLARE', async (p, m) => {
-    await RegisterMessages();
-  });
+  }
+  if (no_hmr) {
+    LOG(...PR('** Hot Reload Disabled **'));
+  } else {
+    SNA_Hook('NET_CONNECT', async (p, m) => {
+      AddMessageHandler('NET:UR_HOT_RELOAD_APP', () => {
+        LOG(...PR('Hot Reload Requested'));
+        window.location.reload();
+      });
+    });
+  }
+  // log when the app is running
   SNA_Hook('APP_RUN', () => {
     LOG(...PR('App Running'));
   });

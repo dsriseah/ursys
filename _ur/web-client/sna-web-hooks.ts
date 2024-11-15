@@ -49,7 +49,7 @@ function SNA_RegisterComponent(component: SNA_Module) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: register a global configuration object, merging with the existing
  *  configuration */
-function SNA_GlobalConfig(config: DataObj): DataObj {
+function SNA_GlobalConfig(config?: DataObj): DataObj {
   // when no config is provided, return the current global config
   if (config === undefined) return GLOBAL_CONFIG;
   // otherwise merge the new config with the existing global config
