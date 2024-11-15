@@ -20,12 +20,12 @@
 # _dist is the esbuild out directory for _ur and _ur_addons
 # _runtime is used by apps in the root level of the framework
 _dist
+_public
 **/_dist
 **/_runtime
 
 
-# don't commit _public or _nocommit files or directories
-_public
+# don't commit _nocommit files or directories
 *_nocommit*
 
 # Also ignore build system directories
