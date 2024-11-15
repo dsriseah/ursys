@@ -81,14 +81,13 @@ async function SNA_Build(rootDir: string): Promise<void> {
   LOG(`Live Reload Service is monitoring ${htdocs_short}`);
   await APPBUILD.WatchExtra({
     watch_dirs: [`${source_dir}/**`],
-    ignored: /_app_dist/,
+    ignored: /_dist/,
     notify_cb
   });
-  const HT_DOCS = FILE.AbsLocalPath('example-sna/_public');
   const serverOpts = {
     http_port: 8080,
     http_host: 'localhost',
-    http_docs: HT_DOCS,
+    http_docs: output_dir,
     index_file: 'index.html',
     wss_path: 'sna-ws'
   };
