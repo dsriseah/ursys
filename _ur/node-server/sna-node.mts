@@ -13,6 +13,7 @@ import {
   SNA_LifecycleStart,
   GetDanglingHooks
 } from './sna-node-hooks.mts';
+import { SNA_DeclareModule } from '../common/class-sna-module.ts';
 
 /// SNA MODULES PACKAGING /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -63,7 +64,9 @@ export {
   SNA_Hook as Hook,
   SNA_RuntimeInfo as RuntimeInfo,
   // sna modules
-  MOD_DataServer
+  SNA_DeclareModule as DeclareModule,
+  // included modules
+  MOD_DataServer,
 };
 export {
   // sna hook methods

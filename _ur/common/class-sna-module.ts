@@ -51,7 +51,7 @@ export {
 };
 export type {
   I_SNA_Module,
-  MOD_RegHook,
+  MOD_AddModule,
   MOD_PreConfig,
   MOD_PreHook,
   SNA_EvtOn,
