@@ -45,12 +45,12 @@ async function SNA_Start() {
       if (!no_hmr) {
         AddMessageHandler('NET:UR_HOT_RELOAD_APP', async () => {
           LOG(
-            '%cHot Reload Requested. Complying in 3 sec...',
+            '%cHot Reload Requested. Complying in 1 sec...',
             'color: #f00; font-size: larger; font-weight: bold;'
           );
           setTimeout(() => {
             window.location.reload();
-          }, 3000);
+          }, 1500);
         });
       } else {
         LOG(
