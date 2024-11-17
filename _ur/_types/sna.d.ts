@@ -13,6 +13,7 @@ import { DataObj, OpResult } from './ursys.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type MOD_PreConfig = (DataObj) => void; // called before lifecycle
 export type MOD_PreHook = () => void; // called before lifecycle
+export type MOD_AddModule = ({ addModule: Function }) => void; // called during reg
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type SNA_EvtOn = (evt: string, param: DataObj) => void;
 export type SNA_EvtOff = (evt: string, param: DataObj) => void;
@@ -20,13 +21,14 @@ export type SNA_EvtOnce = (evt: string, param: DataObj) => void;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// for code modules, exporting default SNA with SNA_Module is a suggested
 /// practice
-export type SNA_Module = {
+export interface I_SNA_Module {
   _name: string;
+  AddModule?: MOD_AddModule;
   PreConfig?: MOD_PreConfig;
   PreHook?: MOD_PreHook;
   Subscribe?: SNA_EvtOn;
   Unsubscribe?: SNA_EvtOff;
-};
+}
 
 /// SNA EVENT CONVENTIONS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

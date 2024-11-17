@@ -10,11 +10,12 @@
 import { PhaseMachine } from '../common/class-phase-machine.ts';
 import { ConsoleStyler } from '../common/util-prompts.ts';
 import { IsSnakeCase } from '../common/util-text.ts';
+import { SNA_DeclareModule } from '../common/class-sna-module.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
-import type { SNA_Module, OpResult, DataObj } from '../@ur-types.d.ts';
+import type { SNA_Module, DataObj } from '../@ur-types.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +37,7 @@ const { HookPhase, RunPhaseGroup, GetMachine, GetDanglingHooks } = PhaseMachine;
 /** API: register a component with the SNA lifecycle */
 function SNA_RegisterComponent(component: SNA_Module) {
   const fn = 'SNA_RegisterComponent:';
-  const { _name, PreHook } = component;
+  const { _name } = component;
   if (typeof _name !== 'string')
     throw Error(`${fn} bad SNA component: missing _name`);
   if (!IsSnakeCase(_name))
@@ -45,6 +46,10 @@ function SNA_RegisterComponent(component: SNA_Module) {
     LOG(...PR(`SNA_Module '${_name}' already registered`));
   if (DBG) LOG(...PR(`Registering SNA_Module: '${_name}'`));
   COMPONENTS.add(component);
+  // see if the component has a registration hook for chained registration
+  const { AddModule } = component;
+  if (typeof AddModule === 'function')
+    AddModule({ addModule: SNA_RegisterComponent });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: register a global configuration object, merging with the existing
@@ -57,7 +62,7 @@ function SNA_GlobalConfig(config?: DataObj): DataObj {
     if (DBG) LOG(...PR(`Setting SNA Global Configuration`));
   } else if (DBG) LOG(...PR(`Updating SNA Global Configuration`));
   GLOBAL_CONFIG = Object.assign(GLOBAL_CONFIG, config);
-  // return a copy of the global config
+  // return a copy of the global config fr
   return { ...GLOBAL_CONFIG };
 }
 

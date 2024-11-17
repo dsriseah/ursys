@@ -140,7 +140,7 @@ class PhaseMachine {
     groupList.forEach(pgroup => {
       // initialize an array to store hooks for each phase group name
       this.phase_hooks.set(pgroup, []);
-      // now initialize array for each phase in the phase group
+      // now initialize array for each phase >IN< the phase group
       this.phase_def[pgroup].forEach(p => {
         this.phase_hooks.set(p, []); // add each op in the phase to ophooks map
         this.phase_membership.set(p, pgroup); // add phase to group membership
@@ -240,7 +240,7 @@ class PhaseMachine {
     await this._promiseHookEvaluation(pgroup, 'enter'); // prgroup is just another named phase in this context
     // processes phases inside group first
     const phaseList = this.phase_def[pgroup];
-    if (phaseList.length === 0) return;
+    // if (phaseList.length === 0) return; // allow empty phase groups
     for (const phase of phaseList) {
       if (DBG) console.log(`${fn} entering group ${phase}`);
       await this._promiseHookEvaluation(phase, 'enter');
@@ -264,8 +264,7 @@ class PhaseMachine {
   lookupPhaseGroup(phid: string): PhaseGroupID {
     const fn = 'lookupPhaseGroup:';
     if (typeof phid !== 'string') throw Error(`${fn} arg must be string`);
-    if (phid.startsWith('PHASE_') && this.phase_def[phid])
-      return phid as PhaseGroupID;
+    if (this.phase_def[phid]) return phid as PhaseGroupID;
     return this.phase_membership.get(phid);
   }
 

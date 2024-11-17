@@ -21,6 +21,7 @@ import {
   SNA_Hook,
   GetDanglingHooks
 } from './sna-web-hooks.ts';
+import { SNA_DeclareModule } from '../common/class-sna-module.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -90,6 +91,8 @@ export {
   SNA_Status as Status,
   SNA_Hook as Hook,
   // sna modules
+  SNA_DeclareModule as DeclareModule,
+  // included modules
   MOD_DataClient
 };
 export {

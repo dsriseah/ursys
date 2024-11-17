@@ -21,7 +21,7 @@ import { IsSnakeCase } from '../common/util-text.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
 import type { OpResult, DataObj } from '../_types/dataset.d.ts';
-import type { SNA_Module } from '../_types/sna.d.ts';
+import type { SNA_Module } from '../common/class-sna-module.ts';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,6 +49,10 @@ function SNA_RegisterComponent(component: SNA_Module) {
   if (COMPONENTS.has(component)) LOG(`SNA_Module '${_name}' already registered`);
   if (DBG) LOG(`Registering SNA_Module: '${_name}'`);
   COMPONENTS.add(component);
+  // see if the component has a registration hook for chained registration
+  const { AddModule } = component;
+  if (typeof AddModule === 'function')
+    AddModule({ addModule: SNA_RegisterComponent });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: register a global configuration object, merging with the existing
