@@ -63,10 +63,11 @@ async function SNA_Start() {
       await RegisterMessages();
     });
   } else {
-    LOG(
-      `%cSTANDALONE MODE (URNET DISABLED)`,
-      'color: #f00; font-size: larger; font-weight: bold;'
-    );
+    const css =
+      'color: #ff0000;padding:4px 8px;' +
+      'background-color:#ff000020;font-weight:bold;';
+
+    LOG(`%cSTANDALONE MODE (URNET DISABLED)`, css);
   }
 
   // log when the app is running
