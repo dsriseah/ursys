@@ -136,9 +136,12 @@ async function BuildApp(opts: BuildOptions) {
       {
         name: 'rebuild-notify',
         setup(build) {
-          build.onStart(() => {});
+          build.onStart(() => {
+            // LOG(`BuildApp: ${DIM}building app${NRM}`);
+          });
           build.onEnd(() => {
-            if (notify_cb) notify_cb();
+            // LOG(`BuildApp: ${DIM}app built${NRM}`);
+            if (notify_cb) notify_cb({ changed: 'rebuild-notify' });
           });
         }
       }
@@ -153,22 +156,22 @@ async function BuildApp(opts: BuildOptions) {
  *  outside of the source directory, such as changes to assets.
  */
 async function WatchExtra(opts: WatchOptions) {
-  const { watch_dirs, ignored, notify_cb } = opts;
+  const { watch_dirs, notify_cb } = opts;
   // Initialize watcher.
   const watcher = chokidar.watch(watch_dirs, {
-    persistent: true,
-    ignored
+    persistent: true
   });
   // watcher.on('all', (event, path) => {
-  //   LOG(`WatchExtra: ${event} ${path}`);
+  //   const shortPath = path.replace(process.cwd(), '.');
+  //   LOG(`WatchExtra: ${event} ${shortPath}`);
   // });
   watcher.on('change', async changed => {
     const opts = GetBuildOptions();
+    LOG(`${DIM}watch-extra: rebuilding app...${NRM}`);
     await BuildApp(opts);
     if (notify_cb) notify_cb({ changed });
-    else LOG(`WatchExtra: no notify_cb set`);
+    else LOG(`watch-extra: no notify_cb set`);
   });
-  return Promise.resolve();
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

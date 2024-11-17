@@ -78,10 +78,10 @@ async function SNA_Build(rootDir: string): Promise<void> {
   /// SERVE AND WATCH APP ///
 
   const htdocs_short = FILE.u_short(buildOpts.output_dir);
+  const watch_dirs = [`${source_dir}/**/*`, `${asset_dir}/**/*`];
   LOG(`Live Reload Service is monitoring ${htdocs_short}`);
   await APPBUILD.WatchExtra({
-    watch_dirs: [`${source_dir}/**/*`, `${asset_dir}/**/*`],
-    ignored: /_dist/,
+    watch_dirs,
     notify_cb
   });
   const serverOpts = {
@@ -103,17 +103,22 @@ async function SNA_Build(rootDir: string): Promise<void> {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: used by SNA_Build() to configure watch dirs for hot reload */
-function m_NotifyCallback(payload: { changed: string }) {
-  const { changed } = payload || {};
-  if (changed === undefined) return;
+function m_NotifyCallback(data) {
+  const { changed } = data || {};
+  if (changed === undefined || changed === 'rebuild-notify') {
+    return;
+  }
   // is this a file on the server? skip it
-  if (changed.endsWith('.mts')) return;
+  if (changed.endsWith('.mts')) {
+    // if (DBG) LOG(`${DIM}skipping .mts files: ${FILE.u_short(changed)}${NRM}`);
+    return;
+  }
   // otherwise check if it's a hot reloadable file
   let hot = ['.ts', '.css', '.html'].some(e => changed.endsWith(e));
   if (hot) {
     const EP = APPSERV.ServerEndpoint();
     if (DBG) LOG(`${DIM}notify change: ${FILE.u_short(changed)}${NRM}`);
-    EP.netSignal('NET:UR_HOT_RELOAD_APP', { changed });
+    EP.netCall('NET:UR_HOT_RELOAD_APP', { changed });
     return;
   }
   if (DBG) LOG(`${DIM}unhandled notify change: ${FILE.u_short(changed)}${NRM}`);

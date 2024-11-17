@@ -29,7 +29,7 @@ import { SNA_DeclareModule } from '../common/class-sna-module.ts';
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
-const PR = ConsoleStyler('SNA', 'TagCyan');
+const PR = ConsoleStyler('sna', 'TagGray');
 
 /// SNA LIFECYCLE /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -37,26 +37,38 @@ const PR = ConsoleStyler('SNA', 'TagCyan');
 async function SNA_Start() {
   // get configuration flags
   const { no_urnet, no_hmr } = SNA_GlobalConfig();
-  if (no_urnet) {
-    LOG(...PR('** Offline Mode **'));
-    return;
-  } else {
-    // prepare net hooks before starting the lifecycle
+
+  // prepare net hooks before starting the lifecycle
+  if (!no_urnet) {
     SNA_Hook('DOM_READY', SNA_NetConnect);
-    SNA_Hook('NET_DECLARE', async (p, m) => {
+    SNA_Hook('NET_READY', async () => {
+      if (!no_hmr) {
+        AddMessageHandler('NET:UR_HOT_RELOAD_APP', async () => {
+          LOG(
+            '%cHot Reload Requested. Complying in 3 sec...',
+            'color: #f00; font-size: larger; font-weight: bold;'
+          );
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000);
+        });
+      } else {
+        LOG(
+          `%cHot Module Reload disabled`,
+          'color: #f00; font-size: larger; font-weight: bold;'
+        );
+      }
+    });
+    SNA_Hook('NET_DECLARE', async () => {
       await RegisterMessages();
     });
-  }
-  if (no_hmr) {
-    LOG(...PR('** Hot Reload Disabled **'));
   } else {
-    SNA_Hook('NET_CONNECT', async (p, m) => {
-      AddMessageHandler('NET:UR_HOT_RELOAD_APP', () => {
-        LOG(...PR('Hot Reload Requested'));
-        window.location.reload();
-      });
-    });
+    LOG(
+      `%cSTANDALONE MODE (URNET DISABLED)`,
+      'color: #f00; font-size: larger; font-weight: bold;'
+    );
   }
+
   // log when the app is running
   SNA_Hook('APP_RUN', () => {
     LOG(...PR('App Running'));

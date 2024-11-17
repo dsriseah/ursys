@@ -20,7 +20,7 @@ import type { SNA_Module, DataObj } from '../@ur-types.d.ts';
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
-const PR = ConsoleStyler('SNA.HOOK', 'TagCyan');
+const PR = ConsoleStyler('sna.hook', 'TagGray');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let COMPONENTS: Set<SNA_Module> = new Set();
