@@ -80,7 +80,7 @@ async function SNA_Build(rootDir: string): Promise<void> {
   const htdocs_short = FILE.u_short(buildOpts.output_dir);
   LOG(`Live Reload Service is monitoring ${htdocs_short}`);
   await APPBUILD.WatchExtra({
-    watch_dirs: [`${source_dir}/**`],
+    watch_dirs: [`${source_dir}/**/*`, `${asset_dir}/**/*`],
     ignored: /_dist/,
     notify_cb
   });
@@ -106,16 +106,17 @@ async function SNA_Build(rootDir: string): Promise<void> {
 function m_NotifyCallback(payload: { changed: string }) {
   const { changed } = payload || {};
   if (changed === undefined) return;
-  if (DBG) LOG(`${DIM}notify change: ${changed}${NRM}`);
-  // is this a file on the server?
-  if (changed.endsWith('.mts')) {
-    // do nothing
-  }
-  // is this a file in the client?
-  if (changed.endsWith('.ts')) {
+  // is this a file on the server? skip it
+  if (changed.endsWith('.mts')) return;
+  // otherwise check if it's a hot reloadable file
+  let hot = ['.ts', '.css', '.html'].some(e => changed.endsWith(e));
+  if (hot) {
     const EP = APPSERV.ServerEndpoint();
+    if (DBG) LOG(`${DIM}notify change: ${FILE.u_short(changed)}${NRM}`);
     EP.netSignal('NET:UR_HOT_RELOAD_APP', { changed });
+    return;
   }
+  if (DBG) LOG(`${DIM}unhandled notify change: ${FILE.u_short(changed)}${NRM}`);
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

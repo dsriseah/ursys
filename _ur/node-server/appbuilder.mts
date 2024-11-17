@@ -136,9 +136,9 @@ async function BuildApp(opts: BuildOptions) {
       {
         name: 'rebuild-notify',
         setup(build) {
+          build.onStart(() => {});
           build.onEnd(() => {
             if (notify_cb) notify_cb();
-            if (DBG) LOG.info(`${DIM}Build complete.${NRM}`);
           });
         }
       }
@@ -159,10 +159,14 @@ async function WatchExtra(opts: WatchOptions) {
     persistent: true,
     ignored
   });
+  // watcher.on('all', (event, path) => {
+  //   LOG(`WatchExtra: ${event} ${path}`);
+  // });
   watcher.on('change', async changed => {
     const opts = GetBuildOptions();
     await BuildApp(opts);
     if (notify_cb) notify_cb({ changed });
+    else LOG(`WatchExtra: no notify_cb set`);
   });
   return Promise.resolve();
 }
