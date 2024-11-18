@@ -52,7 +52,7 @@ function SNA_RegisterComponent(component: SNA_Module) {
   // see if the component has a registration hook for chained registration
   const { AddModule } = component;
   if (typeof AddModule === 'function')
-    AddModule({ addModule: SNA_RegisterComponent });
+    AddModule({ f_AddModule: SNA_RegisterComponent });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: register a global configuration object, merging with the existing

@@ -13,7 +13,7 @@ import { DataObj, OpResult } from './ursys.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type MOD_PreConfig = (DataObj) => void; // called before lifecycle
 export type MOD_PreHook = () => void; // called before lifecycle
-export type MOD_AddModule = ({ addModule: Function }) => void; // called during reg
+export type MOD_AddModule = ({ f_AddModule: Function }) => void; // called during reg
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type SNA_EvtOn = (evt: string, param: DataObj) => void;
 export type SNA_EvtOff = (evt: string, param: DataObj) => void;
