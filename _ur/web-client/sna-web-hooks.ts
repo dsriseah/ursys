@@ -40,16 +40,18 @@ function SNA_RegisterComponent(component: SNA_Module) {
   const { _name } = component;
   if (typeof _name !== 'string')
     throw Error(`${fn} bad SNA component: missing _name`);
-  if (!IsSnakeCase(_name))
-    throw Error(`${fn} bad SNA component: _name must be snake_case`);
+  // if (!IsSnakeCase(_name))
+  //   throw Error(`${fn} bad SNA component: _name must be snake_case`);
   if (COMPONENTS.has(component))
     LOG(...PR(`SNA_Module '${_name}' already registered`));
   if (DBG) LOG(...PR(`Registering SNA_Module: '${_name}'`));
   COMPONENTS.add(component);
   // see if the component has a registration hook for chained registration
   const { AddModule } = component;
-  if (typeof AddModule === 'function')
+  if (typeof AddModule === 'function') {
+    if (DBG) LOG(...PR(`.. '${_name}' is adding modules`));
     AddModule({ f_AddModule: SNA_RegisterComponent });
+  }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: register a global configuration object, merging with the existing
@@ -116,7 +118,7 @@ async function SNA_LifecycleStart() {
   for (const component of COMPONENTS) {
     const { PreConfig, _name } = component;
     if (typeof PreConfig === 'function') {
-      if (DBG) LOG(...PR(`Configuring SNA_Module '${_name}'`));
+      if (DBG) LOG(...PR(`PreConfig SNA_Module '${_name}'`));
       PreConfig(GLOBAL_CONFIG);
     }
   }
@@ -125,7 +127,7 @@ async function SNA_LifecycleStart() {
   for (const component of COMPONENTS) {
     const { PreHook, _name } = component;
     if (typeof PreHook === 'function') {
-      if (DBG) LOG(...PR(`Initializing SNA_Module '${_name}'`));
+      if (DBG) LOG(...PR(`PreHook SNA_Module '${_name}'`));
       PreHook();
     }
   }
