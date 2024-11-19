@@ -75,7 +75,7 @@ async function SNA_Start() {
     const css =
       'color: #008000;padding:4px 8px;' +
       'background-color:#00800020;font-weight:bold;';
-    LOG(`%cApp Initialization Complete`, css);
+    LOG(`%cSNA App Initialization Complete`, css);
   });
 
   // now start the lifecycle
