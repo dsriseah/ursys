@@ -72,7 +72,10 @@ async function SNA_Start() {
 
   // log when the app is running
   SNA_Hook('APP_RUN', () => {
-    LOG(...PR('App Running'));
+    const css =
+      'color: #008000;padding:4px 8px;' +
+      'background-color:#00800020;font-weight:bold;';
+    LOG(`%cApp Initialization Complete`, css);
   });
 
   // now start the lifecycle
