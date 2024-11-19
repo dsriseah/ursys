@@ -133,7 +133,7 @@ async function SNA_LifecycleStart() {
   }
 
   // run phase groups in order
-  if (DBG) LOG(...PR(`SNA Web Lifecycle Starting`));
+  if (DBG) LOG(...PR(`SNA App Lifecycle is starting`));
   await RunPhaseGroup('SNA/PHASE_BOOT');
   await RunPhaseGroup('SNA/PHASE_INIT');
   await RunPhaseGroup('SNA/PHASE_CONNECT');
