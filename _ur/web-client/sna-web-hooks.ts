@@ -151,7 +151,7 @@ async function SNA_LifecycleStart() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: shortcut hook for SNA machine */
-function SNA_Hook(phase: PhaseID, fn: HookFunction) {
+function SNA_HookAppPhase(phase: PhaseID, fn: HookFunction) {
   HookPhase(`SNA/${phase}`, fn);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -188,7 +188,7 @@ export {
   SNA_DeclareModule,
   SNA_RegisterComponent,
   SNA_GlobalConfig,
-  SNA_Hook,
+  SNA_HookAppPhase,
   SNA_LifecycleStart,
   SNA_LifecycleStatus
 };

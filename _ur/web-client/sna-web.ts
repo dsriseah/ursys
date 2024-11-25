@@ -18,7 +18,7 @@ import {
   SNA_GlobalConfig,
   SNA_LifecycleStart,
   SNA_LifecycleStatus,
-  SNA_Hook,
+  SNA_HookAppPhase,
   GetDanglingHooks
 } from './sna-web-hooks.ts';
 import { SNA_DeclareModule } from '../common/class-sna-module.ts';
@@ -40,8 +40,8 @@ async function SNA_Start() {
 
   // prepare net hooks before starting the lifecycle
   if (!no_urnet) {
-    SNA_Hook('DOM_READY', SNA_NetConnect);
-    SNA_Hook('NET_READY', async () => {
+    SNA_HookAppPhase('DOM_READY', SNA_NetConnect);
+    SNA_HookAppPhase('NET_READY', async () => {
       if (!no_hmr) {
         AddMessageHandler('NET:UR_HOT_RELOAD_APP', async () => {
           LOG(
@@ -59,7 +59,7 @@ async function SNA_Start() {
         );
       }
     });
-    SNA_Hook('NET_DECLARE', async () => {
+    SNA_HookAppPhase('NET_DECLARE', async () => {
       await RegisterMessages();
     });
   } else {
@@ -71,7 +71,7 @@ async function SNA_Start() {
   }
 
   // log when the app is running
-  SNA_Hook('APP_RUN', () => {
+  SNA_HookAppPhase('APP_RUN', () => {
     const css =
       'color: #008000;padding:4px 8px;' +
       'background-color:#00800020;font-weight:bold;';
@@ -105,7 +105,7 @@ export {
   SNA_GlobalConfig as GlobalConfig,
   SNA_Start as Start,
   SNA_Status as Status,
-  SNA_Hook as Hook,
+  SNA_HookAppPhase as HookAppPhase,
   // sna modules
   SNA_DeclareModule as DeclareModule,
   // included modules
@@ -113,7 +113,7 @@ export {
 };
 export {
   // phase machine static methods
-  HookPhase,
+  HookPhase as HookPhase,
   RunPhaseGroup,
   GetMachine,
   GetDanglingHooks

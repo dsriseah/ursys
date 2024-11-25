@@ -18,7 +18,7 @@
 
 import { ConsoleStyler } from '../common/util-prompts.ts';
 import {
-  Hook,
+  HookAppPhase,
   AddMessageHandler,
   ClientEndpoint,
   RegisterMessages,
@@ -363,7 +363,7 @@ function PreConfig(config: DataObj) {
  *  where your module can declare where it needs to do something */
 function PreHook() {
   // hook into NET_DATASET to initialize dataclient connection to dataserver
-  Hook('NET_DATASET', async () => {
+  HookAppPhase('NET_DATASET', async () => {
     const fn = 'HOOK_LoadData:';
     let dataURI = DS_URI;
     LOG(...PR(`${fn} establishing datalink to ${dataURI}`));
