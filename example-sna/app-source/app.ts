@@ -23,7 +23,7 @@ const PR = ConsoleStyler('app', 'TagGreen');
 
 /// LIFECYCLE HOOKS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-SNA.Hook('LOAD_CONFIG', () => {});
+SNA.HookAppPhase('LOAD_CONFIG', () => {});
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,6 +47,7 @@ SNA.Hook('LOAD_CONFIG', () => {});
   SNA.GlobalConfig({ dataset: { uri: dataURI, mode: datasetMode } });
 
   // Register all SNA components
+  SNA.RegisterComponent(SNA.MOD_DataClient);
   SNA.RegisterComponent(COMMENTS);
 
   // After all modules are initialized, start the SNA lifecycle this will

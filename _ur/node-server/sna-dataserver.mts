@@ -19,7 +19,7 @@
 
 import * as FILE from './file.mts';
 import * as PATH from 'node:path';
-import * as DSYNC_STORE from './datasync-fs.mts';
+import * as DSYNC_STORE from './sna-dataset-fs.mts';
 import { Dataset } from '../common/class-data-dataset.ts';
 import { DataBin } from '../common/abstract-data-databin.ts';
 import {
@@ -40,9 +40,9 @@ import type {
   DataBinType,
   SyncDataReq,
   DatasetReq,
-  UR_DatasetObj
+  UR_DatasetObj,
+  UR_DatasetURI
 } from '../_types/dataset.d.ts';
-import type { SNA_Module } from '../_types/sna.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SyncOptions = {
   syncType: 'pull' | 'push' | 'both';
@@ -73,7 +73,7 @@ let SEQ_NUM = 0; // predictable sequence number to order updates
 /// DATASET OPERATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Load a dataset from the dataURI, return the data object */
-async function LoadDataset(dataURI: string): Promise<OpResult> {
+async function LoadDataset(dataURI: UR_DatasetURI): Promise<OpResult> {
   let dset = DSET_DICT[dataURI];
   if (dset) return { status: 'already loaded', manifest: dset.manifest };
   const { manifest, error } = await DSYNC_STORE.GetManifest(dataURI);

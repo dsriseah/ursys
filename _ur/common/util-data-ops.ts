@@ -11,7 +11,7 @@ import { NormStringToValue } from './util-data-norm.ts';
 import type { ErrObj } from '../_types/ursys';
 import type { DatasetOp, SyncDataReq, DatasetReq } from '../_types/dataset';
 import type { DataBinType, SyncDataOp, SyncDataMode } from '../_types/dataset';
-import type { UR_ManifestObj } from '../_types/dataset';
+import type { UR_ManifestObj, UR_DatasetURI } from '../_types/dataset';
 //
 type DecodedManifest = UR_ManifestObj & ErrObj;
 type DecodedDataURI = {
@@ -29,7 +29,7 @@ type DecodedSyncReq = {
   searchOpt?: any;
 } & ErrObj;
 type DecodedDatasetReq = {
-  dataURI?: string;
+  dataURI?: UR_DatasetURI;
   authToken?: string;
   op?: DatasetOp;
 } & ErrObj;
@@ -228,7 +228,7 @@ function DecodeDatasetReq(req: DatasetReq): DecodedDatasetReq {
   if (!op) return { error: `${fn} op is required` };
   if (!IsDatasetOp(op)) return { error: `${fn} op [${op}] not recognized` };
   if (typeof dataURI !== 'string') return { error: `${fn} dataURI must be a string` };
-  return { dataURI, authToken, op };
+  return { dataURI: dataURI as UR_DatasetURI, authToken, op };
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

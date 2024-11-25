@@ -38,7 +38,6 @@ const DBG = true;
 async function SNA_Start() {
   SNA_RegisterComponent(MOD_DataServer);
   // prepare own hooks before starting the lifecycle
-  SNA_Hook('SRV_READY', LOG('Server Ready'));
   SNA_HookServerPhase('SRV_READY', LOG('Server Ready'));
   // now start the lifecycle
   await SNA_LifecycleStart();
@@ -67,7 +66,7 @@ export {
   // sna modules
   SNA_DeclareModule as DeclareModule,
   // included modules
-  MOD_DataServer,
+  MOD_DataServer
 };
 export {
   // sna hook methods

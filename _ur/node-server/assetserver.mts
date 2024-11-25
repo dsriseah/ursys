@@ -84,29 +84,6 @@ async function m_MakeManifestObj(assetDirs: string[]) {
   } // end subdir processing
   return manifest;
 }
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: given a dataPath, return the manifest object */
-async function GetManifestFromDataPath(dataPath: string) {
-  // bail if the requested path isn't a directory
-  const pathInfo = FILE.GetPathInfo(dataPath);
-  if (pathInfo.isFile) {
-    return { error: `${dataPath} appears to be a file request, not a directory` };
-  }
-  if (FILE.DirExists(dataPath)) {
-    /* is there an predefined manifest file? */
-    const manifestObjs = m_GetPredefinedManifests(dataPath);
-    if (manifestObjs.length > 0) return { manifest: manifestObjs[0] };
-    /* otherwise, generate the manifest from dataPath */
-    const { dirs } = FILE.GetDirContent(dataPath);
-    const assetDirs = dirs.filter(d => IsAssetDirname(d));
-    if (assetDirs.length > 0) {
-      return { manifest: await m_MakeManifestObj(assetDirs) };
-    }
-    // no asset dirs found
-    return { error: `${dataPath} contains no asset directories` };
-  }
-  return { error: `${dataPath} does not exist` };
-}
 
 /// MIDDLEWARE ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -196,7 +173,5 @@ export {
   // express methods
   SetupServer,
   AssetManifest_Middleware,
-  DeliverManifest,
-  // manifest generation
-  GetManifestFromDataPath
+  DeliverManifest
 };
