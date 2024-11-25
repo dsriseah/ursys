@@ -21,7 +21,8 @@ import {
   Hook,
   AddMessageHandler,
   ClientEndpoint,
-  RegisterMessages
+  RegisterMessages,
+  DeclareModule
 } from './sna-web.ts';
 import { Dataset } from '../common/class-data-dataset.ts';
 import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops.ts';
@@ -405,15 +406,14 @@ function Unsubscribe(binID: string, evHdl: SNA_EvtHandler) {
  *  by "hooking" into it. Once a SNA_Module is registered, it will be called
  *  with the PreConfig() and PreHook() methods to allow the module to
  *  independently manage itself and its data */
-const SNA_MODULE: SNA_Module = {
-  _name: 'dataclient',
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export default DeclareModule('dataclient', {
   PreConfig,
   PreHook,
   Subscribe,
   Unsubscribe
-};
+});
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default SNA_MODULE;
 export {
   // SNA module methods
   Configure,

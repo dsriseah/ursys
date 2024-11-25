@@ -29,7 +29,7 @@ import {
 } from '../common/util-data-ops.ts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
 import { IsDataSyncOp, IsDatasetOp } from '../common/util-data-ops.ts';
-import { SNA_Hook } from './sna-node-hooks.mts';
+import { SNA_HookServerPhase, SNA_DeclareModule } from './sna-node-hooks.mts';
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -256,18 +256,16 @@ async function _handleDataOp(opParams: SyncDataReq) {
 /** PreHook is called just before the SNA Lifecycle is started, so here is
  *  where your module can declare where it needs to do something */
 function PreHook() {
-  SNA_Hook('EXPRESS_READY', () => {
+  SNA_HookServerPhase('EXPRESS_READY', () => {
     AddMessageHandler('SYNC:SRV_DSET', _handleDatasetOp);
     AddMessageHandler('SYNC:SRV_DATA', _handleDataOp);
   });
 }
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const SNA_MODULE: SNA_Module = {
-  _name: 'dataserver',
+export default SNA_DeclareModule('dataserver', {
   PreHook
-};
-export default SNA_MODULE;
+});
 export {
   LoadDataset, // pathToDataset => void
   CloseDataset, // dataURI => void

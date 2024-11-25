@@ -7,7 +7,7 @@
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 import { SNA_Build, SNA_RuntimeInfo } from './sna-node-urnet-server.mts';
 import {
-  SNA_Hook,
+  SNA_HookServerPhase,
   SNA_RegisterComponent,
   SNA_LifecycleStatus,
   SNA_LifecycleStart,
@@ -39,6 +39,7 @@ async function SNA_Start() {
   SNA_RegisterComponent(MOD_DataServer);
   // prepare own hooks before starting the lifecycle
   SNA_Hook('SRV_READY', LOG('Server Ready'));
+  SNA_HookServerPhase('SRV_READY', LOG('Server Ready'));
   // now start the lifecycle
   await SNA_LifecycleStart();
 }
@@ -61,7 +62,7 @@ export {
   SNA_Start as Start,
   SNA_Status as Status,
   // sna hook methods
-  SNA_Hook as Hook,
+  SNA_HookServerPhase as HookServerPhase,
   SNA_RuntimeInfo as RuntimeInfo,
   // sna modules
   SNA_DeclareModule as DeclareModule,

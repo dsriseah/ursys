@@ -282,4 +282,5 @@ class OpSequencer {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default OpSequencer;
+export { OpSequencer };
 export type { TOpNode, TOpChangeFunc };

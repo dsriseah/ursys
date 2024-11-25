@@ -20,7 +20,7 @@ const LOG = PR('server', 'TagGreen');
 
 /// LIFECYCLE HOOKS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-SNA.Hook('SRV_READY', () => {
+SNA.HookServerPhase('SRV_READY', () => {
   LOG('SNA Server Component SRV_READY');
 });
 

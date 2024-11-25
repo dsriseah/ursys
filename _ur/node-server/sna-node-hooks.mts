@@ -15,13 +15,14 @@ import {
   GetDanglingHooks,
   GetMachine
 } from '../common/class-phase-machine.ts';
+import { SNA_Module } from '../common/class-sna-module.ts';
 import { IsSnakeCase } from '../common/util-text.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
 import type { OpResult, DataObj } from '../_types/dataset.d.ts';
-import type { SNA_Module } from '../common/class-sna-module.ts';
+import type { SNA_ModProps } from '../_types/sna.d.ts';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -38,6 +39,10 @@ let PM: PhaseMachine;
 
 /// SNA COMPONENT REGISTRATION ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function SNA_DeclareModule(name: string, config: SNA_ModProps): SNA_Module {
+  return new SNA_Module(name, config);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: register a component with the SNA lifecycle */
 function SNA_RegisterComponent(component: SNA_Module) {
   const fn = 'SNA_RegisterComponent:';
@@ -45,7 +50,7 @@ function SNA_RegisterComponent(component: SNA_Module) {
   if (typeof _name !== 'string')
     throw Error(`${fn} bad SNA component: missing _name`);
   if (!IsSnakeCase(_name))
-    throw Error(`${fn} bad SNA component: _name must be snake_case`);
+    throw Error(`${fn} bad SNA component: _name ${_name} must be snake_case`);
   if (COMPONENTS.has(component)) LOG(`SNA_Module '${_name}' already registered`);
   if (DBG) LOG(`Registering SNA_Module: '${_name}'`);
   COMPONENTS.add(component);
@@ -72,7 +77,7 @@ function SNA_GlobalConfig(config: DataObj): DataObj {
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: shortcut hook for SNA machine */
-function SNA_Hook(phase: PhaseID, fn: HookFunction) {
+function SNA_HookServerPhase(phase: PhaseID, fn: HookFunction) {
   HookPhase(`SNA/${phase}`, fn);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -178,9 +183,10 @@ function SNA_LifecycleStatus() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   // sna process
+  SNA_DeclareModule,
   SNA_RegisterComponent,
   SNA_GlobalConfig,
-  SNA_Hook,
+  SNA_HookServerPhase,
   SNA_LifecycleStart,
   SNA_LifecycleStatus,
   // ursys lifecycle

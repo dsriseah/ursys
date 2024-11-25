@@ -10,12 +10,12 @@
 import { PhaseMachine } from '../common/class-phase-machine.ts';
 import { ConsoleStyler } from '../common/util-prompts.ts';
 import { IsSnakeCase } from '../common/util-text.ts';
-import { SNA_DeclareModule } from '../common/class-sna-module.ts';
+import { SNA_Module } from '../common/class-sna-module.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
-import type { SNA_Module, DataObj } from '../@ur-types.d.ts';
+import type { SNA_ModProps, DataObj } from '../@ur-types.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,6 +34,9 @@ const { HookPhase, RunPhaseGroup, GetMachine, GetDanglingHooks } = PhaseMachine;
 
 /// SNA COMPONENT REGISTRATION ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function SNA_DeclareModule(name: string, config: SNA_ModProps): SNA_Module {
+  return new SNA_Module(name, config);
+} /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: register a component with the SNA lifecycle */
 function SNA_RegisterComponent(component: SNA_Module) {
   const fn = 'SNA_RegisterComponent:';
@@ -182,6 +185,7 @@ function SNA_LifecycleStatus() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   // sna process
+  SNA_DeclareModule,
   SNA_RegisterComponent,
   SNA_GlobalConfig,
   SNA_Hook,

@@ -96,8 +96,8 @@ function SNA_PreConfig(data: any) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SNA_PreHook() {
-  SNA.Hook('LOAD_DATA', () => HOOK_LoadDataRemote());
-  SNA.Hook('APP_CONFIG', async () => {
+  SNA.HookAppPhase('LOAD_DATA', () => HOOK_LoadDataRemote());
+  SNA.HookAppPhase('APP_CONFIG', async () => {
     const items = await DCLI.Get('comments');
     LOG(...PR('APP_CONFIG: loaded items', items));
     let res: OpResult;
@@ -115,15 +115,13 @@ function SNA_Unsubscribe(evtType: SNA_EvtName, evtHandler: Function) {}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const SNA_MODULE: SNA_Module = {
-  _name: 'comments',
+export default SNA.DeclareModule('comments', {
   PreConfig: SNA_PreConfig,
   PreHook: SNA_PreHook,
   Subscribe: SNA_Subscribe,
   Unsubscribe: SNA_Unsubscribe
-};
+});
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default SNA_MODULE;
 export {
   // sna module methods
   SNA_PreConfig as PreConfig,
