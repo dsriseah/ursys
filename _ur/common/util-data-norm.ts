@@ -17,7 +17,13 @@
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { UR_EntID, DataObj, UR_Item } from '../_types/dataset.d.ts';
+import type {
+  UR_EntID,
+  DataObj,
+  UR_Item,
+  UR_ItemDict,
+  UR_ItemList
+} from '../_types/dataset.d.ts';
 
 /// SINGLE OBJ HELPERS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -86,13 +92,35 @@ function NormItem(item: UR_Item, schema?: any): UR_Item {
  *  an _id field. The copied objects are also filtered for suspicious
  *  property strings that are HTML or script tags
  *  Returns [ item[], error ] */
-function NormItems(items: UR_Item[], schema?: any): [UR_Item[], error?: string] {
-  const fn = 'NormItems:';
+function NormItemList(
+  items: UR_ItemList,
+  schema?: any
+): [UR_ItemList, error?: string] {
+  const fn = 'NormItemList:';
   const normeds = [];
   for (const item of items) {
     const normed = NormItem(item, schema);
     if (normed === undefined) return [undefined, `${fn} invalid item ${item}`];
     normeds.push(normed);
+  }
+  return [normeds, undefined];
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Given an object of objects, return a new object of objects that are
+ *  guaranteed to have an _id field, or undefined if any object doesn't have
+ *  an _id field. The copied objects are also filtered for suspicious property
+ *  strings that are HTML or script tags.
+ *  Returns [ {}, error ] */
+function NormItemDict(
+  dict: UR_ItemDict,
+  schema?: any
+): [UR_ItemDict, error?: string] {
+  const fn = 'NormItemDict:';
+  const normeds = {};
+  for (const key in dict) {
+    const normed = NormItem(dict[key], schema);
+    if (normed === undefined) return [undefined, `${fn} invalid item ${dict[key]}`];
+    normeds[key] = normed;
   }
   return [normeds, undefined];
 }
@@ -168,7 +196,8 @@ function DeepClone(obj: any): any {
 export {
   m_NormEntityID as NormEntID, // normalize an ID
   NormItem, // normalize a single object for serialized storage
-  NormItems, // normalize multiple objects for storage
+  NormItemList, // normalize multiple objects for storage
+  NormItemDict, // normalize dictionary of multiple objects for storage
   NormIDs, //  should be strings
   NormStringToValue, // convert string to number or boolean
   //

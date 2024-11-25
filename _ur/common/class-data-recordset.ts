@@ -46,7 +46,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import {
-  NormItems, //
+  NormItemList, //
   DeepCloneArray
 } from './util-data-norm.ts';
 
@@ -91,7 +91,7 @@ class RecordSet {
     if (!Array.isArray(items)) {
       throw Error(`${fn} requires an array of items`);
     }
-    const [normed, error] = NormItems(items);
+    const [normed, error] = NormItemList(items);
     if (error) throw Error(`${fn} ${error}`);
     this.src_items = normed;
     this.reset(); // set current items to source items

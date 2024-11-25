@@ -5,7 +5,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import { ItemDict } from '../common/class-data-itemdict.ts';
+import { ItemDict } from '../common/class-data-itemdict-old.ts';
 import type { UR_Doc } from '../_types/dataset.js';
 
 /// TESTS /////////////////////////////////////////////////////////////////////

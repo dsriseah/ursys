@@ -1,272 +1,373 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  Dataset Document Manager Class
-  this is a class that manages folders of documents in a dataset
-  in serializable form
+  ItemDict Class - Manage a dictionary of UR_ItemID to UR_Item
+
+  Its sibling class is ItemDict. Its parent manager is Dataset.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { NormDocIDs, NormDoc, NormDocFolder } from './util-data-norm.ts';
+import { NormItemDict, NormIDs } from './util-data-norm.ts';
+import { Find, Query } from './util-data-search.ts';
+import { DataBin } from './abstract-data-databin.ts';
+import { RecordSet } from './class-data-recordset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
-  DataObj, // { [key: string]: any }
-  UR_EntID, // string
-  DataBinID, // string
-  UR_Doc, // { _ref: DataBinID; [key: string]: any }
-  UR_DocFolder, // { [ref_name: DataBinID]: UR_Doc }
-  UR_Item // { _id: UR_EntID; [key: string]: any }
+  UR_EntID,
+  UR_NewItem,
+  UR_Item,
+  UR_ItemList,
+  UR_ItemDict,
+  DataObj,
+  OpResult,
+  DataBinID,
+  DataBinType,
+  I_DataSerialize,
+  //
+  SearchOptions
 } from '../_types/dataset';
-type DocFolderOptions = { idPrefix?: string; ordDigits?: number };
-
-/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = false;
-const LOG = console.log.bind(console);
+type ItemDictOptions = {
+  idPrefix?: string; // prefix to use for ids, otherwise simple ids
+  startOrd?: number; // starting number (default 0)
+  ordDigits?: number; // number of digits (default 3)
+};
 
-/// CLASS DECLARATION //////////////////////////////////////////////////////////
+/// HELPERS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class ItemDict extends DataBin {
+// TODO: HACK WRAP conversion
+function m_ListToDict(list: UR_ItemList): UR_ItemDict {
+  const dict: UR_ItemDict = {};
+  for (const item of list) {
+    dict[item._id] = { ...item };
+  }
+  return dict;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// TODO: HACK WRAP conversion
+function m_DictToList(dict: UR_ItemDict): UR_ItemList {
+  const list: UR_ItemList = [];
+  for (const key in dict) {
+    list.push({ ...dict[key] });
+  }
+  return list;
+}
+
+/// CLASS DECLARATION /////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class ItemDict extends DataBin implements I_DataSerialize {
   // from base class
   // name: DataBinID; // name of this collection
-  // _type: DataBinType; // type of this collection (.e.g ItemList);
+  // _type: DataBinType; // type of this collection (.e.g ItemDict);
   // _prefix: string; // when set, this is the prefix for the ids
   // _ord_digits: number; // if _prefix is set, then number of zero-padded digits
   // _ord_highest: number; // current highest ordinal
-  _folder: UR_DocFolder; // list storage
-  constructor(col_name: string, opt?: DocFolderOptions) {
-    if (this._folder === undefined) this._folder = {};
-    if (col_name) this.collection_name = col_name;
-    this.collection_type = this.constructor.name;
+  _dict: UR_ItemDict; // dictionary storage
+
+  /// INITIALIZATION ///
+
+  /** constuctor takes ItemDictOptions. If there are no options defined,
+   *  the ids created will be simple integers. If you define an idPrefix,
+   *  then the ids will be the prefix + zero-padded number */
+  constructor(col_name: string, opt?: ItemDictOptions) {
+    super(col_name);
+    const fn = 'ItemDict:';
+    this._dict = {};
+    this._type = this.constructor.name as DataBinType;
+    // set prefix options
+    let { idPrefix, startOrd, ordDigits } = opt || {};
+    if (col_name === undefined) throw Error(`${fn} collection name is required`);
+    if (typeof col_name !== 'string')
+      throw Error(`${fn} collection name must be a string`);
+    this.name = col_name;
+    if (idPrefix === undefined) idPrefix = '';
+    if (typeof idPrefix !== 'string')
+      throw Error(`${fn} idPrefix must be a string when specified`);
+    this._prefix = idPrefix || ''; // default to no prefix
+    // optional
+    this._ord_digits = ordDigits || 3;
+    this._ord_highest = startOrd || 0;
   }
 
   /// SERIALIZATION METHODS ///
 
   /** API: create a new instance from a compatible state object */
-  _setFromDataObj(data: DataObj) {}
+  _setFromDataObj(data: DataObj) {
+    const fn = 'ItemDict._setFromDataObj:';
+    let result = super._setFromDataObj(data);
+    if (result.error) return { error: `${fn} ${result.error}` };
+    const { dict } = data;
+    // is dict a pure object?
+    if (typeof dict !== 'object') return { error: `${fn} dict must be an object` };
+    const [norm_dict, norm_error] = NormItemDict(dict);
+    if (norm_error) return { error: `${fn} ${norm_error}` };
+    this._dict = norm_dict;
+    return { dict: { ...this._dict } };
+  }
 
   /** API: return a data object that represents the current state */
-  _getDataObj(): DataObj {
-    return {};
+  _getDataObj() {
+    const meta = super._getDataObj();
+    if (meta.error) return { error: meta.error };
+    return { ...meta, dict: { ...this._dict } };
   }
 
   /** API: serialize JSON into the appropriate data structure */
   _serializeToJSON(): string {
-    const sobj = {
-      ...this
-    };
-    return JSON.stringify(sobj);
+    const data = this._getDataObj();
+    return JSON.stringify(data);
   }
 
   /** API: deserialize data structure into the appropriate JSON */
-  _deserializeFromJSON(json: string): void {
-    const sobj = JSON.parse(json);
-    Object.keys(sobj).forEach(key => {
-      this[key] = sobj[key];
-    });
-  }
-
-  /// DOCUMENT FOLDER METHODS ///
-
-  /** Given the name of a doc, create a new doc and return the doc
-   *  instance */
-  createDocFolder(fdoc: string): UR_DocFolder {
-    const fn = 'createDocFolder:';
-    if (this._DOCS[fdoc]) throw Error(`${fn} doc '${fdoc}' already exists`);
-    const folder: UR_DocFolder = {};
-    this._DOCS[fdoc] = folder;
-    return folder;
-  }
-
-  /** Given the name of a doc, clear the doc of all items and retain the
-   *  same doc instance */
-  clearDocFolder(fdoc: string): UR_DocFolder {
-    const fn = 'clearDocFolder:';
-    const folder = this._DOCS[fdoc];
-    if (folder === undefined) throw Error(`${fn} folder '${fdoc}' not found`);
-    this._DOCS[fdoc] = undefined;
-    return folder;
-  }
-
-  /** Given the name of a doc, return the entire doc */
-  getDocFolder(fdoc: string): UR_DocFolder {
-    return this._DOCS[fdoc];
-  }
-
-  /// DOCUMENT METHODS ///
-
-  /** given the name of a doc and an object, add the object to the
-   *  doc and return the doc if successful, undefined otherwise */
-  docAdd(fdoc: string, doc: DataObj): UR_Doc {
-    const fn = 'docAdd:';
-    const folder = this._DOCS[fdoc];
-    if (folder === undefined) throw Error(`${fn} doc '${fdoc}' not found`);
-    // normalize the objects and add them to the doc
-    const [norm_doc, norm_error] = NormDoc(doc);
-    if (norm_error) throw Error(`${fn} ${norm_error}`);
-    const { _id } = norm_doc;
-    folder[_id] = norm_doc;
-    return { ...norm_doc }; // return a copy of the doc
-  }
-
-  /** given the name of a doc and an array of objects, add the objects to the
-   * doc and return the doc if successful, undefined otherwise */
-  docsAdd(fdoc: string, _DOCS: UR_Doc[]): UR_Doc[] {
-    const fn = 'docsAdd:';
-    const folder = this._DOCS[fdoc];
-    if (folder === undefined) throw Error(`${fn} doc '${fdoc}' not found`);
-    // normalize the objects and add them to the doc
-    const [norm_docs, norm_error] = NormDocFolder(_DOCS);
-    if (norm_error) throw Error(`${fn} ${norm_error}`);
-    for (const doc of norm_docs) {
-      const { _id } = doc;
-      folder[_id] = doc;
+  _deserializeFromJSON(json: string): OpResult {
+    const fn = '_deserializeFromJSON:';
+    try {
+      const sobj = JSON.parse(json);
+      const { error } = this._setFromDataObj(sobj);
+      if (error) throw Error(error);
+      return { instance: this };
+    } catch (err) {
+      return { error: `${fn} ${err.message}` };
     }
-    return [...norm_docs]; // return a copy
   }
 
-  /** return a single doc from the folder */
-  docRead(fdoc: string, id: UR_EntID): UR_Doc {
-    const fn = 'docRead:';
-    const folder = this._DOCS[fdoc];
-    if (folder === undefined) throw Error(`${fn} folder '${fdoc}' not found`);
-    const doc = folder[id];
-    if (doc === undefined) throw Error(`${fn} doc '${id}' not found`);
-    return { ...doc };
-  }
+  /// LIST ID METHODS ///
 
-  /** given the folder and ids of documents, return the matching _DOCS
-   *  in order of the ids provided. If no ids are provided, return all _DOCS
-   */
-  docsRead(fdoc: string, ids?: UR_EntID[]): UR_Doc[] {
-    const fn = 'docRead:';
-    const folder = this._DOCS[fdoc];
-    if (folder === undefined) throw Error(`${fn} doc '${fdoc}' not found`);
-    if (ids && Array.isArray(ids)) {
-      const [norm_ids, norm_error] = NormDocIDs(ids);
-      if (norm_error) throw Error(`${fn} ${norm_error}`);
-      return norm_ids.map(id => {
-        const doc = folder[id];
-        if (doc === undefined) throw Error(`${fn} doc '${id}' not found`);
-        return folder[id];
-      });
+  // DataBin base methods: decodeID, newID
+  _maxID(): number {
+    let id: number;
+    // if ord_highest is set, we can just increment it since we don't reuse ids
+    if (this._ord_highest > 0) {
+      id = ++this._ord_highest;
+    } else {
+      // otherwise, we need to scan the existing list
+      let maxID = 0;
+      for (const obj of Object.keys(this._dict)) {
+        const { _prefix, ord } = this.decodeID(obj);
+        if (ord > maxID) maxID = ord;
+      }
+      this._ord_highest = maxID;
     }
-    return Object.values(folder).map(doc => ({ ...doc }));
+    return this._ord_highest;
   }
 
-  /** given the folder and a doc object, update the doc with the items
-   *  provided through shallow merge.
-   */
-  docUpdate(fdoc: string, doc: UR_Doc): UR_Doc {
-    const fn = 'docUpdate:';
-    const folder = this._DOCS[fdoc];
-    if (folder === undefined) throw Error(`${fn} folder '${fdoc}' not found`);
-    if (typeof doc !== 'object') throw Error(`${fn} doc must be an object`);
-    const { _id } = doc;
-    if (_id === undefined) throw Error(`${fn} missing _id field`);
-    const [norm_doc, error] = NormDoc(doc);
-    if (error) throw Error(`${fn} ${error}`);
-    const old_doc = folder[_id];
-    if (old_doc === undefined) throw Error(`${fn} doc '${_id}' not found`);
-    folder[_id] = { ...old_doc, ...norm_doc };
-    return { ...folder[_id] };
-  }
+  /// DICT METHODS ///
 
-  /** given the folder and an array of doc objects, update the doc with the
-   *  items provided through shallow merge. return a copy of the updated _DOCS
-   */
-  docsUpdate(fdoc: string, _DOCS: UR_Doc[]): UR_Doc[] {
-    const fn = 'docsUpdate:';
-    const folder = this._DOCS[fdoc];
-    if (folder === undefined) throw Error(`${fn} folder '${fdoc}' not found`);
-    const [norm_docs, norm_error] = NormDocFolder(_DOCS);
-    if (norm_error) throw Error(`${fn} ${norm_error}`);
-    const updated = [];
-    for (const doc of norm_docs) {
-      const { _id } = doc;
-      const old_doc = folder[_id];
-      if (old_doc === undefined) throw Error(`${fn} doc '${_id}' not found`);
-      folder[_id] = { ...old_doc, ...doc };
-      updated.push({ ...folder[_id] });
+  /** given the name of a _list and an array of objects, add the objects to the
+   *  _list and return the _list if successful, undefined otherwise */
+  add(items: UR_NewItem[]): { added?: UR_Item[]; error?: string } {
+    const fn = 'add:';
+    if (!Array.isArray(items))
+      return { error: `${fn} items must be an array of objects` };
+    if (items.length === 0) return { error: `${fn} items array is empty` };
+
+    // make sure that items do not have _id fields
+    // if so, then assign new ids
+    const to_add = items.map(item => ({ ...item }));
+    for (let item of to_add) {
+      if (item._id !== undefined)
+        return { error: `${fn} item already has an _id ${item._id}` };
+      item._id = this.newID();
     }
-    return updated;
+    // add the items to the _dict
+    // make sure that the _dict doesn't have these items already
+    for (let item of items) {
+      if (this._dict[item._id] === item._id)
+        return { error: `${fn} item ${item._id} already exists in ${this.name}` };
+    }
+    // add the items to the _list if no remote (now has _id field)
+    const addedDict = m_ListToDict(to_add as UR_ItemList);
+    this._dict = Object.assign(this._dict, addedDict);
+    // notify subs
+    this.notify('add', { added: to_add });
+    return { added: to_add as UR_ItemList }; // return a copy of the _list
   }
 
-  /** Given the name of a doc, overwrite the object. Unlike DocUpdate,
-   *  this will not merge but replace the item. The item must exist to be
-   *  replaced */
-  docReplace(fdoc: string, doc: UR_Doc) {
-    const fn = 'docReplace:';
-    const folder = this._DOCS[fdoc];
-    if (folder === undefined) throw Error(`${fn} folder '${fdoc}' not found`);
-    const { _id } = doc;
-    if (_id === undefined) throw Error(`${fn} missing _id field`);
-    if (folder[_id] === undefined) throw Error(`${fn} doc '${_id}' not found`);
-    const [norm_doc, error] = NormDoc(doc);
-    if (error) throw Error(`${fn} ${error}`);
-    const old_doc = folder[_id];
-    folder[_id] = norm_doc;
-    return old_doc;
+  /** return the entire _list or the subset of ids
+   *  identified in the ids array, in order of the ids array. Return a COPY
+   *  of the objects, not the original objects */
+  read(ids?: UR_EntID[]): { items?: UR_Item[]; error?: string } {
+    const fn = 'read:';
+    // if no ids are provided, return the entire _list
+    if (ids === undefined) {
+      return { dict: { ...this._dict } }; // return a copy of the _list
+    }
+    // otherwise, return the specific objects in the order of the ids array
+    // as a copy of the objects
+    const items = ids.map(id => this._list.find(obj => obj._id === id));
+    if (items.includes(undefined)) {
+      return { error: `${fn} one or more ids not found in ${this.name}` };
+    }
+    return { items }; // return found items
   }
 
-  /** Given the name of a doc, overwrite the objects. Unlike ListUpdate, this
-   * will not merge but replace the items. The items must exist to be
-   * replaced */
-  docsReplace(fdoc: string, _DOCS: UR_Doc[]) {
-    const fn = 'docsReplace:';
-    const folder = this._DOCS[fdoc];
-    if (folder === undefined) throw Error(`${fn} folder '${folder}' not found`);
-    if (!Array.isArray(_DOCS) || _DOCS === undefined)
-      throw Error(`${fn} _DOCS must be an array`);
-    if (_DOCS.length === 0) throw Error(`${fn} _DOCS array is empty`);
-    const [norm_docs, error] = NormDocFolder(_DOCS);
-    if (error) throw Error(`${fn} ${error}`);
+  /** Update the objects in the _list with the items provided through shallow
+   *  merge. If there items that don't have an _id field or if the _id field
+   *  doesn't already exist in the _list, return { error }. Return a copy of _list
+   *  if successful */
+  update(items: UR_Item[]): { updated?: UR_Item[]; error?: string } {
+    const fn = 'update:';
+    if (!Array.isArray(items) || items === undefined)
+      return { error: `${fn} items must be an array` };
+    if (items.length === 0) return { error: `${fn} items array is empty` };
+    const [norm_items, norm_error] = NormItemList(items);
+    if (norm_error) return { error: `${fn} ${norm_error}` };
+    // got this far, items are normalized and we can merge them.
+    for (const item of norm_items) {
+      const idx = this._list.findIndex(obj => obj._id === item._id);
+      if (idx === -1)
+        return { error: `${fn} item ${item._id} not found in ${this.name}` };
+      Object.assign(this._list[idx], item);
+    }
+    // notify subs
+    const updated = [...this._list]; // use a copy of the list
+    this.notify('update', { updated });
+    return { updated };
+  }
+
+  /** Overwrite the objects. Unlike ListUpdate, this will not merge but replace
+   *  the items. The items must exist to be replaced */
+  replace(items: UR_Item[]): {
+    replaced?: UR_Item[];
+    skipped?: UR_Item[];
+    error?: string;
+  } {
+    const fn = 'replace:';
+    if (!Array.isArray(items) || items === undefined)
+      return { error: `${fn} items must be an array` };
+    if (items.length === 0) return { error: `${fn} items array is empty` };
+    const [norm_items, norm_error] = NormItemList(items);
+    if (norm_error) return { error: `${fn} ${norm_error}` };
+    // got this far, items are normalized and we can overwrite them.
     const replaced = [];
-    for (const doc of norm_docs) {
-      const { _id } = doc;
-      if (folder[_id] === undefined)
-        throw Error(`${fn} doc '${_id}' not found in '${fdoc}'`);
-      const old_doc = folder[_id];
-      folder[_id] = doc;
-      replaced.push(old_doc);
+    const skipped = [];
+    for (const item of norm_items) {
+      const idx = this._list.findIndex(obj => obj._id === item._id);
+      if (idx === -1) {
+        skipped.push({ ...item });
+        continue;
+      }
+      const old_obj = { ...this._list[idx] };
+      replaced.push(old_obj);
+      this._list[idx] = item;
     }
-    return replaced;
+    const error =
+      skipped.length > 0
+        ? `${fn} ${skipped.length} items not found in ${this.name}`
+        : undefined;
+
+    // notify subs
+    this.notify('replace', { replaced, skipped, error });
+    return { replaced, skipped, error }; // return results
   }
 
-  /** Given the name of a doc, add the items to the doc. If an already
-   *  exists in the doc, update it instead. Return a copy of the doc */
-  docUpdateOrAdd(docID: string, doc: UR_Doc) {
-    const fn = 'docUpdateOrAdd:';
-    const docInstance = this._DOCS[docID];
-    // TODO: update the items that already exist in the doc
+  /** Add the items to the _list. If an already exists in the _list, update it
+   *  instead. Return a copy of the _list */
+  write(items: UR_Item[]): {
+    added?: UR_Item[];
+    updated?: UR_Item[];
+    error?: string;
+  } {
+    const fn = 'write:';
+    const added = [];
+    const updated = [];
+    // update the items that already exist in the _list
+    for (const item of items) {
+      const idx = this._list.findIndex(obj => {
+        if (obj._id === undefined) return false;
+        return obj._id === item._id;
+      });
+      if (idx === -1) {
+        item._id = this.newID();
+        this._list.push(item);
+        added.push({ ...item });
+      } else {
+        Object.assign(this._list[idx], item);
+        updated.push({ ...this._list[idx] });
+      }
+    }
+    // notify subs
+    this.notify('write', { updated, added });
+    return { added, updated }; // return a copy of the _list
   }
 
-  /** Given the name of a doc, delete the objects in the doc with the ids
-   *  provided. If there are any ids that don't exist in the doc, throw an
-   *  Error. Return a copy of the deleted items if successful */
-  docDelete(docID: string, ids: UR_EntID[]) {
-    const fn = 'docDelete:';
-    const doc = this._DOCS[docID];
-    if (doc === undefined) throw Error(`${fn} doc '${docID}' not found`);
-    // TODO: update the items that already exist in the doc
+  /** Delete the objects in the _list with the ids provided. If there are any
+   *  ids that don't exist in the _list, return { error }. Return a copy of the
+   *  deleted items if successful */
+  deleteIDs(ids: UR_EntID[]): { deletedIDs?: UR_Item[]; error?: string } {
+    const fn = 'deleteIDs:';
+    if (!Array.isArray(ids) || ids === undefined)
+      return { error: `${fn} ids must be an array` };
+    const del_ids = NormIDs(ids);
+    // got this far, ids are normalized and we can delete them
+    const itemIDs = [];
+    for (const id of del_ids) {
+      const idx = this._list.findIndex(obj => obj._id === id);
+      if (idx === -1) return { error: `${fn} item ${id} not found in ${this.name}` };
+      itemIDs.push(id);
+    }
+    // good to go, delete the items
+    const deletedIDs = [];
+    for (const id of itemIDs) {
+      const idx = this._list.findIndex(obj => obj._id === id);
+      const item = this._list.splice(idx, 1);
+      deletedIDs.push(...item);
+    }
+    // notify subs
+    this.notify('deleteID', { deletedIDs });
+    return { deletedIDs }; // return a copy of the _list
   }
 
-  /// DOC FOLDERS DATA STRUCTURE GETTER ///
-
-  /** return the instances of all lists */
-  docFoldersGetAll(): UR_DocFolder[] {
-    return Object.values(this._DOCS);
+  /** Given a set of objects, delete them from the _list by looking-up their id
+   *  fields. Return a copy of the _list */
+  delete(items: UR_Item[]): { deleted?: UR_Item[]; error?: string } {
+    const fn = 'delete:';
+    if (!Array.isArray(items) || items === undefined)
+      return { error: `${fn} items must be an array of objects` };
+    if (items.length === 0) return { error: `${fn} items array is empty` };
+    const [norm_items, norm_error] = NormItemList(items);
+    if (norm_error) return { error: `${fn} ${norm_error}` };
+    // got this far, items are normalized and we can delete them
+    const deleted = [];
+    for (const item of norm_items) {
+      const idx = this._list.findIndex(obj => obj._id === item._id);
+      if (idx === -1)
+        return { error: `${fn} item ${item._id} not found in ${this.name}` };
+      const del_item = this._list.splice(idx, 1);
+      deleted.push(...del_item);
+    }
+    // notify subs
+    this.notify('delete', { deleted });
+    return { deleted }; // return a copy of the _list
   }
 
-  /// DATA INTERCHANGE METHODS ///
+  /** erase all the entries in the _list, but do not reset the max_ord or _prefix */
+  clear() {
+    this._list = [];
+    this._ord_highest = 0;
+    // notify subs
+    this.notify('clear', {});
+  }
 
-  /** return the folder contents as a list of items. these are the actual
-   *  objects in the list, not copies */
-  getCollectionAsItemList(docf: string): UR_Item[] {
-    const folder = this._DOCS[docf];
-    if (folder === undefined) return undefined;
-    return Object.values(folder) as UR_Item[];
+  /** alternative getter returning unwrapped items */
+  get(ids?: UR_EntID[]): UR_Item[] {
+    const { items } = this.read(ids);
+    return items;
+  }
+
+  /// SEARCH METHODS ///
+
+  /** Search for matching items in the list using options, return found items */
+  find(criteria?: SearchOptions): UR_Item[] {
+    const items = this._list;
+    return Find(items, criteria);
+  }
+
+  /** Search for matching items in the list, return Recordset */
+  query(criteria?: SearchOptions): RecordSet {
+    const items = this._list;
+    return Query(items, criteria);
   }
 }
 
@@ -276,3 +377,4 @@ export default ItemDict; // the class
 export {
   ItemDict // the class
 };
+export type { ItemDictOptions }; // the options type

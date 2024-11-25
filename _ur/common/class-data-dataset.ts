@@ -21,7 +21,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ItemList } from './class-data-itemlist.ts';
-import { ItemDict } from './class-data-itemdict.ts';
+import { ItemDict } from './class-data-itemdict-old.ts';
 import { DecodeDataURI, DecodeManifest } from './util-data-ops.ts';
 import { DataBin } from './abstract-data-databin.ts';
 import { DecodeDataConfig } from './util-data-ops.ts';

@@ -84,7 +84,7 @@ export type UR_Doc = UR_EntID_Obj & DataObj; // doc is a single item
 export type DataBinID = string; // snake_case
 export type DataBinType = 'ItemDict' | 'ItemList';
 export type UR_ItemList = UR_Item[];
-export type UR_DocFolder = { [_id: UR_EntID]: UR_Doc };
+export type UR_ItemDict = { [_id: UR_EntID]: UR_Doc };
 export type UR_ContentMeta = {
   author?: string; // author name(s)
   organization?: string; // organization name
@@ -100,7 +100,7 @@ export type UR_DatasetObj = {
   _dataURI?: UR_DatasetURI;
   // see github.com/dsriseah/ursys/discussions/25 fior list of types
   // see util-data-ops.ts for the equivalent foldernames
-  DocFolders?: { [foldername: DataBinID]: UR_DocFolder };
+  DocFolders?: { [foldername: DataBinID]: UR_ItemDict };
   ItemLists?: {
     [listname: DataBinID]: {
       name: DataBinID;

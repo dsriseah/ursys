@@ -6,11 +6,11 @@
   will be simple integers. If you define an idPrefix, then the ids will be
   the prefix + zero-padded number. See ItemListOptions for more details.
 
-  Its sibling class is ItemDict. Its parent manager is Dataset.
+  Its sibling class is DocFolder. Its parent manager is Dataset.
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { NormItems, NormIDs } from './util-data-norm.ts';
+import { NormItemList, NormIDs } from './util-data-norm.ts';
 import { Find, Query } from './util-data-search.ts';
 import { DataBin } from './abstract-data-databin.ts';
 import { RecordSet } from './class-data-recordset.ts';
@@ -81,7 +81,7 @@ class ItemList extends DataBin implements I_DataSerialize {
     if (result.error) return { error: `${fn} ${result.error}` };
     const { items } = data;
     if (!Array.isArray(items)) return { error: `${fn} _list must be an array` };
-    const [norm_list, norm_error] = NormItems(items);
+    const [norm_list, norm_error] = NormItemList(items);
     if (norm_error) return { error: `${fn} ${norm_error}` };
     this._list = norm_list;
     return { items: [...this._list] };
@@ -191,7 +191,7 @@ class ItemList extends DataBin implements I_DataSerialize {
     if (!Array.isArray(items) || items === undefined)
       return { error: `${fn} items must be an array` };
     if (items.length === 0) return { error: `${fn} items array is empty` };
-    const [norm_items, norm_error] = NormItems(items);
+    const [norm_items, norm_error] = NormItemList(items);
     if (norm_error) return { error: `${fn} ${norm_error}` };
     // got this far, items are normalized and we can merge them.
     for (const item of norm_items) {
@@ -217,7 +217,7 @@ class ItemList extends DataBin implements I_DataSerialize {
     if (!Array.isArray(items) || items === undefined)
       return { error: `${fn} items must be an array` };
     if (items.length === 0) return { error: `${fn} items array is empty` };
-    const [norm_items, norm_error] = NormItems(items);
+    const [norm_items, norm_error] = NormItemList(items);
     if (norm_error) return { error: `${fn} ${norm_error}` };
     // got this far, items are normalized and we can overwrite them.
     const replaced = [];
@@ -306,7 +306,7 @@ class ItemList extends DataBin implements I_DataSerialize {
     if (!Array.isArray(items) || items === undefined)
       return { error: `${fn} items must be an array of objects` };
     if (items.length === 0) return { error: `${fn} items array is empty` };
-    const [norm_items, norm_error] = NormItems(items);
+    const [norm_items, norm_error] = NormItemList(items);
     if (norm_error) return { error: `${fn} ${norm_error}` };
     // got this far, items are normalized and we can delete them
     const deleted = [];
