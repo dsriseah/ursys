@@ -14,19 +14,19 @@ import { SNA_DeclareModule } from './sna-node-hooks.mts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
-  UR_DatasetObj,
-  UR_DatasetURI,
+  DS_DatasetObj,
+  DS_DataURI,
   DataBinID,
   DataObj,
   OpResult
 } from '../_types/dataset.d.ts';
 ///
 type DatasetInfo = { manifest?: any; error?: string };
-interface I_DatasetStorage {
-  getDatasetInfo(dataURI: UR_DatasetURI): Promise<DatasetInfo>;
-  getDatasetObj(dataURI: UR_DatasetURI): Promise<UR_DatasetObj>;
-  getDataBinObj(dataURI: UR_DatasetURI, binID: DataBinID): Promise<DataObj>;
-  saveDataset(dataURI: UR_DatasetURI, dsObj: UR_DatasetObj): Promise<OpResult>;
+interface IDS_DataObjectAdapter {
+  readDatasetInfo(dataURI: DS_DataURI): Promise<DatasetInfo>;
+  readDatasetObj(dataURI: DS_DataURI): Promise<DS_DatasetObj>;
+  readDataBinObj(dataURI: DS_DataURI, binID: DataBinID): Promise<DataObj>;
+  writeDatasetObj(dataURI: DS_DataURI, dsObj: DS_DatasetObj): Promise<OpResult>;
 }
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -46,7 +46,7 @@ function mock_GetDataFromFilesystem() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Knows how to retrieve dataobjs from a dataURI */
-class DataStorageAdapter implements I_DatasetStorage {
+class DataStorageAdapter implements IDS_DataObjectAdapter {
   ///
   constructor() {}
 
@@ -122,7 +122,7 @@ class DataStorageAdapter implements I_DatasetStorage {
 
   /// MAIN API ///
 
-  async getDatasetInfo(dataURI: UR_DatasetURI) {
+  async readDatasetInfo(dataURI: DS_DataURI) {
     const { orgDomain, bucketID, instanceID } = DecodeDataURI(dataURI);
     // 1. reference implementation of this reference datastore adapter
     //    knows how to convert the dataURI into a filesystem path
@@ -140,15 +140,15 @@ class DataStorageAdapter implements I_DatasetStorage {
     if (error) return { error };
     return { manifest };
   }
-  async getDatasetObj(dataURI: string) {
+  async readDatasetObj(dataURI: string) {
     // console.log('DatasetFS: GetData');
     return mock_GetDataFromFilesystem();
   }
-  async getDataBinObj(dataURI: string, binID: DataBinID) {
+  async readDataBinObj(dataURI: string, binID: DataBinID) {
     console.log('would get databin obj');
     return {};
   }
-  async saveDataset(dataURI: string, dsObj: UR_DatasetObj) {
+  async writeDatasetObj(dataURI: string, dsObj: DS_DatasetObj) {
     console.log('would save dataset');
     return {};
   }
@@ -159,27 +159,27 @@ class DataStorageAdapter implements I_DatasetStorage {
 const DSFS = new DataStorageAdapter();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: given a dataPath, return the manifest object */
-async function GetManifest(dataURI: UR_DatasetURI): Promise<DatasetInfo> {
-  const result = await DSFS.getDatasetInfo(dataURI);
+async function GetManifest(dataURI: DS_DataURI): Promise<DatasetInfo> {
+  const result = await DSFS.readDatasetInfo(dataURI);
   return result;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function GetDatasetObj(dataURI: UR_DatasetURI): Promise<UR_DatasetObj> {
-  return DSFS.getDatasetObj(dataURI);
+async function GetDatasetObj(dataURI: DS_DataURI): Promise<DS_DatasetObj> {
+  return DSFS.readDatasetObj(dataURI);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function GetDataBinObj(
-  dataURI: UR_DatasetURI,
+  dataURI: DS_DataURI,
   binID: DataBinID
 ): Promise<DataObj> {
-  return DSFS.getDataBinObj(dataURI, binID);
+  return DSFS.readDataBinObj(dataURI, binID);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function SaveDataset(
-  dataURI: UR_DatasetURI,
-  dsObj: UR_DatasetObj
+  dataURI: DS_DataURI,
+  dsObj: DS_DatasetObj
 ): Promise<OpResult> {
-  return DSFS.saveDataset(dataURI, dsObj);
+  return DSFS.writeDatasetObj(dataURI, dsObj);
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

@@ -38,10 +38,10 @@ import type {
   OpResult,
   DataBinID,
   DataBinType,
-  SyncDataReq,
+  DataSyncReq,
   DatasetReq,
-  UR_DatasetObj,
-  UR_DatasetURI
+  DS_DatasetObj,
+  DS_DataURI
 } from '../_types/dataset.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SyncOptions = {
@@ -73,7 +73,7 @@ let SEQ_NUM = 0; // predictable sequence number to order updates
 /// DATASET OPERATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Load a dataset from the dataURI, return the data object */
-async function LoadDataset(dataURI: UR_DatasetURI): Promise<OpResult> {
+async function LoadDataset(dataURI: DS_DataURI): Promise<OpResult> {
   let dset = DSET_DICT[dataURI];
   if (dset) return { status: 'already loaded', manifest: dset.manifest };
   const { manifest, error } = await DSYNC_STORE.GetManifest(dataURI);
@@ -134,7 +134,7 @@ function CloseBin(bin: DataBin): BinOpRes {
 /// DSYNC_STORE OBJECT OPERATIONS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: data initialization of dataset */
-const InitializeDatasetFromObj = (dataset: Dataset, inputData: UR_DatasetObj) => {
+const InitializeDatasetFromObj = (dataset: Dataset, inputData: DS_DatasetObj) => {
   dataset._setFromDataObj(inputData);
 };
 
@@ -158,7 +158,7 @@ async function _handleDatasetOp(opParams: DatasetReq) {
   /** mock data initialization of dataset, decide where it goes later */
   const mock_InitializeDatasetFromData = (
     dataset: Dataset,
-    inputData: UR_DatasetObj
+    inputData: DS_DatasetObj
   ) => {
     const { _schemaID, _dataURI, DocFolders, ItemLists } = inputData;
     if (_schemaID) dataset._schemaID = _schemaID;
@@ -209,7 +209,7 @@ async function _handleDatasetOp(opParams: DatasetReq) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** handler for SYNC:SRV_DATA databin operations */
-async function _handleDataOp(opParams: SyncDataReq) {
+async function _handleDataOp(opParams: DataSyncReq) {
   const { binID, op, items, ids, searchOpt, error } = DecodeSyncReq(opParams);
   if (error) return { error };
   const DSET = DSET_DICT[current_dset];

@@ -9,9 +9,9 @@ import { NormStringToValue } from './util-data-norm.ts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { ErrObj } from '../_types/ursys';
-import type { DatasetOp, SyncDataReq, DatasetReq } from '../_types/dataset';
-import type { DataBinType, SyncDataOp, SyncDataMode } from '../_types/dataset';
-import type { UR_ManifestObj, UR_DatasetURI } from '../_types/dataset';
+import type { DatasetOp, DataSyncReq, DatasetReq } from '../_types/dataset';
+import type { DataBinType, DataSyncOp, DataSyncMode } from '../_types/dataset';
+import type { UR_ManifestObj, DS_DataURI } from '../_types/dataset';
 //
 type DecodedManifest = UR_ManifestObj & ErrObj;
 type DecodedDataURI = {
@@ -22,14 +22,14 @@ type DecodedDataURI = {
 } & ErrObj;
 type DecodedSyncReq = {
   binID?: string;
-  op?: SyncDataOp;
+  op?: DataSyncOp;
   accToken?: string;
   ids?: string[];
   items?: any[];
   searchOpt?: any;
 } & ErrObj;
 type DecodedDatasetReq = {
-  dataURI?: UR_DatasetURI;
+  dataURI?: DS_DataURI;
   authToken?: string;
   op?: DatasetOp;
 } & ErrObj;
@@ -42,7 +42,7 @@ type DecodedSchema = {
 
 /// DATASET CONSTANTS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DSET_MODES: SyncDataMode[] = ['local', 'local-ro', 'sync', 'sync-ro'];
+const DSET_MODES: DataSyncMode[] = ['local', 'local-ro', 'sync', 'sync-ro'];
 const DSET_FSMAP = {
   'DocFolders': { dir: 'docfolders', type: 'ItemDict' },
   'ItemLists': { dir: 'itemlists', type: 'ItemList' }
@@ -61,7 +61,7 @@ const DATASET_DIRS = Object.values(DSET_FSMAP).map(v => v.dir);
 
 /// DATASYNC CONSTANTS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATA_SYNCOPS: SyncDataOp[] = [];
+const DATA_SYNCOPS: DataSyncOp[] = [];
 DATA_SYNCOPS.push('CLEAR', 'GET', 'ADD', 'UPDATE', 'WRITE', 'DELETE', 'REPLACE');
 DATA_SYNCOPS.push('FIND', 'QUERY');
 const DATASET_OPS: DatasetOp[] = [
@@ -86,7 +86,7 @@ function IsAssetDirname(dirname: string): boolean {
   return DATASET_DIRS.includes(dirname);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function IsDataSyncOp(op: SyncDataOp): boolean {
+function IsDataSyncOp(op: DataSyncOp): boolean {
   return DATA_SYNCOPS.includes(op);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -188,7 +188,7 @@ function IsValidDataConfig(configObj: any): boolean {
 /// DATASET and DATA PACKETS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** confirm that parameters are correct for synchronizing data */
-function DecodeSyncReq(syncReq: SyncDataReq): DecodedSyncReq {
+function DecodeSyncReq(syncReq: DataSyncReq): DecodedSyncReq {
   const { accToken, op, binID, ids, items, searchOpt } = syncReq;
   // required params
   // TODO: if (accToken === undefined) return { error: 'accToken is required' };
@@ -228,7 +228,7 @@ function DecodeDatasetReq(req: DatasetReq): DecodedDatasetReq {
   if (!op) return { error: `${fn} op is required` };
   if (!IsDatasetOp(op)) return { error: `${fn} op [${op}] not recognized` };
   if (typeof dataURI !== 'string') return { error: `${fn} dataURI must be a string` };
-  return { dataURI: dataURI as UR_DatasetURI, authToken, op };
+  return { dataURI: dataURI as DS_DataURI, authToken, op };
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

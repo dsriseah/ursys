@@ -21,7 +21,7 @@ import type {
   DataBinURIs,
   ResourceURI,
   UR_SchemaID,
-  UR_DatasetURI
+  DS_DataURI
 } from '../_types/dataset';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -38,7 +38,7 @@ class DatasetManifest {
   //
   _manifest: UR_ManifestObj;
   _schemaID: UR_SchemaID;
-  _dataURI: UR_DatasetURI;
+  _dataURI: DS_DataURI;
   _metaInfo: UR_ContentMeta;
   _bins: Map<DataBinType, DataBinURIs>;
   //
@@ -84,7 +84,7 @@ class DatasetManifest {
     this._schemaID = schemaID;
   }
 
-  setDataURI(dataURI: UR_DatasetURI): void {
+  setDataURI(dataURI: DS_DataURI): void {
     const { error } = DecodeDataURI(dataURI);
     if (error) throw Error(`error setting dataURI '${dataURI}': ${error}`);
     this._dataURI = dataURI;

@@ -15,7 +15,7 @@ import DUMMY_DATA from './dataset-dummy.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj, SyncDataRes, OpResult } from 'tsconfig/types';
+import type { DataObj, DataSyncRes, OpResult } from 'tsconfig/types';
 import type { SNA_Module, SNA_EvtName } from 'tsconfig/types';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -60,7 +60,7 @@ async function DoSomething() {
 /// DATA LIFECYCLE METHODS ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** handle data change from subscriber */
-function HandleDataEvent(evt: SNA_EvtName, data: SyncDataRes) {
+function HandleDataEvent(evt: SNA_EvtName, data: DataSyncRes) {
   LOG(...PR(`HandleDataEvent: '${evt}' with data:`), data);
   UpdateDerivedData();
 }

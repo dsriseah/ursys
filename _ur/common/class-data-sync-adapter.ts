@@ -7,14 +7,14 @@
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
-  SyncDataOp,
+  DataSyncOp,
   DataBinID,
   UR_Item,
   UR_EntID,
   DataObj,
   OpResult,
-  SyncDataReq,
-  SyncDataRes
+  DataSyncReq,
+  DataSyncRes
 } from '../@ur-types.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type AccessToken = string;
@@ -45,20 +45,20 @@ abstract class DataSyncAdapter {
   abstract clearDataBucket(acc: AccessToken): Promise<OpResult>;
 
   /** regular CRUD operations */
-  abstract getData(cName: DataBinID, ids?: UR_EntID[]): Promise<SyncDataRes>;
-  abstract addData(cName: DataBinID, items: UR_Item[]): Promise<SyncDataRes>;
-  abstract updateData(cName: DataBinID, items: UR_Item[]): Promise<SyncDataRes>;
-  abstract syncData(cName: DataBinID, items: UR_Item[]): Promise<SyncDataRes>;
-  abstract deleteData(cName: DataBinID, ids: UR_EntID[]): Promise<SyncDataRes>;
-  abstract replaceData(cName: DataBinID, items: UR_Item[]): Promise<SyncDataRes>;
-  abstract clearData(cName: DataBinID): Promise<SyncDataRes>;
+  abstract getData(cName: DataBinID, ids?: UR_EntID[]): Promise<DataSyncRes>;
+  abstract addData(cName: DataBinID, items: UR_Item[]): Promise<DataSyncRes>;
+  abstract updateData(cName: DataBinID, items: UR_Item[]): Promise<DataSyncRes>;
+  abstract syncData(cName: DataBinID, items: UR_Item[]): Promise<DataSyncRes>;
+  abstract deleteData(cName: DataBinID, ids: UR_EntID[]): Promise<DataSyncRes>;
+  abstract replaceData(cName: DataBinID, items: UR_Item[]): Promise<DataSyncRes>;
+  abstract clearData(cName: DataBinID): Promise<DataSyncRes>;
 
   /** bin or whole dataset load/save */
-  abstract saveData(cName?: DataBinID): Promise<SyncDataRes>;
-  abstract loadData(cName?: DataBinID): Promise<SyncDataRes>;
+  abstract saveData(cName?: DataBinID): Promise<DataSyncRes>;
+  abstract loadData(cName?: DataBinID): Promise<DataSyncRes>;
 
   /** route errors from remote adapter code through handleError */
-  abstract handleError(result: SyncDataRes): SyncDataRes;
+  abstract handleError(result: DataSyncRes): DataSyncRes;
 
   /// DEFAULT SERIALIZERS ///
 

@@ -33,9 +33,9 @@ import type {
   DataBinType,
   UR_SchemaID,
   I_DataSerialize,
-  UR_DatasetURI,
+  DS_DataURI,
   UR_ManifestObj,
-  UR_DatasetObj
+  DS_DatasetObj
 } from '../_types/dataset';
 import type { ItemListOptions } from './class-data-itemlist.ts';
 type DataAccessTok = string;
@@ -74,7 +74,7 @@ class Dataset implements I_DataSerialize {
   //
   dataset_name: string; // the name of this list manager
   manifest: UR_ManifestObj;
-  _dataURI: UR_DatasetURI; // the URI of the dataset
+  _dataURI: DS_DataURI; // the URI of the dataset
   _schemaID: UR_SchemaID; // the schema of the dataset
   open_bins: Set<DataBinID>; // open bins are subject to sync
   acc_toks: Map<DataBinID, DataAccessTokSet>; // access tokens for each bin
@@ -124,7 +124,7 @@ class Dataset implements I_DataSerialize {
   /// SERIALIZATION METHODS ///
 
   /** return DataObj representation of the dataset */
-  _getDataObj(): UR_DatasetObj {
+  _getDataObj(): DS_DatasetObj {
     const lists = {};
     for (const [binID, bin] of Object.entries(this.LISTS)) {
       lists[binID] = bin._getDataObj();
@@ -142,7 +142,7 @@ class Dataset implements I_DataSerialize {
   }
 
   /** given a dataset object, set the dataset properties */
-  _setFromDataObj(dataObj: UR_DatasetObj) {
+  _setFromDataObj(dataObj: DS_DatasetObj) {
     const { _schemaID, _dataURI, DocFolders, ItemLists } = dataObj;
     if (_schemaID) this._schemaID = _schemaID;
     if (_dataURI) this._dataURI = _dataURI;

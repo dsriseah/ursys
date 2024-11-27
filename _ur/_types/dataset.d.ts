@@ -28,7 +28,7 @@ export type UR_SchemaID = `${SchemaRoot}:${SchemaName}:${SchemaVersion};${TagStr
 type OrgDomain = string; // e.g. 'ursys.org', 'rapt
 type BucketID = string; // e.g. a UUID with no / or : characters
 type InstanceID = string; // e.g. a slashpath to a dataset resource
-export type UR_DatasetURI = `${OrgDomain}:${BucketID}/${InstanceID}:${TagString}`;
+export type DS_DataURI = `${OrgDomain}:${BucketID}/${InstanceID}:${TagString}`;
 
 /// INTERFACES ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -93,11 +93,11 @@ export type UR_ContentMeta = {
   description?: string; // description of the dataset
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// a UR_DatasetObj is a collection of multiple bags of items, organized by
+/// a DS_DatasetObj is a collection of multiple bags of items, organized by
 /// type of bag (e.g. documents, itemlists, etc.)
-export type UR_DatasetObj = {
+export type DS_DatasetObj = {
   _schemaID?: UR_SchemaID; // see github.com/dsriseah/ursys/discussions/22
-  _dataURI?: UR_DatasetURI;
+  _dataURI?: DS_DataURI;
   // see github.com/dsriseah/ursys/discussions/25 fior list of types
   // see util-data-ops.ts for the equivalent foldernames
   DocFolders?: { [foldername: DataBinID]: UR_ItemDict };
@@ -120,12 +120,12 @@ export type ResourceURI = string; // a URI to a fetchable file/resource
 export type DataBinURIs = { [binID: DataBinID]: ResourceURI };
 export type UR_ManifestObj = {
   _schemaID?: UR_SchemaID;
-  _dataURI?: UR_DatasetURI;
+  _dataURI?: DS_DataURI;
   _metaInfo?: UR_ContentMeta; // file manifest meta information
   ItemListURIs?: DataBinURIs; // list of databin in dataset
   DocFolderURIs?: DataBinURIs; // list of folders in dataset
   // StringLists, FileLists, etc
-  // see UR_DatasetObj for the data storage
+  // see DS_DatasetObj for the data storage
 };
 
 /// DATASET MANAGEMENT TYPES //////////////////////////////////////////////////
@@ -149,7 +149,7 @@ export type DatasetRes = {
   dataURI?: string;
   accToken?: string;
   // data
-  data?: UR_DatasetObj;
+  data?: DS_DatasetObj;
   // meta
   status?: string;
   error?: string;
@@ -157,9 +157,9 @@ export type DatasetRes = {
 
 /// DATASET BIN SYNC TYPES ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** SyncDataOp is the operations that can be performed on a dataset via
+/** DataSyncOp is the operations that can be performed on a dataset via
  *  the SYNC:SRV_DATA protocol. See util-data-asset for lookup tables */
-export type SyncDataOp =
+export type DataSyncOp =
   | 'CLEAR' // erase contents of databin
   | 'GET' // get contents/items of databin
   | 'ADD' // add new items to databin, new ids assigned
@@ -171,27 +171,27 @@ export type SyncDataOp =
   | 'QUERY'; // query items in databin, returning recordset
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Mode of operation for a dataset source */
-export type SyncDataMode =
+export type DataSyncMode =
   | 'local' // local only, no sync
   | 'local-ro' // local only, read-only
   | 'sync' // sync with remote
   | 'sync-ro'; // sync updates from remote, read-only
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** these flags are derived from value of SyncDataMode */
-export type SyncDataFlags = {
+/** these flags are derived from value of DataSyncMode */
+export type DataSyncFlags = {
   readOnly?: boolean;
-  remote: RemoteStoreAdapter;
+  remote: DS_DatasetAdapter;
   initOnly?: boolean;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export type SyncDataOptions = {
-  mode: SyncDataMode;
+export type DataSyncOptions = {
+  mode: DataSyncMode;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** sent from a dataset source by inquiring clients SYNC:SRV */
-export type SyncDataReq = {
+export type DataSyncReq = {
   binID: DataBinID;
-  op: SyncDataOp;
+  op: DataSyncOp;
   accToken?: string;
   items?: UR_Item[];
   ids?: UR_EntID[];
@@ -199,10 +199,10 @@ export type SyncDataReq = {
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** sent from a dataset source to a inquiring client SYNC:CLI */
-export type SyncDataRes = {
+export type DataSyncRes = {
   binID: DataBinID;
   binType: DataBinType;
-  op: SyncDataOp;
+  op: DataSyncOp;
   seqNum?: number;
   // meta
   status?: string;
@@ -215,17 +215,34 @@ export type SyncDataRes = {
   deleted?: UR_Item[];
   replaced?: UR_Item[];
 };
+
+/// DATASET ADAPTERS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** implement functions needed to write data to a remote datastore
  *  . syncData is the async method that writes data to remote datastore
- *  . handleError is the method that handles the return object from syncData
- */
-export type RemoteStoreAdapter = {
+ *  . handleError is the method that handles the return object from syncData */
+export type DS_DatasetAdapter = {
   accToken: string;
   selectDataset: (dsReq: DatasetReq) => Promise<DatasetRes>;
-  syncData: (synReq: SyncDataReq) => Promise<SyncDataRes>;
+  syncData: (synReq: DataSyncReq) => Promise<DataSyncRes>;
   handleError: (opResult: OpResult) => OpResult;
 };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type DatasetInfo = { manifest?: any; error?: string };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** implement functions needed to read/write data objects to a datastore */
+export interface IDS_DataObjectAdapter {
+  accToken: string;
+  readDatasetInfo(dataURI: DS_DataURI): Promise<DatasetInfo>;
+  readDatasetObj(dataURI: DS_DataURI): Promise<DS_DatasetObj>;
+  readDataBinObj(dataURI: DS_DataURI, binID: DataBinID): Promise<DataObj>;
+  writeDatasetObj(dataURI: DS_DataURI, dsObj: DS_DatasetObj): Promise<OpResult>;
+  writeDataBinObj(
+    dataURI: DS_DataURI,
+    binID: DataBinID,
+    dsObj: DS_DatasetObj
+  ): Promise<OpResult>;
+}
 
 /// DATASET OP TYPES //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -32,16 +32,16 @@ import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops.ts';
 import type {
   DataObj,
   OpResult,
-  RemoteStoreAdapter,
+  DS_DatasetAdapter,
   DatasetReq,
   DatasetRes,
-  SyncDataOptions,
-  SyncDataReq,
-  SyncDataRes,
-  SyncDataMode,
+  DataSyncOptions,
+  DataSyncReq,
+  DataSyncRes,
+  DataSyncMode,
   UR_Item,
-  UR_DatasetURI,
-  UR_DatasetObj,
+  DS_DataURI,
+  DS_DatasetObj,
   SearchOptions,
   RecordSet,
   SNA_EvtHandler,
@@ -56,16 +56,16 @@ const LOG = console.log.bind(console);
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let DSET: Dataset; // singleton instance of the dataset
-let DS_URI: UR_DatasetURI; // the dataset URI
-let DS_MODE: SyncDataMode; // the dataset mode
+let DS_URI: DS_DataURI; // the dataset URI
+let DS_MODE: DataSyncMode; // the dataset mode
 
 /// DEFAULT SNA-DATASERVER REMOTE ///////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let F_ReadOnly: boolean = false; // set to true to prevent remote writes
 let F_SyncInit: boolean = false; // set to true to sync data on init
-let REMOTE: RemoteStoreAdapter; // the remote data adapter
+let REMOTE: DS_DatasetAdapter; // the remote data adapter
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LocalAdapter: RemoteStoreAdapter = {
+const LocalAdapter: DS_DatasetAdapter = {
   accToken: '',
   selectDataset: async (dsReq: DatasetReq) => {
     const EP = ClientEndpoint();
@@ -74,7 +74,7 @@ const LocalAdapter: RemoteStoreAdapter = {
       return res;
     }
   },
-  syncData: async (syncReq: SyncDataReq) => {
+  syncData: async (syncReq: DataSyncReq) => {
     const EP = ClientEndpoint();
     if (EP) {
       const res = await EP.netCall('SYNC:SRV_DATA', syncReq);
@@ -87,7 +87,7 @@ const LocalAdapter: RemoteStoreAdapter = {
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** 'SYNC:DATA_CLI' handler for incoming data sync messages from dataserver */
-function HandleSyncData(sync: SyncDataRes) {
+function HandleSyncData(sync: DataSyncRes) {
   const { binID, binType, seqNum, status, error, skipped } = sync;
   const { items, updated, added, deleted, replaced } = sync;
   const bin = DSET.getDataBin(binID);
@@ -118,7 +118,7 @@ function HandleSyncData(sync: SyncDataRes) {
 /** initialized a new Dataset with dsURI without performing ops.
  *  dataURI looks like 'sri.org:bucket-1234/sna-app/project-one'
  */
-async function Configure(dsURI: UR_DatasetURI, opt: SyncDataOptions) {
+async function Configure(dsURI: DS_DataURI, opt: DataSyncOptions) {
   const fn = 'SetDataURI:';
   if (DSET !== undefined) throw Error(`${fn} dataset already set`);
   //
@@ -181,9 +181,9 @@ async function Activate() {
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** sets the dataset's content from a UR_DatasetObj. must be called after
+/** sets the dataset's content from a DS_DatasetObj. must be called after
  *  Configure() */
-async function SetDataFromObject(data: UR_DatasetObj): Promise<OpResult> {
+async function SetDataFromObject(data: DS_DatasetObj): Promise<OpResult> {
   const fn = 'SetDataFromObject:';
   if (DSET === undefined) return { error: 'must call Configure() first' };
   LOG(...PR(fn, 'data:', data));
@@ -210,7 +210,7 @@ async function SetDataFromObject(data: UR_DatasetObj): Promise<OpResult> {
 /// DATASET OPERATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Get(binID: string, ids: string[]): Promise<OpResult> {
-  const syncReq: SyncDataReq = { op: 'GET', binID, ids };
+  const syncReq: DataSyncReq = { op: 'GET', binID, ids };
   if (REMOTE) {
     const res = await REMOTE.syncData(syncReq);
     LOG(...PR('Get:', binID, res));
@@ -223,7 +223,7 @@ async function Get(binID: string, ids: string[]): Promise<OpResult> {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Add(binID: string, items: UR_Item[]): Promise<OpResult> {
   if (F_ReadOnly) return { error: 'readonly mode' };
-  const syncReq: SyncDataReq = { op: 'ADD', binID, items };
+  const syncReq: DataSyncReq = { op: 'ADD', binID, items };
   if (REMOTE) {
     const res = await REMOTE.syncData(syncReq);
     return res;
@@ -235,7 +235,7 @@ async function Add(binID: string, items: UR_Item[]): Promise<OpResult> {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Update(binID: string, items: UR_Item[]): Promise<OpResult> {
   if (F_ReadOnly) return { error: 'readonly mode' };
-  const syncReq: SyncDataReq = { op: 'UPDATE', binID, items };
+  const syncReq: DataSyncReq = { op: 'UPDATE', binID, items };
   if (REMOTE) {
     const res = await REMOTE.syncData(syncReq);
     return res;
@@ -247,7 +247,7 @@ async function Update(binID: string, items: UR_Item[]): Promise<OpResult> {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Write(binID: string, items: UR_Item[]): Promise<OpResult> {
   if (F_ReadOnly) return { error: 'readonly mode' };
-  const syncReq: SyncDataReq = { op: 'WRITE', binID, items };
+  const syncReq: DataSyncReq = { op: 'WRITE', binID, items };
   if (REMOTE) {
     const res = await REMOTE.syncData(syncReq);
     return res;
@@ -259,7 +259,7 @@ async function Write(binID: string, items: UR_Item[]): Promise<OpResult> {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Delete(binID: string, items: UR_Item[]): Promise<OpResult> {
   if (F_ReadOnly) return { error: 'readonly mode' };
-  const syncReq: SyncDataReq = { op: 'DELETE', binID, items };
+  const syncReq: DataSyncReq = { op: 'DELETE', binID, items };
   if (REMOTE) {
     const res = await REMOTE.syncData(syncReq);
     return res;
@@ -270,7 +270,7 @@ async function Delete(binID: string, items: UR_Item[]): Promise<OpResult> {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function DeleteIDs(binID: string, ids: string[]): Promise<OpResult> {
   if (F_ReadOnly) return { error: 'readonly mode' };
-  const syncReq: SyncDataReq = { op: 'DELETE', binID, ids };
+  const syncReq: DataSyncReq = { op: 'DELETE', binID, ids };
   if (REMOTE) {
     const res = await REMOTE.syncData(syncReq);
     return res;
@@ -281,7 +281,7 @@ async function DeleteIDs(binID: string, ids: string[]): Promise<OpResult> {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Replace(binID: string, items: UR_Item[]): Promise<OpResult> {
   if (F_ReadOnly) return { error: 'readonly mode' };
-  const syncReq: SyncDataReq = { op: 'REPLACE', binID, items };
+  const syncReq: DataSyncReq = { op: 'REPLACE', binID, items };
   if (REMOTE) {
     const res = await REMOTE.syncData(syncReq);
     return res;
@@ -293,7 +293,7 @@ async function Replace(binID: string, items: UR_Item[]): Promise<OpResult> {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function Clear(binID: string): Promise<OpResult> {
   if (F_ReadOnly) return { error: 'readonly mode' };
-  const syncReq: SyncDataReq = { op: 'CLEAR', binID };
+  const syncReq: DataSyncReq = { op: 'CLEAR', binID };
   if (REMOTE) {
     const res = await REMOTE.syncData(syncReq);
     return res;
@@ -317,7 +317,7 @@ async function Find(binID: string, crit?: SearchOptions): Promise<UR_Item[]> {
 /** use to Find in datasets other than what is configured. good for one-time
  *  queries to remote datasets */
 async function DS_RemoteFind(
-  dsURI: UR_DatasetURI,
+  dsURI: DS_DataURI,
   binID: string,
   crit?: SearchOptions
 ): Promise<UR_Item[]> {
@@ -335,7 +335,7 @@ async function Query(binID: string, query: SearchOptions): Promise<RecordSet> {
 /** use to Query datasets other than what is configured. good for one-time
  *  queries to remote datasets */
 async function DS_RemoteQuery(
-  dsURI: UR_DatasetURI,
+  dsURI: DS_DataURI,
   binID: string,
   query: SearchOptions
 ) /* :Promise<RecordSet> */ {
