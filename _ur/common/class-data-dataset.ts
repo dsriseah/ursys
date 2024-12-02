@@ -35,7 +35,8 @@ import type {
   I_DataSerialize,
   DS_DataURI,
   UR_ManifestObj,
-  DS_DatasetObj
+  DS_DatasetObj,
+  OpResult
 } from '../_types/dataset';
 import type { ItemListOptions } from './class-data-itemlist.ts';
 type DataAccessTok = string;
@@ -154,24 +155,30 @@ class Dataset implements I_DataSerialize {
   }
 
   /** given a dataset object, set the dataset properties */
-  _setFromDataObj(dataObj: DS_DatasetObj) {
+  _setFromDataObj(dataObj: DS_DatasetObj): OpResult {
     const { _schemaID, _dataURI, DocFolders, ItemLists } = dataObj;
     if (_schemaID) this._schemaID = _schemaID;
     if (_dataURI) this._dataURI = _dataURI;
+    const found: { [binType: string]: string[] } = {};
     if (ItemLists) {
+      found.ItemLists = [];
       for (const [name, dataBinObj] of Object.entries(ItemLists)) {
         const bin = this.createDataBin(name, 'ItemList');
         const { error, items: i } = bin._setFromDataObj(dataBinObj);
-        if (error) LOG(`.. error adding items to ItemList [${name}]`, error, bin);
+        if (error) return { error };
+        found.ItemLists.push(name);
       }
     }
     if (DocFolders) {
+      found.DocFolders = [];
       for (const [name, dataBinObj] of Object.entries(DocFolders)) {
         const bin = this.createDataBin(name, 'ItemDict');
         const { error, items: i } = bin._setFromDataObj(dataBinObj);
-        if (error) LOG(`.. error adding items to ItemDict [${name}]`, error, bin);
+        if (error) return { error };
+        found.DocFolders.push(name);
       }
     }
+    return found;
   }
 
   _serializeToJSON(): string {
