@@ -60,38 +60,41 @@ async function m_GetPredefinedManifests(dataPath: string) {
 async function m_GetManifestFromPath(dataPath: string) {
   // bail if the requested path isn't a directory
   const pathInfo = FILE.GetPathInfo(dataPath);
-  if (pathInfo.isFile) {
+  if (pathInfo.isFile)
     return { error: `${dataPath} appears to be a file request, not a directory` };
-  }
+
   if (FILE.DirExists(dataPath)) {
     /* is there an predefined manifest file? */
-    const manifestObjs = await this._getPredefinedManifests(dataPath);
+    const manifestObjs = await m_GetPredefinedManifests(dataPath);
     if (manifestObjs.length > 0) return { manifest: manifestObjs[0] };
     /* otherwise, generate the manifest from dataPath */
-    const { dirs } = FILE.GetDirContent(dataPath);
-    const assetDirs = dirs.filter(d => IsAssetDirname(d));
-    if (assetDirs.length > 0) {
-      return { manifest: await this._makeManifestObj(assetDirs) };
-    }
-    // no asset dirs found
-    return { error: `${dataPath} contains no asset directories` };
+    return await m_MakeManifestObj(dataPath);
   }
   return { error: `${dataPath} does not exist` };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function m_GetAssetFileInfo(assetPath: string) {
-  const files = FILE.Files(assetPath);
+  const files = FILE.Files(assetPath, { absolute: true });
   const assetInfo = await FILE.FilesHashInfo(files);
   return assetInfo;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function m_MakeManifestObj(assetDirs: string[]) {
+async function m_MakeManifestObj(dataPath: string) {
   const manifest = {};
+  const { dirs } = FILE.GetDirContent(dataPath);
+  const assetDirs = dirs.filter(d => IsAssetDirname(d));
+  if (assetDirs.length === 0)
+    return {
+      error: `no asset found in ${dataPath}`
+    };
   for (const subdir of assetDirs) {
-    const assetInfo = await this._getAssetFileInfo(subdir);
+    console.log('*** reading asset dir:', subdir);
+    const subdirPath = PATH.join(dataPath, subdir);
+    const assetInfo = await m_GetAssetFileInfo(subdirPath);
     const entries = [];
     for (let info of assetInfo) {
       const assetId = manifest_id_counter++;
+      console.log('*** asset info:', info);
       const { filename, ext, hash } = info;
       const asset = {
         assetId,
@@ -104,7 +107,8 @@ async function m_MakeManifestObj(assetDirs: string[]) {
     }
     manifest[subdir] = entries;
   } // end subdir processing
-  return manifest;
+  console.log('*** manifest:', manifest);
+  return { manifest };
 }
 
 /// DATA STORAGE ADAPTER //////////////////////////////////////////////////////

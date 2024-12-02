@@ -209,8 +209,8 @@ function RelLocalPath(subdir: string): string {
 
 /// ASYNC DIRECTORY METHODS ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return array of filenames */
-function GetDirContent(dirpath) {
+/** return array of filenames as short names */
+function GetDirContent(dirpath, opt = { absolute: true }) {
   if (!DirExists(dirpath)) {
     const err = `${dirpath} is not a directory`;
     console.warn(err);
@@ -220,7 +220,7 @@ function GetDirContent(dirpath) {
   const files = [];
   const dirs = [];
   for (let name of filenames) {
-    let path = PATH.join(dirpath, name);
+    let path = opt.absolute ? PATH.join(dirpath, name) : name;
     const stat = FSE.lstatSync(path);
     // eslint-disable-next-line no-continue
     if (stat.isDirectory()) dirs.push(name);
@@ -230,16 +230,15 @@ function GetDirContent(dirpath) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a dirpath, return all files. optional match extension */
-function Files(dirpath, opt = {}): string[] {
+function Files(dirpath, opt = { absolute: false }): string[] {
   const result = GetDirContent(dirpath);
   if (!result) return undefined;
-  const basenames = result.files.map(p => PATH.basename(p));
-  if (DBG) LOG(`found ${basenames.length} files in ${dirpath}`);
-  return basenames;
+  if (opt.absolute) return result.files.map(p => PATH.join(dirpath, p));
+  else return result.files;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Subdirs(dirpath): string[] {
-  const result = GetDirContent(dirpath);
+function Subdirs(dirpath, opt = { absolute: false }): string[] {
+  const result = GetDirContent(dirpath, opt);
   if (!result) return undefined;
   return result.dirs;
 }
@@ -307,7 +306,12 @@ async function UnlinkFile(filepath) {
 async function AsyncFileHash(filepath, algo = 'md5') {
   const hash = CRYPTO.createHash(algo);
   const stream = FSE.createReadStream(filepath);
-  await pipeline(stream, async data => hash.update(data));
+  // wait for buffer to be read
+  stream.on('data', data => hash.update(data));
+  await new Promise((resolve, reject) => {
+    stream.on('end', resolve);
+    stream.on('error', reject);
+  });
   return hash.digest('hex');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -315,9 +319,8 @@ async function AsyncFileHash(filepath, algo = 'md5') {
 async function FilesHashInfo(filepaths, algo = 'md5'): Promise<HashInfo[]> {
   const hashInfo = [];
   for (let fp of filepaths) {
-    const pathInfo = GetPathInfo(fp);
     const hash = await AsyncFileHash(fp, algo);
-    const { filename, ext } = pathInfo;
+    const { filename, ext } = GetPathInfo(fp);
     hashInfo.push({ filepath: fp, filename, ext, hash });
   }
   return hashInfo;
@@ -337,7 +340,7 @@ function TrimPath(p: string = ''): string {
 /// DECODER METHODS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetPathInfo(path: string) {
-  const bn = PATH.basename(path);
+  const bn = PATH.basename(path, PATH.extname(path));
   const en = PATH.extname(path).slice(1); // remove leading .
   const dn = PATH.dirname(path);
   return {
