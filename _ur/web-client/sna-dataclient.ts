@@ -69,10 +69,20 @@ let REMOTE: DS_DatasetAdapter; // the remote data adapter
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LocalAdapter: DS_DatasetAdapter = {
   accToken: '',
-  selectDataset: async (dsReq: DatasetReq) => {
+  selectDataset: async (dataURI: string): Promise<OpResult> => {
     const EP = ClientEndpoint();
     if (EP) {
-      const res = await EP.netCall('SYNC:SRV_DSET', dsReq);
+      const res = await EP.netCall('SYNC:SRV_DSET', { dataURI, op: 'LOAD' });
+      return res; // => { status, dataURI, error }
+    }
+  },
+  getDataObj: async (dataURI?: string): Promise<DS_DatasetObj> => {
+    const EP = ClientEndpoint();
+    if (EP) {
+      const res = await EP.netCall('SYNC:SRV_DSET', {
+        dataURI: dataURI || DS_URI,
+        op: 'GET_DATA'
+      });
       return res;
     }
   },
@@ -170,7 +180,7 @@ async function Configure(dataURI: DS_DataURI, opt: DataSyncOptions) {
 async function Activate() {
   if (DSET === undefined) return { error: 'must call Configure() first' };
   if (F_SyncInit) {
-    const res = await REMOTE.selectDataset({ dataURI: DS_URI, op: 'LOAD' });
+    const res = await REMOTE.selectDataset(DS_URI);
     if (res.error) {
       console.error('Activate(): error selecting dataset:', res.error);
       return res;
@@ -180,9 +190,13 @@ async function Activate() {
     } else {
       LOG(...PR(`Activate status [${res.status}]`));
     }
-    /** now we need to write the data **/
-    LOG(...PR(`data received on activate:`, res.data));
-    await SetDataFromObject(res.data);
+    // next fetch the data
+    const ds = await REMOTE.getDataObj();
+    if (ds.error) {
+      console.error('Activate(): error fetching dataset:', ds.error);
+      return ds;
+    }
+    console.log('*** dataset load returned:', ds);
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

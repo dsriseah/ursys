@@ -110,6 +110,7 @@ export type DS_DatasetObj = {
       items: UR_ItemList;
     };
   };
+  error?: string;
 };
 
 /// MANIFEST DEFINITION ///////////////////////////////////////////////////////
@@ -223,12 +224,18 @@ export type DataSyncRes = {
  *  . handleError is the method that handles the return object from syncData */
 export type DS_DatasetAdapter = {
   accToken: string;
-  selectDataset: (dsReq: DatasetReq) => Promise<DatasetRes>;
+  selectDataset: (dataURI: string) => Promise<DatasetRes>;
+  getDataObj: () => Promise<DS_DatasetObj>;
   syncData: (synReq: DataSyncReq) => Promise<DataSyncRes>;
   handleError: (opResult: OpResult) => OpResult;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export type DatasetInfo = { manifest?: any; error?: string };
+export type DatasetInfo = {
+  _dataURI?: DS_DataURI; // the dataURI this came from
+  manifest_src?: string; // auto, or uri of predefined manifest
+  manifest?: any;
+  error?: string;
+};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** implement functions needed to read/write data objects to a datastore */
 export interface IDS_DataObjectAdapter {

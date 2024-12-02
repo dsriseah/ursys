@@ -20,7 +20,7 @@
 import { Dataset } from '../common/class-data-dataset.ts';
 import { DataBin } from '../common/abstract-data-databin.ts';
 import { DecodeDatasetReq, DecodeSyncReq } from '../common/util-data-ops.ts';
-import { DefaultDataObjAdapter } from './sna-dataobj-adapter.mts';
+import { SNA_DataObjAdapter } from './sna-dataobj-adapter.mts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
 import { SNA_HookServerPhase, SNA_DeclareModule } from './sna-node-hooks.mts';
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
@@ -34,7 +34,8 @@ import type {
   DataSyncReq,
   DatasetReq,
   DS_DatasetObj,
-  DS_DataURI
+  DS_DataURI,
+  DatasetInfo
 } from '../_types/dataset.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SyncOptions = {
@@ -59,23 +60,28 @@ const LOG = makeTerminalOut('SNA.DSRV', 'TagBlue');
 /// to start, we just have one dataset, but for the future we could support
 /// multiple ones in a DatasetCache
 const DATASETS: DatasetCache = {};
-const DSFS = new DefaultDataObjAdapter();
+const DSFS = new SNA_DataObjAdapter();
 let cur_data_uri = ''; // a dataURI
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let SEQ_NUM = 0; // predictable sequence number to order updates
 
 /// DATASET OPERATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type ExDatasetInfo = DatasetInfo & { status?: string };
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Load a dataset from the dataURI, return the data object */
-async function LoadDataset(dataURI: DS_DataURI): Promise<OpResult> {
+async function LoadDataset(dataURI: DS_DataURI): Promise<ExDatasetInfo> {
   let dset = DATASETS[dataURI];
   if (dset) return { status: 'already loaded', manifest: dset.manifest };
-  const { manifest, error } = await DSFS.getDatasetInfo(dataURI);
+  const { manifest, manifest_src, error } = await DSFS.getDatasetInfo(dataURI);
   if (error) return { error };
   dset = new Dataset(dataURI, manifest);
   DATASETS[dataURI] = dset;
-  if (!cur_data_uri) cur_data_uri = dataURI;
-  return { dataset: dset };
+  // now load the dataset data
+  const dataObj = await DSFS.readDatasetObj(dataURI);
+  DATASETS[dataURI]._setFromDataObj(dataObj);
+  cur_data_uri = dataURI;
+  return { status: 'loaded', manifest, manifest_src };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: */
@@ -89,14 +95,17 @@ async function PersistDataset(dataURI: string) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: */
-async function GetDatasetData(dataURI?: string) {
+async function GetDatasetData(dataURI?: string): Promise<DS_DatasetObj> {
   const DSET = DATASETS[dataURI || cur_data_uri];
-  return {
-    status: 'ok',
-    dataURI: DSET._dataURI,
-    schema: DSET._schemaID,
-    data: DSET._getDataObj()
+  if (DSET === undefined) return { error: `dataset [${dataURI}] not found` };
+  console.log('*** would load', DSET.manifest);
+  const dataObj = {
+    _dataURI: DSET._dataURI,
+    _schemaID: DSET._schemaID,
+    ...DSET._getDataObj()
   };
+  console.log('*** GetDatasetData:', dataObj);
+  return dataObj;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: */

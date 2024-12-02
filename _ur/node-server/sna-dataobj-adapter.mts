@@ -39,6 +39,7 @@ function mock_GetDataFromFilesystem() {
 
 /// ADAPTER FUNCTIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return an array of manifest objects read from predefined manifest files */
 async function m_GetPredefinedManifests(dataPath: string) {
   const allfiles = FILE.Files(dataPath);
   const mfiles = allfiles
@@ -49,28 +50,12 @@ async function m_GetPredefinedManifests(dataPath: string) {
     const manifestObjs = [];
     for (let f of mfiles) {
       const obj = FILE.ReadJSON(`${dataPath}/${f}`);
-      manifestObjs.push(obj);
+      manifestObjs.push({ manifest: obj, manifest_src: f });
     }
     return manifestObjs;
   }
   // case 2: no manifest files found
   return [];
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-async function m_GetManifestFromPath(dataPath: string) {
-  // bail if the requested path isn't a directory
-  const pathInfo = FILE.GetPathInfo(dataPath);
-  if (pathInfo.isFile)
-    return { error: `${dataPath} appears to be a file request, not a directory` };
-
-  if (FILE.DirExists(dataPath)) {
-    /* is there an predefined manifest file? */
-    const manifestObjs = await m_GetPredefinedManifests(dataPath);
-    if (manifestObjs.length > 0) return { manifest: manifestObjs[0] };
-    /* otherwise, generate the manifest from dataPath */
-    return await m_MakeManifestObj(dataPath);
-  }
-  return { error: `${dataPath} does not exist` };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function m_GetAssetFileInfo(assetPath: string) {
@@ -81,6 +66,7 @@ async function m_GetAssetFileInfo(assetPath: string) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function m_MakeManifestObj(dataPath: string) {
   const manifest = {};
+  let manifest_src: string = 'auto-generated';
   const { dirs } = FILE.GetDirContent(dataPath);
   const assetDirs = dirs.filter(d => IsAssetDirname(d));
   if (assetDirs.length === 0)
@@ -111,11 +97,30 @@ async function m_MakeManifestObj(dataPath: string) {
   return { manifest };
 }
 
+/// API HELPERS ///////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: generate a manifest from the passed dataPath */
+async function GetManifestFromPath(dataPath: string) {
+  // bail if the requested path isn't a directory
+  const pathInfo = FILE.GetPathInfo(dataPath);
+  if (pathInfo.isFile)
+    return { error: `${dataPath} appears to be a file request, not a directory` };
+
+  if (FILE.DirExists(dataPath)) {
+    /* is there an predefined manifest file? */
+    const manifestObjs = await m_GetPredefinedManifests(dataPath);
+    if (manifestObjs.length > 0) return manifestObjs[0];
+    /* otherwise, generate the manifest from dataPath */
+    return await m_MakeManifestObj(dataPath);
+  }
+  return { error: `${dataPath} does not exist` };
+}
+
 /// DATA STORAGE ADAPTER //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type ExtOptions = DOA_Options & { dataDir: string };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class DefaultDataObjAdapter extends DataObjAdapter {
+class SNA_DataObjAdapter extends DataObjAdapter {
   //
   data_dir: string; // root data directory
 
@@ -153,9 +158,9 @@ class DefaultDataObjAdapter extends DataObjAdapter {
     if (this.data_dir === undefined) throw Error(`getDatasetInfo: data_dir not set`);
     const dataPath = PATH.join(this.data_dir, orgPath, bucketPath, instancePath);
     // read manifest from filesystem
-    const { manifest, error } = await m_GetManifestFromPath(dataPath);
+    const { manifest, manifest_src, error } = await GetManifestFromPath(dataPath);
     if (error) return { error };
-    return { manifest };
+    return { manifest, manifest_src, _dataURI: dataURI };
   }
 
   /** read dataset object from the filesystem */
@@ -185,5 +190,5 @@ class DefaultDataObjAdapter extends DataObjAdapter {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default DefaultDataObjAdapter;
-export { DefaultDataObjAdapter };
+export default SNA_DataObjAdapter;
+export { SNA_DataObjAdapter };
