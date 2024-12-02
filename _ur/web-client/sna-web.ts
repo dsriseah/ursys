@@ -94,8 +94,10 @@ function SNA_Status() {
 
 /// SNA MODULES PACKAGING /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// remember to import default, which has _name property set
+/// remember to import SNA_Module default, which has _name property set
 import MOD_DataClient from './sna-dataclient.ts';
+/// export the actual module API
+export * as DATACLIENT from './sna-dataclient.ts';
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
