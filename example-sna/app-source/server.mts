@@ -6,7 +6,6 @@
   @run-sna.mts. By the time this module is loaded, the webapp and appserver
   have already been built. 
 
-
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { SNA, PR } from '@ursys/core';
@@ -29,13 +28,15 @@ SNA.HookServerPhase('SRV_READY', () => {
 (async () => {
   LOG('SNA Server Entry Loaded');
 
-  // Set the global configuration object
+  // Set extra global configuration
   // SNA.GlobalConfig({});
+  // note: see @run-sna for more global configuration
 
-  // Register all SNA components
-  // SNA.RegisterComponent(SNA_Module)
+  // Register extra components
+  // SNA.RegisterComponent(Your_SNA_Module)
 
   // After all modules are initialized, start the SNA lifecycle this will
   // call PreConfig() and PreHook() all all registered modules.
+  // SNA itself registers some modules (e.g. dataserver)
   await SNA.Start();
 })();

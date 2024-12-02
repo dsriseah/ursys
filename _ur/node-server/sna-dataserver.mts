@@ -17,18 +17,11 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import * as FILE from './file.mts';
-import * as PATH from 'node:path';
-import * as DSYNC_STORE from './sna-dataset-fs.mts';
 import { Dataset } from '../common/class-data-dataset.ts';
 import { DataBin } from '../common/abstract-data-databin.ts';
-import {
-  DecodeDatasetReq,
-  DecodeSyncReq,
-  DecodeDataURI
-} from '../common/util-data-ops.ts';
+import { DecodeDatasetReq, DecodeSyncReq } from '../common/util-data-ops.ts';
+import { DefaultDataObjAdapter } from './sna-dataobj-adapter.mts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
-import { IsDataSyncOp, IsDatasetOp } from '../common/util-data-ops.ts';
 import { SNA_HookServerPhase, SNA_DeclareModule } from './sna-node-hooks.mts';
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 
@@ -53,7 +46,7 @@ type BinOptions = SyncOptions & {
   binType: DataBinType;
   autoCreate: boolean;
 };
-type DatasetStore = {
+type DatasetCache = {
   [dataset_name: string]: Dataset;
 };
 type BinOpRes = OpResult & { bin?: DataBin; binName?: DataBinID };
@@ -64,9 +57,10 @@ const DBG = false;
 const LOG = makeTerminalOut('SNA.DSRV', 'TagBlue');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// to start, we just have one dataset, but for the future we could support
-/// multiple ones in a DatasetStore
-const DSET_DICT: DatasetStore = {};
-let current_dset = ''; // a dataURI
+/// multiple ones in a DatasetCache
+const DATASETS: DatasetCache = {};
+const DSFS = new DefaultDataObjAdapter();
+let cur_data_uri = ''; // a dataURI
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let SEQ_NUM = 0; // predictable sequence number to order updates
 
@@ -74,13 +68,13 @@ let SEQ_NUM = 0; // predictable sequence number to order updates
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Load a dataset from the dataURI, return the data object */
 async function LoadDataset(dataURI: DS_DataURI): Promise<OpResult> {
-  let dset = DSET_DICT[dataURI];
+  let dset = DATASETS[dataURI];
   if (dset) return { status: 'already loaded', manifest: dset.manifest };
-  const { manifest, error } = await DSYNC_STORE.GetManifest(dataURI);
+  const { manifest, error } = await DSFS.getDatasetInfo(dataURI);
   if (error) return { error };
   dset = new Dataset(dataURI, manifest);
-  DSET_DICT[dataURI] = dset;
-  current_dset = dataURI;
+  DATASETS[dataURI] = dset;
+  if (!cur_data_uri) cur_data_uri = dataURI;
   return { dataset: dset };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -96,7 +90,7 @@ async function PersistDataset(dataURI: string) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: */
 async function GetDatasetData(dataURI?: string) {
-  const DSET = DSET_DICT[dataURI || current_dset];
+  const DSET = DATASETS[dataURI || cur_data_uri];
   return {
     status: 'ok',
     dataURI: DSET._dataURI,
@@ -107,7 +101,7 @@ async function GetDatasetData(dataURI?: string) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: */
 async function GetManifest(dataURI?: string) {
-  const DSET = DSET_DICT[dataURI || current_dset];
+  const DSET = DATASETS[dataURI || cur_data_uri];
   return DSET.getManifest();
 }
 
@@ -116,7 +110,7 @@ async function GetManifest(dataURI?: string) {
 /** API: given a bin reference, open the bin and return the DataBin */
 function OpenBin(binName: DataBinID, options: BinOptions): BinOpRes {
   const { binType, autoCreate } = options;
-  const DSET = DSET_DICT[current_dset];
+  const DSET = DATASETS[cur_data_uri];
   let bin = DSET.openDataBin(binName);
   // todo: subscribe to bin updates
   return { bin };
@@ -125,7 +119,7 @@ function OpenBin(binName: DataBinID, options: BinOptions): BinOpRes {
 /** API: given an databin, close the bin and return the bin name if successful */
 function CloseBin(bin: DataBin): BinOpRes {
   const { name } = bin;
-  const DSET = DSET_DICT[current_dset];
+  const DSET = DATASETS[cur_data_uri];
   let binName = DSET.closeDataBin(name);
   // todo: unsubscribe to bin updates
   return { binName };
@@ -212,7 +206,7 @@ async function _handleDatasetOp(opParams: DatasetReq) {
 async function _handleDataOp(opParams: DataSyncReq) {
   const { binID, op, items, ids, searchOpt, error } = DecodeSyncReq(opParams);
   if (error) return { error };
-  const DSET = DSET_DICT[current_dset];
+  const DSET = DATASETS[cur_data_uri];
   const bin = DSET.getDataBin(binID);
   if (bin === undefined) return { error: `DSRV: bin [${binID}] not found` };
   if (!items && !ids) return { error: 'DSRV: items or ids required' };
@@ -253,6 +247,14 @@ async function _handleDataOp(opParams: DataSyncReq) {
 
 /// SNA MODULE API ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** PreConfig is called before PreHook before SNALifecycle is started. We
+ *  want to grab the runtime_dir and set up the data object adapter */
+function PreConfig(config) {
+  const { runtime_dir } = config;
+  console.log('*** PreConfig: setting data dir to', runtime_dir);
+  DSFS.setDataDir(runtime_dir);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** PreHook is called just before the SNA Lifecycle is started, so here is
  *  where your module can declare where it needs to do something */
 function PreHook() {
@@ -264,6 +266,7 @@ function PreHook() {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default SNA_DeclareModule('dataserver', {
+  PreConfig,
   PreHook
 });
 export {

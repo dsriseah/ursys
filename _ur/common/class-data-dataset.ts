@@ -21,7 +21,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ItemList } from './class-data-itemlist.ts';
-import { ItemDict } from './class-data-itemdict-old.ts';
+import { ItemDict } from './class-data-itemdict.ts';
 import { DecodeDataURI, DecodeManifest } from './util-data-ops.ts';
 import { DataBin } from './abstract-data-databin.ts';
 import { DecodeDataConfig } from './util-data-ops.ts';
@@ -91,11 +91,23 @@ class Dataset implements I_DataSerialize {
 
   /// CONSTRUCTOR ///
 
-  constructor(dataURI: string, manifest?: UR_ManifestObj) {
-    if (dataURI && m_IsValidBinName(dataURI)) this.dataset_name = dataURI;
+  constructor(dataURI: DS_DataURI, manifest?: UR_ManifestObj) {
+    if (m_IsValidDatasetURI(dataURI)) {
+      this._dataURI = dataURI;
+    } else {
+      console.error('bad dataURI', dataURI);
+      throw Error(`invalid dataURI passed to Dataset`);
+    }
+    if (manifest !== undefined) {
+      if (typeof manifest === 'object' && DecodeManifest(manifest)) {
+        this.manifest = manifest;
+      } else {
+        console.warn('bad manifest', manifest);
+        throw Error(`invalid optional manifest passed to Dataset`);
+      }
+    }
+    // got this far? allocate storage
     this._init();
-    if (DecodeManifest(manifest) === undefined) throw Error('invalid manifest');
-    this.manifest = manifest;
   }
 
   /** private: initialize the dataset */

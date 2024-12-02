@@ -6,13 +6,15 @@
 
   A Dataset contains several named "bins" of DataBin collections which are
   formally as a bucket with a schema. Datasets are in-memory object stores
-  intended for real-time manipulation of data.
+  intended for real-time manipulation of data. They can be either local or
+  synched with a remote server-side dataset.
 
-  Method Summary
-
-  - Get, Add, Update, Delete, Replace, Init
-  - SetRemoteDataAdapter, QueueRemoteDataOp
-  - m_ProcessOpQueue
+  KEY METHODS:
+  - Configure() is used to initialize the local dataset and select a
+    remote adapter based on the passed 'mode' parameter.
+  - Activate() is used to connect to the remote dataset and load the data.
+  - SetDataFromObject() is used to initialize the Dataset with
+    a data object that conforms to the DS_DatasetObj schema.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -115,21 +117,21 @@ function HandleSyncData(sync: DataSyncRes) {
 
 /// DATASET LOCAL API /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** initialized a new Dataset with dsURI without performing ops.
+/** initialized a new Dataset with dataURI without performing ops.
  *  dataURI looks like 'sri.org:bucket-1234/sna-app/project-one'
  */
-async function Configure(dsURI: DS_DataURI, opt: DataSyncOptions) {
+async function Configure(dataURI: DS_DataURI, opt: DataSyncOptions) {
   const fn = 'SetDataURI:';
   if (DSET !== undefined) throw Error(`${fn} dataset already set`);
   //
   let res: OpResult;
-  res = DecodeDataURI(dsURI);
+  res = DecodeDataURI(dataURI);
   if (res.error) return { error: `DecodeDataURI ${res.error}` };
   res = DecodeDataConfig(opt);
   if (res.error) return { error: `DecodeDataConfig ${res.error}` };
   const { mode } = res;
   // configure!
-  DS_URI = dsURI;
+  DS_URI = dataURI;
   DSET = new Dataset(DS_URI);
   switch (mode) {
     case 'local':
@@ -161,7 +163,7 @@ async function Configure(dsURI: DS_DataURI, opt: DataSyncOptions) {
   }
   // return the dataset URI, adapter, messages
   // it's up to the caller to register messages
-  return { dsURI, adapter: REMOTE, handlers: ['SYNC:CLI_DATA'] };
+  return { dataURI, adapter: REMOTE, handlers: ['SYNC:CLI_DATA'] };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** after configure is called, this method connects to the dataset */
@@ -169,7 +171,10 @@ async function Activate() {
   if (DSET === undefined) return { error: 'must call Configure() first' };
   if (F_SyncInit) {
     const res = await REMOTE.selectDataset({ dataURI: DS_URI, op: 'LOAD' });
-    if (res.error) return res;
+    if (res.error) {
+      console.error('Activate(): error selecting dataset:', res.error);
+      return res;
+    }
     if (res.status === 'ok') {
       LOG(...PR(`Activate existing dataURI:`, res.dataURI));
     } else {
@@ -317,7 +322,7 @@ async function Find(binID: string, crit?: SearchOptions): Promise<UR_Item[]> {
 /** use to Find in datasets other than what is configured. good for one-time
  *  queries to remote datasets */
 async function DS_RemoteFind(
-  dsURI: DS_DataURI,
+  dataURI: DS_DataURI,
   binID: string,
   crit?: SearchOptions
 ): Promise<UR_Item[]> {
@@ -335,7 +340,7 @@ async function Query(binID: string, query: SearchOptions): Promise<RecordSet> {
 /** use to Query datasets other than what is configured. good for one-time
  *  queries to remote datasets */
 async function DS_RemoteQuery(
-  dsURI: DS_DataURI,
+  dataURI: DS_DataURI,
   binID: string,
   query: SearchOptions
 ) /* :Promise<RecordSet> */ {
@@ -366,14 +371,15 @@ function PreHook() {
   HookAppPhase('NET_DATASET', async () => {
     const fn = 'HOOK_LoadData:';
     let dataURI = DS_URI;
-    LOG(...PR(`${fn} establishing datalink to ${dataURI}`));
     const opts = { mode: DS_MODE };
     let res: OpResult;
     // configure the dataset
     res = await Configure(dataURI, opts); // => { adapter, handlers }
     if (res.error) throw Error(`Configure ${res.error}`);
     // connect the dataset
+    LOG(...PR(`${fn} configured datalink to ${dataURI}`, res));
     res = await Activate(); // => { dataURI, ItemLists }
+    LOG(...PR(`${fn} activated datalink, got`, res));
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -383,7 +389,6 @@ function Subscribe(binID: string, evHdl: SNA_EvtHandler) {
   if (typeof evHdl !== 'function') return { error: 'evHdl must be a function' };
   if (DSET === undefined) return { error: 'must call Configure() first' };
   const bin = DSET.getDataBin(binID);
-  LOG(...PR('Subscribe:', binID, 'bin', bin, 'dset', DSET));
   if (bin) {
     bin.on('*', evHdl);
     if (DBG) LOG(...PR('Subscribe:', binID, 'subscribed'));
@@ -415,12 +420,13 @@ export default DeclareModule('dataclient', {
 });
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
+  // api data initialization
+  Configure, // (dataURI, {mode}) => {adapter, handlers}
+  Activate,
+  SetDataFromObject,
   // SNA module methods
-  Configure,
   Subscribe,
   Unsubscribe,
-  // api data initialization
-  SetDataFromObject,
   // api data operations
   Get,
   Add,

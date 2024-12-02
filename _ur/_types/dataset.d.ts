@@ -233,7 +233,7 @@ export type DatasetInfo = { manifest?: any; error?: string };
 /** implement functions needed to read/write data objects to a datastore */
 export interface IDS_DataObjectAdapter {
   accToken: string;
-  readDatasetInfo(dataURI: DS_DataURI): Promise<DatasetInfo>;
+  getDatasetInfo(dataURI: DS_DataURI): Promise<DatasetInfo>;
   readDatasetObj(dataURI: DS_DataURI): Promise<DS_DatasetObj>;
   readDataBinObj(dataURI: DS_DataURI, binID: DataBinID): Promise<DataObj>;
   writeDatasetObj(dataURI: DS_DataURI, dsObj: DS_DatasetObj): Promise<OpResult>;

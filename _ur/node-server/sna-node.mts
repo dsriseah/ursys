@@ -11,6 +11,7 @@ import {
   SNA_RegisterComponent,
   SNA_LifecycleStatus,
   SNA_LifecycleStart,
+  SNA_GlobalConfig,
   GetDanglingHooks
 } from './sna-node-hooks.mts';
 import { SNA_DeclareModule } from '../common/class-sna-module.ts';
@@ -64,6 +65,7 @@ export {
   SNA_HookServerPhase as HookServerPhase,
   SNA_RuntimeInfo as RuntimeInfo,
   // sna modules
+  SNA_GlobalConfig as GlobalConfig,
   SNA_DeclareModule as DeclareModule,
   // included modules
   MOD_DataServer

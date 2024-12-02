@@ -40,7 +40,10 @@ async function HOOK_LoadDataLocal() {
 async function HOOK_LoadDataRemote() {
   let res: OpResult;
   res = await DCLI.Subscribe('comments', HandleDataEvent);
-  if (res.error) throw Error(`Subscribe ${res.error}`);
+  if (res.error) {
+    console.error(`subscribe to 'comments' collection of current databin failed`);
+    throw Error(`Subscribe ${res.error}`);
+  }
   // after DCLI.Init(), notification to HandleDataEvent should occur
   DoSomething();
 }
