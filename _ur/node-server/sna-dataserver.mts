@@ -216,7 +216,6 @@ async function _handleDataOp(opParams: DataSyncReq) {
   const DSET = DATASETS[cur_data_uri];
   const bin = DSET.getDataBin(binID);
   if (bin === undefined) return { error: `DSRV: bin [${binID}] not found` };
-  if (!items && !ids) return { error: 'DSRV: items or ids required' };
   // todo: add notification handling
   // todo: change to return 'success' rather than the data
   switch (op) {
