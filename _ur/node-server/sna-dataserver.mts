@@ -98,13 +98,11 @@ async function PersistDataset(dataURI: string) {
 async function GetDatasetData(dataURI?: string): Promise<DS_DatasetObj> {
   const DSET = DATASETS[dataURI || cur_data_uri];
   if (DSET === undefined) return { error: `dataset [${dataURI}] not found` };
-  console.log('*** would load', DSET.manifest);
   const dataObj = {
     _dataURI: DSET._dataURI,
     _schemaID: DSET._schemaID,
     ...DSET._getDataObj()
   };
-  console.log('*** GetDatasetData:', dataObj);
   return dataObj;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -260,7 +258,6 @@ async function _handleDataOp(opParams: DataSyncReq) {
  *  want to grab the runtime_dir and set up the data object adapter */
 function PreConfig(config) {
   const { runtime_dir } = config;
-  console.log('*** PreConfig: setting data dir to', runtime_dir);
   DSFS.setDataDir(runtime_dir);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -74,13 +74,11 @@ async function m_MakeManifestObj(dataPath: string) {
       error: `no asset found in ${dataPath}`
     };
   for (const subdir of assetDirs) {
-    console.log('*** reading asset dir:', subdir);
     const subdirPath = PATH.join(dataPath, subdir);
     const assetInfo = await m_GetAssetFileInfo(subdirPath);
     const entries = [];
     for (let info of assetInfo) {
       const assetId = manifest_id_counter++;
-      console.log('*** asset info:', info);
       const { filename, ext, hash } = info;
       const asset = {
         assetId,
@@ -93,7 +91,6 @@ async function m_MakeManifestObj(dataPath: string) {
     }
     manifest[subdir] = entries;
   } // end subdir processing
-  console.log('*** manifest:', manifest);
   return { manifest };
 }
 

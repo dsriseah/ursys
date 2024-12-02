@@ -23,7 +23,6 @@ import type { SNA_Module, SNA_EvtName } from 'tsconfig/types';
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('Comments', 'TagPink');
 const DCLI = SNA.DATACLIENT;
-console.log('*** DCLI', DCLI);
 
 /// APP LIFECYCLE METHODS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

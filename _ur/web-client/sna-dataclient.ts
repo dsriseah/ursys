@@ -197,7 +197,6 @@ async function Activate() {
       return ds;
     }
     const found = DSET._setFromDataObj(ds);
-    console.log('*** Activate: found', found);
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -391,9 +390,9 @@ function PreHook() {
     // configure the dataset
     res = await Configure(dataURI, opts); // => { adapter, handlers }
     if (res.error) throw Error(`Configure ${res.error}`);
-    LOG(...PR(`${fn} configured datalink to ${dataURI}`, res));
+    if (DBG) LOG(...PR(`${fn} configured datalink to ${dataURI}`, res));
     res = await Activate(); // => { dataURI, ItemLists }
-    LOG(...PR(`${fn} activated datalink, got`, res));
+    if (DBG) LOG(...PR(`${fn} activated datalink, got`, res));
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
