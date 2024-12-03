@@ -14,7 +14,7 @@ import {
   SNA_GlobalConfig,
   GetDanglingHooks
 } from './sna-node-hooks.mts';
-import { SNA_DeclareModule } from '../common/class-sna-module.ts';
+import { SNA_DeclareComponent } from '../common/class-sna-component.ts';
 
 /// SNA MODULES PACKAGING /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -66,7 +66,7 @@ export {
   SNA_RuntimeInfo as RuntimeInfo,
   // sna modules
   SNA_GlobalConfig as GlobalConfig,
-  SNA_DeclareModule as DeclareModule,
+  SNA_DeclareComponent as DeclareComponent,
   // included modules
   MOD_DataServer
 };

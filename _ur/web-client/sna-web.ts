@@ -21,7 +21,7 @@ import {
   SNA_HookAppPhase,
   GetDanglingHooks
 } from './sna-web-hooks.ts';
-import { SNA_DeclareModule } from '../common/class-sna-module.ts';
+import { SNA_DeclareComponent } from '../common/class-sna-component.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -94,7 +94,7 @@ function SNA_Status() {
 
 /// SNA MODULES PACKAGING /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// remember to import SNA_Module default, which has _name property set
+/// remember to import SNA_Component default, which has _name property set
 import MOD_DataClient from './sna-dataclient.ts';
 /// export the actual module API
 export * as DATACLIENT from './sna-dataclient.ts';
@@ -109,7 +109,7 @@ export {
   SNA_Status as Status,
   SNA_HookAppPhase as HookAppPhase,
   // sna modules
-  SNA_DeclareModule as DeclareModule,
+  SNA_DeclareComponent as DeclareComponent,
   // included modules
   MOD_DataClient
 };

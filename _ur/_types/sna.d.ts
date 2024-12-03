@@ -13,14 +13,14 @@ import { DataObj, OpResult } from './ursys.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type MOD_PreConfig = (DataObj) => void; // called before lifecycle
 export type MOD_PreHook = () => void; // called before lifecycle
-export type MOD_AddModule = ({ f_AddModule: Function }) => void; // called during reg
+export type MOD_AddComponent = ({ f_AddComponent: Function }) => void; // called during reg
 export type MOD_EventRegister = (evt: string, notifyCB: Function) => void;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// for code modules, exporting default SNA with SNA_Module is a suggested
+/// for code modules, exporting default SNA with SNA_Component is a suggested
 /// practice
-export interface SNA_ModProps {
+export interface SNA_ComponentProps {
   _name?: string;
-  AddModule?: MOD_AddModule;
+  AddComponent?: MOD_AddComponent;
   PreConfig?: MOD_PreConfig;
   PreHook?: MOD_PreHook;
   Subscribe?: MOD_EventRegister;

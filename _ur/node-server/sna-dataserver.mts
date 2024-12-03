@@ -22,7 +22,7 @@ import { DataBin } from '../common/abstract-data-databin.ts';
 import { DecodeDatasetReq, DecodeSyncReq } from '../common/util-data-ops.ts';
 import { SNA_DataObjAdapter } from './sna-dataobj-adapter.mts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
-import { SNA_HookServerPhase, SNA_DeclareModule } from './sna-node-hooks.mts';
+import { SNA_HookServerPhase, SNA_DeclareComponent } from './sna-node-hooks.mts';
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -270,7 +270,7 @@ function PreHook() {
 }
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default SNA_DeclareModule('dataserver', {
+export default SNA_DeclareComponent('dataserver', {
   PreConfig,
   PreHook
 });

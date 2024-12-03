@@ -16,7 +16,7 @@ import DUMMY_DATA from './dataset-dummy.ts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { DataObj, DataSyncRes, OpResult } from 'tsconfig/types';
-import type { SNA_Module, SNA_EvtName } from 'tsconfig/types';
+import type { SNA_Component, SNA_EvtName } from 'tsconfig/types';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -118,7 +118,7 @@ function SNA_Unsubscribe(evtType: SNA_EvtName, evtHandler: Function) {}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default SNA.DeclareModule('comments', {
+export default SNA.DeclareComponent('comments', {
   PreConfig: SNA_PreConfig,
   PreHook: SNA_PreHook,
   Subscribe: SNA_Subscribe,
