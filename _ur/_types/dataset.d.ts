@@ -181,7 +181,7 @@ export type DataSyncMode =
 /** these flags are derived from value of DataSyncMode */
 export type DataSyncFlags = {
   readOnly?: boolean;
-  remote: DS_DatasetAdapter;
+  remote: IDS_DatasetAdapter;
   initOnly?: boolean;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -222,12 +222,12 @@ export type DataSyncRes = {
 /** implement functions needed to write data to a remote datastore
  *  . syncData is the async method that writes data to remote datastore
  *  . handleError is the method that handles the return object from syncData */
-export type DS_DatasetAdapter = {
+export type IDS_DatasetAdapter = {
   accToken: string;
   selectDataset: (dataURI: string) => Promise<DatasetRes>;
   getDataObj: () => Promise<DS_DatasetObj>;
   syncData: (synReq: DataSyncReq) => Promise<DataSyncRes>;
-  handleError: (opResult: OpResult) => OpResult;
+  handleError: (params: any) => Promise<any>;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type DatasetInfo = {

@@ -44,7 +44,7 @@ SNA.HookAppPhase('LOAD_CONFIG', () => {});
   const datasetMode = 'sync';
 
   // Set the global configuration object
-  SNA.GlobalConfig({ dataset: { uri: dataURI, mode: datasetMode } });
+  SNA.GlobalConfig({ dataset: { dataURI: dataURI, syncMode: datasetMode } });
 
   // Register all SNA components
   SNA.RegisterComponent(SNA.MOD_DataClient);

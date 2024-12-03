@@ -27,6 +27,7 @@ import {
   DeclareComponent
 } from './sna-web.ts';
 import { Dataset } from '../common/class-data-dataset.ts';
+import { DatasetAdapter } from '../common/abstract-dataset-adapter.ts';
 import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -34,7 +35,7 @@ import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops.ts';
 import type {
   DataObj,
   OpResult,
-  DS_DatasetAdapter,
+  IDS_DatasetAdapter,
   DatasetReq,
   DatasetRes,
   DataSyncOptions,
@@ -65,18 +66,24 @@ let DS_MODE: DataSyncMode; // the dataset mode
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let F_ReadOnly: boolean = false; // set to true to prevent remote writes
 let F_SyncInit: boolean = false; // set to true to sync data on init
-let REMOTE: DS_DatasetAdapter; // the remote data adapter
+let REMOTE: DatasetAdapter; // the remote data adapter
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LocalAdapter: DS_DatasetAdapter = {
-  accToken: '',
-  selectDataset: async (dataURI: string): Promise<OpResult> => {
+class DefaultDatasetAdapter extends DatasetAdapter {
+  // inherited fields
+  // this.accToken:string
+
+  /** select the "current dataset to use" on master server */
+  async selectDataset(dataURI: string): Promise<OpResult> {
     const EP = ClientEndpoint();
     if (EP) {
       const res = await EP.netCall('SYNC:SRV_DSET', { dataURI, op: 'LOAD' });
       return res; // => { status, dataURI, error }
     }
-  },
-  getDataObj: async (dataURI?: string): Promise<DS_DatasetObj> => {
+  }
+
+  /** return either the current dataset object or the one
+   *  specified by dataURI */
+  async getDataObj(dataURI?: string): Promise<DS_DatasetObj> {
     const EP = ClientEndpoint();
     if (EP) {
       const res = await EP.netCall('SYNC:SRV_DSET', {
@@ -85,18 +92,27 @@ const LocalAdapter: DS_DatasetAdapter = {
       });
       return res;
     }
-  },
-  syncData: async (syncReq: DataSyncReq) => {
+  }
+
+  /** perform a data collection (databin) operation, returning
+   *  the status of the operation (but never data) */
+  async syncData(syncReq: DataSyncReq) {
     const EP = ClientEndpoint();
     if (EP) {
       const res = await EP.netCall('SYNC:SRV_DATA', syncReq);
       return res;
     }
-  },
-  handleError: (result: OpResult) => {
-    return { error: 'no remote data adapter set' };
   }
-};
+
+  /** catch-all implementation-specific error handler */
+  async handleError(errData: any): Promise<any> {
+    Promise.resolve();
+  }
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+let DefaultAdapter = new DefaultDatasetAdapter(); // for remotess
+
+/// DATASYNC HANDLERS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** 'SYNC:DATA_CLI' handler for incoming data sync messages from dataserver */
 function HandleSyncData(sync: DataSyncRes) {
@@ -157,12 +173,12 @@ async function Configure(dataURI: DS_DataURI, opt: DataSyncOptions) {
     case 'sync':
       F_ReadOnly = false;
       F_SyncInit = true;
-      REMOTE = LocalAdapter;
+      REMOTE = DefaultAdapter;
       break;
     case 'sync-ro':
       F_ReadOnly = true;
       F_SyncInit = true;
-      REMOTE = LocalAdapter;
+      REMOTE = DefaultAdapter;
       break;
     default:
       return { error: `unknown mode ${mode}` };
@@ -368,12 +384,12 @@ async function DS_RemoteQuery(
 function PreConfig(config: DataObj) {
   const { dataset } = config;
   if (dataset) {
-    const { uri, mode } = dataset;
-    if (!uri) return { error: 'missing uri property' };
-    if (!mode) return { error: 'missing mode property' };
-    DS_URI = uri;
-    DS_MODE = mode;
-    return { uri, mode };
+    const { dataURI, syncMode } = dataset;
+    if (!dataURI) return { error: 'missing dataURI property' };
+    if (!syncMode) return { error: 'missing syncMode property' };
+    DS_URI = dataURI;
+    DS_MODE = syncMode;
+    return { dataURI, syncMode };
   }
   return { error: 'missing dataset property' };
 }
