@@ -83,7 +83,7 @@ async function m_GetDataBinManifest(dataPath: string) {
   const { dirs } = FILE.GetDirContent(dataPath);
   const assetDirs = dirs.filter(d => IsAssetDirname(d)); // lowercase dirs
   if (assetDirs.length === 0) {
-    console.log('*** no asset directories found in', dataPath);
+    // console.log('*** no asset directories found in', dataPath);
     return undefined;
   }
   // process each asset directory
@@ -178,6 +178,7 @@ class SNA_DataObjAdapter extends DataObjAdapter {
       _meta: {
         author: 'sna-dataobj-adapter',
         create_time: new Date().toISOString(),
+        modify_time: new Date().toISOString(),
         description: 'auto-generated manifest'
       }
     });
@@ -185,31 +186,58 @@ class SNA_DataObjAdapter extends DataObjAdapter {
     return { manifest, manifest_src, _dataURI: dataURI };
   }
 
-  /** read dataset object from the filesystem */
-  async readDatasetObj(dataURI: string) {
-    // console.log('DatasetFS: GetData');
-    // dummy hardcoded load
-    const rootDir = FILE.DetectedRootDir();
-    const dataPath = PATH.join(rootDir, '_ur/tests/data/');
-    const jsonFile = PATH.join(dataPath, 'mock-dataset.json');
-    const data = FILE.ReadJSON(jsonFile);
+  /** construct a dataset object from the filesystem */
+  async readDatasetObj(dataURI: DS_DataURI): Promise<DS_DatasetObj> {
+    const { manifest, error } = await this.getDatasetInfo(dataURI);
+    if (error) return { error };
+    const { _dataURI, _meta, itemlists, itemdicts } = manifest;
+    // check for matching dataURI
+    if (_dataURI !== dataURI)
+      return {
+        error: 'mismatched dataURI',
+        errorInfo: `src:${_dataURI} req:${dataURI}`
+      };
+    // construct
+    const dataPath = MakePathFromDataURI(dataURI, this.data_dir);
+    const data: DS_DatasetObj = {
+      _dataURI
+    };
+    // load each itemlist
+    if (itemlists) {
+      data.ItemLists = {};
+      for (let list of itemlists) {
+        const { name, uri, type } = list;
+        const path = PATH.join(dataPath, uri);
+        const binObj = await FILE.ReadJSON(path);
+        data.ItemLists[name] = binObj;
+      }
+    }
+    if (itemdicts) {
+      data.ItemDicts = {};
+      for (let dict of itemdicts) {
+        const { name, uri, type } = dict;
+        const path = PATH.join(dataPath, uri);
+        const binObj = await FILE.ReadJSON(path);
+        data.ItemDicts[name] = binObj;
+      }
+    }
     return data;
   }
 
-  /** read databin object from the filesystem */
-  async readDataBinObj(dataURI: string, binID: DataBinID) {
-    console.log('would get databin obj');
-    return {};
-  }
-
   /** write dataset object to the filesystem */
-  async writeDatasetObj(dataURI: string, dsObj: DS_DatasetObj) {
+  async writeDatasetObj(dataURI: DS_DataURI, dsObj: DS_DatasetObj) {
     console.log('would save dataset');
     return {};
   }
 
+  /** read databin object from the filesystem */
+  async readDataBinObj(dataURI: DS_DataURI, binID: DataBinID) {
+    console.log('would get databin obj');
+    return {};
+  }
+
   /** write databin object to the filesystem */
-  async writeDataBinObj(dataURI: string, binID: DataBinID, dataObj: any) {
+  async writeDataBinObj(dataURI: DS_DataURI, binID: DataBinID, dataObj: any) {
     console.log('would save databin obj');
     return {};
   }

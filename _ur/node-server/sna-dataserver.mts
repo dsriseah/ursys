@@ -76,7 +76,6 @@ async function LoadDataset(dataURI: DS_DataURI): Promise<ExDatasetInfo> {
   const { manifest, manifest_src, error } = await DSFS.getDatasetInfo(dataURI);
   if (error) return { error };
   dset = new Dataset(dataURI, manifest);
-  console.log('*** manifest', manifest_src, manifest);
   DATASETS[dataURI] = dset;
   // now load the dataset data
   const dataObj = await DSFS.readDatasetObj(dataURI);
