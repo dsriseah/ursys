@@ -36,6 +36,10 @@ abstract class DatasetAdapter implements IDS_DatasetAdapter {
    *  the status of the operation (but never data) */
   abstract syncData(synReq: DataSyncReq): Promise<DataSyncRes>;
 
+  /** perform a dataset operation, returning the status of the
+   *  operation (but never data) */
+  abstract execDataset(req: DatasetReq): Promise<DatasetRes>;
+
   /** catch-all implementation-specific error handler */
   abstract handleError(errData: any): Promise<any>;
 }
