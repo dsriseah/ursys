@@ -91,8 +91,9 @@ async function PersistDataset(dataURI: DS_DataURI): Promise<OpResult> {
   const dset = DATASETS[dataURI];
   if (dset === undefined) return { error: `dataset [${dataURI}] not found` };
   const dataObj = dset._getDataObj();
-  const { manifest, error } = await DSFS.writeDatasetObj(dataURI, dataObj);
-  return { error };
+  const { error, status } = await DSFS.writeDatasetObj(dataURI, dataObj);
+  if (error) return { error };
+  return { status };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: */

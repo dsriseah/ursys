@@ -228,13 +228,41 @@ class SNA_DataObjAdapter extends DataObjAdapter {
         data.ItemDicts[name] = binObj;
       }
     }
+    // return DS_DatasetObj which can include errobj
     return data;
   }
 
   /** write dataset object to the filesystem */
   async writeDatasetObj(dataURI: DS_DataURI, dsObj: DS_DatasetObj) {
-    console.log('would save dataset');
-    return {};
+    const dataPath = MakePathFromDataURI(dataURI, this.data_dir);
+    const { _dataURI, ItemLists, ItemDicts } = dsObj;
+    // check for matching dataURI
+    if (_dataURI !== dataURI)
+      return {
+        error: 'mismatched dataURI',
+        errorInfo: `src:${_dataURI} req:${dataURI}`
+      };
+    // log each file
+    const saved = [];
+    // write each itemlist
+    if (ItemLists) {
+      for (let [name, binObj] of Object.entries(ItemLists)) {
+        const uri = `${name}.json.bak`;
+        const path = PATH.join(dataPath, 'itemlists', uri);
+        await FILE.WriteJSON(path, binObj);
+        saved.push(PATH.basename(path));
+      }
+    }
+    // write each itemdict
+    if (ItemDicts) {
+      for (let [name, binObj] of Object.entries(ItemDicts)) {
+        const uri = `${name}.json.bak`;
+        const path = PATH.join(dataPath, 'itemdicts', uri);
+        await FILE.WriteJSON(path, binObj);
+        saved.push(PATH.basename(path));
+      }
+    }
+    return { status: `saved: ${saved.join(', ')}` };
   }
 
   /** read databin object from the filesystem */

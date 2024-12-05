@@ -16,7 +16,7 @@ import DUMMY_DATA from './dataset-dummy.ts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { DataObj, DataSyncRes, OpResult } from 'tsconfig/types';
-import type { SNA_Component, SNA_EvtName } from 'tsconfig/types';
+import type { SNA_EvtName } from 'tsconfig/types';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -54,10 +54,12 @@ async function DoSomething() {
   const fn = 'DoSomething:';
   const resGet = await DCLI.Get('comments', ['cmt4']);
   LOG(...PR(fn, 'got cmt4', resGet));
-  const resAdd = await DCLI.Add('comments', [{ text: 'A' }, { text: 'B' }]);
-  LOG(...PR(fn, 'added two comments', resAdd));
-  const resQuery = await DCLI.Query('comments', { id: '1' });
-  LOG(...PR(fn, 'query for id 1', resQuery));
+  // fake autosave
+  setTimeout(async () => {
+    LOG(...PR(fn, 'faked autosave'));
+    const res = await DCLI.Persist();
+    LOG(...PR(fn, 'persisted', res));
+  }, 3000);
 }
 
 /// DATA LIFECYCLE METHODS ////////////////////////////////////////////////////

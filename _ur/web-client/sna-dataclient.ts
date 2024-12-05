@@ -104,6 +104,15 @@ class DefaultDatasetAdapter extends DatasetAdapter {
     }
   }
 
+  /** perform a dataset operation, returning the status of the operation */
+  async execDataset(syncReq: DatasetReq) {
+    const EP = ClientEndpoint();
+    if (EP) {
+      const res = await EP.netCall('SYNC:SRV_DSET', syncReq);
+      return res;
+    }
+  }
+
   /** catch-all implementation-specific error handler */
   async handleError(errData: any): Promise<any> {
     Promise.resolve();
@@ -240,6 +249,14 @@ async function SetDataFromObject(data: DS_DatasetObj): Promise<OpResult> {
 
   // return the dataURI and the list of ItemLists
   return { dataURI: DS_URI, ItemLists: Object.keys(ItemLists) };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function Persist() {
+  if (REMOTE) {
+    const res = await REMOTE.execDataset({ dataURI: DS_URI, op: 'PERSIST' });
+    return res;
+  }
+  return { error: 'no remote adapter' };
 }
 
 /// DATASET OPERATIONS ////////////////////////////////////////////////////////
@@ -453,6 +470,7 @@ export {
   Configure, // (dataURI, {mode}) => {adapter, handlers}
   Activate,
   SetDataFromObject,
+  Persist,
   // SNA module methods
   Subscribe,
   Unsubscribe,

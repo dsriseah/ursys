@@ -83,8 +83,7 @@ function NormItem(item: UR_Item, schema?: any): UR_Item {
   const fn = ' NormItem:';
   // first normalize the base object
   let [dataObj, foundID] = m_NormDataObj(item);
-  dataObj._id = foundID;
-  return dataObj as UR_Item;
+  return { _id: foundID, ...dataObj };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Given an array of objects, return a new array of objects that are
