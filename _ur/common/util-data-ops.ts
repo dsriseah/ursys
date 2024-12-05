@@ -139,9 +139,9 @@ function DecodeManifest(manifest: UR_ManifestObj): DecodedManifest {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** reverse lookup of assetDir to contained type, where dirname is
  *  a pluralized version of the type name */
-function GetBinTypeByDirname(dirname: string) {
+function GetBinPropsByDirname(dirname: string) {
   const entry = DSET_FSMAP[dirname];
-  if (entry) return entry.type;
+  if (entry) return entry;
 }
 
 /// DATASET API METHODS ///////////////////////////////////////////////////////
@@ -253,5 +253,5 @@ export {
   DecodeDatasetReq,
   DecodeSyncReq,
   GetDatasetObjectProps,
-  GetBinTypeByDirname
+  GetBinPropsByDirname
 };

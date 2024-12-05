@@ -11,7 +11,7 @@ import * as PATH from 'node:path';
 import {
   DecodeDataURI,
   IsAssetDirname,
-  GetBinTypeByDirname
+  GetBinPropsByDirname
 } from '../common/util-data-ops.ts';
 import { DataObjAdapter } from '../common/abstract-dataobj-adapter.ts';
 
@@ -64,10 +64,12 @@ async function m_GetDataBinEntries(dataPath, assetPath) {
   const entries = [];
   for (let info of filesInfo) {
     const { filename, basename, ext, hash } = info;
+    const { type: binType, ext: binExt } = GetBinPropsByDirname(assetPath);
+    if (ext !== binExt) continue; // bail if wrong extension
     const asset = {
       name: basename,
       ext: ext,
-      type: GetBinTypeByDirname(assetPath),
+      type: binType,
       uri: `${assetPath}/${filename}`,
       hash: hash
     };
@@ -78,12 +80,11 @@ async function m_GetDataBinEntries(dataPath, assetPath) {
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** scan the dataPath for asset directories and generate a manifest object */
-async function m_GetDataBinManifest(dataPath: string) {
+async function m_MakeDataBinManifest(dataPath: string) {
   const raw_manifest = {};
   const { dirs } = FILE.GetDirContent(dataPath);
   const assetDirs = dirs.filter(d => IsAssetDirname(d)); // lowercase dirs
   if (assetDirs.length === 0) {
-    // console.log('*** no asset directories found in', dataPath);
     return undefined;
   }
   // process each asset directory
@@ -113,7 +114,7 @@ async function GetManifestFromPath(dataPath: string) {
     const manifestObjs = await m_GetPredefinedManifests(dataPath);
     if (manifestObjs.length > 0) return manifestObjs[0];
     /* otherwise, generate the manifest from dataPath */
-    const dataManifest = await m_GetDataBinManifest(dataPath);
+    const dataManifest = await m_MakeDataBinManifest(dataPath);
     return { manifest: dataManifest, manifest_src: 'auto-generated' };
   }
   return { error: `${dataPath} does not exist` };
