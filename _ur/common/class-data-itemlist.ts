@@ -74,16 +74,30 @@ class ItemList extends DataBin implements IDS_Serialize {
 
   /// SERIALIZATION METHODS ///
 
+  /** implement search for max_id in the current list */
+  _findMaxID(): number {
+    let maxID = 0;
+    for (const li of this._list) {
+      const { prefix, ord, foreign } = this.decodeID(li._id);
+      if (foreign) continue; // skip foreign ids
+      if (ord > maxID) maxID = ord;
+    }
+    return maxID;
+  }
+
   /** API: create a new instance from a compatible state object */
   _setFromDataObj(data: DataObj) {
     const fn = 'ItemList._setFromDataObj:';
+    // call base class to setup defaults
     let result = super._setFromDataObj(data);
     if (result.error) return { error: `${fn} ${result.error}` };
+    // now handle our list
     const { items } = data;
     if (!Array.isArray(items)) return { error: `${fn} _list must be an array` };
     const [norm_list, norm_error] = NormItemList(items);
     if (norm_error) return { error: `${fn} ${norm_error}` };
     this._list = norm_list;
+    this._ord_highest = this._findMaxID(); // set the highest ordinal
     return { items: [...this._list] };
   }
 
@@ -116,22 +130,6 @@ class ItemList extends DataBin implements IDS_Serialize {
   /// LIST ID METHODS ///
 
   // DataBin base methods: decodeID, newID
-  _maxID(): number {
-    let id: number;
-    // if ord_highest is set, we can just increment it since we don't reuse ids
-    if (this._ord_highest > 0) {
-      id = ++this._ord_highest;
-    } else {
-      // otherwise, we need to scan the existing list
-      let maxID = 0;
-      for (const li of this._list) {
-        const { _prefix, ord } = this.decodeID(li._id);
-        if (ord > maxID) maxID = ord;
-      }
-      this._ord_highest = maxID;
-    }
-    return this._ord_highest;
-  }
 
   /// LIST METHODS ///
 

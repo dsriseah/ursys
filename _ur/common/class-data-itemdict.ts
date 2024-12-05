@@ -144,7 +144,7 @@ class ItemDict extends DataBin implements IDS_Serialize {
       // otherwise, we need to scan the existing list
       let maxID = 0;
       for (const obj of Object.keys(this._dict)) {
-        const { _prefix, ord } = this.decodeID(obj);
+        const { prefix, ord } = this.decodeID(obj);
         if (ord > maxID) maxID = ord;
       }
       this._ord_highest = maxID;

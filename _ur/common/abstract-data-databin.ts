@@ -4,7 +4,7 @@
 
   abstract class DataBin
     add, read, update, replace, write, deleteIDs, delete, clear, get
-  find, query
+    find, query
     decodeID, _maxID, newID
     on, off, notifyChange
     _serializeToJSON, _deserializeFromJSON
@@ -64,13 +64,14 @@ abstract class DataBin implements IDS_DataBin, IDS_Serialize {
 
   /// SERIALIZATION METHODS ///
 
-  /** API: create a new instance from a compatible state object */
+  /** API: create a new instance from a compatible state object. note that
+   *  OVERRIDING derived classes must handle the _ord_highest calculation */
   _setFromDataObj(data: DataObj): OpResult {
     let { name, _prefix, _ord_digits, _ord_highest } = data;
     // assign defaults if undefined
     if (_prefix === undefined) _prefix = '';
     if (_ord_digits === undefined) _ord_digits = 3;
-    if (_ord_highest === undefined) _ord_highest = 0; // todo: scan for highest
+    if (_ord_highest === undefined) _ord_highest = 0;
     // required name
     if (name === undefined) return { error: 'name missing' };
     if (typeof name !== 'string') return { error: 'name must be a string' };
@@ -106,36 +107,36 @@ abstract class DataBin implements IDS_DataBin, IDS_Serialize {
 
   /// ID METHODS ///
 
-  /** decode an id into its _prefix and number */
-  decodeID(id: UR_EntID): OpResult {
-    const fn = 'decodeID:';
-    // get the part of id after _prefix
-    if (!id.startsWith(this._prefix))
-      return { error: `${fn} id ${id} does not match _prefix ${this._prefix}` };
-    const ord = id.slice(this._prefix.length);
-    return { _prefix: this._prefix, _ord: parseInt(ord) };
-  }
-
-  /** abstract method to return the highest id in the _list, which may
-   *  mean using decodeID() to find the highest ordinal number */
-  abstract _maxID(): number;
+  /** abstract method to return the highest id in the _list, since the
+   *  _id may be stored differently depending on the bin type */
+  abstract _findMaxID(): number;
 
   /** find the highest id in the _list. EntityIDs are _prefix string + padded number, so
    *  we can just sort the _list and return the last one */
   newID(): UR_EntID {
     const fn = 'newID:';
-    let id;
+    let id: UR_EntID;
     // if ord_highest is set, we can just increment it since we don't reuse ids
     if (this._ord_highest > 0) {
       id = (++this._ord_highest).toString();
     } else {
       // otherwise, we need to scan the existing list
-      let maxID = this._maxID();
+      let maxID = this._findMaxID();
       this._ord_highest = maxID;
       id = (++this._ord_highest).toString();
     }
     const idstr = this._prefix ? id.padStart(this._ord_digits, '0') : id;
     return `${this._prefix}${idstr}`;
+  }
+
+  /** decode an id into its _prefix and number */
+  decodeID(id: UR_EntID): OpResult {
+    const fn = 'decodeID:';
+    // skip foreign ids with different prefix
+    if (!id.startsWith(this._prefix)) return { foreign: id };
+    // otherwise, decode the id
+    const ord = id.slice(this._prefix.length);
+    return { prefix: this._prefix, ord: parseInt(ord) };
   }
 
   /// COLLECTION METHODS ///

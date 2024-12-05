@@ -157,30 +157,6 @@ async function _handleDatasetOp(opParams: DatasetReq) {
 
   // TODO: check authToken against dataURI
 
-  /** mock data initialization of dataset, decide where it goes later */
-  const mock_InitializeDatasetFromData = (
-    dataset: Dataset,
-    inputData: DS_DatasetObj
-  ) => {
-    const { _dataURI, ItemDicts, ItemLists } = inputData;
-    if (_dataURI) dataset._dataURI = _dataURI;
-    LOG(`.. initializing dataset: ${dataset.dataset_name} from ${_dataURI}`);
-    if (ItemLists) {
-      for (const [name, dataBinObj] of Object.entries(ItemLists)) {
-        // LOG(`.. 185 dataObj`, dataObj);
-        const bin = dataset.createDataBin(name, 'ItemList');
-        // add the items to the bin
-        const { error, items: i } = bin._setFromDataObj(dataBinObj);
-        if (error) {
-          LOG(`.. error adding items to ItemList [${name}]`, error, bin);
-        } else {
-          LOG(`.. set data objects ${i.length} items to ItemList [${name}]`);
-        }
-      }
-    }
-    LOG('.. dataset initialized', Object.keys(dataset._getDataObj()).join(', '));
-  };
-  let data;
   let result: OpResult;
   switch (op) {
     case 'LOAD':
