@@ -66,7 +66,7 @@ export interface IDS_DataBin {
   query(criteria?: SearchOptions): RecordSet;
 }
 
-/// MANIFEST OBJ DEFINITION ///////////////////////////////////////////////////
+/// ASSET MANAGEMENT TYPES ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** a UR_Manifest is a description of the dataset contents that can be
  *  requested by name. The actual data is fetched from a ResourceURI */
@@ -74,11 +74,14 @@ export type ResourceURI = string; // a URI to a fetchable file/resource
 export type DataBinURIs = { [binID: DataBinID]: ResourceURI };
 export type DS_ContentMeta = {
   author?: string; // author name(s)
+  source?: string; // source of the dataset
   organization?: string; // organization name
   create_time?: string; // date string
   modify_time?: string; // date string
   description?: string; // description of the dataset
 };
+
+/// MANIFEST OBJ DEFINITION ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type UR_ManifestObj = {
   _dataURI?: DS_DataURI;
@@ -88,7 +91,7 @@ export type UR_ManifestObj = {
   itemdicts?: DataBinURIs; // list of databin files
   // StringLists, FileLists, etc
   // see DS_DatasetObj for the data storage
-};
+} & ErrObj;
 
 /// DATASET OBJ DEFINITION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -239,17 +242,10 @@ export type IDS_DatasetAdapter = {
   handleError: (params: any) => Promise<any>;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export type DatasetInfo = {
-  _dataURI?: DS_DataURI; // the dataURI this came from
-  manifest_src?: string; // auto, or uri of predefined manifest
-  manifest?: any;
-  error?: string;
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** implement functions needed to read/write data objects to a datastore */
 export interface IDS_DataObjectAdapter {
   accToken: string;
-  getDatasetInfo(dataURI: DS_DataURI): Promise<DatasetInfo>;
+  getManifest(dataURI: DS_DataURI): Promise<UR_ManifestObj>;
   readDatasetObj(dataURI: DS_DataURI): Promise<DS_DatasetObj>;
   readDataBinObj(dataURI: DS_DataURI, binID: DataBinID): Promise<DataObj>;
   writeDatasetObj(dataURI: DS_DataURI, dsObj: DS_DatasetObj): Promise<OpResult>;

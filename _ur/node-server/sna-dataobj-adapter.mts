@@ -21,9 +21,9 @@ import type { DOA_Options } from '../common/abstract-dataobj-adapter.ts';
 import type {
   DS_DatasetObj,
   DS_DataURI,
+  IDS_Serialize,
   UR_ManifestObj,
-  DataBinID,
-  DatasetInfo
+  DataBinID
 } from '../_types/dataset.js';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -103,7 +103,7 @@ async function m_GetDataBinManifest(dataPath: string) {
 /// API HELPERS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: generate a manifest from the passed dataPath */
-async function GetManifestFromPath(dataPath: string, meta?: UR_ManifestObj) {
+async function GetManifestFromPath(dataPath: string) {
   // bail if the requested path isn't a directory
   const pathInfo = FILE.GetPathInfo(dataPath);
   if (pathInfo.isFile)
@@ -114,9 +114,7 @@ async function GetManifestFromPath(dataPath: string, meta?: UR_ManifestObj) {
     if (manifestObjs.length > 0) return manifestObjs[0];
     /* otherwise, generate the manifest from dataPath */
     const dataManifest = await m_GetDataBinManifest(dataPath);
-    if (typeof meta !== 'object') meta = {};
-    const manifest = Object.assign(meta, dataManifest);
-    return { manifest, manifest_src: 'auto-generated' };
+    return { manifest: dataManifest, manifest_src: 'auto-generated' };
   }
   return { error: `${dataPath} does not exist` };
 }
@@ -167,28 +165,37 @@ class SNA_DataObjAdapter extends DataObjAdapter {
   /// ABSTRACT API METHOD IMPLEMENTATION ///
 
   /** returns manifest object from the filesystem */
-  async getDatasetInfo(dataURI: DS_DataURI): Promise<DatasetInfo> {
+  async getManifest(dataURI: DS_DataURI) {
     if (this.data_dir === undefined) {
-      throw Error(`getDatasetInfo: data_dir not set`);
+      throw Error(`getManifest: data_dir not set`);
     }
     const dataPath = MakePathFromDataURI(dataURI, this.data_dir);
     // 4. read manifest from filesystem
-    const { manifest, manifest_src, error } = await GetManifestFromPath(dataPath, {
-      _dataURI: dataURI,
-      _meta: {
-        author: 'sna-dataobj-adapter',
-        create_time: new Date().toISOString(),
-        modify_time: new Date().toISOString(),
-        description: 'auto-generated manifest'
-      }
-    });
+    const {
+      manifest: raw_manifest,
+      manifest_src,
+      error
+    } = await GetManifestFromPath(dataPath);
     if (error) return { error };
-    return { manifest, manifest_src, _dataURI: dataURI };
+    const manifest = Object.assign(
+      {
+        _dataURI: dataURI,
+        _meta: {
+          author: 'sna-dataobj-adapter',
+          source: manifest_src,
+          create_time: new Date().toISOString(),
+          modify_time: new Date().toISOString(),
+          description: 'auto-generated manifest'
+        }
+      },
+      raw_manifest
+    );
+    return { manifest };
   }
 
   /** construct a dataset object from the filesystem */
-  async readDatasetObj(dataURI: DS_DataURI): Promise<DS_DatasetObj> {
-    const { manifest, error } = await this.getDatasetInfo(dataURI);
+  async readDatasetObj(dataURI: DS_DataURI) {
+    const { manifest, error } = await this.getManifest(dataURI);
     if (error) return { error };
     const { _dataURI, _meta, itemlists, itemdicts } = manifest;
     // check for matching dataURI

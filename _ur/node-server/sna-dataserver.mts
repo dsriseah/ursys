@@ -34,8 +34,7 @@ import type {
   DataSyncReq,
   DatasetReq,
   DS_DatasetObj,
-  DS_DataURI,
-  DatasetInfo
+  DS_DataURI
 } from '../_types/dataset.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SyncOptions = {
@@ -67,13 +66,11 @@ let SEQ_NUM = 0; // predictable sequence number to order updates
 
 /// DATASET OPERATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type ExDatasetInfo = DatasetInfo & { status?: string };
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Load a dataset from the dataURI, return the data object */
-async function LoadDataset(dataURI: DS_DataURI): Promise<ExDatasetInfo> {
+async function LoadDataset(dataURI: DS_DataURI): Promise<OpResult> {
   let dset = DATASETS[dataURI];
   if (dset) return { status: 'already loaded', manifest: dset.manifest };
-  const { manifest, manifest_src, error } = await DSFS.getDatasetInfo(dataURI);
+  const { manifest, error } = await DSFS.getManifest(dataURI);
   if (error) return { error };
   dset = new Dataset(dataURI, manifest);
   DATASETS[dataURI] = dset;
@@ -81,34 +78,38 @@ async function LoadDataset(dataURI: DS_DataURI): Promise<ExDatasetInfo> {
   const dataObj = await DSFS.readDatasetObj(dataURI);
   DATASETS[dataURI]._setFromDataObj(dataObj);
   cur_data_uri = dataURI;
-  return { status: 'loaded', manifest, manifest_src };
+  return {};
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: */
-async function CloseDataset(dataURI: string) {
+async function CloseDataset(dataURI: DS_DataURI) {
   return { error: 'not implemented' };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: */
-async function PersistDataset(dataURI: string) {
-  return { error: 'not implemented' };
+/** API: given  tell the current dataset to persist (write) to disk */
+async function PersistDataset(dataURI: DS_DataURI): Promise<OpResult> {
+  const dset = DATASETS[dataURI];
+  if (dset === undefined) return { error: `dataset [${dataURI}] not found` };
+  const dataObj = dset._getDataObj();
+  const { manifest, error } = await DSFS.writeDatasetObj(dataURI, dataObj);
+  return { error };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: */
-async function GetDatasetData(dataURI?: string): Promise<DS_DatasetObj> {
-  const DSET = DATASETS[dataURI || cur_data_uri];
-  if (DSET === undefined) return { error: `dataset [${dataURI}] not found` };
+async function GetDatasetData(dataURI?: DS_DataURI): Promise<DS_DatasetObj> {
+  const dset = DATASETS[dataURI || cur_data_uri];
+  if (dset === undefined) return { error: `dataset [${dataURI}] not found` };
   const dataObj = {
-    _dataURI: DSET._dataURI,
-    ...DSET._getDataObj()
+    _dataURI: dset._dataURI,
+    ...dset._getDataObj()
   };
   return dataObj;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: */
 async function GetManifest(dataURI?: string) {
-  const DSET = DATASETS[dataURI || cur_data_uri];
-  return DSET.getManifest();
+  const dset = DATASETS[dataURI || cur_data_uri];
+  return dset.getManifest();
 }
 
 /// DATASET BIN OPERATIONS ////////////////////////////////////////////////////

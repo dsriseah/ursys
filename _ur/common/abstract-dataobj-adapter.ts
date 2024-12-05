@@ -31,11 +31,14 @@ import { DecodeDataURI, IsAssetDirname } from './util-data-ops.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   IDS_DataObjectAdapter,
+  IDS_Serialize,
   DS_DatasetObj,
+  UR_ManifestObj,
   DS_DataURI,
-  DataBinID,
-  DatasetInfo
+  DataBinID
 } from '../_types/dataset.js';
+type DSObj = DS_DatasetObj;
+type DSMan = UR_ManifestObj;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type DOA_Options = {
   dataURI?: DS_DataURI;
@@ -62,7 +65,7 @@ abstract class DataObjAdapter implements IDS_DataObjectAdapter {
     }
   }
 
-  abstract getDatasetInfo(dataURI: DS_DataURI): Promise<DatasetInfo>;
+  abstract getManifest(dataURI: DS_DataURI): Promise<UR_ManifestObj>;
   abstract readDatasetObj(dataURI: string): Promise<DS_DatasetObj>;
   abstract writeDatasetObj(dataURI: string, dsObj: DS_DatasetObj): Promise<any>;
   abstract readDataBinObj(dataURI: string, binID: DataBinID): Promise<any>;
