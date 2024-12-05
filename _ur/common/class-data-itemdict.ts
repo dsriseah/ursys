@@ -23,7 +23,7 @@ import type {
   OpResult,
   DataBinID,
   DataBinType,
-  I_DataSerialize,
+  IDS_Serialize,
   //
   SearchOptions
 } from '../_types/dataset';
@@ -56,7 +56,7 @@ function m_DictToList(dict: UR_ItemDict): UR_ItemList {
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class ItemDict extends DataBin implements I_DataSerialize {
+class ItemDict extends DataBin implements IDS_Serialize {
   // from base class
   // name: DataBinID; // name of this collection
   // _type: DataBinType; // type of this collection (.e.g ItemDict);

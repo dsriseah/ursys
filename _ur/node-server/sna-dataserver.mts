@@ -76,6 +76,7 @@ async function LoadDataset(dataURI: DS_DataURI): Promise<ExDatasetInfo> {
   const { manifest, manifest_src, error } = await DSFS.getDatasetInfo(dataURI);
   if (error) return { error };
   dset = new Dataset(dataURI, manifest);
+  console.log('*** manifest', manifest_src, manifest);
   DATASETS[dataURI] = dset;
   // now load the dataset data
   const dataObj = await DSFS.readDatasetObj(dataURI);
@@ -100,7 +101,6 @@ async function GetDatasetData(dataURI?: string): Promise<DS_DatasetObj> {
   if (DSET === undefined) return { error: `dataset [${dataURI}] not found` };
   const dataObj = {
     _dataURI: DSET._dataURI,
-    _schemaID: DSET._schemaID,
     ...DSET._getDataObj()
   };
   return dataObj;
@@ -161,8 +161,7 @@ async function _handleDatasetOp(opParams: DatasetReq) {
     dataset: Dataset,
     inputData: DS_DatasetObj
   ) => {
-    const { _schemaID, _dataURI, DocFolders, ItemLists } = inputData;
-    if (_schemaID) dataset._schemaID = _schemaID;
+    const { _dataURI, DocFolders, ItemLists } = inputData;
     if (_dataURI) dataset._dataURI = _dataURI;
     LOG(`.. initializing dataset: ${dataset.dataset_name} from ${_dataURI}`);
     if (ItemLists) {
@@ -180,9 +179,6 @@ async function _handleDatasetOp(opParams: DatasetReq) {
     }
     LOG('.. dataset initialized', Object.keys(dataset._getDataObj()).join(', '));
   };
-
-  // process the operations
-
   let data;
   let result: OpResult;
   switch (op) {

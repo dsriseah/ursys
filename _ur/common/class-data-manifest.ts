@@ -15,7 +15,7 @@ import {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   UR_ManifestObj,
-  UR_ContentMeta,
+  DS_ContentMeta,
   DataBinID,
   DataBinType,
   DataBinURIs,
@@ -37,9 +37,8 @@ const WARN = console.warn;
 class DatasetManifest {
   //
   _manifest: UR_ManifestObj;
-  _schemaID: UR_SchemaID;
   _dataURI: DS_DataURI;
-  _metaInfo: UR_ContentMeta;
+  _metaInfo: DS_ContentMeta;
   _bins: Map<DataBinType, DataBinURIs>;
   //
   constructor(maniObj?: UR_ManifestObj) {
@@ -58,10 +57,9 @@ class DatasetManifest {
   _setFromManifestObj(maniObj: UR_ManifestObj): void {
     const { error, ...decoded } = DecodeManifest(maniObj);
     if (error) throw Error(`error constructing DatasetManifest: ${error}`);
-    const { _schemaID, _dataURI, _metaInfo, ...bins } = decoded;
+    const { _dataURI, _metaInfo, ...bins } = decoded;
     this._manifest = decoded;
     // memory note: ? none-duplicated pointers ?
-    this._schemaID = _schemaID;
     this._dataURI = _dataURI;
     /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*\
       bins: {
@@ -78,19 +76,13 @@ class DatasetManifest {
 
   /// BUILDERS ///
 
-  setSchemaID(schemaID: UR_SchemaID): void {
-    const { error } = DecodeSchemaID(schemaID);
-    if (error) throw Error(`error setting schemaID '${schemaID}': ${error}`);
-    this._schemaID = schemaID;
-  }
-
   setDataURI(dataURI: DS_DataURI): void {
     const { error } = DecodeDataURI(dataURI);
     if (error) throw Error(`error setting dataURI '${dataURI}': ${error}`);
     this._dataURI = dataURI;
   }
 
-  setMeta(meta: UR_ContentMeta): void {
+  setMeta(meta: DS_ContentMeta): void {
     this._metaInfo = meta;
   }
 
@@ -106,13 +98,12 @@ class DatasetManifest {
 
   /** return a new manifest object */
   getManifestObj(): UR_ManifestObj {
-    const { _schemaID, _dataURI, _metaInfo } = this;
+    const { _dataURI, _metaInfo } = this;
     const bins = {};
     this._bins.forEach((dict, type) => {
       bins[type] = { ...dict };
     });
     return {
-      _schemaID,
       _dataURI,
       _metaInfo,
       ...bins
@@ -121,18 +112,13 @@ class DatasetManifest {
 
   /// ACCESSORS (RETURN COPIES) ///
 
-  /** return the schemaID of this manifest */
-  get schemaID(): UR_SchemaID {
-    return this._schemaID;
-  }
-
   /** retrieve the dataURI of this manifest*/
   get dataURI(): string {
     return this._dataURI;
   }
 
   /** retrieve a copy of the meta info for this manifest */
-  get meta(): UR_ContentMeta {
+  get meta(): DS_ContentMeta {
     return { ...this._metaInfo };
   }
 

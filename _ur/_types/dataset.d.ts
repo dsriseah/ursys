@@ -33,15 +33,15 @@ export type DS_DataURI = `${OrgDomain}:${BucketID}/${InstanceID}:${TagString}`;
 /// INTERFACES ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** used by databin and dataset classes moving data across the network */
-export interface I_DataSerialize {
-  _getDataObj(): DataObj;
-  _setFromDataObj(data: DataObj): void;
+export interface IDS_Serialize {
+  _getDataObj(): DS_DatasetObj;
+  _setFromDataObj(data: DS_DatasetObj): OpResult;
   _serializeToJSON(): string;
   _deserializeFromJSON(json: string): void;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** required interface for dataAPI (implemented by DataBin abstract class) */
-export interface I_DataAPI {
+export interface IDS_DataBin {
   add(items: UR_Item[]): { added?: UR_Item[]; error?: string };
   read(ids?: UR_EntID[]): { items?: UR_Item[]; error?: string };
   update(items: UR_Item[]): { updated?: UR_Item[]; error?: string };
@@ -66,7 +66,31 @@ export interface I_DataAPI {
   query(criteria?: SearchOptions): RecordSet;
 }
 
-/// DATASET CONVENTIONS ///////////////////////////////////////////////////////
+/// MANIFEST OBJ DEFINITION ///////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** a UR_Manifest is a description of the dataset contents that can be
+ *  requested by name. The actual data is fetched from a ResourceURI */
+export type ResourceURI = string; // a URI to a fetchable file/resource
+export type DataBinURIs = { [binID: DataBinID]: ResourceURI };
+export type DS_ContentMeta = {
+  author?: string; // author name(s)
+  organization?: string; // organization name
+  createdBy?: string; // date string
+  createdOn?: string; // date string
+  description?: string; // description of the dataset
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type UR_ManifestObj = {
+  _dataURI?: DS_DataURI;
+  _metaInfo?: DS_ContentMeta; // meta info on the manifest creator
+  //  filenames of the databin files, relative to the dataURI
+  itemlists?: DataBinURIs; // list of databin files
+  itemdicts?: DataBinURIs; // list of databin files
+  // StringLists, FileLists, etc
+  // see DS_DatasetObj for the data storage
+};
+
+/// DATASET OBJ DEFINITION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// data models have objects with an _id field that uniquely identifies
 /// each entity in the dataset called a UID.
@@ -85,48 +109,35 @@ export type DataBinID = string; // snake_case
 export type DataBinType = 'ItemDict' | 'ItemList';
 export type UR_ItemList = UR_Item[];
 export type UR_ItemDict = { [_id: UR_EntID]: UR_Doc };
-export type UR_ContentMeta = {
-  author?: string; // author name(s)
-  organization?: string; // organization name
-  createdBy?: string; // date string
-  createdOn?: string; // date string
-  description?: string; // description of the dataset
-};
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/// a DS_DatasetObj is a collection of multiple bags of items, organized by
-/// type of bag (e.g. documents, itemlists, etc.)
+/// a DS_DatasetObj is the serialized form of a dataset returned from
+/// a dataset source and used to initialize a Dataset class instance
 export type DS_DatasetObj = {
-  _schemaID?: UR_SchemaID; // see github.com/dsriseah/ursys/discussions/22
   _dataURI?: DS_DataURI;
   // see github.com/dsriseah/ursys/discussions/25 fior list of types
   // see util-data-ops.ts for the equivalent foldernames
-  DocFolders?: { [foldername: DataBinID]: UR_ItemDict };
-  ItemLists?: {
-    [listname: DataBinID]: {
-      name: DataBinID;
-      _prefix: string;
-      _ord_digits: number;
-      _ord_highest: number;
-      items: UR_ItemList;
-    };
-  };
+  ItemLists?: { [listname: DataBinID]: ItemListObj };
+  DocFolders?: { [foldername: DataBinID]: ItemDictObj };
+  //
   error?: string;
 };
-
-/// MANIFEST DEFINITION ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** a UR_Manifest is a description of the dataset contents that can be
- *  requested by name. The actual data is fetched from a ResourceURI */
-export type ResourceURI = string; // a URI to a fetchable file/resource
-export type DataBinURIs = { [binID: DataBinID]: ResourceURI };
-export type UR_ManifestObj = {
-  _schemaID?: UR_SchemaID;
-  _dataURI?: DS_DataURI;
-  _metaInfo?: UR_ContentMeta; // file manifest meta information
-  ItemListURIs?: DataBinURIs; // list of databin in dataset
-  DocFolderURIs?: DataBinURIs; // list of folders in dataset
-  // StringLists, FileLists, etc
-  // see DS_DatasetObj for the data storage
+/// serialized form of itemlist stored in DataBinURI file
+type ItemListObj = {
+  name: DataBinID;
+  _prefix: string;
+  _ord_digits: number;
+  _ord_highest: number;
+  items: UR_ItemList;
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// serialized form of itemdict stored in DataBinURI file
+type ItemDictObj = {
+  name: DataBinID;
+  _prefix: string;
+  _ord_digits: number;
+  _ord_highest: number;
+  items: UR_ItemDict;
 };
 
 /// DATASET MANAGEMENT TYPES //////////////////////////////////////////////////

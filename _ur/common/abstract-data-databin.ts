@@ -36,8 +36,8 @@ const DBG = true;
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { I_DataAPI, I_DataSerialize } from '../_types/dataset';
-abstract class DataBin implements I_DataAPI, I_DataSerialize {
+import type { IDS_DataBin, IDS_Serialize } from '../_types/dataset';
+abstract class DataBin implements IDS_DataBin, IDS_Serialize {
   //
   name: DataBinID; // name of this collection
   _type: DataBinType; // type of this collection (.e.g ItemList);

@@ -32,7 +32,7 @@ import type {
   DataBinID,
   DataBinType,
   UR_SchemaID,
-  I_DataSerialize,
+  IDS_Serialize,
   DS_DataURI,
   UR_ManifestObj,
   DS_DatasetObj,
@@ -71,12 +71,11 @@ function m_IsValidBinName(bName: string): boolean {
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** knows how to manage the different kinds of collections */
-class Dataset implements I_DataSerialize {
+class Dataset implements IDS_Serialize {
   //
   dataset_name: string; // the name of this list manager
   manifest: UR_ManifestObj;
   _dataURI: DS_DataURI; // the URI of the dataset
-  _schemaID: UR_SchemaID; // the schema of the dataset
   open_bins: Set<DataBinID>; // open bins are subject to sync
   acc_toks: Map<DataBinID, DataAccessTokSet>; // access tokens for each bin
   //
@@ -147,7 +146,6 @@ class Dataset implements I_DataSerialize {
       docs[binID] = bin._getDataObj();
     }
     return {
-      _schemaID: this._schemaID,
       _dataURI: this._dataURI,
       ItemLists: lists,
       DocFolders: docs
@@ -156,8 +154,7 @@ class Dataset implements I_DataSerialize {
 
   /** given a dataset object, set the dataset properties */
   _setFromDataObj(dataObj: DS_DatasetObj): OpResult {
-    const { _schemaID, _dataURI, DocFolders, ItemLists } = dataObj;
-    if (_schemaID) this._schemaID = _schemaID;
+    const { _dataURI, DocFolders, ItemLists } = dataObj;
     if (_dataURI) this._dataURI = _dataURI;
     const found: { [binType: string]: string[] } = {};
     if (ItemLists) {

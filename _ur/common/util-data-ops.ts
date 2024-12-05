@@ -44,20 +44,22 @@ type DecodedSchema = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DSET_MODES: DataSyncMode[] = ['local', 'local-ro', 'sync', 'sync-ro'];
 const DSET_FSMAP = {
-  'DocFolders': { dir: 'docfolders', type: 'ItemDict' },
-  'ItemLists': { dir: 'itemlists', type: 'ItemList' }
-  // 'StringLists': { dir: 'StringList' },
-  // 'FileLists': { dir: 'filelists' },
-  // 'AppConfig': { dir: 'appconfig' },
-  // 'RunConfig': { dir: 'runconfig' },
-  // 'RunState': { dir: 'runstate' },
-  // 'RunLogs': { dir: 'runlogs' },
-  // 'RunSessions': { dir: 'runsessions' },
-  // 'Templates': { dir: 'templates' }
+  'itemdicts': { type: 'ItemDict', ext: 'json' },
+  'itemlists': { type: 'ItemList', ext: 'json' }
+  // 'schemas': { type: 'Schema', ext: 'json' },
+  // 'stringlists': { type: 'StringList' },
+  // 'filelists': { type: 'FileList' },
+  // 'appconfigs': { type: 'AppConfig' },
+  // 'runconfigs': { type: 'RunConfig' },
+  // 'runstates': { type: 'RunState' },
+  // 'runlogs': { type: 'RunLog' },
+  // 'sessions': { type: 'RunSession' },
+  // 'templates': { type: 'Template', ext: 'json' },
+  // 'sprites': { type: 'Sprite', ext: 'png' },
 };
 /** derived constants - - - - - - - - - - - - - - - - - - - - - - - - - - - **/
 const DATASET_BINS: DataBinType[] = Object.keys(DSET_FSMAP) as DataBinType[];
-const DATASET_DIRS = Object.values(DSET_FSMAP).map(v => v.dir);
+const DATASET_DIRS = Object.keys(DSET_FSMAP);
 
 /// DATASYNC CONSTANTS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -123,18 +125,23 @@ function DecodeSchemaID(schemaID: string): DecodedSchema {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** decode and validate the manifest object */
 function DecodeManifest(manifest: UR_ManifestObj): DecodedManifest {
-  const { _schemaID, _dataURI, _metaInfo } = manifest;
-  if (typeof _schemaID !== 'string') return { error: 'bad _schemaID' };
+  const { _dataURI, _metaInfo } = manifest;
   if (typeof _dataURI !== 'string') return { error: 'bad _dataURI' };
   if (typeof _metaInfo !== 'object') return { error: 'bad _metaInfo' };
-  const { ItemListURIs, DocFolderURIs } = manifest;
+  const { itemlists, itemdicts } = manifest;
   return {
-    _schemaID,
     _dataURI,
     _metaInfo,
-    ItemListURIs,
-    DocFolderURIs
+    itemlists,
+    itemdicts
   };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** reverse lookup of assetDir to contained type, where dirname is
+ *  a pluralized version of the type name */
+function GetBinTypeByDirname(dirname: string) {
+  const entry = DSET_FSMAP[dirname];
+  if (entry) return entry.type;
 }
 
 /// DATASET API METHODS ///////////////////////////////////////////////////////
@@ -233,22 +240,6 @@ function DecodeDatasetReq(req: DatasetReq): DecodedDatasetReq {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const MOD = {
-  IsAssetDirname,
-  IsValidDataURI,
-  IsValidDataConfig,
-  IsDataSyncOp,
-  IsDatasetOp,
-  DecodeDataURI,
-  DecodeManifest,
-  DecodeSchemaID,
-  DecodeDataConfig,
-  DecodeDatasetReq,
-  DecodeSyncReq,
-  GetDatasetObjectProps
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default MOD;
 export {
   IsAssetDirname,
   IsValidDataURI,
@@ -261,5 +252,6 @@ export {
   DecodeDataConfig,
   DecodeDatasetReq,
   DecodeSyncReq,
-  GetDatasetObjectProps
+  GetDatasetObjectProps,
+  GetBinTypeByDirname
 };

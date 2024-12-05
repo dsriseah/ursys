@@ -26,7 +26,7 @@ import type {
   OpResult,
   DataBinID,
   DataBinType,
-  I_DataSerialize,
+  IDS_Serialize,
   //
   SearchOptions
 } from '../_types/dataset';
@@ -39,7 +39,7 @@ type ItemListOptions = {
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class ItemList extends DataBin implements I_DataSerialize {
+class ItemList extends DataBin implements IDS_Serialize {
   // from base class
   // name: DataBinID; // name of this collection
   // _type: DataBinType; // type of this collection (.e.g ItemList);
