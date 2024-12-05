@@ -117,10 +117,8 @@ export type DS_DatasetObj = {
   // see github.com/dsriseah/ursys/discussions/25 fior list of types
   // see util-data-ops.ts for the equivalent foldernames
   ItemLists?: { [listname: DataBinID]: ItemListObj };
-  DocFolders?: { [foldername: DataBinID]: ItemDictObj };
-  //
-  error?: string;
-};
+  ItemDicts?: { [dictname: DataBinID]: ItemDictObj };
+} & ErrObj;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// serialized form of itemlist stored in DataBinURI file
 type ItemListObj = {

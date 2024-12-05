@@ -148,13 +148,13 @@ class Dataset implements IDS_Serialize {
     return {
       _dataURI: this._dataURI,
       ItemLists: lists,
-      DocFolders: docs
+      ItemDicts: docs
     };
   }
 
   /** given a dataset object, set the dataset properties */
   _setFromDataObj(dataObj: DS_DatasetObj): OpResult {
-    const { _dataURI, DocFolders, ItemLists } = dataObj;
+    const { _dataURI, ItemDicts, ItemLists } = dataObj;
     if (_dataURI) this._dataURI = _dataURI;
     const found: { [binType: string]: string[] } = {};
     if (ItemLists) {
@@ -166,13 +166,13 @@ class Dataset implements IDS_Serialize {
         found.ItemLists.push(name);
       }
     }
-    if (DocFolders) {
-      found.DocFolders = [];
-      for (const [name, dataBinObj] of Object.entries(DocFolders)) {
+    if (ItemDicts) {
+      found.ItemDicts = [];
+      for (const [name, dataBinObj] of Object.entries(ItemDicts)) {
         const bin = this.createDataBin(name, 'ItemDict');
         const { error, items: i } = bin._setFromDataObj(dataBinObj);
         if (error) return { error };
-        found.DocFolders.push(name);
+        found.ItemDicts.push(name);
       }
     }
     return found;

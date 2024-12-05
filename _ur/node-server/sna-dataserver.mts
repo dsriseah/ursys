@@ -161,7 +161,7 @@ async function _handleDatasetOp(opParams: DatasetReq) {
     dataset: Dataset,
     inputData: DS_DatasetObj
   ) => {
-    const { _dataURI, DocFolders, ItemLists } = inputData;
+    const { _dataURI, ItemDicts, ItemLists } = inputData;
     if (_dataURI) dataset._dataURI = _dataURI;
     LOG(`.. initializing dataset: ${dataset.dataset_name} from ${_dataURI}`);
     if (ItemLists) {
