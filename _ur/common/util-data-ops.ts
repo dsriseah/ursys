@@ -125,13 +125,13 @@ function DecodeSchemaID(schemaID: string): DecodedSchema {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** decode and validate the manifest object */
 function DecodeManifest(manifest: UR_ManifestObj): DecodedManifest {
-  const { _dataURI, _metaInfo } = manifest;
+  const { _dataURI, _meta } = manifest;
   if (typeof _dataURI !== 'string') return { error: 'bad _dataURI' };
-  if (typeof _metaInfo !== 'object') return { error: 'bad _metaInfo' };
+  if (typeof _meta !== 'object') return { error: 'bad _metaInfo' };
   const { itemlists, itemdicts } = manifest;
   return {
     _dataURI,
-    _metaInfo,
+    _meta,
     itemlists,
     itemdicts
   };

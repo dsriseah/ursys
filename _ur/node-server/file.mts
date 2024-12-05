@@ -16,7 +16,13 @@ import { pipeline } from 'node:stream/promises';
 
 /// TYPE DECLARATIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-type HashInfo = { filepath: string; filename: string; ext: string; hash: string };
+type HashInfo = {
+  filepath: string;
+  filename: string;
+  basename: string;
+  ext: string;
+  hash: string;
+};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -320,8 +326,8 @@ async function FilesHashInfo(filepaths, algo = 'md5'): Promise<HashInfo[]> {
   const hashInfo = [];
   for (let fp of filepaths) {
     const hash = await AsyncFileHash(fp, algo);
-    const { filename, ext } = GetPathInfo(fp);
-    hashInfo.push({ filepath: fp, filename, ext, hash });
+    const { filename, basename, ext } = GetPathInfo(fp);
+    hashInfo.push({ filepath: fp, filename, basename, ext, hash });
   }
   return hashInfo;
 }

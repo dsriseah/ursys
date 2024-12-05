@@ -75,14 +75,14 @@ export type DataBinURIs = { [binID: DataBinID]: ResourceURI };
 export type DS_ContentMeta = {
   author?: string; // author name(s)
   organization?: string; // organization name
-  createdBy?: string; // date string
-  createdOn?: string; // date string
+  create_time?: string; // date string
+  modify_time?: string; // date string
   description?: string; // description of the dataset
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export type UR_ManifestObj = {
   _dataURI?: DS_DataURI;
-  _metaInfo?: DS_ContentMeta; // meta info on the manifest creator
+  _meta?: DS_ContentMeta; // meta info on the manifest creator
   //  filenames of the databin files, relative to the dataURI
   itemlists?: DataBinURIs; // list of databin files
   itemdicts?: DataBinURIs; // list of databin files
