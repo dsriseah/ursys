@@ -14,17 +14,22 @@ import {
   RegisterMessages
 } from './sna-web-urnet-client.ts';
 import {
-  SNA_RegisterComponent,
-  SNA_GlobalConfig,
+  SNA_UseComponent,
+  SNA_SetAppConfig,
+  SNA_GetAppConfig,
   SNA_LifecycleStart,
   SNA_LifecycleStatus,
   SNA_HookAppPhase,
   GetDanglingHooks
 } from './sna-web-hooks.ts';
-import { SNA_DeclareComponent } from '../common/class-sna-component.ts';
+import { SNA_NewComponent } from '../common/class-sna-component.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type StartOptions = {
+  no_urnet?: boolean;
+  no_hmr?: boolean;
+};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,10 +39,9 @@ const PR = ConsoleStyler('sna', 'TagGray');
 /// SNA LIFECYCLE /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: initialize the server's lifecycle */
-async function SNA_Start() {
+async function SNA_Start(config: StartOptions) {
   // get configuration flags
-  const { no_urnet, no_hmr } = SNA_GlobalConfig();
-
+  const { no_urnet, no_hmr } = config || {};
   // prepare net hooks before starting the lifecycle
   if (!no_urnet) {
     SNA_HookAppPhase('DOM_READY', SNA_NetConnect);
@@ -103,13 +107,14 @@ export * as DATACLIENT from './sna-dataclient.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   // sna process
-  SNA_RegisterComponent as RegisterComponent,
-  SNA_GlobalConfig as GlobalConfig,
+  SNA_UseComponent as UseComponent,
+  SNA_SetAppConfig as SetAppConfig,
+  SNA_GetAppConfig as GetAppConfig,
   SNA_Start as Start,
   SNA_Status as Status,
   SNA_HookAppPhase as HookAppPhase,
   // sna modules
-  SNA_DeclareComponent as DeclareComponent,
+  SNA_NewComponent as NewComponent,
   // included modules
   MOD_DataClient
 };

@@ -49,10 +49,7 @@ class SNA_Component implements SNA_ComponentProps {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** utility to declare an SNA_Component with a name and config object */
-function SNA_DeclareComponent(
-  name: string,
-  config: SNA_ComponentProps
-): SNA_Component {
+function SNA_NewComponent(name: string, config: SNA_ComponentProps): SNA_Component {
   return new SNA_Component(name, config);
 }
 
@@ -62,7 +59,7 @@ export default SNA_Component;
 export {
   SNA_Component,
   // method
-  SNA_DeclareComponent
+  SNA_NewComponent
 };
 export type {
   SNA_ComponentProps,

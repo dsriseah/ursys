@@ -24,7 +24,7 @@ import {
   AddMessageHandler,
   ClientEndpoint,
   RegisterMessages,
-  DeclareComponent
+  NewComponent
 } from './sna-web.ts';
 import { Dataset } from '../common/class-data-dataset.ts';
 import { DatasetAdapter } from '../common/abstract-dataset-adapter.ts';
@@ -222,6 +222,7 @@ async function Activate() {
       return ds;
     }
     const found = DSET._setFromDataObj(ds);
+    return { dataURI: DS_URI, found: Object.keys(found) };
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -458,7 +459,7 @@ function Unsubscribe(binID: string, evHdl: SNA_EvtHandler) {
  *  with the PreConfig() and PreHook() methods to allow the module to
  *  independently manage itself and its data */
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default DeclareComponent('dataclient', {
+export default NewComponent('dataclient', {
   PreConfig,
   PreHook,
   Subscribe,

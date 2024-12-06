@@ -8,13 +8,14 @@ import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 import { SNA_Build, SNA_RuntimeInfo } from './sna-node-urnet-server.mts';
 import {
   SNA_HookServerPhase,
-  SNA_RegisterComponent,
+  SNA_UseComponent,
   SNA_LifecycleStatus,
   SNA_LifecycleStart,
-  SNA_GlobalConfig,
+  SNA_SetServerConfig,
+  SNA_GetServerConfig,
   GetDanglingHooks
 } from './sna-node-hooks.mts';
-import { SNA_DeclareComponent } from '../common/class-sna-component.ts';
+import { SNA_NewComponent } from '../common/class-sna-component.ts';
 
 /// SNA MODULES PACKAGING /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -37,7 +38,7 @@ const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: initialize the server's lifecycle */
 async function SNA_Start() {
-  SNA_RegisterComponent(MOD_DataServer);
+  SNA_UseComponent(MOD_DataServer);
   // prepare own hooks before starting the lifecycle
   SNA_HookServerPhase('SRV_READY', LOG('Server Ready'));
   // now start the lifecycle
@@ -65,8 +66,10 @@ export {
   SNA_HookServerPhase as HookServerPhase,
   SNA_RuntimeInfo as RuntimeInfo,
   // sna modules
-  SNA_GlobalConfig as GlobalConfig,
-  SNA_DeclareComponent as DeclareComponent,
+  SNA_SetServerConfig as SetServerConfig,
+  SNA_GetServerConfig as GetServerConfig,
+  SNA_UseComponent as UseComponent,
+  SNA_NewComponent as NewComponent,
   // included modules
   MOD_DataServer
 };

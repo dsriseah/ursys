@@ -22,7 +22,11 @@ import { DataBin } from '../common/abstract-data-databin.ts';
 import { DecodeDatasetReq, DecodeSyncReq } from '../common/util-data-ops.ts';
 import { SNA_DataObjAdapter } from './sna-dataobj-adapter.mts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
-import { SNA_HookServerPhase, SNA_DeclareComponent } from './sna-node-hooks.mts';
+import {
+  SNA_HookServerPhase,
+  SNA_GetServerConfig,
+  SNA_NewComponent
+} from './sna-node-hooks.mts';
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -78,7 +82,7 @@ async function LoadDataset(dataURI: DS_DataURI): Promise<OpResult> {
   const dataObj = await DSFS.readDatasetObj(dataURI);
   DATASETS[dataURI]._setFromDataObj(dataObj);
   cur_data_uri = dataURI;
-  return {};
+  return { status: 'ok', manifest };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: */
@@ -226,16 +230,11 @@ async function _handleDataOp(opParams: DataSyncReq) {
 
 /// SNA MODULE API ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** PreConfig is called before PreHook before SNALifecycle is started. We
- *  want to grab the runtime_dir and set up the data object adapter */
-function PreConfig(config) {
-  const { runtime_dir } = config;
-  DSFS.setDataDir(runtime_dir);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** PreHook is called just before the SNA Lifecycle is started, so here is
  *  where your module can declare where it needs to do something */
 function PreHook() {
+  const { runtime_dir } = SNA_GetServerConfig();
+  DSFS.setDataDir(runtime_dir);
   SNA_HookServerPhase('EXPRESS_READY', () => {
     AddMessageHandler('SYNC:SRV_DSET', _handleDatasetOp);
     AddMessageHandler('SYNC:SRV_DATA', _handleDataOp);
@@ -243,8 +242,7 @@ function PreHook() {
 }
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default SNA_DeclareComponent('dataserver', {
-  PreConfig,
+export default SNA_NewComponent('dataserver', {
   PreHook
 });
 export {

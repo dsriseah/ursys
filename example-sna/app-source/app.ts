@@ -40,17 +40,18 @@ SNA.HookAppPhase('LOAD_CONFIG', () => {});
   // 3. the server looks-up the user and returns a user-token
   //    and dataURI
   const auth_token = 'server-provided-jwt';
+
+  // TODO: make dataURI and datasetMode come from the server
   const dataURI = 'sri.org:bucket-1234/sna-app/project-one';
   const datasetMode = 'sync';
-
   // Set the global configuration object
-  SNA.GlobalConfig({ dataset: { dataURI: dataURI, syncMode: datasetMode } });
+  SNA.SetAppConfig({ dataset: { dataURI: dataURI, syncMode: datasetMode } });
 
   // Register all SNA components
-  SNA.RegisterComponent(SNA.MOD_DataClient);
-  SNA.RegisterComponent(COMMENTS);
+  SNA.UseComponent(SNA.MOD_DataClient);
+  SNA.UseComponent(COMMENTS);
 
   // After all modules are initialized, start the SNA lifecycle this will
   // call PreConfig() and PreHook() all all registered modules.
-  await SNA.Start();
+  await SNA.Start({ no_hmr: false, no_urnet: false });
 })();

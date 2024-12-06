@@ -1,0 +1,7 @@
+{
+  "notice": "Do not add properties to this file! Talk to Sri.",
+  "dataset": {
+    "dataURI": "sri.org:bucket-1234/sna-app/project-one",
+    "syncMode": "sync"
+  }
+}

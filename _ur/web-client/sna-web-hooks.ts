@@ -24,7 +24,9 @@ const PR = ConsoleStyler('sna.hook', 'TagGray');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let COMPONENTS: Set<SNA_Component> = new Set();
-let GLOBAL_CONFIG: DataObj = {};
+let APP_CFG: DataObj = {}; // pre-provided configuration object
+let CFG_VALID: boolean = false;
+let HOOKS_VALID: boolean = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let PM: PhaseMachine;
 
@@ -34,15 +36,12 @@ const { HookPhase, RunPhaseGroup, GetMachine, GetDanglingHooks } = PhaseMachine;
 
 /// SNA COMPONENT REGISTRATION ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SNA_DeclareComponent(
-  name: string,
-  config: SNA_ComponentProps
-): SNA_Component {
+function SNA_NewComponent(name: string, config: SNA_ComponentProps): SNA_Component {
   return new SNA_Component(name, config);
 } /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: register a component with the SNA lifecycle */
-function SNA_RegisterComponent(component: SNA_Component) {
-  const fn = 'SNA_RegisterComponent:';
+function SNA_UseComponent(component: SNA_Component) {
+  const fn = 'SNA_UseComponent:';
   const { _name } = component;
   if (typeof _name !== 'string')
     throw Error(`${fn} bad SNA component: missing _name`);
@@ -56,22 +55,32 @@ function SNA_RegisterComponent(component: SNA_Component) {
   const { AddComponent } = component;
   if (typeof AddComponent === 'function') {
     if (DBG) LOG(...PR(`.. '${_name}' is adding modules`));
-    AddComponent({ f_AddComponent: SNA_RegisterComponent });
+    AddComponent({ f_AddComponent: SNA_UseComponent });
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: register a global configuration object, merging with the existing
- *  configuration */
-function SNA_GlobalConfig(config?: DataObj): DataObj {
-  // when no config is provided, return the current global config
-  if (config === undefined) return GLOBAL_CONFIG;
+/** API: register a global configuration object for all web apps, merging with
+ *  the existing configuration */
+function SNA_SetAppConfig(config: DataObj): void {
+  const fn = 'SNA_SetAppConfig:';
+  if (config === undefined) throw Error(`${fn} missing config object`);
+  if (HOOKS_VALID) throw Error(`${fn} cannot set config after lifecycle has started`);
   // otherwise merge the new config with the existing global config
-  if (Object.keys(GLOBAL_CONFIG).length === 0) {
-    if (DBG) LOG(...PR(`Setting SNA Global Configuration`));
-  } else if (DBG) LOG(...PR(`Updating SNA Global Configuration`));
-  GLOBAL_CONFIG = Object.assign(GLOBAL_CONFIG, config);
-  // return a copy of the global config fr
-  return { ...GLOBAL_CONFIG };
+  if (Object.keys(APP_CFG).length === 0) {
+    if (DBG) LOG(...PR(`Setting SNA App Configuration`));
+  } else if (DBG) LOG(...PR(`Updating SNA App Configuration`));
+  APP_CFG = Object.assign(APP_CFG, config);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: return the global configuration object for all apps after start */
+function SNA_GetAppConfig(): DataObj {
+  const fn = 'SNA_GetAppConfig:';
+  const { preconfig } = SNA_LifecycleStatus();
+  if (preconfig === false) {
+    console.warn(`${fn} Derived config should be set in PreHook at earliest.`);
+    console.warn(`Complete config is guaranteed at lifecycle start.`);
+  }
+  return { ...APP_CFG };
 }
 
 /// SNA LIFECYCLE /////////////////////////////////////////////////////////////
@@ -89,7 +98,7 @@ async function SNA_LifecycleStart() {
         'DOM_READY' // the app's initial page has rendered fully
       ],
       PHASE_CONNECT: [
-        'NET_CONNECT', // start the network connection
+        'OpRe', // start the network connection
         'NET_AUTH', // hook for authentication setup
         'NET_REGISTER', // hook for registration info
         'NET_READY', // ursys network is active and registered
@@ -125,9 +134,10 @@ async function SNA_LifecycleStart() {
     const { PreConfig, _name } = component;
     if (typeof PreConfig === 'function') {
       if (DBG) LOG(...PR(`PreConfig SNA_Component '${_name}'`));
-      PreConfig(GLOBAL_CONFIG);
+      PreConfig(APP_CFG);
     }
   }
+  CFG_VALID = true;
 
   // initialize all registered components
   for (const component of COMPONENTS) {
@@ -137,6 +147,7 @@ async function SNA_LifecycleStart() {
       PreHook();
     }
   }
+  HOOKS_VALID = true;
 
   // run phase groups in order
   if (DBG) LOG(...PR(`SNA App Lifecycle is starting`));
@@ -165,6 +176,8 @@ function SNA_LifecycleStatus() {
 
   if (PM === undefined)
     Object.assign(status, {
+      preconfig: CFG_VALID,
+      prehook: HOOKS_VALID,
       phaseGroup: undefined,
       phase: undefined,
       message: 'SNA PhaseMachine is undefined'
@@ -174,6 +187,8 @@ function SNA_LifecycleStatus() {
     const lastPhaseGroup = PM.getPhaseList('PHASE_RUN');
     const lastPhase = lastPhaseGroup[lastPhaseGroup.length - 1];
     Object.assign(status, {
+      preconfig: CFG_VALID,
+      prehook: HOOKS_VALID,
       phaseGroup: PM.cur_group,
       phase: PM.cur_phase,
       completed: cur_phase === lastPhase
@@ -188,9 +203,10 @@ function SNA_LifecycleStatus() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   // sna process
-  SNA_DeclareComponent,
-  SNA_RegisterComponent,
-  SNA_GlobalConfig,
+  SNA_NewComponent,
+  SNA_UseComponent,
+  SNA_SetAppConfig,
+  SNA_GetAppConfig,
   SNA_HookAppPhase,
   SNA_LifecycleStart,
   SNA_LifecycleStatus

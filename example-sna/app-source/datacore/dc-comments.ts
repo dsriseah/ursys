@@ -38,6 +38,7 @@ async function HOOK_LoadDataLocal() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** using the remote data initialization, assuming dataset is already loaded */
 async function HOOK_LoadDataRemote() {
+  LOG(...PR('HOOK_LoadDataRemote:'));
   let res: OpResult;
   res = await DCLI.Subscribe('comments', HandleDataEvent);
   if (res.error) {
@@ -52,8 +53,9 @@ async function HOOK_LoadDataRemote() {
 /** example of using dataclient */
 async function DoSomething() {
   const fn = 'DoSomething:';
-  const resGet = await DCLI.Get('comments', ['cmt4']);
-  LOG(...PR(fn, 'got cmt4', resGet));
+  LOG(...PR(fn, 'persistence test setup'));
+  const resGet = await DCLI.Get('comments', ['cmt004']);
+  LOG(...PR(fn, 'got cmt004', resGet));
   // fake autosave
   setTimeout(async () => {
     LOG(...PR(fn, 'faked autosave'));
@@ -101,8 +103,10 @@ function SNA_PreConfig(data: any) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SNA_PreHook() {
+  LOG(...PR('SNA_PreHook:'));
   SNA.HookAppPhase('LOAD_DATA', () => HOOK_LoadDataRemote());
   SNA.HookAppPhase('APP_CONFIG', async () => {
+    LOG(...PR('APP_CONFIG starting'));
     const items = await DCLI.Get('comments');
     LOG(...PR('APP_CONFIG: loaded items', items));
     let res: OpResult;
@@ -120,7 +124,7 @@ function SNA_Unsubscribe(evtType: SNA_EvtName, evtHandler: Function) {}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default SNA.DeclareComponent('comments', {
+export default SNA.NewComponent('comments', {
   PreConfig: SNA_PreConfig,
   PreHook: SNA_PreHook,
   Subscribe: SNA_Subscribe,
