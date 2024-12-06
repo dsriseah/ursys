@@ -190,7 +190,11 @@ class PhaseMachine {
    */
   addHookEntry(phid: PhaseID, hook: HookObj) {
     const fn = 'addHookEntry:';
-    if (!this.phase_hooks.has(phid)) this.phase_hooks.set(phid, []);
+    const hookEntry = this.phase_hooks.get(phid);
+    if (hookEntry === undefined) {
+      WARN(`${fn} '${phid}' is not defined in ${this.pm_name} phase def`);
+      return;
+    }
     this.phase_hooks.get(phid).push(hook);
     if (DBG) LOG(`${fn} added hook for ${phid}`);
   }
