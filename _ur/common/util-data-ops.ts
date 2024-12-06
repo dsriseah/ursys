@@ -18,6 +18,7 @@ type DecodedDataURI = {
   orgDomain?: string;
   bucketID?: string;
   instanceID?: string;
+  appID?: string; // first part of instanceID
   tags?: any;
 } & ErrObj;
 type DecodedSyncReq = {
@@ -155,9 +156,9 @@ function DecodeDataURI(dataURI: string): DecodedDataURI {
   if (extra.length > 0) return { error: `extra segment '${extra.join(':')}'` };
   if (param2 === undefined) return { error: 'missing bucketID' };
   const [bucketID, ...instancePath] = param2.split('/');
-  if (instancePath && instancePath.length === 0)
-    return { error: 'missing instanceID' };
+  if (instancePath && instancePath.length < 1) return { error: 'missing instanceID' };
   const instanceID = instancePath.join('/');
+  const appID = instancePath[0];
   const tags = {};
   if (param3 !== undefined) {
     param3.split(';').forEach(tag => {
@@ -170,6 +171,7 @@ function DecodeDataURI(dataURI: string): DecodedDataURI {
     orgDomain,
     bucketID,
     instanceID,
+    appID,
     tags
   };
 }

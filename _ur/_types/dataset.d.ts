@@ -28,7 +28,9 @@ export type UR_SchemaID = `${SchemaRoot}:${SchemaName}:${SchemaVersion};${TagStr
 type OrgDomain = string; // e.g. 'ursys.org', 'rapt
 type BucketID = string; // e.g. a UUID with no / or : characters
 type InstanceID = string; // e.g. a slashpath to a dataset resource
-export type DS_DataURI = `${OrgDomain}:${BucketID}/${InstanceID}:${TagString}`;
+type AppID = string; // e.g. unique 'meme', 'step'
+export type DS_DataURI =
+  `${OrgDomain}:${BucketID}/${AppID}/${InstanceID}:${TagString}`;
 
 /// INTERFACES ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
