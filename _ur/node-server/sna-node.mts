@@ -11,10 +11,9 @@ import {
   SNA_UseComponent,
   SNA_LifecycleStatus,
   SNA_LifecycleStart,
-  SNA_SetServerConfig,
-  SNA_GetServerConfig,
   GetDanglingHooks
 } from './sna-node-hooks.mts';
+import { SNA_SetServerConfig, SNA_GetServerConfig } from './sna-node-context.mts';
 import { SNA_NewComponent } from '../common/class-sna-component.ts';
 
 /// SNA MODULES PACKAGING /////////////////////////////////////////////////////

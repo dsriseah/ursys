@@ -11,6 +11,11 @@ import { PhaseMachine } from '../common/class-phase-machine.ts';
 import { ConsoleStyler } from '../common/util-prompts.ts';
 import { IsSnakeCase } from '../common/util-text.ts';
 import { SNA_Component } from '../common/class-sna-component.ts';
+import {
+  SNA_GetAppConfigUnsafe,
+  SNA_SetLockState,
+  SNA_GetLockState
+} from './sna-web-context.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -24,9 +29,8 @@ const PR = ConsoleStyler('sna.hook', 'TagGray');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let COMPONENTS: Set<SNA_Component> = new Set();
-let APP_CFG: DataObj = {}; // pre-provided configuration object
-let CFG_VALID: boolean = false;
-let HOOKS_VALID: boolean = false;
+let cfg_valid: boolean = false;
+let hooks_valid: boolean = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let PM: PhaseMachine;
 
@@ -57,30 +61,6 @@ function SNA_UseComponent(component: SNA_Component) {
     if (DBG) LOG(...PR(`.. '${_name}' is adding modules`));
     AddComponent({ f_AddComponent: SNA_UseComponent });
   }
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: register a global configuration object for all web apps, merging with
- *  the existing configuration */
-function SNA_SetAppConfig(config: DataObj): void {
-  const fn = 'SNA_SetAppConfig:';
-  if (config === undefined) throw Error(`${fn} missing config object`);
-  if (HOOKS_VALID) throw Error(`${fn} cannot set config after lifecycle has started`);
-  // otherwise merge the new config with the existing global config
-  if (Object.keys(APP_CFG).length === 0) {
-    if (DBG) LOG(...PR(`Setting SNA App Configuration`));
-  } else if (DBG) LOG(...PR(`Updating SNA App Configuration`));
-  APP_CFG = Object.assign(APP_CFG, config);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: return the global configuration object for all apps after start */
-function SNA_GetAppConfig(): DataObj {
-  const fn = 'SNA_GetAppConfig:';
-  const { preconfig } = SNA_LifecycleStatus();
-  if (preconfig === false) {
-    console.warn(`${fn} Derived config should be set in PreHook at earliest.`);
-    console.warn(`Complete config is guaranteed at lifecycle start.`);
-  }
-  return { ...APP_CFG };
 }
 
 /// SNA LIFECYCLE /////////////////////////////////////////////////////////////
@@ -129,15 +109,21 @@ async function SNA_LifecycleStart() {
       PHASE_ERROR: ['APP_ERROR']
     });
 
+  // advance from init->preconfig
+  if (!SNA_SetLockState('init')) LOG(...PR(`lockstate 'init' fail`));
+
   // configure all registered components with global config
+  const APP_CFG_COPY = { ...SNA_GetAppConfigUnsafe() };
   for (const component of COMPONENTS) {
     const { PreConfig, _name } = component;
     if (typeof PreConfig === 'function') {
       if (DBG) LOG(...PR(`PreConfig SNA_Component '${_name}'`));
-      PreConfig(APP_CFG);
+      PreConfig(APP_CFG_COPY);
     }
   }
-  CFG_VALID = true;
+
+  // advance from init->preconfig
+  if (!SNA_SetLockState('preconfig')) LOG(...PR(`lockstate 'preconfig' fail`));
 
   // initialize all registered components
   for (const component of COMPONENTS) {
@@ -147,7 +133,9 @@ async function SNA_LifecycleStart() {
       PreHook();
     }
   }
-  HOOKS_VALID = true;
+
+  // advance from preconfig->prehook
+  if (!SNA_SetLockState('prehook')) LOG(...PR(`lockstate 'prehook' fail`));
 
   // run phase groups in order
   if (DBG) LOG(...PR(`SNA App Lifecycle is starting`));
@@ -157,6 +145,10 @@ async function SNA_LifecycleStart() {
   await RunPhaseGroup('SNA/PHASE_LOAD');
   await RunPhaseGroup('SNA/PHASE_CONFIG');
   await RunPhaseGroup('SNA/PHASE_RUN');
+
+  // advance from preconfig->locked
+  if (!SNA_SetLockState('locked')) LOG(...PR(`lockstate 'locked' fail`));
+
   // check for mystery hooks due to typos or dependency issues
   const dooks = GetDanglingHooks();
   if (dooks) {
@@ -171,13 +163,14 @@ function SNA_HookAppPhase(phase: PhaseID, fn: HookFunction) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the current phase machine state */
 function SNA_LifecycleStatus() {
-  const fn = 'SNA_Status:';
   const status: { [key: string]: any } = {};
+  const cfg_valid = SNA_GetLockState('preconfig');
+  const hooks_valid = SNA_GetLockState('prehook');
 
   if (PM === undefined)
     Object.assign(status, {
-      preconfig: CFG_VALID,
-      prehook: HOOKS_VALID,
+      preconfig: cfg_valid,
+      prehook: hooks_valid,
       phaseGroup: undefined,
       phase: undefined,
       message: 'SNA PhaseMachine is undefined'
@@ -187,8 +180,8 @@ function SNA_LifecycleStatus() {
     const lastPhaseGroup = PM.getPhaseList('PHASE_RUN');
     const lastPhase = lastPhaseGroup[lastPhaseGroup.length - 1];
     Object.assign(status, {
-      preconfig: CFG_VALID,
-      prehook: HOOKS_VALID,
+      preconfig: cfg_valid,
+      prehook: hooks_valid,
       phaseGroup: PM.cur_group,
       phase: PM.cur_phase,
       completed: cur_phase === lastPhase
@@ -205,8 +198,6 @@ export {
   // sna process
   SNA_NewComponent,
   SNA_UseComponent,
-  SNA_SetAppConfig,
-  SNA_GetAppConfig,
   SNA_HookAppPhase,
   SNA_LifecycleStart,
   SNA_LifecycleStatus

@@ -417,16 +417,13 @@ function PreConfig(config: DataObj) {
 function PreHook() {
   // hook into NET_DATASET to initialize dataclient connection to dataserver
   HookAppPhase('NET_DATASET', async () => {
-    const fn = 'HOOK_LoadData:';
     let dataURI = DS_URI;
     const opts = { mode: DS_MODE };
     let res: OpResult;
     // configure the dataset
     res = await Configure(dataURI, opts); // => { adapter, handlers }
     if (res.error) throw Error(`Configure ${res.error}`);
-    if (DBG) LOG(...PR(`${fn} configured datalink to ${dataURI}`, res));
     res = await Activate(); // => { dataURI, ItemLists }
-    if (DBG) LOG(...PR(`${fn} activated datalink, got`, res));
   });
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

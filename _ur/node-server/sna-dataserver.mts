@@ -22,11 +22,8 @@ import { DataBin } from '../common/abstract-data-databin.ts';
 import { DecodeDatasetReq, DecodeSyncReq } from '../common/util-data-ops.ts';
 import { SNA_DataObjAdapter } from './sna-dataobj-adapter.mts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
-import {
-  SNA_HookServerPhase,
-  SNA_GetServerConfig,
-  SNA_NewComponent
-} from './sna-node-hooks.mts';
+import { SNA_HookServerPhase, SNA_NewComponent } from './sna-node-hooks.mts';
+import { SNA_GetServerConfig } from './sna-node-context.mts';
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////

@@ -15,14 +15,13 @@ import {
 } from './sna-web-urnet-client.ts';
 import {
   SNA_UseComponent,
-  SNA_SetAppConfig,
-  SNA_GetAppConfig,
   SNA_LifecycleStart,
   SNA_LifecycleStatus,
   SNA_HookAppPhase,
   GetDanglingHooks
 } from './sna-web-hooks.ts';
 import { SNA_NewComponent } from '../common/class-sna-component.ts';
+import { SNA_SetAppConfig, SNA_GetAppConfig } from './sna-web-context.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

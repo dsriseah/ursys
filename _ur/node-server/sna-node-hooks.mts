@@ -17,11 +17,15 @@ import {
 } from '../common/class-phase-machine.ts';
 import { SNA_Component } from '../common/class-sna-component.ts';
 import { IsSnakeCase } from '../common/util-text.ts';
+import {
+  SNA_GetServerConfigUnsafe,
+  SNA_GetLockState,
+  SNA_SetLockState
+} from './sna-node-context.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
-import type { OpResult, DataObj } from '../_types/dataset.d.ts';
 import type { SNA_ComponentProps } from '../_types/sna.d.ts';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
@@ -34,9 +38,6 @@ const LOG = makeTerminalOut('SNA.HOOK', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let COMPONENTS: Set<SNA_Component> = new Set();
-let SERVER_CFG: DataObj = {}; // pre-provided configuration object
-let CFG_VALID: boolean = false;
-let HOOKS_VALID: boolean = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let PM: PhaseMachine;
 
@@ -61,31 +62,6 @@ function SNA_UseComponent(component: SNA_Component) {
   const { AddComponent } = component;
   if (typeof AddComponent === 'function')
     AddComponent({ f_AddComponent: SNA_UseComponent });
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: register a global configuration object for server, merging with the
- *  existing configuration */
-function SNA_SetServerConfig(config: DataObj): DataObj {
-  // when no config is provided, return the current global config
-  if (config === undefined) return SERVER_CFG;
-  // otherwise merge the new config with the existing global config
-  if (Object.keys(SERVER_CFG).length === 0) {
-    if (DBG) LOG(`Setting SNA Global Configuration`);
-  } else if (DBG) LOG(`Updating SNA Global Configuration`);
-  SERVER_CFG = Object.assign(SERVER_CFG, config);
-  // return a copy of the global config
-  return { ...SERVER_CFG };
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: return the current global configuration object for server after start */
-function SNA_GetServerConfig(): DataObj {
-  const fn = 'SNA_GetServerConfig:';
-  const { preconfig } = SNA_LifecycleStatus();
-  if (preconfig === false) {
-    console.warn(`${fn} Derived config should be set in PreHook at earliest.`);
-    console.warn(`Complete config is guaranteed at lifecycle start.`);
-  }
-  return { ...SERVER_CFG };
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
@@ -136,15 +112,20 @@ async function SNA_LifecycleStart() {
       PHASE_ERROR: ['SRV_ERROR']
     });
 
+  // advance from init->preconfig
+  if (!SNA_SetLockState('init')) LOG(`${RED}lockstate 'init' fail${NRM}`);
+
   // configure all registered components with global config
+  const SRV_CFG_COPY = { ...SNA_GetServerConfigUnsafe() };
   for (const component of COMPONENTS) {
     const { PreConfig, _name } = component;
     if (typeof PreConfig === 'function') {
       if (DBG) LOG(`Configuring SNA_Component '${_name}'`);
-      PreConfig(SERVER_CFG);
+      PreConfig(SRV_CFG_COPY);
     }
   }
-  CFG_VALID = true;
+  // advance from init->preconfig
+  if (!SNA_SetLockState('preconfig')) LOG(`${RED}lockstate 'preconfig' fail${NRM}`);
 
   // initialize all registered components
   for (const component of COMPONENTS) {
@@ -154,7 +135,9 @@ async function SNA_LifecycleStart() {
       PreHook();
     }
   }
-  HOOKS_VALID = true;
+
+  // advance from preconfig->prehook
+  if (!SNA_SetLockState('prehook')) LOG(`${RED}lockstate 'prehook' fail${NRM}`);
 
   // run phase groups in order
   if (DBG) LOG(`SNA Node Lifecycle Starting`);
@@ -163,6 +146,11 @@ async function SNA_LifecycleStart() {
   await RunPhaseGroup('SNA/PHASE_CONNECT');
   await RunPhaseGroup('SNA/PHASE_RUN');
   await RunPhaseGroup('SNA/PHASE_READY');
+
+  // advance from prehook->locked
+  if (!SNA_SetLockState('locked')) LOG(`${RED}lockstate 'prehook' fail${NRM}`);
+
+  // check for unprocessed hooks due to unimplemented machines
   const dooks = GetDanglingHooks();
   if (dooks) {
     LOG(`${RED} *** ERROR *** dangling phase hooks detected${NRM}`, dooks);
@@ -171,13 +159,13 @@ async function SNA_LifecycleStart() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the current phase machine state */
 function SNA_LifecycleStatus() {
-  const fn = 'SNA_LifecycleStatus:';
   const status: { [key: string]: any } = {};
-
+  const cfg_valid = SNA_GetLockState('preconfig');
+  const hooks_valid = SNA_GetLockState('prehook');
   if (PM === undefined)
     Object.assign(status, {
-      preconfig: CFG_VALID,
-      prehook: HOOKS_VALID,
+      preconfig: cfg_valid,
+      prehook: hooks_valid,
       phaseGroup: undefined,
       phase: undefined,
       message: 'SNA PhaseMachine is undefined'
@@ -187,8 +175,8 @@ function SNA_LifecycleStatus() {
     const lastPhaseGroup = PM.getPhaseList('PHASE_READY');
     const lastPhase = lastPhaseGroup[lastPhaseGroup.length - 1];
     Object.assign(status, {
-      preconfig: CFG_VALID,
-      prehook: HOOKS_VALID,
+      preconfig: cfg_valid,
+      prehook: hooks_valid,
       phaseGroup: PM.cur_group,
       phase: PM.cur_phase,
       completed: cur_phase === lastPhase
@@ -205,8 +193,6 @@ export {
   // sna process
   SNA_NewComponent,
   SNA_UseComponent,
-  SNA_SetServerConfig,
-  SNA_GetServerConfig,
   SNA_HookServerPhase,
   SNA_LifecycleStart,
   SNA_LifecycleStatus,
