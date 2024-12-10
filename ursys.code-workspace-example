@@ -23,9 +23,13 @@
         }
       ]
     },
-    // make errors more obvious, de-emphasize warnings
     "workbench.colorCustomizations": {
-      "editorError.border": "#ff0000"
+      // make errors more obvious, de-emphasize warnings
+      "editorError.border": "#ff0000",
+      // color customizations for the title bar
+      "titleBar.activeBackground": "#343e99",
+      "titleBar.inactiveBackground": "#343e9940",
+      "titleBar.inactiveForeground": "#ffffff40"
     },
     // other theme overrides
     "editor.tokenColorCustomizations": {},
@@ -63,7 +67,7 @@
           "${env:SHELL}",
           "-i",
           "-c",
-          "export VSCODE_TERM='x86 shell';source ${workspaceFolder}/.vscode/vs_env; exec ${env:SHELL}"
+          "export VSCODE_TERM='x86 shell'; [ -f .vscode/vs_env ] && . .vscode/vs_env; exec ${env:SHELL}"
         ]
       },
       "arm64 macos": {
@@ -74,7 +78,7 @@
           "${env:SHELL}",
           "-i",
           "-c",
-          "export VSCODE_TERM='arm64 shell'; cd ${workspaceFolder}; source .vscode/vs_env; exec ${env:SHELL}"
+          "export VSCODE_TERM='arm64 shell'; cd ${workspaceFolder}; [ -f .vscode/vs_env ] && . .vscode/vs_env; exec ${env:SHELL}"
         ]
       },
       "generic macos": {
@@ -82,7 +86,7 @@
         "args": [
           "-i",
           "-c",
-          "export VSCODE_TERM='generic bash'; cd ${workspaceFolder}; source .vscode/vs_env; exec ${env:SHELL}"
+          "export VSCODE_TERM='generic bash'; cd ${workspaceFolder}; [ -f .vscode/vs_env ] && . .vscode/vs_env; exec ${env:SHELL}"
         ]
       }
     },
@@ -92,7 +96,7 @@
         "args": [
           "-i",
           "-c",
-          "export VSCODE_TERM='generic bash'; cd ${workspaceFolder}; source .vscode/vs_env; exec ${env:SHELL}"
+          "export VSCODE_TERM='generic bash'; cd ${workspaceFolder}; [ -f .vscode/vs_env ] && . .vscode/vs_env; exec ${env:SHELL}"
         ]
       }
     },

@@ -1,4 +1,10 @@
+> [!TIP] 
+> See [First Install](https://github.com/dsriseah/ursys/wiki/Installation) for installation instructions. Tested on MacOS and Linux/Ubuntu.
+
 ## Sri's Universal Realtime System (URSYS)
+
+URSYS is a Javascript development framework for webapps that communicate with each other through a server. 
+Background
 
 URSYS originated in learning science research into embodied learning from 2013 to date. The requirements were LAN-based operation, realtime graphics, simulation, video, and motion tracking served from a single laptop to multiple tablet and Chromebook-type devices in a guided classroom environment. 
 
@@ -12,16 +18,18 @@ Features
 * Modular separation between core, addon, and app directories for easy extensibility.
 * Designed for simple copy/paste folder operation with automatic configuration whereever possible.
 * Command line `ur` auto-discovers and spawns addons processes.
-* Tested with nginx proxy forwarding for both http and websocket connections
-* Verbose prompting and guardrails to help users understand what's going on
+* Tested with nginx proxy forwarding for both http and websocket connections.
+* Verbose prompting and guardrails to help users understand what's going on.
+* Favors straightforward fluent code patterns and formatting so source code is easy to scan.
 
 Under Development
 
-* see [Closed Pull Requests](https://github.com/dsriseah/ursys/pulls?q=is:pr+is:closed) for an idea of what's new. The [Discussions](https://github.com/dsriseah/ursys/discussions) area also details current work in progress.
+* see [Closed Pull Requests](https://github.com/dsriseah/ursys/pulls?q=is:pr+is:closed) for an idea of what's new. 
 * pending: import URSYS as a dependency into existing projects
 * pending: other [feature porting](https://github.com/dsriseah/ursys/wiki/Catalog-of-URSYS-Modules) candidates
 
-Check out the [Wiki](https://github.com/dsriseah/ursys/wiki) for detailed information about URSYS concepts. If you'd like to help test, see [First Install](https://github.com/dsriseah/ursys/wiki/Installation) instructions.
+Documentation
 
-Questions? Contact me via [Mastodon](https://opalstack.social/@dsri). 
+* The [Wiki](https://github.com/dsriseah/ursys/wiki) and [Discussion](https://github.com/dsriseah/ursys/discussions) pages collects ongoing design thoughts. This codebase is very much a work in process. 
+* Questions? Contact me via [Mastodon](https://opalstack.social/@dsri). 
 

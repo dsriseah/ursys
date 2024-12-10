@@ -37,7 +37,7 @@ async function ESBuildWebApp() {
     entryPoints: [ENTRY_JS],
     bundle: true,
     loader: { '.js': 'jsx' },
-    target: 'es2020',
+    target: 'es2022',
     platform: 'browser',
     format: 'cjs',
     sourcemap: true,
