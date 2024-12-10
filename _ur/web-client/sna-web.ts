@@ -99,8 +99,10 @@ function SNA_Status() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// remember to import SNA_Component default, which has _name property set
 import MOD_DataClient from './sna-dataclient.ts';
+import MOD_AppContext from './sna-web-context.ts';
 /// export the actual module API
 export * as DATACLIENT from './sna-dataclient.ts';
+export * as APPCONTEXT from './sna-web-context.ts';
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -115,7 +117,8 @@ export {
   // sna modules
   SNA_NewComponent as NewComponent,
   // included modules
-  MOD_DataClient
+  MOD_DataClient,
+  MOD_AppContext
 };
 export {
   // phase machine static methods

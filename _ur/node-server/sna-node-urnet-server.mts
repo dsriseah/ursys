@@ -12,6 +12,7 @@ import * as FILE from './file.mts';
 import * as APPSERV from './appserver.mts';
 import * as APPBUILD from './appbuilder.mts';
 import * as IMPORT from './util-dynamic-import.mts';
+import * as CONTEXT from './sna-node-context.mts';
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -89,7 +90,11 @@ async function SNA_Build(rootDir: string): Promise<void> {
     http_host: 'localhost',
     http_docs: output_dir,
     index_file: 'index.html',
-    wss_path: 'sna-ws'
+    wss_path: 'sna-ws',
+    get_client_cfg: () => {
+      const { dataURI } = CONTEXT.SNA_GetServerConfig();
+      return { dataURI };
+    }
   };
   await APPSERV.Start(serverOpts);
 

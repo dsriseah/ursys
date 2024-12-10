@@ -10,6 +10,7 @@
 import { NetEndpoint } from '../common/class-urnet-endpoint.ts';
 import { NetSocket } from '../common/class-urnet-socket.ts';
 import { ConsoleStyler } from '../common/util-prompts.ts';
+import * as CONTEXT from './sna-web-context.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -57,6 +58,12 @@ function SNA_NetConnect(): Promise<boolean> {
         resolve(false);
         return;
       }
+      // 3a. set app config if provided
+      const { config } = regdata;
+      if (config) CONTEXT.SNA_SetAppConfig(config);
+
+      // 4. all done! declareClientProperties() and declareClientMessages()
+      // can happen any time after auth succeeds.
       resolve(true);
     }); // end createConnection
   });

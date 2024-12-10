@@ -301,7 +301,12 @@ class NetEndpoint {
       const { name, type } = pkt.data;
       if (name) {
         const { uaddr } = socket;
-        pkt.data = { ok: true, status: `registered name:${name} type:${type}` };
+        const config = socket.getConfig();
+        pkt.data = {
+          ok: true,
+          status: `registered name:${name} type:${type}`,
+          config
+        };
         return pkt;
       }
       pkt.data = { error: 'registration failed' };
@@ -460,6 +465,8 @@ class NetEndpoint {
     if (pkt.msg_type !== '_reg') return false;
     if (pkt.hop_dir !== 'res') return false;
     if (pkt.src_addr !== this.uaddr) throw Error(`${fn} misaddressed packet???`);
+    // do stuff here...
+    const { data } = pkt;
     // resuming from declareClientProperties() await requestReg
     this.resolveRemoteHandler(pkt);
     return true;

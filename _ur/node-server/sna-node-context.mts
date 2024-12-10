@@ -6,7 +6,12 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
-import { SNA_NewComponent } from './sna-node-hooks.mts';
+import {
+  ServerEndpoint,
+  AddMessageHandler,
+  RegisterMessages
+} from './sna-node-urnet-server.mts';
+import { SNA_NewComponent, SNA_HookServerPhase } from './sna-node-hooks.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -71,9 +76,23 @@ function SNA_GetServerConfigUnsafe(): DataObj {
   return SERVER_CFG;
 }
 
+/// SNA COMPONENT SETUP ///////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function PreHook() {
+  SNA_HookServerPhase('SRV_START', async () => {
+    AddMessageHandler('SYNC:SRV_CONTEXT', data => {
+      // handle server context messages
+      const { op } = data;
+    });
+  });
+}
+
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default SNA_NewComponent('context', {});
+export default SNA_NewComponent('context', {
+  PreHook
+});
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   SNA_SetLockState, // set locks state
   SNA_GetLockState, // get lock state

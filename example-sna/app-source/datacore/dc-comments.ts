@@ -23,6 +23,7 @@ import type { SNA_EvtName } from 'tsconfig/types';
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('Comments', 'TagPink');
 const DCLI = SNA.DATACLIENT;
+const CTXT = SNA.APPCONTEXT;
 
 /// APP LIFECYCLE METHODS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -56,7 +57,7 @@ async function DoSomething() {
   LOG(...PR(fn, 'persistence test setup'));
   const resGet = await DCLI.Get('comments', ['cmt004']);
   LOG(...PR(fn, 'got cmt004', resGet));
-  // fake autosave
+
   setTimeout(async () => {
     LOG(...PR(fn, 'faked autosave'));
     const res = await DCLI.Persist();

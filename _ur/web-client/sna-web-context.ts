@@ -8,8 +8,13 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
-import { SNA_NewComponent } from './sna-web-hooks.ts';
+import { ConsoleStyler } from '../common/util-prompts.ts';
+import { SNA_NewComponent, SNA_HookAppPhase } from './sna-web-hooks.ts';
+import {
+  AddMessageHandler,
+  ClientEndpoint,
+  RegisterMessages
+} from './sna-web-urnet-client.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -18,7 +23,8 @@ type LockState = 'init' | 'preconfig' | 'prehook' | 'locked';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = makeTerminalOut('SNA.HOOK', 'TagCyan');
+const LOG = console.log.bind(console);
+const PR = ConsoleStyler('sna.ctxt', 'TagGray');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let APP_CFG: DataObj = {}; // pre-provided configuration object
@@ -56,6 +62,7 @@ function SNA_SetAppConfig(config: DataObj): DataObj {
   } else if (DBG) LOG(`Updating SNA Global Configuration`);
   APP_CFG = Object.assign(APP_CFG, config);
   // return a copy of the global config
+  console.log('*** SNA_SetAppConfig:', APP_CFG);
   return { ...APP_CFG };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -74,9 +81,21 @@ function SNA_GetAppConfigUnsafe(): DataObj {
   return APP_CFG;
 }
 
+/// SNA COMPONENT SETUP ///////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function PreHook() {
+  const EP = ClientEndpoint();
+  SNA_HookAppPhase('NET_ACTIVE', async () => {
+    AddMessageHandler('SYNC:CLI_CONTEXT', data => {});
+    await RegisterMessages();
+  });
+}
+
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default SNA_NewComponent('context', {});
+export default SNA_NewComponent('context', {
+  PreHook
+});
 export {
   SNA_SetLockState, // set locks state
   SNA_GetLockState, // get lock state

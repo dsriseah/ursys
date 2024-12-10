@@ -59,10 +59,12 @@ export type NM_Handler = (data: NP_Data, pkt?: I_NetMessage) => NP_Data | void;
 export type NS_SendFunc = (pkt: I_NetMessage) => void;
 export type NS_DataFunc = (data: any) => void;
 export type NS_CloseFunc = () => void;
+export type NS_GetConfigFunc = () => NP_Data;
 export type NS_Options = {
   send: NS_SendFunc;
   onData: NS_DataFunc;
   close: NS_CloseFunc;
+  getConfig?: NS_GetConfigFunc;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** this is the socket-ish object that we use to send data to the wire */
@@ -71,6 +73,7 @@ export interface I_NetSocket {
   send: NS_SendFunc; // method send pkt TO other side
   onData: NS_DataFunc; // method receive pkt FROM other side
   close: NS_CloseFunc; // method close connection
+  getConfig?: NS_GetConfigFunc; // method get configuration
   //
   connector?: any; // the original connection object (if needed)
   uaddr?: NP_Address; // assigned uaddr for this socket-ish object

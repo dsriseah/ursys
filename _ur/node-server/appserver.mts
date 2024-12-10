@@ -17,6 +17,7 @@ import { NetPacket } from '../common/class-urnet-packet.ts';
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { NP_Msg, NP_Address, NM_Handler } from '../_types/urnet.d.ts';
+import type { DataObj } from '../_types/dataset.d.ts';
 type AddressInfo = { port: number; family: string; address: string };
 type RequestHandler = express.RequestHandler; // (req,res,next)=>void
 type PacketHandler = (pkt: NetPacket) => void;
@@ -33,6 +34,11 @@ type HTOptions = {
 type WSOptions = {
   wss_path?: string; // default is 'urnet-ws'
   srv_addr?: NP_Address; // servers UADDR
+  error?: string; // (opt) error message...if present, options are invalid
+};
+type DataReturn = () => DataObj;
+type HookOptions = {
+  get_client_cfg?: DataReturn; // get the context object,
   error?: string; // (opt) error message...if present, options are invalid
 };
 
@@ -57,6 +63,7 @@ let WSS_PATH: string;
 let INDEX_FILE: string;
 let HTTP_DOCS: string;
 let WSS_NAME: string;
+let CLIENT_CFG: DataReturn;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SaveHTOptions(opt: HTOptions): HTOptions {
   const fn = 'SaveHTOptions:';
@@ -99,6 +106,22 @@ function SaveWSOptions(opt: WSOptions): WSOptions {
   return GetWSOptions();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetClientConfig(): HookOptions {
+  return {
+    get_client_cfg: CLIENT_CFG
+  };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function SaveClientConfig(opt: HookOptions): HookOptions {
+  const fn = 'SaveClientConfig:';
+  const { get_client_cfg } = opt;
+  if (typeof get_client_cfg !== 'function')
+    return { error: `${fn} get_client_cfg is invalid` };
+  CLIENT_CFG = get_client_cfg;
+  return GetClientConfig();
+}
+
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetWSOptions(): WSOptions {
   return {
     srv_addr: SRV_UADDR, //
@@ -106,10 +129,11 @@ function GetWSOptions(): WSOptions {
   };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function CheckConfiguration(opt: HTOptions & WSOptions) {
+function CheckConfiguration(opt: HTOptions & WSOptions & HookOptions) {
   const htOpts = SaveHTOptions(opt);
   const wsOpts = SaveWSOptions(opt);
-  return { ...htOpts, ...wsOpts };
+  const hookOpts = SaveClientConfig(opt);
+  return { ...htOpts, ...wsOpts, ...hookOpts };
 }
 
 /// SERVER INIT ///////////////////////////////////////////////////////////////
@@ -190,7 +214,13 @@ function ListenWSS(opt: WSOptions) {
         if (DBG) LOG(`${DIM}client disconnect${NRM}`);
         client_link.close();
       };
-      const client_sock = new NetSocket(client_link, { send, onData, close });
+      const getConfig = CLIENT_CFG;
+      const client_sock = new NetSocket(client_link, {
+        send,
+        onData,
+        close,
+        getConfig
+      });
       if (EP.isNewSocket(client_sock)) {
         EP.addClient(client_sock);
         const uaddr = client_sock.uaddr;
@@ -288,7 +318,7 @@ function ServerEndpoint(): NetEndpoint {
 /// CONVENIENCE METHODS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Convenience method to start HTTP and WS servers */
-async function Start(opt: HTOptions & WSOptions) {
+async function Start(opt: HTOptions & WSOptions & HookOptions) {
   const fn = 'Start:';
   try {
     CheckConfiguration(opt);

@@ -32,6 +32,7 @@ import type {
   NS_SendFunc,
   NS_DataFunc,
   NS_CloseFunc,
+  NS_GetConfigFunc,
   NS_Options
 } from '../_types/urnet.d.ts';
 
@@ -50,6 +51,7 @@ class NetSocket implements I_NetSocket {
   sendFunc: NS_SendFunc; // the outgoing send function for this socket
   closeFunc: NS_CloseFunc; // function to disconnect
   onDataFunc: NS_DataFunc; // the incoming data function for this socket
+  getConfigFunc?: NS_GetConfigFunc; // function to get configuration
   //
   uaddr?: NP_Address; // assigned uaddr for this socket-ish object
   auth?: any; // whatever authentication is needed for this socket
@@ -59,10 +61,12 @@ class NetSocket implements I_NetSocket {
 
   constructor(connectObj: any, io: NS_Options) {
     this.connector = connectObj;
-    const { send, onData, close } = io;
+    const { send, onData, close, getConfig } = io;
     this.sendFunc = send.bind(connectObj);
     this.closeFunc = close.bind(connectObj);
     this.onDataFunc = onData.bind(connectObj);
+    if (typeof getConfig === 'function')
+      this.getConfigFunc = getConfig.bind(connectObj);
   }
 
   /** method for sending packets, using stored implementation-specific function */
@@ -81,6 +85,14 @@ class NetSocket implements I_NetSocket {
    * function */
   close() {
     this.closeFunc();
+  }
+
+  /** method for retrieving the configuration, if available */
+  getConfig() {
+    if (typeof this.getConfigFunc === 'function') {
+      return this.getConfigFunc();
+    }
+    return { error: 'no getConfig function was defined' };
   }
 
   /* returns the native connector object, varies by implementation */
