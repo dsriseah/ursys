@@ -31,7 +31,7 @@ SNA.HookServerPhase('SRV_READY', () => {
 function PreConfig(config: DataObj) {
   // first add
   const { app_dir } = config;
-  const runtime_dir = PATH.join(app_dir, '_runtime');
+  const runtime_dir = PATH.join(app_dir, '_test_runtime');
   const config_dir = PATH.join(app_dir, '_config');
   SNA.SetServerConfig({ runtime_dir, config_dir });
 }

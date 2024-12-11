@@ -11,7 +11,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { SNA, ConsoleStyler } from '@ursys/core';
-import COMMENTS from './datacore/dc-comments.ts';
+import * as COMMENTS from './datacore/dc-comments.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,7 +49,9 @@ SNA.HookAppPhase('LOAD_CONFIG', () => {});
 
   // Register all SNA components
   SNA.UseComponent(SNA.MOD_DataClient);
-  SNA.UseComponent(COMMENTS);
+
+  // call SNA Component-compatible lifecycle hooks
+  COMMENTS.PreHook();
 
   // After all modules are initialized, start the SNA lifecycle this will
   // call PreConfig() and PreHook() all all registered modules.

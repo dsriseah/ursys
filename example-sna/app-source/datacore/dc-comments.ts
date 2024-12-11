@@ -11,7 +11,6 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { SNA, DataBin, ConsoleStyler } from '@ursys/core';
-import DUMMY_DATA from './dataset-dummy.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -30,11 +29,12 @@ const CTXT = SNA.APPCONTEXT;
 /** given dataset dataURI */
 async function HOOK_LoadDataLocal() {
   let res: OpResult;
+  const DUMMY_DATA = await fetch('./json/dummy-dataset.json');
   res = await DCLI.SetDataFromObject(DUMMY_DATA);
   if (res.error) throw Error(`SetDataFromObject ${res.error}`);
   res = DCLI.Subscribe('comments', HandleDataEvent);
   if (res.error) throw Error(`Subscribe ${res.error}`);
-  // after DCLI.LoadData(), notification to HandleDataEvent should occur
+  // todo: check that after DCLI.LoadData() HandleDataEvent gets changes
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** using the remote data initialization, assuming dataset is already loaded */
@@ -46,17 +46,25 @@ async function HOOK_LoadDataRemote() {
     console.error(`subscribe to 'comments' collection of current databin failed`);
     throw Error(`Subscribe ${res.error}`);
   }
-  // after DCLI.Init(), notification to HandleDataEvent should occur
-  DoSomething();
 }
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** example of using dataclient */
-async function DoSomething() {
-  const fn = 'DoSomething:';
+async function HOOK_DoSomething() {
+  const fn = 'HOOK_DoSomething:';
   LOG(...PR(fn, 'persistence test setup'));
   const resGet = await DCLI.Get('comments', ['cmt004']);
   LOG(...PR(fn, 'got cmt004', resGet));
+
+  const items = await DCLI.Get('comments');
+  LOG(...PR(fn, 'loaded items', items));
+  let res: OpResult;
+  const sriItem = { author: 'Sri', text: 'hello' };
+  LOG(...PR(fn, 'adding item', sriItem));
+  res = await DCLI.Add('comments', [sriItem]);
+  LOG(...PR(fn, 'result of add', res));
+
+  // todo: check that this fires data change
 
   setTimeout(async () => {
     LOG(...PR(fn, 'faked autosave'));
@@ -96,50 +104,27 @@ async function DoSomethingEx() {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function AddComment(cmo: DataObj) {}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function Subscribe(evtType: SNA_EvtName, evtHandler: Function) {}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function Unsubscribe(evtType: SNA_EvtName, evtHandler: Function) {}
 
-/// SNA MODULE CONFIGURATION //////////////////////////////////////////////////
+/// RUNTIME INITIALIZATION ////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SNA_PreConfig(data: any) {
-  return data;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SNA_PreHook() {
-  LOG(...PR('SNA_PreHook:'));
+function PreHook() {
+  LOG(...PR('PreHook'));
   SNA.HookAppPhase('LOAD_DATA', () => HOOK_LoadDataRemote());
-  SNA.HookAppPhase('APP_CONFIG', async () => {
-    LOG(...PR('APP_CONFIG starting'));
-    const items = await DCLI.Get('comments');
-    LOG(...PR('APP_CONFIG: loaded items', items));
-    let res: OpResult;
-    const sriItem = { author: 'Sri', text: 'hello' };
-    LOG(...PR('APP_CONFIG: adding item', sriItem));
-    res = await DCLI.Add('comments', [sriItem]);
-    LOG(...PR('result of DCLI.Add', res));
-    // should fire HandleDataEvent
-  });
+  SNA.HookAppPhase('APP_CONFIG', HOOK_DoSomething);
 }
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SNA_Subscribe(evtType: SNA_EvtName, evtHandler: Function) {}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function SNA_Unsubscribe(evtType: SNA_EvtName, evtHandler: Function) {}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default SNA.NewComponent('comments', {
-  PreConfig: SNA_PreConfig,
-  PreHook: SNA_PreHook,
-  Subscribe: SNA_Subscribe,
-  Unsubscribe: SNA_Unsubscribe
-});
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  // sna module methods
-  SNA_PreConfig as PreConfig,
-  SNA_PreHook as PreHook,
-  SNA_Subscribe as Subscribe,
-  SNA_Unsubscribe as Unsubscribe,
+  // sna-compatible module methods
+  PreHook,
+  Subscribe,
+  Unsubscribe,
   // api methods
-  DoSomething,
   DoSomethingEx,
   AddComment
 };
