@@ -109,7 +109,7 @@ const CSS_COLORS: ColorDict = {
 
 /// COLORS BY MEANING /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const SEMANTIC_FORMATS = [
+const SEMANTIC_FORMAT_REFERENCE = [
   'Build',
   'Error',
   'Alert',

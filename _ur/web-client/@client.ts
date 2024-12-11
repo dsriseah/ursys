@@ -11,20 +11,16 @@
 import * as PROMPTS from '../common/util-prompts.ts';
 import * as TEXT from '../common/util-text.js';
 import * as NORM from '../common/util-data-norm.ts';
-
-// core UR modules
-import * as UR from './urnet-browser.ts';
-
 // typescript classes
+import * as CLIENT_EP from './urnet-browser.ts';
+import * as UID from '../common/module-uid.ts';
 import OpSequencer from '../common/class-op-seq.ts';
 import StateMgr from '../common/class-state-mgr.ts';
-import * as CLIENT_EP from './urnet-browser.ts';
-import * as UID from '../common/lib-uid.ts';
 import NetSocket from '../common/class-urnet-socket.ts';
 import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetPacket from '../common/class-urnet-packet.ts';
 import PhaseMachine from '../common/class-phase-machine.ts';
-
+import * as SNA from './sna-web.ts';
 // constants
 import {
   HTTP_CLIENT_INFO,
@@ -57,39 +53,39 @@ const CONSTANT = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function ClientTest(): void {
   console.log(...PR('System Integration of new URSYS module successful!'));
-  // console.log(...PR('@ursys/core integration...works?'));
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
-  // core ur modules for client
-  UR,
-  // ur utility modules
+  // moduiles
   PROMPTS,
   TEXT,
   NORM,
+  SNA,
   // typescript classes, libraries
   CONSTANT,
   CLASS,
   LIB,
   // services
-  CLIENT_EP, // endpoint for browser
-  // temporary test exports
+  CLIENT_EP, // endpoint for browsers (deprecated by SNA)
+  // classes
   StateMgr,
-  ClientTest
+  OpSequencer,
+  NetSocket,
+  NetEndpoint,
+  NetPacket,
+  PhaseMachine
 };
-
-// debugging helpers
+/// debugging helpers
 export {
   makeStyleFormatter as ConsoleStyler // style formatter for browser
 };
-
-// PhaseMachine Interface
+/// PhaseMachine Interface
 export {
   NewPhaseMachine,
   HookPhase,
   RunPhaseGroup,
-  GetPhaseMachine,
+  GetMachine,
   GetMachineStates
 } from '../common/class-phase-machine.ts';

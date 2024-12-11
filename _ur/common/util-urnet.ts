@@ -42,11 +42,12 @@ import type {
   NP_Address,
   NP_AddrPre,
   I_NetMessage
-} from '~ur/types/urnet.d.ts';
+} from '../_types/urnet.d.ts';
 
 /// RUNTIME UTILITIES /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export const VALID_MSG_CHANNELS = ['NET', 'SRV', 'LOCAL', ''] as const;
+/** note: these runtime checks have mirrored declarations in ursys.d.ts **/
+export const VALID_MSG_CHANNELS = ['SYNC', 'NET', 'SRV', 'LOCAL', ''] as const;
 export const VALID_PKT_TYPES = [
   'ping',
   'signal',
@@ -56,8 +57,8 @@ export const VALID_PKT_TYPES = [
   '_reg', // special packet
   '_decl' // special packet
 ] as const;
-export const SKIP_SELF_PKT_TYPES = ['call', 'send'];
 export const VALID_ADDR_PREFIX = ['???', 'UR_', 'WSS', 'UDS', 'MQT', 'SRV'] as const;
+export const SKIP_SELF_PKT_TYPES = ['call', 'send'];
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export const UADDR_DIGITS = 3; // number of digits in UADDR (padded with 0)
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -193,13 +194,13 @@ export function IsLocalMessage(msg: NP_Msg): boolean {
 /** return true if message is a network request */
 export function IsNetMessage(msg: NP_Msg): boolean {
   const [chan] = DecodeMessage(msg);
-  return chan === 'NET' || chan === 'SRV';
+  return chan === 'NET' || chan === 'SRV' || chan === 'SYNC';
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if message is implemented by main URNET server */
 export function IsServerMessage(msg: NP_Msg): boolean {
   const [chan] = DecodeMessage(msg);
-  return chan === 'SRV';
+  return chan === 'SRV' || chan === 'SYNC';
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a packet, return a unique hash string */

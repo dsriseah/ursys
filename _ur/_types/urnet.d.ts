@@ -1,13 +1,27 @@
+/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
+
+  URSYS NETWORK (URNET) TYPES
+
+\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
+
 /// BASIC NETPACKET TYPES //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** note that these string types have mirrored declarations in util-urnet.ts **/
+export type NP_AddrPre = '???' | 'UR_' | 'WSS' | 'UDS' | 'MQT' | 'SRV';
+export type NP_Address = `${NP_AddrPre}${number}`; // range set by UADDR_DIGITS
 export type NP_ID = `pkt[${NP_Address}:${number}]`;
-export type NP_Chan = (typeof VALID_MSG_CHANNELS)[number];
-export type NP_Type = (typeof VALID_PKT_TYPES)[number];
+export type NP_Chan = 'SYNC' | 'NET' | 'SRV' | 'LOCAL' | '';
+export type NP_Type =
+  | 'ping'
+  | 'signal'
+  | 'send'
+  | 'call'
+  | '_auth' // special packet
+  | '_reg' // special packet
+  | '_decl'; // special packet
 export type NP_Msg = `${NP_Chan}${string}`; // e.g. 'NET:HELLO' or 'HELLO'
 export type NP_Data = any;
 export type NP_Dir = 'req' | 'res';
-export type NP_AddrPre = (typeof VALID_ADDR_PREFIX)[number];
-export type NP_Address = `${NP_AddrPre}${number}`; // range set by UADDR_DIGITS
 
 /// NETPACKET-RELATED TYPES ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -45,17 +59,23 @@ export type NM_Handler = (data: NP_Data, pkt?: I_NetMessage) => NP_Data | void;
 export type NS_SendFunc = (pkt: I_NetMessage) => void;
 export type NS_DataFunc = (data: any) => void;
 export type NS_CloseFunc = () => void;
+export type NS_GetConfigFunc = () => NP_Data;
 export type NS_Options = {
   send: NS_SendFunc;
   onData: NS_DataFunc;
   close: NS_CloseFunc;
+  getConfig?: NS_GetConfigFunc;
 };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** this is the socket-ish object that we use to send data to the wire */
 export interface I_NetSocket {
+  // essential socket methods that rely on provided NS_Options
+  send: NS_SendFunc; // method send pkt TO other side
+  onData: NS_DataFunc; // method receive pkt FROM other side
+  close: NS_CloseFunc; // method close connection
+  getConfig?: NS_GetConfigFunc; // method get configuration
+  //
   connector?: any; // the original connection object (if needed)
-  send: NS_SendFunc;
-  close: NS_CloseFunc; // close function
   uaddr?: NP_Address; // assigned uaddr for this socket-ish object
   auth?: any; // whatever authentication is needed for this socket
   msglist?: NP_Msg[]; // messages queued for this socket
@@ -63,3 +83,7 @@ export interface I_NetSocket {
   label?: string; // name of the socket-ish object
   authenticated?: () => boolean;
 }
+
+/// FORWARDED CLASS TYPES /////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type { NetEndpoint } from '../common/class-urnet-endpoint.ts';

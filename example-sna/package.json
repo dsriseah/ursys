@@ -1,0 +1,17 @@
+{
+  "name": "sna-test",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "core": "ts-node-esm --transpile-only ../_ur/npm-scripts/@build-core.mts",
+    "dev": "npm run core && ts-node-esm  --transpile-only ./@run-sna.mts",
+    "gen:dataset": "npm run core && ts-node-esm  --transpile-only ./util/gen-dataset-json.mts",
+    "gen:manifest": "npm run core && ts-node-esm  --transpile-only ./util/gen-manifest.mts"
+  },
+  "author": "dsriseah",
+  "license": "MIT",
+  "dependencies": {
+    "@ursys/core": "file:../_ur",
+    "txtgen": "^3.0.7"
+  }
+}

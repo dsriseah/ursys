@@ -3,28 +3,23 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "allowImportingTsExtensions": true,
-    "baseUrl": ".",
-    "typeRoots": ["types/"],
+    "typeRoots": ["./_types/"],
     "paths": {
-      "~ur/common/*": ["common/*"],
-      "~ur/types/*": ["_types/*"],
-      "~ur/web/*": ["web-client/*"]
+      "tsconfig/types": ["./_ur/@ur-types.d.ts"]
     },
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "outDir": "_dist/types",
-    "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "outDir": "./_dist/_types",
+    "target": "ESNext"
   },
-  "include": ["web-client/**/*.ts", "common/**/*", "_types/**/*"],
+  "include": ["./web-client/**/*.ts", "./common/**/*", "./_types/**/*"],
   "exclude": [
-    "node-server",
-    "node_modules",
-    "_dist",
-    "npm-scripts",
-    "test-config",
-    "vendor"
+    "./node-server",
+    "./node_modules",
+    "./_dist",
+    "./npm-scripts",
+    "./test-config",
+    "./vendor"
   ]
 }

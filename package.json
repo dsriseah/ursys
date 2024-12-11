@@ -12,7 +12,7 @@
     "create": "./_ur/ur-create.sh"
   },
   "scripts": {
-    "example": "npx ts-node-esm ./_ur/npm-scripts/@build-core.mts && node ./example/@build-example.mjs",
+    "example": "npx ts-node-esm ./_ur/npm-scripts/@build-core.mts && node ./example-app/@build-example.mjs",
     "build-core": "npx ts-node-esm ./_ur/npm-scripts/@build-core.mts",
     "lint": "npm exec --workspaces -- npm run lint && eslint example-app/"
   },

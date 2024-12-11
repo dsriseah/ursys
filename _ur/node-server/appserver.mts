@@ -16,7 +16,8 @@ import { NetPacket } from '../common/class-urnet-packet.ts';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_Msg, NP_Address, NM_Handler } from '~ur/types/urnet.d.ts';
+import type { NP_Msg, NP_Address, NM_Handler } from '../_types/urnet.d.ts';
+import type { DataObj } from '../_types/dataset.d.ts';
 type AddressInfo = { port: number; family: string; address: string };
 type RequestHandler = express.RequestHandler; // (req,res,next)=>void
 type PacketHandler = (pkt: NetPacket) => void;
@@ -35,12 +36,17 @@ type WSOptions = {
   srv_addr?: NP_Address; // servers UADDR
   error?: string; // (opt) error message...if present, options are invalid
 };
+type DataReturn = () => DataObj;
+type HookOptions = {
+  get_client_cfg?: DataReturn; // get the context object,
+  error?: string; // (opt) error message...if present, options are invalid
+};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DBG = false;
+const DBG = true;
 const { DIM, NRM } = ANSI;
-const LOG = makeTerminalOut('UR.SERVE', 'TagBlue');
+const LOG = makeTerminalOut('URSERVE', 'TagBlue');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let APP: express.Application; // express app instance, init by ListenHTTP
 let SERVER: http.Server; // http server instance, init by ListenHTTP
@@ -57,6 +63,7 @@ let WSS_PATH: string;
 let INDEX_FILE: string;
 let HTTP_DOCS: string;
 let WSS_NAME: string;
+let CLIENT_CFG: DataReturn;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SaveHTOptions(opt: HTOptions): HTOptions {
   const fn = 'SaveHTOptions:';
@@ -92,14 +99,28 @@ function GetHTOptions(): HTOptions {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function SaveWSOptions(opt: WSOptions): WSOptions {
   const fn = 'SaveWSOptions:';
-  let { wss_path, srv_addr } = opt;
-  if (wss_path !== undefined && typeof wss_path !== 'string') {
-    throw Error(`${fn} wss_path not valid option ${JSON.stringify(wss_path)}`);
-  }
+  const { wss_path, srv_addr } = opt;
+  if (typeof wss_path !== 'string') return { error: `${fn} wss_path is invalid` };
   WSS_PATH = wss_path || 'urnet-ws';
   SRV_UADDR = srv_addr || ('SRV01' as NP_Address);
   return GetWSOptions();
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetClientConfig(): HookOptions {
+  return {
+    get_client_cfg: CLIENT_CFG
+  };
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function SaveClientConfig(opt: HookOptions): HookOptions {
+  const fn = 'SaveClientConfig:';
+  const { get_client_cfg } = opt;
+  if (typeof get_client_cfg !== 'function')
+    return { error: `${fn} get_client_cfg is invalid` };
+  CLIENT_CFG = get_client_cfg;
+  return GetClientConfig();
+}
+
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetWSOptions(): WSOptions {
   return {
@@ -108,10 +129,11 @@ function GetWSOptions(): WSOptions {
   };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function CheckConfiguration(opt: HTOptions & WSOptions) {
+function CheckConfiguration(opt: HTOptions & WSOptions & HookOptions) {
   const htOpts = SaveHTOptions(opt);
   const wsOpts = SaveWSOptions(opt);
-  return { ...htOpts, ...wsOpts };
+  const hookOpts = SaveClientConfig(opt);
+  return { ...htOpts, ...wsOpts, ...hookOpts };
 }
 
 /// SERVER INIT ///////////////////////////////////////////////////////////////
@@ -192,7 +214,13 @@ function ListenWSS(opt: WSOptions) {
         if (DBG) LOG(`${DIM}client disconnect${NRM}`);
         client_link.close();
       };
-      const client_sock = new NetSocket(client_link, { send, onData, close });
+      const getConfig = CLIENT_CFG;
+      const client_sock = new NetSocket(client_link, {
+        send,
+        onData,
+        close,
+        getConfig
+      });
       if (EP.isNewSocket(client_sock)) {
         EP.addClient(client_sock);
         const uaddr = client_sock.uaddr;
@@ -264,8 +292,17 @@ function AddMessageHandler(message: NP_Msg, msgHandler: NM_Handler) {
 /** API: To remove a service, remove the packet handler from the endpoint.
  *  If the handler is not provided, all handlers for the message are removed.
  */
-function RemoveMessageHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
+function DeleteMessageHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
   EP.deleteMessageHandler(message, pktHandlr);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API:delare message handlers and register after authentation to be added to
+ *  URNET message network */
+async function RegisterMessages() {
+  // declare messages to server
+  const resdata = await EP.declareClientMessages();
+  // LOG(...PR(`RegisterMessages: ${resdata.error || 'success'}`));
+  // LOG(resdata);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Get the APP instance for adding middleware */
@@ -273,30 +310,23 @@ function GetAppInstance(): express.Application {
   return APP;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** API: Get the ENDPOINT instance for inspection
- *  Be sure to check that EP is not undefined before using it.
- */
-function GetServerEndpoint(): NetEndpoint {
-  const fn = 'GetServerEndpoint:';
-  if (EP === undefined) {
-    LOG.warn(`${fn} endpoint not yet defined, so returning undefined`);
-    return;
-  }
-  if (EP.uaddr === undefined) {
-    LOG.warn(`${fn} endpoint awaiting initialization, so returning undefined`);
-    return;
-  }
+/** API: Get the ENDPOINT instance for inspection */
+function ServerEndpoint(): NetEndpoint {
   return EP;
 }
 
 /// CONVENIENCE METHODS ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Convenience method to start HTTP and WS servers */
-async function Start(opt: HTOptions & WSOptions) {
+async function Start(opt: HTOptions & WSOptions & HookOptions) {
   const fn = 'Start:';
-  CheckConfiguration(opt);
-  await ListenHTTP(opt);
-  await ListenWSS(opt);
+  try {
+    CheckConfiguration(opt);
+    await ListenHTTP(opt);
+    await ListenWSS(opt);
+  } catch (err) {
+    LOG.error(`${fn} ${err}`);
+  }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Convenience method to stop HTTP and WS servers */
@@ -323,8 +353,9 @@ export {
   StopWSS, // stop the websocket server
   // register URNET services
   AddMessageHandler,
-  RemoveMessageHandler,
+  DeleteMessageHandler,
+  RegisterMessages,
   // expose instances
   GetAppInstance,
-  GetServerEndpoint
+  ServerEndpoint
 };

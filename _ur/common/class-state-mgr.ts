@@ -436,5 +436,6 @@ class StateMgr {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default StateMgr;
+export { StateMgr };
 export type { TStateObj, TGroupName, TStateChangeFunc, TEffectFunc };
 export type { IStateMgr };

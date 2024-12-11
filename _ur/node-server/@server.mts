@@ -10,11 +10,13 @@
 import * as ADDON from './ur-addon-mgr.mts';
 import * as APPSERV from './appserver.mts';
 import * as APPBUILD from './appbuilder.mts';
+import * as ASSET from '../common/util-data-ops.ts';
 import * as FILE from './file.mts';
 import * as PROC from './process.mts';
 import * as TEXT from '../common/util-text.ts';
 import * as PROMPTS from '../common/util-prompts.ts';
 import * as NORM from '../common/util-data-norm.ts';
+import * as SNA from './sna-node.mts';
 
 // typescript classes
 import UrModule from './class-urmodule.mts';
@@ -25,12 +27,12 @@ import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetPacket from '../common/class-urnet-packet.ts';
 import PhaseMachine from '../common/class-phase-machine.ts';
 // typescript library modules
-import * as UID from '../common/lib-uid.ts';
+import * as UID from '../common/module-uid.ts';
 import * as CONSTANTS from './constants-urnet.mts';
 
 /// TYPES /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { PM_Name, PM_Definition } from '../common/class-phase-machine.ts';
+import type { PhaseID, PhaseDefinition } from '../common/class-phase-machine.ts';
 type InitOptions = {};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -86,7 +88,9 @@ export {
   // server-based services
   APPSERV, // application server
   APPBUILD, // application builder
+  ASSET, // asset management
   //
+  SNA, // Sri New Architecture (SNA)
   ADDON, // ur module manager,
   PROMPTS // prompt style formatter
 };
@@ -99,10 +103,11 @@ export {
   NewPhaseMachine,
   HookPhase,
   RunPhaseGroup,
-  GetPhaseMachine,
+  GetMachine,
   GetMachineStates
 } from '../common/class-phase-machine.ts';
 
 // export types
 export type { BuildOptions, WatchOptions, NotifyCallback } from './appbuilder.mts';
 export type { InitOptions };
+export type { PhaseID, PhaseDefinition };

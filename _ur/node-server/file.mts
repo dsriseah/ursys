@@ -5,13 +5,24 @@
   Conventions (see 
   directories should end with a slash
 
-
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
 import FSE from 'fs-extra';
 import PATH from 'node:path';
 import PROMPT from '../common/util-prompts.ts';
+import * as CRYPTO from 'node:crypto';
 import * as url from 'url';
+import { pipeline } from 'node:stream/promises';
+
+/// TYPE DECLARATIONS //////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+type HashInfo = {
+  filepath: string;
+  filename: string;
+  basename: string;
+  ext: string;
+  hash: string;
+};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -62,28 +73,31 @@ const u_short = p => {
 
 /// DETECTION METHODS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** Scan for parent directory that contains a file that uniquely appears in it
+ *  Optionally pass any directory below the root of the project */
+function FindParentDir(rootFile: string, startDir?: string): string {
+  const fileUrl = import.meta.url || `file://${process.cwd()}`;
+  let currentDir = startDir || url.fileURLToPath(new URL('.', fileUrl));
+  // declare check function
+  const u_check_dir = dir => FSE.existsSync(PATH.join(dir, rootFile));
+  // walk up the directory tree
+  while (currentDir !== PATH.parse(currentDir).root) {
+    if (u_check_dir(currentDir)) return currentDir;
+    currentDir = PATH.resolve(currentDir, '..');
+  }
+  return undefined;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Scan for parent directory that contains a file that uniquely appears in the
  *  root directory of the project.  To work, pass any directory below the
  *  root of the project. By default, it searches for the .nvmrc file that's
- *  always in an URSYS repo.
- */
-function DetectedRootDir(rootfile: string = '.nvmrc'): string {
+ *  always in an URSYS repo. */
+function DetectedRootDir(rootFile: string = '.nvmrc'): string {
   if (typeof ROOT === 'string') return ROOT;
-  const fileUrl = import.meta.url || `file://${process.cwd()}`;
-  let currentDir = url.fileURLToPath(new URL('.', fileUrl));
-  const check_dir = dir => FSE.existsSync(PATH.join(dir, rootfile));
-  // walk through parent directories until root is reached
-  while (currentDir !== PATH.parse(currentDir).root) {
-    // LOG(`DetectedRootDir: checking ${currentDir}`);
-    if (check_dir(currentDir)) {
-      ROOT = currentDir;
-      return ROOT;
-    }
-    currentDir = PATH.resolve(currentDir, '..');
-  }
-  // If reached root and file not found by loop
-  return undefined;
+  ROOT = FindParentDir(rootFile);
+  return ROOT;
 }
+
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** when run from an addon directory, return the path to the addon directory
  *  and the detected addon name */
@@ -188,12 +202,12 @@ function RemoveDir(dirpath): boolean {
 
 /// PATH UTILITIES ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Make a string relative to the project root, returning a normalized path */
+/** make a string relative to the project root, returning a normalized path */
 function AbsLocalPath(subdir: string): string {
   return u_path(subdir);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Make a string that removes the DetectedRootDir() portion of the path */
+/** make a string that removes the DetectedRootDir() portion of the path */
 function RelLocalPath(subdir: string): string {
   const p = u_path(subdir);
   return u_short(p);
@@ -201,8 +215,8 @@ function RelLocalPath(subdir: string): string {
 
 /// ASYNC DIRECTORY METHODS ///////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** return array of filenames */
-function GetDirContent(dirpath) {
+/** return array of filenames as short names */
+function GetDirContent(dirpath, opt = { absolute: true }) {
   if (!DirExists(dirpath)) {
     const err = `${dirpath} is not a directory`;
     console.warn(err);
@@ -212,7 +226,7 @@ function GetDirContent(dirpath) {
   const files = [];
   const dirs = [];
   for (let name of filenames) {
-    let path = PATH.join(dirpath, name);
+    let path = opt.absolute ? PATH.join(dirpath, name) : name;
     const stat = FSE.lstatSync(path);
     // eslint-disable-next-line no-continue
     if (stat.isDirectory()) dirs.push(name);
@@ -222,16 +236,15 @@ function GetDirContent(dirpath) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a dirpath, return all files. optional match extension */
-function Files(dirpath, opt = {}): string[] {
+function Files(dirpath, opt = { absolute: false }): string[] {
   const result = GetDirContent(dirpath);
   if (!result) return undefined;
-  const basenames = result.files.map(p => PATH.basename(p));
-  if (DBG) LOG(`found ${basenames.length} files in ${dirpath}`);
-  return basenames;
+  if (opt.absolute) return result.files.map(p => PATH.join(dirpath, p));
+  else return result.files;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Subdirs(dirpath): string[] {
-  const result = GetDirContent(dirpath);
+function Subdirs(dirpath, opt = { absolute: false }): string[] {
+  const result = GetDirContent(dirpath, opt);
   if (!result) return undefined;
   return result.dirs;
 }
@@ -263,6 +276,17 @@ async function UnsafeWriteFile(filepath, rawdata) {
   file.end(); // if this is missing, close event will never fire.
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** synchronous JSON write */
+function WriteJSON(filepath, obj = {}) {
+  FSE.writeFileSync(filepath, JSON.stringify(obj, null, 2));
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** syncronous JSON read */
+function ReadJSON(filepath) {
+  let rawdata = FSE.readFileSync(filepath);
+  return JSON.parse(rawdata);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function AsyncReadJSON(filepath) {
   const rawdata = (await AsyncReadFile(filepath)) as any;
   return JSON.parse(rawdata);
@@ -281,6 +305,58 @@ async function UnlinkFile(filepath) {
     if (err.code === 'ENOENT') return false;
     console.log(err.code);
   }
+}
+/// FILE HASHING //////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** given a filepath, return the hash of the file */
+async function AsyncFileHash(filepath, algo = 'md5') {
+  const hash = CRYPTO.createHash(algo);
+  const stream = FSE.createReadStream(filepath);
+  // wait for buffer to be read
+  stream.on('data', data => hash.update(data));
+  await new Promise((resolve, reject) => {
+    stream.on('end', resolve);
+    stream.on('error', reject);
+  });
+  return hash.digest('hex');
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** given a list of filepaths, return an array of hash info objects */
+async function FilesHashInfo(filepaths, algo = 'md5'): Promise<HashInfo[]> {
+  const hashInfo = [];
+  for (let fp of filepaths) {
+    const hash = await AsyncFileHash(fp, algo);
+    const { filename, basename, ext } = GetPathInfo(fp);
+    hashInfo.push({ filepath: fp, filename, basename, ext, hash });
+  }
+  return hashInfo;
+}
+
+/// EXTRA PATH HELPERS ////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** given a string '//a//a//aaa/', returns 'a/a/aaa' */
+function TrimPath(p: string = ''): string {
+  p = PATH.join(p); // remove any duped /
+  // remove leading and trailing slashes
+  if (p.startsWith('/')) p = p.slice(1);
+  if (p.endsWith('/')) p = p.slice(0, -1);
+  return p;
+}
+
+/// DECODER METHODS ///////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function GetPathInfo(path: string) {
+  const bn = PATH.basename(path, PATH.extname(path));
+  const en = PATH.extname(path).slice(1); // remove leading .
+  const dn = PATH.dirname(path);
+  return {
+    isDir: en.length === 0,
+    isFile: en.length > 0,
+    filename: `${bn}.${en}`,
+    dirname: dn,
+    basename: bn,
+    ext: en
+  };
 }
 
 /// SYNCHRONOUS TESTS /////////////////////////////////////////////////////////
@@ -309,17 +385,26 @@ export {
   GetRootDirs,
   DetectedRootDir,
   DetectedAddonDir,
+  FindParentDir,
   AbsLocalPath,
   RelLocalPath,
+  TrimPath,
+  GetPathInfo,
+  AsyncFileHash,
+  // directory read
+  GetDirContent,
   Files,
+  FilesHashInfo,
   Subdirs,
-  //
+  // file read/write
   ReadFile,
   AsyncReadFile,
   UnsafeWriteFile,
+  ReadJSON,
+  WriteJSON,
   AsyncReadJSON,
   AsyncWriteJSON,
-  //
+  // delete
   UnlinkFile,
   //
   Test

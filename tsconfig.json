@@ -36,10 +36,7 @@
     // Do not use in imports for library entrypoints! See details in link.
     // https://typescriptlang.org/docs/handbook/modules/reference.html#paths
     "paths": {
-      "~ur/common/*": ["./_ur/common/*"],
-      "~ur/server/*": ["./_ur/node-server/*"],
-      "~ur/web/*": ["./_ur_addons/*"],
-      "~ur/types/*": ["./_ur/_types/*"]
+      "tsconfig/types": ["./_ur/@ur-types.d.ts"]
     },
 
     // when set, typeRoots looks ONLY at these paths for type resolution
@@ -77,27 +74,21 @@
     // 'outDir' sets the output directory for the compiled files
     // This is set by esbuild in the build script, so it is not needed here
   },
-
-  // include all these files!
-  // - the top-level tsconfig.json is used for all files in the workspace for intellisense
-  // - may need to build the type files also for intellisene to work (ur build does this)
+  // process all these files. per 'isolatedModules', they are all scanned individually
+  // rather than as a unified type system
   "include": [
     "_ur/**/*.ts",
     "_ur/**/*.mts",
     "_ur_addons/**/*.ts",
     "_ur_addons/**/*.mts",
-    "example/**/*.ts",
-    "example/**/*.mts",
+    "sna-*/**/*.ts",
+    "sna-*/**/*.mts",
     "app-*/**/*.ts",
-    "app-*/**/*.mts"
+    "app-*/**/*.mts",
+    "example-*/**/*.ts",
+    "example-*/**/*.mts"
   ],
 
   // don't process the files in these directories
-  "exclude": [
-    "node_modules",
-    "_ur/node_modules",
-    "_ur_addons/node_modules",
-    "example/node_modules",
-    "app-*/node_modules"
-  ]
+  "exclude": ["node_modules", "_ur/node_modules", "_ur_addons/node_modules"]
 }

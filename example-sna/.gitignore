@@ -1,0 +1,56 @@
+# URSYS/SNA APPLICATION IGNORE FILE
+
+# See http://help.github.com/ignore-files/ for more about ignoring
+# files.
+
+# URSYS built + package + runtime directories
+_public
+_dist
+_runtime
+
+# SNA web bundler dynamic importer
+__app_imports.ts
+
+# don't commit _nocommit files or directories
+*_nocommit*
+
+# Also ignore build system directories
+.npmignore
+/.parcel-cache
+
+# ignore certain node directories and dot-files
+node_modules
+.package-lock.json 
+
+# don't commit personal log files or temp
+nohup.out
+*_log.md
+*.log
+tmp-*
+
+# And don't commit .zip archives either
+*.zip
+
+# Ignore all generated files
+npm-debug.log
+*.tmproj
+
+# Numerous always-ignore extensions
+*~
+*.diff
+*.patch
+*.err
+*.orig
+*.log
+
+# Ignore Obsidian vaults
+.obsidian
+
+# Ignore OS or Editor folders
+.DS_Store
+.cache
+.project
+.settings
+.tmproj
+nbproject
+Thumbs.db 

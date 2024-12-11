@@ -18,16 +18,18 @@ type BuildOptions = {
   source_dir?: string; // base directory for javascript sources
   asset_dir?: string; // path to static assets to copy
   output_dir?: string; // path to write bundle and assets
+  runtime_dir?: string; // (opt) path to runtime data directory
   //
   entry_file?: string; // main entry file for the app
   index_file?: string; // default index file for web server
-  bundle_file?: string; // (opt) short name for the bundle
+  bundle_name?: string; // (opt) short name for the bundle
   notify_cb?: NotifyCallback; // (opt) callback to notify on build
   //
   error?: string; // (opt) error message...if present, options are invalid
 };
 type WatchOptions = {
   watch_dirs: string[]; // directories to watch for changes
+  ignored?: RegExp; // regex to ignore files
   notify_cb?: NotifyCallback; // callback to notify on change
 };
 
@@ -38,6 +40,7 @@ const DBG = false;
 let SRC_JS: string; // javascript sources to build
 let SRC_ASSETS: string; // asset sources
 let PUBLIC: string; // destination for built files, copied assets
+let RUNTIME: string; // convenience runtime data directory
 let BUNDLE_NAME: string; // name of the bundle file
 let NOTIFY_CB: NotifyCallback; // callback to notify on build
 let ENTRY_FILE: string; // default entry file for the app
@@ -45,7 +48,7 @@ let INDEX_FILE: string; // default index file for the app
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import { ANSI_COLORS } from '../common/declare-colors.ts';
 const { DIM, NRM } = ANSI_COLORS;
-const LOG = makeTerminalOut('UR.BUILD', 'TagBlue');
+const LOG = makeTerminalOut('URBUILD', 'TagBlue');
 
 /// CONFIGURATION /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -59,11 +62,12 @@ function GetBuildOptions(): BuildOptions {
     source_dir: SRC_JS,
     asset_dir: SRC_ASSETS,
     output_dir: PUBLIC,
+    runtime_dir: RUNTIME,
     //
     entry_file: ENTRY_FILE,
     index_file: INDEX_FILE,
     // optional values
-    bundle_file: BUNDLE_NAME,
+    bundle_name: BUNDLE_NAME,
     notify_cb: NOTIFY_CB
   };
 }
@@ -75,9 +79,10 @@ function SetBuildOptions(opts: BuildOptions) {
     source_dir,
     asset_dir,
     output_dir,
+    runtime_dir,
     entry_file,
     index_file,
-    bundle_file,
+    bundle_name,
     notify_cb
   } = opts;
   const valid = source_dir && asset_dir && output_dir;
@@ -85,9 +90,10 @@ function SetBuildOptions(opts: BuildOptions) {
   SRC_JS = source_dir;
   SRC_ASSETS = asset_dir;
   PUBLIC = output_dir;
+  RUNTIME = runtime_dir || `${source_dir}/_runtime`;
   ENTRY_FILE = entry_file;
   INDEX_FILE = index_file;
-  BUNDLE_NAME = bundle_file;
+  BUNDLE_NAME = bundle_name;
   NOTIFY_CB = notify_cb;
   return GetBuildOptions();
 }
@@ -100,10 +106,9 @@ function SetBuildOptions(opts: BuildOptions) {
 async function BuildApp(opts: BuildOptions) {
   const fn = 'BuildApp:';
   // save options for later. these are NOT esbuild-specific options
-  let { bundle_file, entry_file, notify_cb } = SetBuildOptions(opts);
+  let { bundle_name, entry_file, notify_cb } = SetBuildOptions(opts);
   // option: default bundle name to entry file name if not set
-  if (!bundle_file) bundle_file = path.basename(entry_file);
-  if (bundle_file.endsWith('.js')) bundle_file = bundle_file.slice(0, -3);
+  if (!bundle_name) bundle_name = path.basename(entry_file);
   // ensure the output directory exists
   fse.ensureDir(PUBLIC);
   // build the webapp and stuff it into public
@@ -111,14 +116,15 @@ async function BuildApp(opts: BuildOptions) {
     entryPoints: [`${SRC_JS}/${entry_file}`],
     bundle: true,
     loader: { '.js': 'jsx' },
-    target: 'es2022',
+    target: 'es2020',
     platform: 'browser',
-    format: 'esm',
+    format: 'iife',
     sourcemap: true,
-    outfile: `${PUBLIC}/js/${bundle_file}.js`,
+    outfile: `${PUBLIC}/js/${bundle_name}`,
     plugins: [
       // @ts-ignore - esbuild-plugin-copy not in types
       copy({
+        resolveFrom: 'cwd',
         assets: [
           {
             from: [`${SRC_ASSETS}/**/*`],
@@ -130,9 +136,12 @@ async function BuildApp(opts: BuildOptions) {
       {
         name: 'rebuild-notify',
         setup(build) {
+          build.onStart(() => {
+            // LOG(`BuildApp: ${DIM}building app${NRM}`);
+          });
           build.onEnd(() => {
-            if (notify_cb) notify_cb();
-            if (DBG) LOG.info(`${DIM}Build complete.${NRM}`);
+            // LOG(`BuildApp: ${DIM}app built${NRM}`);
+            if (notify_cb) notify_cb({ changed: 'rebuild-notify' });
           });
         }
       }
@@ -152,12 +161,17 @@ async function WatchExtra(opts: WatchOptions) {
   const watcher = chokidar.watch(watch_dirs, {
     persistent: true
   });
+  // watcher.on('all', (event, path) => {
+  //   const shortPath = path.replace(process.cwd(), '.');
+  //   LOG(`WatchExtra: ${event} ${shortPath}`);
+  // });
   watcher.on('change', async changed => {
     const opts = GetBuildOptions();
+    LOG(`${DIM}watch-extra: rebuilding app...${NRM}`);
     await BuildApp(opts);
     if (notify_cb) notify_cb({ changed });
+    else LOG(`watch-extra: no notify_cb set`);
   });
-  return Promise.resolve();
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

@@ -383,7 +383,9 @@ export {
   makeTerminalOut,
   makeHTMLConsole,
   printTagColors,
-  colorTagString
+  colorTagString,
+  //
+  makeStyleFormatter as ConsoleStyler
 };
 export default {
   makeTerminalOut,
