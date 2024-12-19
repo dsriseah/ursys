@@ -22,6 +22,7 @@ import { fork } from 'node:child_process';
 const LOG = PR('ADO-LOADR', 'TagCyan');
 const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const ADDON_DIR = process.argv[1];
 const ARGS = process.argv.slice(2);
 
 /// SIGNAL HANDLING ///////////////////////////////////////////////////////////
@@ -36,10 +37,7 @@ process.on('SIGHUP', () => {
 async function ForkAddon(addonSelector: string) {
   const { addonName, entryName, entryFile, entryFiles, err } =
     PROC.ValidateAddon(addonSelector);
-  if (err) {
-    LOG(err);
-    return;
-  }
+  if (err) throw Error(err);
   // success!
   if (DBG) LOG(`.. found ${entryFiles.length} addon entryFile(s)`);
   if (DBG) entryFiles.forEach(f => LOG(`   . ${addonName}/${f}  `));

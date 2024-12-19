@@ -35,6 +35,31 @@ function SNA_RuntimeInfo() {
   const { asset_dir, output_dir, runtime_dir } = APPBUILD.GetBuildOptions();
   return { asset_dir, output_dir, runtime_dir };
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: ensure that the required SNA APP directories exist */
+function SNA_EnsureAppDirs(rootDir: string) {
+  const source_dir = PATH.join(rootDir, 'app-source');
+  const asset_dir = PATH.join(rootDir, 'app-static');
+  const output_dir = PATH.join(rootDir, '_public');
+  const runtime_dir = PATH.join(rootDir, '_runtime');
+  const config_dir = PATH.join(rootDir, '_config');
+
+  // if these dirs don't exist, create them
+  FILE.EnsureDirChecked(source_dir);
+  FILE.EnsureDirChecked(asset_dir);
+  FILE.EnsureDirChecked(output_dir);
+  FILE.EnsureDirChecked(runtime_dir);
+  FILE.EnsureDirChecked(config_dir);
+
+  // save
+  const CFG = CONTEXT.SNA_GetServerConfigUnsafe();
+  CFG.runtime_dir = runtime_dir;
+  CFG.config_dir = config_dir;
+  CFG.source_dir = source_dir;
+  CFG.asset_dir = asset_dir;
+
+  return { source_dir, asset_dir, output_dir, runtime_dir, config_dir };
+}
 
 /// API: BUILD APPSERVER //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -45,9 +70,10 @@ function SNA_RuntimeInfo() {
  */
 async function SNA_Build(rootDir: string): Promise<void> {
   LOG(`SNA Build: Transpiling and bundling components`);
-  const source_dir = PATH.join(rootDir, 'app-source');
-  const asset_dir = PATH.join(rootDir, 'app-static');
-  const output_dir = PATH.join(rootDir, '_public');
+
+  // ensure the required SNA APP directories exist
+  const { source_dir, asset_dir, output_dir, runtime_dir, config_dir } =
+    SNA_EnsureAppDirs(rootDir);
 
   // A build consists of (1) building js bundle from CLIENT_ENTRY, and copying the
   // output to HT_DOCS/js followed by (2) copying assets from HT_ASSETS to HT_DOCS,

@@ -17,7 +17,7 @@ const LOG = PR('LOKI', 'TagBlue');
 LOG('run starting...reading database');
 // note that the database is not committed to the repo
 // so you have to create the _data_nocommit directory with a loki file
-const datadir = FILE.AbsLocalPath('_ur_addons/loki/_data_nocommit');
+const datadir = FILE.AbsLocalPath('_ur_addons/loki/_data');
 await PromiseLoadDatabase(`${datadir}/test-graph.loki`);
 ListCollections();
 LOG('run complete');

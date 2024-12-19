@@ -180,6 +180,15 @@ function IsFile(filepath): boolean {
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function EnsureDirChecked(dirpath) {
+  const sdir = u_short(dirpath);
+  if (!DirExists(dirpath)) {
+    LOG(`dir '${sdir}' created`);
+    return EnsureDir(dirpath);
+  }
+  LOG(`dir '${sdir}' exist ok`);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function EnsureDir(dirpath) {
   try {
     FSE.ensureDirSync(dirpath);
@@ -226,9 +235,8 @@ function GetDirContent(dirpath, opt = { absolute: true }) {
   const files = [];
   const dirs = [];
   for (let name of filenames) {
-    let path = opt.absolute ? PATH.join(dirpath, name) : name;
+    let path = PATH.join(dirpath, name);
     const stat = FSE.lstatSync(path);
-    // eslint-disable-next-line no-continue
     if (stat.isDirectory()) dirs.push(name);
     else files.push(name);
   }
@@ -380,6 +388,7 @@ export {
   IsDir,
   IsFile,
   EnsureDir,
+  EnsureDirChecked,
   RemoveDir,
   // path detection and normalization
   GetRootDirs,

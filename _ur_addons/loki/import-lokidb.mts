@@ -15,9 +15,10 @@ import * as SESSION from '../_proposals/session.ts';
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const READONLY = true;
+const READONLY = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let m_datafile: string = '';
+let m_shortpath: string = '';
 let m_options: any = {};
 let m_db: Loki; // loki database
 let m_db_loaded: boolean = false;
@@ -94,16 +95,15 @@ function _LoadDatabase(dataset: string, options: any = {}) {
   m_datafile = f_validname(dataset);
   const dataDir = PATH.dirname(m_datafile);
   FSE.ensureDirSync(PATH.dirname(dataDir));
+  m_shortpath = PATH.relative(process.cwd(), m_datafile);
+  // check if the database exists
   if (!FSE.existsSync(m_datafile)) {
-    LOG.error(`DATABASE ${m_datafile} NOT FOUND`);
-    if (READONLY) LOG.warn('this addon does not include sample .loki files');
-
-    if (!READONLY) LOG('creating blank database...');
-    else if (m_options.reject) {
+    LOG.error(`DATABASE ${m_shortpath} NOT FOUND`);
+    if (m_options.reject) {
       m_options.reject();
       m_options.reject = null;
     }
-    return;
+    if (READONLY) return;
   }
   LOG(`LOADING DATABASE ${m_datafile}`);
   let ropt = {
@@ -139,6 +139,7 @@ function ListCollections() {
     LOG(`database not loaded...try later`);
     return;
   }
+  LOG('listing collections of', m_shortpath);
   m_db.listCollections().forEach(col => {
     LOG(`collection: ${col.name}`);
   });

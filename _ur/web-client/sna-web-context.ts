@@ -58,11 +58,14 @@ function SNA_SetAppConfig(config: DataObj): DataObj {
   if (config === undefined) return APP_CFG;
   // otherwise merge the new config with the existing global config
   if (Object.keys(APP_CFG).length === 0) {
-    if (DBG) LOG(`Setting SNA Global Configuration`);
-  } else if (DBG) LOG(`Updating SNA Global Configuration`);
+    if (DBG) LOG(...PR(`Setting SNA Global Configuration`));
+  } else if (DBG) LOG(...PR(`Updating SNA Global Configuration`));
   APP_CFG = Object.assign(APP_CFG, config);
   // return a copy of the global config
-  console.log('*** SNA_SetAppConfig:', APP_CFG);
+  if (DBG) {
+    LOG(...PR('AppConfig <='), config);
+    LOG(...PR('AppConfig =>', APP_CFG));
+  }
   return { ...APP_CFG };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

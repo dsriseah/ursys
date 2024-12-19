@@ -18,7 +18,7 @@
 /runtime
 
 # ignore dynamically-generated bundle entry point
-**/__app_imports
+**/__app_imports.ts
 
 # _dist is the esbuild out directory for _ur and _ur_addons
 # _runtime is used by apps in the root level of the framework
