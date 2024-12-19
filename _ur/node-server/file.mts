@@ -226,9 +226,8 @@ function GetDirContent(dirpath, opt = { absolute: true }) {
   const files = [];
   const dirs = [];
   for (let name of filenames) {
-    let path = opt.absolute ? PATH.join(dirpath, name) : name;
+    let path = PATH.join(dirpath, name);
     const stat = FSE.lstatSync(path);
-    // eslint-disable-next-line no-continue
     if (stat.isDirectory()) dirs.push(name);
     else files.push(name);
   }
