@@ -168,7 +168,15 @@ function ListenHTTP(opt: HTOptions) {
     if (index_file === undefined) APP.get('/', serveIndex(http_docs));
     else {
       const file = `${http_docs}/${index_file}`;
-      APP.get('/', (req, res) => res.sendFile(file));
+      APP.get('/', (req, res) => {
+        if (!FILE.FileExists(file)) {
+          let out404 = `<h2>No Index File Found</h2>`;
+          out404 += `Make sure that 'index.html' exists in your static assets directory before building.`;
+          res.status(404).send(out404);
+        } else {
+          res.sendFile(file);
+        }
+      });
     }
     // serve static files
     APP.use(express.static(http_docs));

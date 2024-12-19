@@ -77,7 +77,7 @@ function SNA_GetServerConfig(): DataObj {
   if (!SNA_GetLockState('preconfig')) {
     const keys = Array.from(CFG_STATE);
     if (keys.length === 0) {
-      console.warn(`${fn} called too early; no config is set`);
+      console.warn(`${fn} called early; no config keys are set`);
     } else {
       console.warn(`${fn} early config access detected; has ${keys.join(',')}`);
     }
