@@ -180,6 +180,15 @@ function IsFile(filepath): boolean {
   }
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function EnsureDirChecked(dirpath) {
+  const sdir = u_short(dirpath);
+  if (!DirExists(dirpath)) {
+    LOG(`dir '${sdir}' created`);
+    return EnsureDir(dirpath);
+  }
+  LOG(`dir '${sdir}' exist ok`);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function EnsureDir(dirpath) {
   try {
     FSE.ensureDirSync(dirpath);
@@ -379,6 +388,7 @@ export {
   IsDir,
   IsFile,
   EnsureDir,
+  EnsureDirChecked,
   RemoveDir,
   // path detection and normalization
   GetRootDirs,

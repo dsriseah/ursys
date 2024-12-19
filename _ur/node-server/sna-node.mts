@@ -57,9 +57,24 @@ function SNA_Status() {
   };
 }
 
+/// SYSTEM HELPERS ////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** return information related to running script and args. it should be
+ *  called only by the main script that's been invoked, otherwise the info
+ *  returned will likely by incorrect. */
+function SNA_GetProcessInfo(proc = process) {
+  const scriptPath = proc.argv[1]; // full path to the script
+  const scriptDir = scriptPath.split('/').slice(0, -1).join('/'); // just the dir
+  const scriptName = scriptPath.split('/').pop(); // just the script name
+  const args = proc.argv.slice(2); // array of arguments
+  return [scriptDir, scriptName, args];
+}
+
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
+  // sna system helpers
+  SNA_GetProcessInfo as GetProcessInfo,
   SNA_Build as Build,
   SNA_Start as Start,
   SNA_Status as Status,
