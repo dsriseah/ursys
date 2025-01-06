@@ -28,8 +28,10 @@
     "node-dir": "^0.1.17",
     "vitest": "^1.6.0"
   },
+  "peerDependencies": {
+    "@ursys/core": "file:../_ur"
+  },
   "dependencies": {
-    "@ursys/core": "file:../_ur",
     "chokidar": "^3.5.3",
     "express": "^4.19.2",
     "graphology": "^0.25.4",
