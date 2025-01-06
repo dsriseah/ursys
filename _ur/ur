@@ -26,7 +26,7 @@ BRITE=$(tput bold)
 
 
 usage() {
-    COMMANDS="build test"
+    COMMANDS="build test new:addon"
     ADDONS=""
     a_dirs=$(find "$ADDONS_LIB" -mindepth 1 -maxdepth 1 -type d -name "[!_]*" -exec basename {} \;)
     a_dirs=$(prln "$a_dirs" | tr '\n' ' ')
@@ -103,6 +103,34 @@ case "$1" in
             prln "${YELLOW}unknown test option: '$2'${RESET}"
             exit 1;
         fi
+        exit 0;
+        ;;
+
+    new:addon)
+        # get additional argument after 'new' into $option
+        prln ""
+        if [ -z "$2" ]; then
+            prln "${BGBLUE} new:addon ${RESET} ${BRITE}Provide short addon name.${RESET} Use ${YELLOW}x-${RESET} prefix for user addons that will be"
+            prln "excluded from the main URSYS repo (e.g. x-myaddon)"
+            prln ""
+            exit 1;
+        fi
+        # make sure the addon doesn't already exist
+        if [ -d "$ADDONS_LIB/$2" ]; then
+            prln "${BGBLUE} new:addon ${RESET} $2 already exists"
+            prln ""
+            exit 1;
+        fi
+        # clone the addon template and remove the .git directory
+        git clone --depth 1 https://github.com/dsriseah/ursys-x-sna-addon.git $ADDONS_LIB/$2
+        rm -fr $ADDONS_LIB/$2/.git
+        if [ "${2:0:2}" = "x-" ]; then
+            prln "${BGBLUE} new:addon ${RESET} created new user addon: $2"
+        else
+            prln "${BGBLUE} new:addon ${RESET} created new addon: $2"
+        fi
+        cd $ADDONS_LIB/$2
+        prln ""
         exit 0;
         ;;
 esac
