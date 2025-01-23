@@ -62,10 +62,7 @@ function SNA_SetAppConfig(config: DataObj): DataObj {
   } else if (DBG) LOG(...PR(`Updating SNA Global Configuration`));
   APP_CFG = Object.assign(APP_CFG, config);
   // return a copy of the global config
-  if (DBG) {
-    LOG(...PR('AppConfig <='), config);
-    LOG(...PR('AppConfig =>', APP_CFG));
-  }
+  if (DBG) LOG(...PR('SetAppConfig()', APP_CFG));
   return { ...APP_CFG };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
