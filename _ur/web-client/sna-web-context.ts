@@ -25,7 +25,7 @@ type LockState = 'init' | 'preconfig' | 'prehook' | 'locked';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('sna.ctxt', 'TagGray');
-const DBG = true;
+const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let APP_CFG: DataObj = {}; // pre-provided configuration object
 let CFG_STATE: Set<LockState> = new Set();
