@@ -13,7 +13,11 @@ class UR_UIFrame extends HTMLElement {
   constructor() {
     super(); // Always call super first in constructor
     const shadow = this.attachShadow({ mode: 'open' });
-    shadow.innerHTML = `<slot></slot>`;
+    shadow.innerHTML = `
+      <slot name='head'></slot>
+      <slot name='rack'></slot>
+      <slot name='console'></slot>
+    `;
     const wrapper = document.createElement('div');
     const style = document.createElement('style');
 
@@ -23,11 +27,13 @@ class UR_UIFrame extends HTMLElement {
         padding: 10px; 
         color: white; 
       }
+      ::slotted(.console) {
+        display:none;
+      }  
     `;
 
     wrapper.textContent = 'Hello, I am a Frame component!';
     shadow.appendChild(style);
-    shadow.appendChild(wrapper);
   }
 
   connectedCallback() {}

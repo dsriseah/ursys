@@ -19,7 +19,7 @@ class UR_UIRack extends HTMLElement {
 
     style.textContent = `
       div { 
-        background: tomato; 
+        background: orange; 
         padding: 10px; 
         color: white; 
       }
