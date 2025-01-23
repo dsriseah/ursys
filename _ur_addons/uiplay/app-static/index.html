@@ -7,33 +7,19 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/styles.css">
   <script src="js/bundle.js" defer></script>
-  <style>
-    body {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      height: 100vh;
-      margin: 0;
-      box-sizing: border-box;
-    }
-
-    #app {
-      overflow: auto;
-      padding: 10px;
-    }
-  </style>
 </head>
 
 <body>
   <!-- Informational Elements -->
-  <div class="info">
-    <h1>UI Playground</h2>
-      <p>Open the <b>Javascript Console</b>.<br>(Chrome shortcuts: 🍎 CMD-OPT-J / 🪟
-        CTRL-SHIFT-J)
-      </p>
-      <p>The source files for this test app are located in <tt>_ur_addons/webplay/</tt>.</p>
+  <div id="shell-info">
+    <h1>UI Playground</h1>
+    <p>Open the <b>Javascript Console</b>.<br>(Chrome shortcuts: 🍎 CMD-OPT-J / 🪟
+      CTRL-SHIFT-J)
+    </p>
+    <p>The source files for this test app are located in <tt>_ur_addons/webplay/</tt>.</p>
   </div>
   <!-- Routed Views -->
-  <div id="app"></div>
+  <div id="shell-view"></div>
 </body>
 
 </html>

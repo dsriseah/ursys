@@ -12,6 +12,6 @@ import { SNA } from '@ursys/core';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
   DeclareComponents();
-  AttachRouter(document.getElementById('app'));
+  AttachRouter(document.getElementById('shell-view'));
   await SNA.Start();
 })();

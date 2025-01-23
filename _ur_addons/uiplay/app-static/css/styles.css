@@ -1,10 +1,22 @@
 body {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  margin: 0;
+
   background-color: lightgray;
   color: #333;
   font-family: monospace;
 }
 
-.info {
+#shell-view {
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 10px;
+}
+
+#shell-info {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -12,10 +24,12 @@ body {
   justify-content: center;
 }
 
-.app {
-  box-sizing: border-box;
-}
-
 tt {
   color: maroon;
+}
+
+@media (max-height: 600px) {
+  #shell-info p {
+    display: none;
+  }
 }
