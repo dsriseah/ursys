@@ -4,14 +4,14 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import * as URC from './lib/components.ts';
-
-/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import { DeclareComponents } from './lib/components.ts';
+import { AttachRouter } from './lib/router.ts';
+import { SNA } from '@ursys/core';
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-URC.DeclareComponents();
-
-/// EXPORTS ///////////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(async () => {
+  DeclareComponents();
+  AttachRouter(document.getElementById('app'));
+  await SNA.Start();
+})();

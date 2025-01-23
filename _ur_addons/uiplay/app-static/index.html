@@ -9,36 +9,31 @@
   <script src="js/bundle.js" defer></script>
   <style>
     body {
-      background-color: lightgray;
-      color: #333;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+      margin: 0;
+      box-sizing: border-box;
     }
 
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+    #app {
+      overflow: auto;
+      padding: 10px;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <!-- Your content here -->
+  <!-- Informational Elements -->
+  <div class="info">
     <h1>UI Playground</h2>
       <p>Open the <b>Javascript Console</b>.<br>(Chrome shortcuts: 🍎 CMD-OPT-J / 🪟
         CTRL-SHIFT-J)
       </p>
       <p>The source files for this test app are located in <tt>_ur_addons/webplay/</tt>.</p>
-      <!-- Interactive Elements -->
-      <ur-frame>
-        <ur-rack>RACK 1</ur-rack>
-        <ur-rack>RACK 2</ur-rack>
-      </ur-frame>
-
   </div>
-  <!-- custom components -->
+  <!-- Routed Views -->
+  <div id="app"></div>
 </body>
 
 </html>
