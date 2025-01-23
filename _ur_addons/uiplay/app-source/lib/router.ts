@@ -13,7 +13,7 @@ let ROUTED_DIV: HTMLElement | null = null;
 /// HELPERS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: route to the page */
-async function m_Route(event: HashChangeEvent) {
+async function m_HandleHashChange(event: HashChangeEvent) {
   // if ROUTED_DIV was already loaded, then we want to gracefully
   // remove the old content
   if (ROUTED_DIV?.children.length) {
@@ -79,11 +79,12 @@ function m_DecodeHash() {
 /** API: add handlers if not already added */
 function AttachRouter(e: HTMLElement, defaultHash?: string) {
   if (ROUTED_DIV) return; // already initialized
-  window.addEventListener('hashchange', m_Route);
-  window.addEventListener('load', m_Route);
+  window.addEventListener('hashchange', m_HandleHashChange);
+  window.addEventListener('load', m_HandleHashChange);
   ROUTED_DIV = e;
   if (typeof defaultHash !== 'string') return;
   if (!defaultHash.startsWith('#')) console.warn('defaultHash must start with #');
+  if (window.location.hash === defaultHash) return;
   window.location.hash = defaultHash;
 }
 

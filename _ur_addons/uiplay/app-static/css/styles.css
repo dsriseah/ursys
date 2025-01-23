@@ -1,35 +1,5 @@
-body {
-  box-sizing: border-box;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  height: 100vh;
-  margin: 0;
+/* MAIN STYLESHEET */
+/* Styles in views are autoloaded by the router and are scoped to the #app-view div */
+/* Styles in this file are global */
 
-  background-color: lightgray;
-  color: #333;
-  font-family: monospace;
-}
-
-#shell-view {
-  box-sizing: border-box;
-  overflow: auto;
-  padding: 10px;
-}
-
-#shell-info {
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-tt {
-  color: maroon;
-}
-
-@media (max-height: 600px) {
-  #shell-info p {
-    display: none;
-  }
-}
+@import url('./ui-shell.css');
