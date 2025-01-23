@@ -26,7 +26,12 @@ async function m_Route(event: HashChangeEvent) {
     ROUTED_DIV.innerHTML = `[Invalid Hash ${hash}]`;
     return;
   }
-  const path = view || 'home';
+  // if no view is defined then we are done
+  if (!view) {
+    ROUTED_DIV.innerHTML = `[no default view defined in router]`;
+    return;
+  }
+  const path = view;
   // insert a css load for the view
   const css = document.createElement('link');
   css.rel = 'stylesheet';
@@ -72,11 +77,14 @@ function m_DecodeHash() {
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: add handlers if not already added */
-function AttachRouter(e: HTMLElement) {
+function AttachRouter(e: HTMLElement, defaultHash?: string) {
   if (ROUTED_DIV) return; // already initialized
   window.addEventListener('hashchange', m_Route);
   window.addEventListener('load', m_Route);
   ROUTED_DIV = e;
+  if (typeof defaultHash !== 'string') return;
+  if (!defaultHash.startsWith('#')) console.warn('defaultHash must start with #');
+  window.location.hash = defaultHash;
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
