@@ -44,6 +44,9 @@ function SNA_EnsureAppDirs(rootDir: string) {
   const runtime_dir = PATH.join(rootDir, '_runtime');
   const config_dir = PATH.join(rootDir, '_config');
 
+  // first erase the output dir to purge it of old files
+  FILE.RemoveDir(output_dir);
+
   // if these dirs don't exist, create them
   FILE.EnsureDirChecked(source_dir);
   FILE.EnsureDirChecked(asset_dir);
@@ -82,7 +85,7 @@ async function SNA_Build(rootDir: string): Promise<void> {
 
   const { entryFile, tsFiles } = await IMPORT.ImportClientModules(source_dir);
   if (tsFiles.length)
-    LOG(`Bundled client components: ${YEL}${tsFiles.join(' ')}${NRM}`);
+    LOG(`Bundled client components: ${BLU}${tsFiles.join(' ')}${NRM}`);
   else LOG(`No client components found in ${source_dir}`);
 
   /// BUILD APP ///
@@ -128,9 +131,10 @@ async function SNA_Build(rootDir: string): Promise<void> {
   /// this happens after APPSERV.Start() because SNA relies on the Express
   /// server being up and running to handle URNET messages
   const mtsFiles = await IMPORT.ImportServerModules(source_dir);
+  const sdir = FILE.u_short(source_dir);
   if (mtsFiles.length)
-    LOG(`Loaded server components: ${YEL}${mtsFiles.join(' ')}${NRM}`);
-  else LOG(`No server components found in ${source_dir}`);
+    LOG(`Loaded server components: ${BLU}${mtsFiles.join(' ')}${NRM}`);
+  else LOG(`No server components found in '${sdir}'`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: used by SNA_Build() to configure watch dirs for hot reload */

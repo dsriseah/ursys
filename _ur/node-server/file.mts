@@ -201,10 +201,16 @@ function EnsureDir(dirpath) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function RemoveDir(dirpath): boolean {
   try {
-    if (IsDir(dirpath)) FSE.removeSync(dirpath);
-    return true;
+    if (IsDir(dirpath)) {
+      FSE.removeSync(dirpath);
+      return true;
+    }
+    const sdir = u_short(dirpath);
+    LOG(`RemoveDir: ${sdir} is not a directory`);
+    return false;
   } catch (err) {
-    LOG(`EnsureDir: <${dirpath}> failed w/ error ${err}`);
+    const sdir = u_short(dirpath);
+    LOG(`EnsureDir: <${sdir}> failed w/ error ${err}`);
     throw new Error(err);
   }
 }

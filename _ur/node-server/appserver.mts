@@ -180,6 +180,11 @@ function ListenHTTP(opt: HTOptions) {
     }
     // serve static files
     APP.use(express.static(http_docs));
+    // if get this far, handle 404 errors
+    APP.use((req, res, next) => {
+      res.status(404).send('Not Found');
+    });
+    // start the server
     SERVER = APP.listen(http_port, http_host, () => {
       LOG.info(`${SERVER_NAME} started on http://${http_host}:${http_port}`);
       resolve();
