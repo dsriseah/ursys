@@ -68,11 +68,11 @@ function SNA_EnsureAppDirs(rootDir: string) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: SNA_Build imports scripts provided folder. Hide dependent scripts in
  *  subdirectories. It's assumed that .mts files are server-side and .ts files
- *  are app-client side.
+ *  are app-client side. Client-side files are bundled into 'js/bundle.js'
  *  Can be called after URNET_READY (e.g. APP_READY)
  */
 async function SNA_Build(rootDir: string): Promise<void> {
-  LOG(`SNA Build: Transpiling and bundling components`);
+  LOG(`SNA Build: Transpiling and bundling javascript`);
 
   // ensure the required SNA APP directories exist
   const { source_dir, asset_dir, output_dir, runtime_dir, config_dir } =
@@ -83,7 +83,7 @@ async function SNA_Build(rootDir: string): Promise<void> {
   // which includes an index.html file that loads the js bundle. You have to write
   // the index file yourself.
 
-  const { entryFile, tsFiles } = await IMPORT.ImportClientModules(source_dir);
+  const { entryFile, tsFiles } = await IMPORT.MakeSingleEntryFile(source_dir);
   if (tsFiles.length)
     LOG(`Bundled client components: ${BLU}${tsFiles.join(' ')}${NRM}`);
   else LOG(`No client components found in ${source_dir}`);
@@ -130,11 +130,44 @@ async function SNA_Build(rootDir: string): Promise<void> {
   /// IMPORT DYNAMIC SERVER MODULES ///
   /// this happens after APPSERV.Start() because SNA relies on the Express
   /// server being up and running to handle URNET messages
-  const mtsFiles = await IMPORT.ImportServerModules(source_dir);
+  const mtsFiles = await IMPORT.FindServerModules(source_dir);
   const sdir = FILE.u_short(source_dir);
   if (mtsFiles.length)
     LOG(`Loaded server components: ${BLU}${mtsFiles.join(' ')}${NRM}`);
   else LOG(`No server components found in '${sdir}'`);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: SNA_MultiBuild is a variant of SNA_Build. Found client ts files are
+ *  are bundled into separate bundle files with the same root name */
+async function SNA_MultiBuild(rootDir: string): Promise<void> {
+  LOG(`SNA MultiBuild: Transpiling and bundling entry files`);
+  // ensure the required SNA APP directories exist
+  const { source_dir, asset_dir, output_dir, runtime_dir, config_dir } =
+    SNA_EnsureAppDirs(rootDir);
+
+  const entryFiles = await IMPORT.FindClientEntryFiles(source_dir);
+  if (entryFiles.length) {
+    LOG(`Found client entry files: ${BLU}${entryFiles.join(' ')}${NRM}`);
+  } else {
+    LOG(`No client entry files found in ${source_dir}`);
+    return;
+  }
+
+  /// BUILD BUNDLES ///
+
+  // these are our abstraction of build options for an URSYS client-server project
+  const notify_cb = m_NotifyCallback;
+  const buildOpts: BuildOptions = {
+    source_dir,
+    asset_dir,
+    output_dir,
+    entry_files: entryFiles, // relative to source_dir
+    // hot reload callback, added to esbuild events
+    notify_cb
+  };
+  LOG(`Using esbuild to assemble website -> ${BLU}${FILE.u_short(output_dir)}${NRM}`);
+  APPBUILD.SetBuildOptions(buildOpts);
+  await APPBUILD.MultiBuildApp(buildOpts);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: used by SNA_Build() to configure watch dirs for hot reload */
@@ -164,6 +197,7 @@ function m_NotifyCallback(data) {
 export {
   // sna process
   SNA_Build,
+  SNA_MultiBuild,
   SNA_RuntimeInfo
 };
 export {

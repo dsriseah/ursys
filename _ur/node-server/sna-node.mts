@@ -5,7 +5,11 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
-import { SNA_Build, SNA_RuntimeInfo } from './sna-node-urnet-server.mts';
+import {
+  SNA_Build,
+  SNA_MultiBuild,
+  SNA_RuntimeInfo
+} from './sna-node-urnet-server.mts';
 import {
   SNA_HookServerPhase,
   SNA_UseComponent,
@@ -76,6 +80,7 @@ export {
   // sna system helpers
   SNA_GetProcessInfo as GetProcessInfo,
   SNA_Build as Build,
+  SNA_MultiBuild as MultiBuild,
   SNA_Start as Start,
   SNA_Status as Status,
   // sna hook methods
