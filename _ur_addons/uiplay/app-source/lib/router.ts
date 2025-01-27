@@ -9,6 +9,8 @@
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let ROUTED_DIV: HTMLElement | null = null;
+let DBG = true;
+const LOG = console.log.bind(console);
 
 /// HELPERS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,12 +34,6 @@ async function m_HandleHashChange(event: HashChangeEvent) {
     return;
   }
   const path = view;
-  // insert a css load for the view
-  const css = document.createElement('link');
-  css.rel = 'stylesheet';
-  css.href = `views/${path}.css`;
-  document.head.appendChild(css);
-  // load the html fragment
   const res = await fetch(`views/${path}.html`);
   if (!res.ok) {
     console.error(`Failed to route to ${path}`);
@@ -45,9 +41,35 @@ async function m_HandleHashChange(event: HashChangeEvent) {
     return;
   }
   const html = await res.text();
-  ROUTED_DIV!.innerHTML = html;
-  // load any scripts in the html
-  const frag = document.createElement('div');
+  const viewElement = document.createElement('div');
+  viewElement.innerHTML = html;
+
+  // get the data-css and data-js attributes
+  const viewRoot = viewElement.children[0];
+  let cssFile = viewRoot.getAttribute('data-viewcss');
+  let jsFile = viewRoot.getAttribute('data-viewjs');
+
+  // insert a css load for the view
+  if (cssFile) {
+    if (cssFile.endsWith('.css')) cssFile = cssFile.slice(0, -4);
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = `views/${cssFile}.css`;
+    document.head.appendChild(css);
+  } else if (DBG) LOG(`note: %cdata-viewcss optional css skipped`, 'color: darkblue');
+
+  // insert a js file to the view itself
+  if (jsFile) {
+    if (jsFile.endsWith('.js')) jsFile = jsFile.slice(0, -3);
+    const js = document.createElement('script');
+    js.src = `/js/${jsFile}.js`;
+    js.type = 'module';
+    viewElement.appendChild(js);
+  } else if (DBG)
+    LOG(`note: %cdata-viewjs optional bundle skipped'`, 'color: darkblue');
+
+  // replace the routed div with the new view
+  ROUTED_DIV.replaceWith(viewElement);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: Decode location #hash/param/param
