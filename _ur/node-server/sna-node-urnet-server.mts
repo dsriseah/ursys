@@ -153,7 +153,7 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
     return;
   }
 
-  /// BUILD BUNDLES ///
+  /// BUILD APP ///
 
   // these are our abstraction of build options for an URSYS client-server project
   const notify_cb = m_NotifyCallback;
@@ -168,6 +168,37 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
   LOG(`Using esbuild to assemble website -> ${BLU}${FILE.u_short(output_dir)}${NRM}`);
   APPBUILD.SetBuildOptions(buildOpts);
   await APPBUILD.MultiBuildApp(buildOpts);
+
+  /// SERVE AND WATCH APP ///
+
+  const htdocs_short = FILE.u_short(buildOpts.output_dir);
+  const watch_dirs = [`${source_dir}/**/*`, `${asset_dir}/**/*`];
+  LOG(`Live Reload Service is monitoring ${htdocs_short}`);
+  await APPBUILD.WatchExtra({
+    watch_dirs,
+    notify_cb
+  });
+  const serverOpts = {
+    http_port: 8080,
+    http_host: 'localhost',
+    http_docs: output_dir,
+    index_file: 'index.html',
+    wss_path: 'sna-ws',
+    get_client_cfg: () => {
+      const { dataURI } = CONTEXT.SNA_GetServerConfig();
+      return { dataURI };
+    }
+  };
+  await APPSERV.Start(serverOpts);
+
+  /// IMPORT DYNAMIC SERVER MODULES ///
+  /// this happens after APPSERV.Start() because SNA relies on the Express
+  /// server being up and running to handle URNET messages
+  const mtsFiles = await IMPORT.FindServerModules(source_dir);
+  const sdir = FILE.u_short(source_dir);
+  if (mtsFiles.length)
+    LOG(`Loaded server components: ${BLU}${mtsFiles.join(' ')}${NRM}`);
+  else LOG(`No server components found in '${sdir}'`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: used by SNA_Build() to configure watch dirs for hot reload */

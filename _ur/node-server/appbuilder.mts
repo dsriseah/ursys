@@ -161,10 +161,8 @@ async function BuildApp(opts: BuildOptions) {
  */
 async function MultiBuildApp(opts: BuildOptions) {
   const fn = 'MultiBuildApp:';
-  // LOG('NOT IMPLEMENTED');
-  // return;
   // save options for later. these are NOT esbuild-specific options
-  let { bundle_name, entry_files, notify_cb } = SetBuildOptions(opts);
+  let { entry_files, notify_cb } = SetBuildOptions(opts);
   entry_files = entry_files.map(file => `${SRC_JS}/${file}`);
   // ensure the output directory exists
   fse.ensureDir(PUBLIC);
@@ -172,11 +170,11 @@ async function MultiBuildApp(opts: BuildOptions) {
   const context = await esbuild.context({
     entryPoints: entry_files,
     bundle: true,
-    splitting: false, // ursys system modules do not split
     loader: { '.js': 'jsx' },
     target: 'es2020',
     platform: 'browser',
-    format: 'iife',
+    format: 'esm',
+    splitting: true,
     sourcemap: true,
     outdir: `${PUBLIC}/js/`,
     plugins: [
@@ -226,7 +224,8 @@ async function WatchExtra(opts: WatchOptions) {
   watcher.on('change', async changed => {
     const opts = GetBuildOptions();
     LOG(`${DIM}watch-extra: rebuilding app...${NRM}`);
-    await BuildApp(opts);
+    if (opts.entry_file) await BuildApp(opts);
+    else if (opts.entry_files) await MultiBuildApp(opts);
     if (notify_cb) notify_cb({ changed });
     else LOG(`watch-extra: no notify_cb set`);
   });

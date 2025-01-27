@@ -21,6 +21,6 @@ const LOG = PR(ADDON, 'TagCyan');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
   LOG(`${ADDON} SNA Live Reload Playground for Browsers`);
-  await SNA.MultiBuild(AO_DIR);
+  await SNA.MultiBuild(AO_DIR); // index.html should load [entryfile].js
   await SNA.Start();
 })();
