@@ -9,8 +9,8 @@ const config = {
   semi: true,
   printWidth: 86,
   singleQuote: true,
-  quoteProps: "preserve",
-  arrowParens: "avoid",
-  trailingComma: "none",
+  quoteProps: 'preserve',
+  arrowParens: 'avoid',
+  trailingComma: 'none'
 };
 export default config;
