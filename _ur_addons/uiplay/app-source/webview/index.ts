@@ -28,3 +28,4 @@ function DeclareComponents() {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export { DeclareComponents };
+export { AttachRouter } from './router.ts';
