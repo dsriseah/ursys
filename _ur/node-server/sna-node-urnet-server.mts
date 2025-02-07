@@ -217,7 +217,7 @@ function m_NotifyCallback(data) {
   if (hot) {
     const EP = APPSERV.ServerEndpoint();
     if (DBG) LOG(`${DIM}notify change: ${FILE.u_short(changed)}${NRM}`);
-    EP.netCall('NET:UR_HOT_RELOAD_APP', { changed });
+    EP.netSignal('NET:UR_HOT_RELOAD_APP', { changed });
     return;
   }
   if (DBG) LOG(`${DIM}unhandled notify change: ${FILE.u_short(changed)}${NRM}`);
