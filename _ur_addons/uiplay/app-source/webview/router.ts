@@ -74,6 +74,17 @@ async function m_RouteHash(event?: HashChangeEvent) {
   const html = await res.text();
   const newView = document.createElement('div');
   newView.innerHTML = html;
+
+  // look for script content to append to the new view
+  newView.querySelectorAll('script').forEach(s => {
+    const js = document.createElement('script');
+    js.textContent = s.textContent;
+    js.type = 'module';
+    // replace the unparsed script with the new one
+    // which executes immediately
+    s.replaceWith(js);
+  });
+
   if (DBG) {
     LOG(
       `router: %c'views/${view}.html'%c fragment fetched`,
@@ -115,6 +126,7 @@ async function m_RouteHash(event?: HashChangeEvent) {
       'color:auto'
     );
   }
+
   m_ReplaceViewAnchorWith(newView);
 }
 

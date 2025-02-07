@@ -29,19 +29,20 @@
   </div>
 </div>
 
-<script defer>
-  function initShell() {
-    const login = document.querySelector('nc-login');
-    const validatorModule = {
-      decodeToken: token => {
-        console.log('decoding token', token);
-        const parts = token.split('-');
-        if (parts.length !== 3)
-          return { error: 'invalid token', hint: 'must have 3 parts' };
-        return { parts, hint: 'valid token' };
-      }
-    };
-    console.log('login', login);
-    login.validator = validatorModule;
+<script>
+  if (UR) {
+    const PR = UR.ConsoleStyler('fragment', 'TagPink');
+    console.log(...PR('UR is defined!!!'));
   }
+  const login = document.querySelector('nc-login');
+  const validatorModule = {
+    decodeToken: token => {
+      console.log('decoding token', token);
+      const parts = token.split('-');
+      if (parts.length !== 3)
+        return { error: 'invalid token', hint: 'must have 3 parts' };
+      return { parts, hint: 'valid token' };
+    }
+  };
+  login.validator = validatorModule;
 </script>

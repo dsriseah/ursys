@@ -55,6 +55,10 @@ class NCLoginControl extends HTMLElement {
     const style = document.createElement('style');
     style.textContent = ``;
     shadow.appendChild(style);
+    // is UR available?
+    if (globalThis.UR) {
+      console.log('UR is available');
+    }
   }
 
   onInput(e: Event) {

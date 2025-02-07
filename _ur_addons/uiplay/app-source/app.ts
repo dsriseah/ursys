@@ -6,6 +6,11 @@
 
 import { DeclareComponents, AttachRouter } from './webview';
 import { SNA } from '@ursys/core';
+import * as UR from '@ursys/core';
+
+/// ENVIRONMENT DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+globalThis.UR = UR;
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
