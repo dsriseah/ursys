@@ -14,20 +14,6 @@ type TokenData = {
 interface Validator {
   decodeToken(token: string): TokenData;
 }
-/** construction options */
-interface LCConfig {
-  validator: Validator;
-}
-
-/// HELPERS ///////////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** helper: decode a session token */
-function decodeToken(token: string): TokenData {
-  const parts = token.split('-');
-  if (parts.length !== 3)
-    return { error: 'invalid token', hint: 'must have 3 parts' };
-  return { parts, hint: 'valid token' };
-}
 
 /// WEB COMPONENT /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
