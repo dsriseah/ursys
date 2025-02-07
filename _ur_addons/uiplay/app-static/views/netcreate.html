@@ -1,30 +1,47 @@
 <!-- NetCreate Shell -->
 <div id="netcreate" data-viewcss="netcreate" data-viewjs="nc-bundle">
-    <div class="header-row">
-        <div class="header-left">NetCreateLogo</div>
-        <div class="header-right">LoginPanel</div>
+  <div class="header-row">
+    <div class="header-left">NetCreateLogo</div>
+    <nc-login></nc-login>
+  </div>
+  <div class="main-row">
+    <div class="left">
+      <div class="search-selector">TypeToSelect</div>
+      <div class="inspector-panel">
+        <div class="node-panel">NodePanel</div>
+        <div class="edge-panel">EdgePanel</div>
+      </div>
     </div>
-    <div class="main-row">
-        <div class="left">
-            <div class="search-selector">TypeToSelect</div>
-            <div class="inspector-panel">
-                <div class="node-panel">NodePanel</div>
-                <div class="edge-panel">EdgePanel</div>
-            </div>
-        </div>
-        <div class="main">
-            <div class="main-tabs">MainTabs</div>
-            <div class="secondary-insert-panel">SecondaryInsertTable</div>
-            <div class="graph-panel">GraphView</div>
-        </div>
-        <div class="right-insert">
-            <div class="filter-view-toggle">FilterBackToView</div>
-            <div class="filter-tabs">FilterTabs</div>
-            <div class="filter-panel">FilterPanel</div>
-        </div>
+    <div class="main">
+      <div class="main-tabs">MainTabs</div>
+      <div class="secondary-insert-panel">SecondaryInsertTable</div>
+      <div class="graph-panel">GraphView</div>
     </div>
-    <div class="footer-row">
-        <div class="footer-left">ContactInfo</div>
-        <div class="footer-right">CopyrightInfo</div>
+    <div class="right-insert">
+      <div class="filter-view-toggle">FilterBackToView</div>
+      <div class="filter-tabs">FilterTabs</div>
+      <div class="filter-panel">FilterPanel</div>
     </div>
+  </div>
+  <div class="footer-row">
+    <div class="footer-left">ContactInfo</div>
+    <div class="footer-right">CopyrightInfo</div>
+  </div>
 </div>
+
+<script defer>
+  function initShell() {
+    const login = document.querySelector('nc-login');
+    const validatorModule = {
+      decodeToken: token => {
+        console.log('decoding token', token);
+        const parts = token.split('-');
+        if (parts.length !== 3)
+          return { error: 'invalid token', hint: 'must have 3 parts' };
+        return { parts, hint: 'valid token' };
+      }
+    };
+    console.log('login', login);
+    login.validator = validatorModule;
+  }
+</script>
