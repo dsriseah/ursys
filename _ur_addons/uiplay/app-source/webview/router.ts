@@ -8,7 +8,7 @@
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-let ROUTED_DIV: HTMLElement | null = null;
+let VIEW_ANCHOR: HTMLElement | null = null;
 let DBG = true;
 const LOG = console.log.bind(console);
 
@@ -38,43 +38,52 @@ function m_DecodeLocationHash() {
   } else return { hash, view, args };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** HELPER: replace the view anchor with a new view. The view anchor is
+ *  <div id="shell-view"> and new view is <div>...fragment...</div>,
+ *  so we copy id and class from the anchor to the new view. This ensures
+ *  that shell's child hierarchy is maintained, so main css layout rules
+ *  are not broken. */
+function m_ReplaceViewAnchorWith(newView: HTMLElement) {
+  // clone the attributes from the anchor to the new view
+  newView.id = VIEW_ANCHOR.id;
+  newView.className = VIEW_ANCHOR.className;
+  VIEW_ANCHOR.replaceWith(newView);
+  VIEW_ANCHOR = newView;
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: route to the page and load dependent assets */
-async function m_RouteHash() {
-  // if ROUTED_DIV was already loaded, then we want to gracefully
-  // remove the old content
-  if (ROUTED_DIV?.children.length) {
-    const children = [...ROUTED_DIV.children];
-    children.forEach(e => e.remove());
-  }
+async function m_RouteHash(event?: HashChangeEvent) {
   // proceed to load the new content]
   const { error, hash, view, args, values } = m_DecodeLocationHash();
   if (error) {
-    ROUTED_DIV.innerHTML = `[Invalid Hash ${hash}]`;
+    VIEW_ANCHOR.innerHTML = `[Invalid Hash ${hash}]`;
     return;
   }
   // if no view is defined then we are done
   if (!view) {
-    ROUTED_DIV.innerHTML = `[no default view defined in router]`;
+    VIEW_ANCHOR.innerHTML = `[no default view defined in router]`;
     return;
   }
   const res = await fetch(`views/${view}.html`);
   if (!res.ok) {
     console.error(`Failed to route to ${view}`);
-    ROUTED_DIV.innerHTML = `[Unroutable Hash #${view}]`;
+    VIEW_ANCHOR.innerHTML = `[Unroutable Hash #${view}]`;
     return;
   }
+
   const html = await res.text();
-  const viewElement = document.createElement('div');
-  viewElement.innerHTML = html;
-  if (DBG)
+  const newView = document.createElement('div');
+  newView.innerHTML = html;
+  if (DBG) {
     LOG(
       `router: %c'views/${view}.html'%c fragment fetched`,
       'color: darkgreen',
       'color:auto'
     );
+  }
 
   // get the data-css and data-js attributes
-  const viewRoot = viewElement.children[0];
+  const viewRoot = newView.children[0]; // div > fragment html
   let cssFile = viewRoot.getAttribute('data-viewcss');
   let jsFile = viewRoot.getAttribute('data-viewjs');
 
@@ -85,39 +94,38 @@ async function m_RouteHash() {
     css.rel = 'stylesheet';
     css.href = `views/${cssFile}.css`;
     document.head.appendChild(css);
-  } else if (DBG)
+  } else if (DBG) {
     LOG(
       `router: %c'data-viewcss'%c attribute skipped`,
       'color: darkgreen',
       'color:auto'
     );
-
+  }
   // insert a js file to the view itself
   if (jsFile) {
     if (jsFile.endsWith('.js')) jsFile = jsFile.slice(0, -3);
     const js = document.createElement('script');
     js.src = `/js/${jsFile}.js`;
     js.type = 'module';
-    viewElement.appendChild(js);
-  } else if (DBG)
+    viewRoot.appendChild(js);
+  } else if (DBG) {
     LOG(
       `router: %c'data-viewjs'%c attribute skipped'`,
       'color: darkgreen',
       'color:auto'
     );
-
-  // replace the routed div with the new view
-  ROUTED_DIV.replaceWith(viewElement);
+  }
+  m_ReplaceViewAnchorWith(newView);
 }
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: add handlers if not already added */
 function AttachRouter(e: HTMLElement, defaultHash?: string) {
-  if (ROUTED_DIV) return; // already initialized
+  if (VIEW_ANCHOR) return; // already initialized
   window.addEventListener('hashchange', m_RouteHash);
   window.addEventListener('load', m_RouteHash);
-  ROUTED_DIV = e;
+  VIEW_ANCHOR = e;
   if (typeof defaultHash !== 'string') return;
   if (!defaultHash.startsWith('#')) console.warn('defaultHash must start with #');
   if (window.location.hash === defaultHash) return;
