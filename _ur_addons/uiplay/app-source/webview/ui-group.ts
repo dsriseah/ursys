@@ -9,7 +9,7 @@
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-class ControlGroup extends HTMLElement {
+class UI_Group extends HTMLElement {
   constructor() {
     super(); // Always call super first in constructor
     const shadow = this.attachShadow({ mode: 'open' });
@@ -25,7 +25,7 @@ class ControlGroup extends HTMLElement {
       }
     `;
 
-    wrapper.textContent = 'Hello, I am a ControlGroup component!';
+    wrapper.textContent = 'Hello, I am a UI_Group component!';
     shadow.appendChild(style);
     shadow.appendChild(wrapper);
   }
@@ -35,8 +35,14 @@ class ControlGroup extends HTMLElement {
   disconnectedCallback() {}
 
   attributeChangedCallback(name, oldValue, newValue) {}
+
+  /// STATIC METHODS //////////////////////////////////////////////////////////
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  static DeclareCustomElement(tag: string = 'ui-control-group') {
+    customElements.define(tag, UI_Group);
+  }
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default ControlGroup;
+export default UI_Group;

@@ -5,10 +5,11 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler } from '@ursys/core';
-import UR_UIFrame from './ui-frame.ts';
-import UR_UIRack from './ui-rack.ts';
-import UR_UIPanel from './ui-panel.ts';
-import UR_UIControlGroup from './ui-control-group.ts';
+import UI_Frame from './ui-frame.ts';
+import UI_Rack from './ui-rack.ts';
+import UI_Panel from './ui-panel.ts';
+import UI_Group from './ui-group.ts';
+import NC_Login from './nc-login.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -19,10 +20,11 @@ const LOG = console.log.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function DeclareComponents() {
   LOG(...PR('Declaring components...'));
-  customElements.define('ur-frame', UR_UIFrame);
-  customElements.define('ur-rack', UR_UIRack);
-  customElements.define('ur-panel', UR_UIPanel);
-  customElements.define('ur-cgroup', UR_UIControlGroup);
+  NC_Login.DeclareCustomElement();
+  UI_Frame.DeclareCustomElement();
+  UI_Rack.DeclareCustomElement();
+  UI_Panel.DeclareCustomElement();
+  UI_Group.DeclareCustomElement();
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

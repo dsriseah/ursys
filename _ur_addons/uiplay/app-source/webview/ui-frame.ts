@@ -8,8 +8,7 @@
 
 /// HELPER METHODS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-class UR_UIFrame extends HTMLElement {
+class UI_Frame extends HTMLElement {
   constructor() {
     super(); // Always call super first in constructor
     const shadow = this.attachShadow({ mode: 'open' });
@@ -41,8 +40,14 @@ class UR_UIFrame extends HTMLElement {
   disconnectedCallback() {}
 
   attributeChangedCallback(name, oldValue, newValue) {}
+
+  /// STATIC METHODS //////////////////////////////////////////////////////////
+  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  static DeclareCustomElement(tag: string = 'ui-frame') {
+    customElements.define(tag, UI_Frame);
+  }
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default UR_UIFrame;
+export default UI_Frame;
