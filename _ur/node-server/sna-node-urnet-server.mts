@@ -43,6 +43,8 @@ function SNA_EnsureAppDirs(rootDir: string) {
   const output_dir = PATH.join(rootDir, '_public');
   const runtime_dir = PATH.join(rootDir, '_runtime');
   const config_dir = PATH.join(rootDir, '_config');
+  const viewlib_dir = PATH.join(source_dir, 'viewlib');
+  const webc_dir = PATH.join(viewlib_dir, 'webc');
 
   // first erase the output dir to purge it of old files
   FILE.RemoveDir(output_dir);
@@ -53,6 +55,8 @@ function SNA_EnsureAppDirs(rootDir: string) {
   FILE.EnsureDirChecked(output_dir);
   FILE.EnsureDirChecked(runtime_dir);
   FILE.EnsureDirChecked(config_dir);
+  FILE.EnsureDirChecked(viewlib_dir);
+  FILE.EnsureDirChecked(webc_dir);
 
   // save
   const CFG = CONTEXT.SNA_GetServerConfigUnsafe();
@@ -60,8 +64,18 @@ function SNA_EnsureAppDirs(rootDir: string) {
   CFG.config_dir = config_dir;
   CFG.source_dir = source_dir;
   CFG.asset_dir = asset_dir;
+  CFG.viewlib_dir = viewlib_dir;
+  CFG.webc_dir = webc_dir;
 
-  return { source_dir, asset_dir, output_dir, runtime_dir, config_dir };
+  return {
+    source_dir,
+    asset_dir,
+    output_dir,
+    runtime_dir,
+    config_dir,
+    viewlib_dir,
+    webc_dir
+  };
 }
 
 /// API: BUILD APPSERVER //////////////////////////////////////////////////////
@@ -75,18 +89,23 @@ async function SNA_Build(rootDir: string): Promise<void> {
   LOG(`SNA Build: Transpiling and bundling javascript`);
 
   // ensure the required SNA APP directories exist
-  const { source_dir, asset_dir, output_dir, runtime_dir, config_dir } =
-    SNA_EnsureAppDirs(rootDir);
+  const { source_dir, asset_dir, output_dir, webc_dir } = SNA_EnsureAppDirs(rootDir);
 
   // A build consists of (1) building js bundle from CLIENT_ENTRY, and copying the
   // output to HT_DOCS/js followed by (2) copying assets from HT_ASSETS to HT_DOCS,
   // which includes an index.html file that loads the js bundle. You have to write
   // the index file yourself.
 
-  const { entryFile, tsFiles } = await IMPORT.MakeSingleEntryFile(source_dir);
+  const { entryFile, tsFiles } = await IMPORT.MakeAppImports(source_dir);
   if (tsFiles.length)
     LOG(`Bundled client components: ${BLU}${tsFiles.join(' ')}${NRM}`);
   else LOG(`No client components found in ${source_dir}`);
+
+  const { webcFile, webcFiles } = await IMPORT.MakeWebCustomImports(webc_dir);
+  if (webcFiles.length) {
+    LOG(`Found web components: ${BLU}${webcFiles.join(' ')}${NRM}`);
+    LOG(`import as: ${BLU}${webcFile}${NRM}`);
+  } else LOG(`No web components found in ${webc_dir}`);
 
   /// BUILD APP ///
 
@@ -142,8 +161,7 @@ async function SNA_Build(rootDir: string): Promise<void> {
 async function SNA_MultiBuild(rootDir: string): Promise<void> {
   LOG(`SNA MultiBuild: Transpiling and bundling entry files`);
   // ensure the required SNA APP directories exist
-  const { source_dir, asset_dir, output_dir, runtime_dir, config_dir } =
-    SNA_EnsureAppDirs(rootDir);
+  const { source_dir, asset_dir, output_dir, webc_dir } = SNA_EnsureAppDirs(rootDir);
 
   const entryFiles = await IMPORT.FindClientEntryFiles(source_dir);
   if (entryFiles.length) {
@@ -152,6 +170,12 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
     LOG(`No client entry files found in ${source_dir}`);
     return;
   }
+
+  const { webcFile, webcFiles } = await IMPORT.MakeWebCustomImports(webc_dir);
+  if (webcFiles.length) {
+    LOG(`Found web components: ${BLU}${webcFiles.join(' ')}${NRM}`);
+    LOG(`import as: ${BLU}${webcFile}${NRM}`);
+  } else LOG(`No web components found in ${webc_dir}`);
 
   /// BUILD APP ///
 
