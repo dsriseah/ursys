@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { DeclareComponents, AttachRouter } from './webview';
+import { DeclareComponents, AttachRouter } from './viewlib';
 import { SNA } from '@ursys/core';
 import * as UR from '@ursys/core';
 

@@ -5,11 +5,11 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler } from '@ursys/core';
-import UI_Frame from './ui-frame.ts';
-import UI_Rack from './ui-rack.ts';
-import UI_Panel from './ui-panel.ts';
-import UI_Group from './ui-group.ts';
-import NC_Login from './nc-login.ts';
+import UI_Frame from './webc/ui-frame.ts';
+import UI_Rack from './webc/ui-rack.ts';
+import UI_Panel from './webc/ui-panel.ts';
+import UI_Group from './webc/ui-group.ts';
+import NC_Login from './webc/nc-login.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
