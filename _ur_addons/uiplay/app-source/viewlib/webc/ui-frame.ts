@@ -40,12 +40,6 @@ class UI_Frame extends HTMLElement {
   disconnectedCallback() {}
 
   attributeChangedCallback(name, oldValue, newValue) {}
-
-  /// STATIC METHODS //////////////////////////////////////////////////////////
-  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  static DeclareCustomElement(tag: string = 'ui-frame') {
-    customElements.define(tag, UI_Frame);
-  }
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

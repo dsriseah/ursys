@@ -35,11 +35,6 @@ class UI_Rack extends HTMLElement {
   disconnectedCallback() {}
 
   attributeChangedCallback(name, oldValue, newValue) {}
-  /// STATIC METHODS //////////////////////////////////////////////////////////
-  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  static DeclareCustomElement(tag: string = 'ui-rack') {
-    customElements.define(tag, UI_Rack);
-  }
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

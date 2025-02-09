@@ -3,7 +3,7 @@
   Main Application Entry Point
 
   The SNA web app compiler will dynamically bundle any .ts file into the
-  __app_imports.ts file and use it as an entry point for esbuild.
+  auto-app-imports.ts file and use it as an entry point for esbuild.
 
   Since this is the first module to load, we load other SNA components
   here and initialize them before starting the SNA lifecycle.

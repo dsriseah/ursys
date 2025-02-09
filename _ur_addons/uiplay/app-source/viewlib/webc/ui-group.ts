@@ -35,12 +35,6 @@ class UI_Group extends HTMLElement {
   disconnectedCallback() {}
 
   attributeChangedCallback(name, oldValue, newValue) {}
-
-  /// STATIC METHODS //////////////////////////////////////////////////////////
-  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  static DeclareCustomElement(tag: string = 'ui-control-group') {
-    customElements.define(tag, UI_Group);
-  }
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

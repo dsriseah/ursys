@@ -35,12 +35,6 @@ class UI_Panel extends HTMLElement {
   disconnectedCallback() {}
 
   attributeChangedCallback(name, oldValue, newValue) {}
-
-  /// STATIC METHODS //////////////////////////////////////////////////////////
-  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  static DeclareCustomElement(tag: string = 'ui-panel') {
-    customElements.define(tag, UI_Panel);
-  }
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

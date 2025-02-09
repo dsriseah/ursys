@@ -68,12 +68,6 @@ class NCLoginControl extends HTMLElement {
     }
     alert('login success');
   }
-
-  /// STATIC METHODS //////////////////////////////////////////////////////////
-  /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  static DeclareCustomElement(tag: string = 'nc-login') {
-    customElements.define(tag, NCLoginControl);
-  }
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
