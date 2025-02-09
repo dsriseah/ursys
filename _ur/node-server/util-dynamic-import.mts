@@ -82,7 +82,7 @@ async function MakeAppImports(
       out += `Add an app.ts file as an entry point. Hide non-entrypoint files in subdirs.';\n`;
     }
     for (const file of clientFiles) out += `import './${file}';\n`;
-    const outFile = '__app_imports.ts';
+    const outFile = 'auto-app-imports.ts';
     const outPath = PATH.join(srcDir, outFile);
     await FS.promises.writeFile(outPath, out);
     return { entryFile: outFile, tsFiles: clientFiles };
