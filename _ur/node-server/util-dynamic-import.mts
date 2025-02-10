@@ -55,7 +55,8 @@ async function FindClientEntryFiles(srcDir: string): Promise<string[]> {
     return [];
   }
   try {
-    const tsFilter = file => file.endsWith('.ts') && !file.startsWith('_');
+    const tsFilter = file =>
+      file.endsWith('.ts') && !file.startsWith('_') && !file.startsWith('auto-');
     const clientFiles = (await FS.promises.readdir(srcDir)).filter(tsFilter);
     return clientFiles;
   } catch (error) {
