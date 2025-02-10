@@ -97,14 +97,17 @@ async function SNA_Build(rootDir: string): Promise<void> {
   // the index file yourself.
 
   const { entryFile, tsFiles } = await IMPORT.MakeAppImports(source_dir);
-  if (tsFiles.length)
-    LOG(`Bundled client components: ${BLU}${tsFiles.join(' ')}${NRM}`);
-  else LOG(`No client components found in ${source_dir}`);
+
+  const bundle_name = 'js/bundle.js';
+  if (tsFiles.length) {
+    LOG(`Build: bundling ${BLU}${tsFiles.join(' ')}${NRM}`);
+    LOG(`.. to ${BLU}${bundle_name}${NRM}`);
+  } else LOG(`No client components found in ${source_dir}`);
 
   const { webcFile, webcFiles } = await IMPORT.MakeWebCustomImports(webc_dir);
   if (webcFiles.length) {
     LOG(`Found web components: ${BLU}${webcFiles.join(' ')}${NRM}`);
-    LOG(`import as: ${BLU}${webcFile}${NRM}`);
+    LOG(`import as ${BLU}${webcFile}${NRM}`);
   } else LOG(`No web components found in ${webc_dir}`);
 
   /// BUILD APP ///
@@ -116,7 +119,7 @@ async function SNA_Build(rootDir: string): Promise<void> {
     asset_dir,
     output_dir,
     entry_file: entryFile, // relative to source_dir
-    bundle_name: 'bundle.js',
+    bundle_name,
     // hot reload callback, added to esbuild events
     notify_cb
   };
@@ -165,16 +168,16 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
 
   const entryFiles = await IMPORT.FindClientEntryFiles(source_dir);
   if (entryFiles.length) {
-    LOG(`Found client entry files: ${BLU}${entryFiles.join(' ')}${NRM}`);
+    LOG(`MultiBuild: bundling entry files: ${BLU}${entryFiles.join(' ')}${NRM}`);
   } else {
-    LOG(`No client entry files found in ${source_dir}`);
+    LOG(`MultiBuild: No entry files found in ${source_dir}`);
     return;
   }
 
   const { webcFile, webcFiles } = await IMPORT.MakeWebCustomImports(webc_dir);
   if (webcFiles.length) {
     LOG(`Found web components: ${BLU}${webcFiles.join(' ')}${NRM}`);
-    LOG(`import as: ${BLU}${webcFile}${NRM}`);
+    LOG(`import as ${BLU}${webcFile}${NRM}`);
   } else LOG(`No web components found in ${webc_dir}`);
 
   /// BUILD APP ///
