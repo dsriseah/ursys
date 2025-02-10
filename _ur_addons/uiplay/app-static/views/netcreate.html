@@ -8,14 +8,26 @@
     <div class="left">
       <div class="search-selector">TypeToSelect</div>
       <div class="inspector-panel">
-        <div class="node-panel">NodePanel</div>
+        <nc-node></nc-node>
         <div class="edge-panel">EdgePanel</div>
       </div>
     </div>
     <div class="main">
-      <div class="main-tabs">MainTabs</div>
-      <div class="secondary-insert-panel">SecondaryInsertTable</div>
-      <div class="graph-panel">GraphView</div>
+      <div class="main-tabs">
+        <ui-tabbed>
+          <div data-tab="Graph"></div>
+          <div data-tab="Nodes Table">
+            <div>Node Table</div>
+          </div>
+          <div data-tab="Edges Table">
+            <div>Edge Table</div>
+          </div>
+          <div data-tab="More">
+            <div>More Overlay</div>
+          </div>
+        </ui-tabbed>
+        <div>GraphView</div>
+      </div>
     </div>
     <div class="right-insert">
       <div class="filter-view-toggle">FilterBackToView</div>
