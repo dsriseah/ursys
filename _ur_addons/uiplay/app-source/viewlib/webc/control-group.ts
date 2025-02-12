@@ -5,7 +5,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import StateElement, { UpdateStateGroup } from './base-state-element';
+import StateElement, { UpdateStateGroup } from './lib/class-stately-element';
 import type { DataObj as StateObj } from '@ursys/core';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -24,6 +24,8 @@ class UIControlGroup extends StateElement {
     super();
     this.handleSlotChange = this.handleSlotChange.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot!.innerHTML = `<slot></slot>`;
     this.state = {};
     this.inputs = {};
   }

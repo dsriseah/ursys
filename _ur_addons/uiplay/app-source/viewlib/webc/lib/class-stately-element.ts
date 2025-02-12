@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  A UIStateElement is a base class for all UI components need to 
+  A UIStatelyElement is a base class for all UI components need to 
   (1) communicate value changes to a centralized state manager 
   (2) initialize their options and metadata from a YAML textNode 
       associated with it.
@@ -21,14 +21,19 @@ function GetStateGroup(name: string): StateObj {
   return stateGroup;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function UpdateStateGroup(name: string, data: StateObj): void {
-  const group = STATE_GROUPS.get(name) || {};
-  STATE_GROUPS.set(name, { ...group, ...data });
+function UpdateStateGroup(groupName: string, state: StateObj): void {
+  const group = STATE_GROUPS.get(groupName) || {};
+  const newState = { ...group, ...state };
+  STATE_GROUPS.set(groupName, newState);
+  console.log('StateGroup', groupName, newState);
+  const detail = { id: groupName, data: newState };
+  const event = new CustomEvent('ui-state-update', { detail });
+  // document.dispatchEvent(event);
 }
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-abstract class UIStateElement extends HTMLElement {
+abstract class UIStatelyElement extends HTMLElement {
   constructor() {
     super();
     this.updateMetadata = this.updateMetadata.bind(this);
@@ -77,5 +82,5 @@ abstract class UIStateElement extends HTMLElement {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default UIStateElement; // the class
+export default UIStatelyElement; // the class
 export { GetStateGroup, UpdateStateGroup }; // global methods
