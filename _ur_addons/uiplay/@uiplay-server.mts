@@ -15,12 +15,12 @@ const { BLU, YEL, RED, DIM, NRM } = PROMPTS.ANSI;
 const [AO_DIR, AO_NAME] = SNA.GetProcessInfo(process);
 const ADDON = AO_NAME.toUpperCase();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR(ADDON, 'TagCyan');
+const LOG = PR('UIPLAY', 'TagCyan');
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 (async () => {
-  LOG(`${ADDON} SNA Live Reload Playground for Browsers`);
+  LOG(`Live Reload Playground for Browsers (${ADDON})`);
   await SNA.MultiBuild(AO_DIR); // index.html should load [entryfile].js
   await SNA.Start();
 })();
