@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  input button
+  action button
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -13,7 +13,7 @@ const DBG = true;
 
 /// WEB COMPONENT /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class InputButton extends StatelyElement {
+class ActionButton extends StatelyElement {
   //
   button: HTMLButtonElement;
 
@@ -41,12 +41,11 @@ class InputButton extends StatelyElement {
   /// LOCAL INPUT HANDLING ///
 
   private handleClick = (event: Event): void => {
-    console.log('clicked', this.name);
     event.preventDefault();
-    if (DBG) console.log('clicked', this.name);
+    if (DBG) console.log('ac-button', this.name);
   };
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default InputButton;
+export default ActionButton;

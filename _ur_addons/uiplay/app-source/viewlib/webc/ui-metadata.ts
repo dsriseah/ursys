@@ -1,20 +1,21 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  input text
+  UIMetadata reads its contained YAML text and parses it into a metadata object,
+  which is then sent to the centralized state manager that distributes 
+  changes to all StatelyGroups. 
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import StatelyElement, {
-  GetStateGroup,
-  UpdateStateGroup
-} from './lib/class-stately-element.ts';
-import { ParseText } from './lib/meta-parser';
+import { ParseText } from './lib/meta-parser.ts';
+import { UpdateMetadata } from '../viewstate-mgr.ts';
 
-const cn = 'ControlMeta:';
+/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const cn = 'UIMetadata:';
 
 /// WEB COMPONENT /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class UIControlMeta extends StatelyElement {
+class UIMetadata extends HTMLElement {
   //
   group: string;
 
@@ -26,6 +27,7 @@ class UIControlMeta extends StatelyElement {
     this.shadowRoot!.appendChild(slot);
   }
 
+  /** parses the YAML text and sends it to the state manager */
   connectedCallback() {
     this.group = this.getAttribute('for') || '';
     if (!this.group) throw Error(`${cn} must have a group attribute`);
@@ -33,16 +35,12 @@ class UIControlMeta extends StatelyElement {
     if (slots.length !== 1) throw Error(`${cn} must have one slot`);
     const tn = slots[0].assignedNodes()[0];
     if (tn.nodeType !== Node.TEXT_NODE) throw Error(`${cn} must be text node`);
-    const stateObj = ParseText(tn.textContent);
-    if (!stateObj) throw Error(`${cn} invalid state object`);
-    UpdateStateGroup(this.group, stateObj);
+    const metaObj = ParseText(tn.textContent);
+    if (!metaObj) throw Error(`${cn} invalid metadata format`);
+    UpdateMetadata(this.group, metaObj);
   }
-
-  applyState(state: any): void {}
-
-  applyMetadata(metadata: any): void {}
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default UIControlMeta;
+export default UIMetadata;

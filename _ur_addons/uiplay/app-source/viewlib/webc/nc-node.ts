@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import ControlGroup from './control-group.ts';
+import ControlGroup from './ui-group.ts';
 
 /// WEB COMPONENT /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,33 +22,35 @@ class NCNode extends HTMLElement {
   render() {
     this.shadowRoot.innerHTML = `
 <style>
-  div[data-tab] {
+  div[data-tabname] {
     padding: 1em;
     background-color: yellow;
   }
 </style>
 <ui-tabbed>
-  <div data-tab="Attributes">
-    <control-group state-group="attributes">
+  <div data-tabname="Attributes">
+    <ui-group group="attributes">
       <in-text name="notes"></in-text>
       <in-text name="tags"></in-text>
       <in-text name="provenance"></in-text>
       <in-text name="comments"></in-text>
       <in-text name="degrees"></in-text>
-      <in-button name="edit">EDIT</in-button>
-      <in-button name="edit">DELETE</in-button>
-    </control-group>
+    </ui-group>
+    <ui-group group="attributes">
+      <ac-button name="delete">DELETE</ac-button>
+      <ac-button name="edit">EDIT</ac-button>
+    </ui-group>
   </div>
-  <div data-tab="Edges">
-    <control-group state-group="edges">
+  <div data-tabname="Edges">
+    <ui-group group="edges">
       <button>THIS NODE -> BOARDGAMES</button><br>
       <button>THIS NODE -> VIDEOGAMES</button><br>
       <button>THIS NODE -> MOVIES</button><br>
-    </control-group>
+    </ui-group>
     <button>NEW EDGE</button>
   </div>
-  <div data-tab="Provenance">
-    <display-group state-group="provenance">
+  <div data-tabname="Provenance">
+    <display-group group="provenance">
       <ui-title>Provenance</ui-title>
       <hr>
       <ui-title>History</ui-title>
@@ -57,16 +59,31 @@ class NCNode extends HTMLElement {
     </display-group>
   </div>
 </ui-tabbed>
-<control-meta for="Attributes">
+<ui-metadata for="Attributes">
   notes:
-    placeholder: "Enter notes here"
+    label: "Notes"
+    tooltip: "Notes for this node"
+  tags:
+    label: "Tags"
+    tooltip: "Tags for this node"
+  provenance:
+    label: "Provenance"
+    tooltip: "Provenance for this node"
+  comments:
+    label: "Comments"
+    tooltip: "Comments for this node"
+  degrees:
+    label: "Degrees"
+    tooltip: "Degrees of separation"
+</ui-metadata>
+<ui-metadata for="Actions">
   edit:
     label: "Edit"
     tooltip: "Edit this node"
   cite:
     label: "Cite"
     tooltip: "Cite this node"
-</control-meta>
+</ui-metadata>
     `;
   }
 }

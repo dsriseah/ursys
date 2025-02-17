@@ -18,9 +18,9 @@ class NCTabbedView extends HTMLElement {
     this.render();
   }
 
-  /** creates the tab bar for divs with 'data-tab' attribute **/
+  /** creates the tab bar for divs with 'data-tabname' attribute **/
   render() {
-    const slots = Array.from(this.querySelectorAll('div[data-tab]'));
+    const slots = Array.from(this.querySelectorAll('div[data-tabname]'));
     if (slots.length === 0) {
       this.shadowRoot.innerHTML = '<div>[No tab views defined]</div>';
       return;
@@ -28,7 +28,7 @@ class NCTabbedView extends HTMLElement {
     // programmatically create buttons for each slot
     let tabsHTML = '';
     slots.forEach(slot => {
-      const label = slot.getAttribute('data-tab');
+      const label = slot.getAttribute('data-tabname');
       tabsHTML += `<button>${label}</button>`;
     });
     this.shadowRoot.innerHTML = `

@@ -2,85 +2,114 @@
 
   A UIStatelyElement is a base class for all UI components need to 
   (1) communicate value changes to a centralized state manager 
-  (2) initialize their options and metadata from a YAML textNode 
+  (2) initialize their options and template from a YAML textNode 
       associated with it.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import type { DataObj as StateObj } from '@ursys/core';
+import { UpdateMetadata, UpdateStateGroup } from '../../viewstate-mgr.ts';
 
-/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
+/// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const STATE_GROUPS = new Map<string, StateObj>();
-
-/// HELPER FUNCTIONS //////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function GetStateGroup(name: string): StateObj {
-  const stateGroup = STATE_GROUPS.get(name);
-  if (!stateGroup) throw Error(`DataGroup '${name}' not found`);
-  return stateGroup;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function UpdateStateGroup(groupName: string, state: StateObj): void {
-  const group = STATE_GROUPS.get(groupName) || {};
-  const newState = { ...group, ...state };
-  STATE_GROUPS.set(groupName, newState);
-  console.log('StateGroup', groupName, newState);
-  const detail = { id: groupName, data: newState };
-  const event = new CustomEvent('ui-state-update', { detail });
-  // document.dispatchEvent(event);
-}
+import type { DataObj, StateObj } from '../../viewstate-mgr.ts';
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-abstract class UIStatelyElement extends HTMLElement {
+/** UIStatelyElement maintains connection with the centralized state manager
+ *  and metadata manager above. It provides a base class for all UI components
+ *  that need to communicate with the state manager and metadata manager. */
+class UIStatelyElement extends HTMLElement {
+  //
+  name: string;
+  group: string;
+  //
   constructor() {
     super();
-    this.updateMetadata = this.updateMetadata.bind(this);
-    this.updateState = this.updateState.bind(this);
   }
 
-  /// ABSTRACT METHODS ///
+  /// UTILITY ACCESSORS ///
 
-  abstract applyMetadata(metadata: StateObj): void;
-  abstract applyState(data: StateObj): void;
-
-  /// WEB COMPONENT LIFECYCLE EVENTS ///
-
-  connectedCallback(): void {
-    document.addEventListener('ui-metadata-update', this.updateMetadata);
-    document.addEventListener('ui-data-update', this.updateState);
+  /** set this.name from string or from attribute */
+  initName(name?: string): string {
+    if (name === undefined) {
+      if (this.getAttribute('name') === undefined) return;
+      this.name = this.getAttribute('name');
+      return this.name;
+    }
+    if (typeof name !== 'string')
+      throw Error('UIStatelyElement name attribute must be a string');
+    this.name = name;
+    return this.name;
   }
 
-  disconnectedCallback(): void {
-    document.removeEventListener('ui-metadata-update', this.updateMetadata);
-    document.removeEventListener('ui-data-update', this.updateState);
+  /** set this.group from string or from attribute */
+  initGroup(group?: string): string {
+    if (group === undefined) {
+      if (this.getAttribute('group') === undefined) return;
+      this.group = this.getAttribute('group');
+      return this.group;
+    }
+    if (typeof group !== 'string')
+      throw Error('UIStatelyElement group attribute must be a string');
+    this.group = group;
+    return this.group;
   }
 
-  /// (1) HANDLE DATA CHANGES ///
-
-  private updateState(event: CustomEvent): void {
-    const { id, data } = event.detail;
-    const group = STATE_GROUPS.get(id) || {};
-    UpdateStateGroup(id, { ...group, ...data });
-
-    this.applyState(STATE_GROUPS.get(id)!);
+  getName(): string {
+    return this.name || this.getAttribute('name');
   }
 
-  /// (2) HANDLE METADATA CHANGES ///
-
-  private updateMetadata(): void {
-    const record = this.getAttribute('data-record');
-    const yamlData = document.querySelector(`data-yaml[data-for="${record}"]`);
-    if (!yamlData) return;
-
-    // const metadata = YAML.parse(yamlData.textContent);
-    const dummydata = {};
-    this.applyMetadata(dummydata);
+  getGroup(): string {
+    return this.group || this.getAttribute('group');
   }
+
+  /// SUBCLASSER METHODS ///
+
+  /** subclassers override to receive metadata */
+  receiveMetadata(metagroup: string, meta: DataObj): void {}
+
+  /** subclassers override to receive state */
+  receiveState(stategroup: string, state: StateObj): void {}
+
+  /** subclassers use this as-is */
+  sendMetadata(metagroup: string, meta: DataObj): void {
+    UpdateMetadata(metagroup, meta);
+  }
+
+  /** subclassers use this as-is */
+  sendState(stategroup: string, state: StateObj): void {
+    UpdateStateGroup(stategroup, state);
+  }
+
+  /// SUBCLASSER HELPERS ///
+
+  /** return an stateobj only if it maps groupname and name attribute */
+  protected decodeState(groupName: string, state: StateObj): StateObj {
+    if (groupName !== this.getAttribute('group')) return undefined;
+    const name = this.getAttribute('name');
+    if (!name) throw Error('UIStatelyElement must have a name attribute');
+    if (state[name] === undefined) return undefined;
+    return state;
+  }
+
+  /** return an encoded state object for use with sendState */
+  protected encodeState(groupName: string, name: string, value: any): StateObj {
+    if (groupName !== this.getAttribute('group')) return undefined;
+    if (name !== this.getAttribute('name')) return undefined;
+    const state: StateObj = {};
+    state[name] = value;
+    return state;
+  }
+
+  /// BOILERPLATE ///
+
+  /** vestigial methods for subclassers */
+  connectedCallback(): void {}
+
+  /** vestigial methods for subclassers */
+  disconnectedCallback(): void {}
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export default UIStatelyElement; // the class
-export { GetStateGroup, UpdateStateGroup }; // global methods
