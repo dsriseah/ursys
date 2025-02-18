@@ -24,7 +24,6 @@ class ActionButton extends StatelyElement {
 
   connectedCallback() {
     super.connectedCallback();
-    console.log('connectedCallback', this.name);
     const name = this.initName();
     const group = this.initGroup();
     this.shadowRoot!.innerHTML = `

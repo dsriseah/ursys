@@ -47,14 +47,14 @@ class UIGroup extends HTMLElement {
     if (!slot) throw Error(`${CN} Slot element not found`);
     this._slot = slot;
     slot.addEventListener('slotchange', this.handleSlotChange);
-    document.addEventListener('ui-metadata-update', this.onMetadataUpdate);
+    document.addEventListener('ui-meta-update', this.onMetadataUpdate);
     document.addEventListener('ui-state-update', this.onStateUpdate);
   }
 
   disconnectedCallback(): void {
     if (DBG) console.log(`${CN} disconnectedCallback`, this.group);
     this._slot.removeEventListener('slotchange', this.handleSlotChange);
-    this.removeEventListener('ui-template-update', this.onMetadataUpdate);
+    this.removeEventListener('ui-meta-update', this.onMetadataUpdate);
     this.removeEventListener('ui-state-update', this.onStateUpdate);
   }
 
@@ -84,23 +84,27 @@ class UIGroup extends HTMLElement {
   /// BOILERPLATE ///
 
   private onMetadataUpdate = (event: CustomEvent): void => {
-    const { group, meta } = event.detail;
+    const { group, data } = event.detail;
     if (group !== this.group) return;
     Object.values(this.uiElements).forEach(element => {
       if (element instanceof StatelyElement) {
-        element.receiveMetadata(group, meta);
+        element.receiveMetadata(group, data);
       }
     });
   };
 
   private onStateUpdate = (event: CustomEvent): void => {
     const { group, state } = event.detail;
+    // console.log(`onStateUpdate ${group}:`, state);
     if (group !== this.group) return;
-    if (DBG) console.log(`${CN} state update`, group, state);
+
+    const props = Object.keys(state);
     Object.values(this.uiElements).forEach(element => {
-      if (element instanceof StatelyElement) {
-        element.receiveState(group, state);
-      }
+      const isStately = element instanceof StatelyElement;
+      if (!isStately) return;
+      const matchName = props.includes(element.getName());
+      if (!matchName) return;
+      element.receiveState(group, state);
     });
   };
 }

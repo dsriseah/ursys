@@ -10,6 +10,8 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
+import UIDataGroup from './class-datagroup.js';
+
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { DataObj } from '@ursys/core';
@@ -17,50 +19,42 @@ type StateObj = DataObj;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const STATE_GROUPS = new Map<string, StateObj>();
-const METADATA = new Map<string, DataObj>();
-const DBG = true;
+const STATE = new UIDataGroup<StateObj>('state');
+const METADATA = new UIDataGroup<DataObj>('meta');
+const DBG = false;
 
 /// API FUNCTIONS /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** metadata is used for template info */
 function UpdateMetadata(groupName: string, newMeta: DataObj): void {
-  const group = METADATA.get(groupName) || {};
-  const meta = { ...group, ...newMeta };
-  METADATA.set(groupName, meta);
-  if (DBG) console.log(`Metadata for '${name}'`, meta);
-  const detail = { group: groupName, data: meta };
-  const event = new CustomEvent('ui-metadata-update', { detail });
+  const event = METADATA.updateGroup(groupName, newMeta);
+  if (DBG) console.log('dispatching meta', event);
   document.dispatchEvent(event);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** state is used for logical component state values and settings */
 function UpdateStateGroup(groupName: string, newState: StateObj): void {
-  const group = STATE_GROUPS.get(groupName) || {};
-  const state = { ...group, ...newState };
-  STATE_GROUPS.set(groupName, state);
-  if (DBG) console.log(`StateGroup for '${groupName}'`, newState);
-  const detail = { group: groupName, state: newState };
-  const event = new CustomEvent('ui-state-update', { detail });
+  const event = STATE.updateGroup(groupName, newState);
+  if (DBG) console.log('dispatching state', event);
   document.dispatchEvent(event);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetMetadata(name: string): DataObj {
-  const metadata = METADATA.get(name);
-  if (!metadata) throw Error(`GetMetadata '${name}' not found`);
-  return metadata;
+  return METADATA.getGroup(name);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function GetStateGroup(name: string): StateObj {
-  const stateGroup = STATE_GROUPS.get(name);
-  if (!stateGroup) throw Error(`StateGroup '${name}' not found`);
-  return stateGroup;
+  return STATE.getGroup(name);
 }
 
 /// DEBUGGING EXPORTS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 globalThis.update_meta = UpdateMetadata;
 globalThis.update_state = UpdateStateGroup;
+globalThis.get_meta = GetMetadata;
+globalThis.get_state = GetStateGroup;
+globalThis.state_mgr = STATE;
+globalThis.meta_mgr = METADATA;
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

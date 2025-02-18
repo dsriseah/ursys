@@ -83,21 +83,28 @@ class UIStatelyElement extends HTMLElement {
 
   /// SUBCLASSER HELPERS ///
 
-  /** return an stateobj only if it maps groupname and name attribute */
+  /** return the matching entry in state, based on the name of the
+   *  element subclasser (deref { [name]:props } to props if name
+   *  matches element.name */
   protected decodeState(groupName: string, state: StateObj): StateObj {
     if (groupName !== this.getAttribute('group')) return undefined;
     const name = this.getAttribute('name');
     if (!name) throw Error('UIStatelyElement must have a name attribute');
     if (state[name] === undefined) return undefined;
-    return state;
+    return state[name];
   }
 
-  /** return an encoded state object for use with sendState */
-  protected encodeState(groupName: string, name: string, value: any): StateObj {
+  /** return an encoded state object for use with sendState if it passes
+   *  the group and name attribute checks. Otherwise return undefined.
+   *  subclassers should check undefined before sending the state.
+   */
+  protected encodeState(groupName: string, name: string, props: DataObj): StateObj {
+    if (typeof props !== 'object') throw Error('arg3 must be an plain object');
     if (groupName !== this.getAttribute('group')) return undefined;
     if (name !== this.getAttribute('name')) return undefined;
+    // got this far, ok to return
     const state: StateObj = {};
-    state[name] = value;
+    state[name] = props;
     return state;
   }
 

@@ -37,16 +37,17 @@ class InputText extends StatelyElement {
     <label for=${name}}>${name}</label>
     <input type="text" name="${name}" />
     `;
+
     this.input = this.shadowRoot!.querySelector('input')!;
-    this.input.addEventListener('input', this.handleInput);
+    this.input.addEventListener('keypress', this.handleKeypress);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.input.removeEventListener('input', this.handleInput);
+    this.input.removeEventListener('input', this.handleKeypress);
   }
 
-  /// INCOMING METATDATA ///
+  /// INCOMING METATDATA, STATE ///
 
   /** set attributes of the input element */
   receiveMetadata(name: string, data: DataObj) {
@@ -56,28 +57,43 @@ class InputText extends StatelyElement {
     }
   }
 
-  /// LOCAL INPUT HANDLING ///
-
-  private handleInput = (event: Event): void => {
-    const input = event.target as HTMLInputElement;
-    const name = this.getAttribute('name');
-    const group = this.getAttribute('group');
-    const value = input.value;
-    const state = this.encodeState(group, name, value);
-    this.sendState(group, { [name]: value });
-  };
-
-  /// INCOMING STATE ///
-
-  /** update state of the input element */
+  /** update state of the input element, which matches the props */
   receiveState(groupName: string, state: StateObj) {
-    const dobj = this.decodeState(groupName, state);
-    if (dobj === undefined) return;
-    const { value } = dobj;
+    // console.log('receiveState:', groupName, state);
+    const props = this.decodeState(groupName, state);
+    if (props === undefined) {
+      console.warn(`decodeState: ${groupName} failed`, groupName);
+      return;
+    }
+    // console.log('props', props);
+    const { value } = props;
     if (value !== this.input.value) {
       this.input.value = value;
+    } else {
+      console.log(`receiveState: '${this.getName()}' value not changed ${value}`);
     }
   }
+
+  /// LOCAL INPUT HANDLING ///
+
+  private handleKeypress = (event: KeyboardEvent): void => {
+    if (event.key === 'Enter') {
+      this.dispatchValue();
+    }
+  };
+
+  private dispatchValue = (): void => {
+    const name = this.getAttribute('name');
+    const group = this.getAttribute('group');
+    const props = { value: this.input.value };
+    const state = this.encodeState(group, name, props);
+    if (state === undefined) {
+      console.warn(`encodeState: ${group}/${name} failed`, props);
+      return;
+    }
+    // console.log(`dispatchValue: ${group}/${name}`, state);
+    this.sendState(group, state);
+  };
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

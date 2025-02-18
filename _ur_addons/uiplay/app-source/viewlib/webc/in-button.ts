@@ -43,7 +43,7 @@ class InputButton extends StatelyElement {
   private handleClick = (event: Event): void => {
     console.log('clicked', this.name);
     event.preventDefault();
-    if (DBG) console.log('clicked', this.name);
+    if (DBG) console.log('in-button', this.name);
   };
 }
 
