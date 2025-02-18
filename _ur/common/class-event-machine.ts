@@ -24,7 +24,6 @@ import type { DataObj } from '../_types/ursys.d.ts';
 import type { DataEncoding } from './declare-encodings.ts';
 import type { SNA_EvtName, SNA_EvtHandler } from '../_types/sna.d.ts';
 
-type EVM_Class = string; // lower_snake_case
 type EVM_Descriptor = {
   name: SNA_EvtName; // name of the event
   description?: string; // description of the event
@@ -37,7 +36,7 @@ const DBG = false;
 const LOG = console.log.bind(console);
 const WARN = console.warn.bind(console);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const m_machines: Map<EVM_Class, EventMachine> = new Map();
+const m_machines: Map<string, EventMachine> = new Map();
 
 /// PRIVATE HELPERS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -46,14 +45,14 @@ const m_machines: Map<EVM_Class, EventMachine> = new Map();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class EventMachine {
   //
-  emClass: EVM_Class;
+  emClass: string;
   listeners: Map<SNA_EvtName, Set<SNA_EvtHandler>>;
   eventNames: Map<SNA_EvtName, EVM_Descriptor>;
 
   /// INITIALIZATION ///
 
   /** require a unique class name for the event machine */
-  constructor(emClass: EVM_Class) {
+  constructor(emClass: string) {
     if (!this._okClassName(emClass)) throw Error(`bad classname ${emClass}`);
     this.emClass = emClass;
     this.listeners = new Map();
@@ -61,7 +60,7 @@ class EventMachine {
   }
 
   /** validate event class name, which must be lower_snake_case */
-  _okClassName(eventClass: EVM_Class) {
+  _okClassName(eventClass: string) {
     let validClass = typeof eventClass === 'string' && eventClass.length > 0;
     validClass = validClass && eventClass.indexOf('_') !== -1;
     validClass = validClass && eventClass === eventClass.toLowerCase();
