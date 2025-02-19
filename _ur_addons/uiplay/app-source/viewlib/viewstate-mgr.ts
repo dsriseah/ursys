@@ -21,7 +21,7 @@ type StateObj = DataObj;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const STATE = new UIDataGroup<StateObj>('state');
 const METADATA = new UIDataGroup<DataObj>('meta');
-const DBG = true;
+const DBG = false;
 
 /// API FUNCTIONS /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -65,12 +65,13 @@ class UIStatelyElement extends HTMLElement {
 
   /// SUBCLASSER METHODS ///
 
-  /** subclassers override to receive metadata, which is prefiltered
-   *  by subclasser group/name */
+  /** subclassers override to receive metadata. the sender is responsible for
+   *  using subclass group/name to prefilter */
   receiveMetadata(meta: DataObj): void {}
 
-  /** subclassers override to receive state */
-  receiveState(stategroup: string, state: StateObj): void {}
+  /** subclassers override to receive state. the sender is responsible for
+   * using subclass group/name to prefilter */
+  receiveState(state: StateObj): void {}
 
   /** subclassers use this as-is */
   sendMetadata(metagroup: string, meta: DataObj): void {
@@ -78,41 +79,41 @@ class UIStatelyElement extends HTMLElement {
   }
 
   /** subclassers use this as-is */
-  sendState(stategroup: string, state: StateObj): void {
-    UpdateStateGroup(stategroup, state);
+  sendState(state: StateObj): void {
+    const groupName = this.group || this.getAttribute('group');
+    UpdateStateGroup(groupName, state);
   }
 
-  /// SUBCLASSER HELPERS ///
+  /// HELPERS ///
 
-  /** return the matching entry in state, based on the name of the
-   *  element subclasser (deref { [name]:props } to props if name
-   *  matches element.name */
-  protected decodeState(groupName: string, state: StateObj): StateObj {
-    if (groupName !== this.getAttribute('group')) return undefined;
-    const name = this.getAttribute('name');
-    if (!name) throw Error('UIStatelyElement must have a name attribute');
-    if (state[name] === undefined) return undefined;
-    return state[name];
+  /** given an unadorned state object, return a new object with the name as key */
+  encodeState(state: StateObj): StateObj {
+    const groupName = this.group || this.getAttribute('group');
+    const name = this.name || this.getAttribute('name');
+    return { [name]: state };
   }
 
-  /** return an encoded state object for use with sendState if it passes
-   *  the group and name attribute checks. Otherwise return undefined.
-   *  subclassers should check undefined before sending the state.
-   */
-  protected encodeState(groupName: string, name: string, props: DataObj): StateObj {
-    if (typeof props !== 'object') throw Error('arg3 must be an plain object');
-    if (groupName !== this.getAttribute('group')) return undefined;
-    if (name !== this.getAttribute('name')) return undefined;
-    // got this far, ok to return
-    const state: StateObj = {};
-    state[name] = props;
-    return state;
+  /** given a state object, try to find matching object in the state, first
+   *  looking for groupName/name, then just name. If not found, return {} */
+  findState(statish: StateObj): StateObj {
+    const groupName = this.group || this.getAttribute('group');
+    const name = this.name || this.getAttribute('name');
+    if (statish[groupName]) {
+      const obj = statish[groupName][name];
+      if (obj === undefined) return {};
+      return obj;
+    }
+    if (statish[name]) return statish[name];
+    return {};
   }
 
   /// BOILERPLATE ///
 
   /** vestigial methods for subclassers */
-  connectedCallback(): void {}
+  connectedCallback(): void {
+    this.initName();
+    this.initGroup();
+  }
 
   /** vestigial methods for subclassers */
   disconnectedCallback(): void {}

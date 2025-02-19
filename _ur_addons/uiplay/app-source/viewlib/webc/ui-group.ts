@@ -9,6 +9,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler } from '@ursys/core';
+import { AssertGroupName } from './lib/meta-parser.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -24,10 +25,10 @@ const DBG = true;
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class UIGroup extends HTMLElement {
-  private group: string;
   private uiElements: { [name: string]: StatelyElement };
   private _slot!: HTMLSlotElement; // save found slot
   private _evtqueue: CustomEvent[];
+  private group: string;
 
   constructor() {
     super();
@@ -42,8 +43,7 @@ class UIGroup extends HTMLElement {
   }
 
   connectedCallback(): void {
-    const group = this.getAttribute('group');
-    if (!group) throw Error(`${CN} must have a group attribute`);
+    const group = AssertGroupName(this.getAttribute('group'));
     this.group = group;
     //
     const slot = this.shadowRoot!.querySelector('slot');
@@ -87,6 +87,8 @@ class UIGroup extends HTMLElement {
 
   /// BOILERPLATE ///
 
+  /** EVENT: When metadata is updated during first connectedCallback,
+   *  it may need to queued until the slotchange event has been processed. */
   private onMetadataUpdate = (event: CustomEvent): void => {
     const { group } = event.detail;
     if (group !== this.group) return;
@@ -100,6 +102,9 @@ class UIGroup extends HTMLElement {
     this._processMetaQueue();
   };
 
+  /** HELPER: process the metadata queue, sending metadata to elements
+   *  with matching name. This is called when the slotchange event has
+   *  been processed and the elements are available. */
   private _processMetaQueue = (): void => {
     LOG(...PR('processing metadata queue', this._evtqueue));
     // send metadata to elements with matching name
@@ -118,18 +123,17 @@ class UIGroup extends HTMLElement {
     this._evtqueue = [];
   };
 
+  /** EVENT: State updates are sent by the state manager, and this
+   *  method routes matching state to the elements in the group. */
   private onStateUpdate = (event: CustomEvent): void => {
     const { group, state } = event.detail;
-    // console.log(`onStateUpdate ${group}:`, state);
     if (group !== this.group) return;
-
-    const props = Object.keys(state);
+    // all elements if ui-group are of type group
     Object.values(this.uiElements).forEach(element => {
-      const isStately = element instanceof StatelyElement;
-      if (!isStately) return;
-      const matchName = props.includes(element.getName());
-      if (!matchName) return;
-      element.receiveState(group, state);
+      if (!(element instanceof StatelyElement)) return;
+      const matchState = state[element.name];
+      if (!matchState) return;
+      element.receiveState(matchState);
     });
   };
 }

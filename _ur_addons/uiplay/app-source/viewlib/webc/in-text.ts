@@ -29,8 +29,7 @@ class InputText extends StatelyElement {
 
   connectedCallback() {
     super.connectedCallback();
-    const name = this.initName(); // grabs the name attribute if any
-    const group = this.initGroup(); // grabs the group attribute if any
+    const name = this.name;
     this.shadowRoot!.innerHTML = `
     <style>
       :host {
@@ -93,7 +92,7 @@ class InputText extends StatelyElement {
 
   /// INCOMING METATDATA, STATE ///
 
-  /** data received is already filters by group and name */
+  /** UPDATE: data received is already filtered by element's group/name */
   receiveMetadata(meta: DataObj) {
     LOG(...PR(`receiveMetadata[${this.name}]`), meta);
     const { label, tooltip } = meta;
@@ -101,20 +100,14 @@ class InputText extends StatelyElement {
     this.tooltip.innerText = tooltip;
   }
 
-  /** UPDATE: receive state change */
-  receiveState(groupName: string, state: StateObj) {
-    // console.log('receiveState:', groupName, state);
-    const props = this.decodeState(groupName, state);
-    if (props === undefined) {
-      console.warn(`decodeState: ${groupName} failed`, groupName);
-      return;
-    }
-    // console.log('props', props);
-    const { value } = props;
+  /** UPDATE: state is already filtered by element's group/name */
+  receiveState(state: StateObj) {
+    const { value } = state;
     if (value !== this.input.value) {
       this.input.value = value;
+      LOG(...PR(`receiveState[${this.name}]`), state);
     } else {
-      console.log(`receiveState: '${this.getName()}' value not changed ${value}`);
+      LOG(...PR(`receiveState[${this.name}] no change`), state);
     }
   }
 
@@ -129,16 +122,8 @@ class InputText extends StatelyElement {
 
   /** ACTION: submit the value change to state manager */
   private submitChange = (): void => {
-    const name = this.getAttribute('name');
-    const group = this.getAttribute('group');
-    const props = { value: this.input.value };
-    const state = this.encodeState(group, name, props);
-    if (state === undefined) {
-      console.warn(`encodeState: ${group}/${name} failed`, props);
-      return;
-    }
-    // console.log(`submitChange: ${group}/${name}`, state);
-    this.sendState(group, state);
+    const state = this.encodeState({ value: this.input.value });
+    this.sendState(state);
   };
 }
 
