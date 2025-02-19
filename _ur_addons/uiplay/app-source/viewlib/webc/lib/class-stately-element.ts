@@ -65,8 +65,9 @@ class UIStatelyElement extends HTMLElement {
 
   /// SUBCLASSER METHODS ///
 
-  /** subclassers override to receive metadata */
-  receiveMetadata(metagroup: string, meta: DataObj): void {}
+  /** subclassers override to receive metadata, which is prefiltered
+   *  by subclasser group/name */
+  receiveMetadata(meta: DataObj): void {}
 
   /** subclassers override to receive state */
   receiveState(stategroup: string, state: StateObj): void {}

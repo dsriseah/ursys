@@ -8,10 +8,13 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
+import { ConsoleStyler } from '@ursys/core';
+
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import StatelyElement from './lib/class-stately-element.ts';
-import type { StateObj } from '../viewstate-mgr.ts';
+const LOG = console.log.bind(console);
+const PR = ConsoleStyler('ui-group', 'TagBlue');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,14 +26,15 @@ const DBG = true;
 class UIGroup extends HTMLElement {
   private group: string;
   private uiElements: { [name: string]: StatelyElement };
-  private state: StateObj;
   private _slot!: HTMLSlotElement; // save found slot
+  private _evtqueue: CustomEvent[];
 
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
     this.shadowRoot!.innerHTML = `<slot></slot>`;
     this.uiElements = {};
+    this._evtqueue = [];
     // bind handlers
     this.handleSlotChange = this.handleSlotChange.bind(this);
     this.onStateUpdate = this.onStateUpdate.bind(this);
@@ -41,7 +45,6 @@ class UIGroup extends HTMLElement {
     const group = this.getAttribute('group');
     if (!group) throw Error(`${CN} must have a group attribute`);
     this.group = group;
-    if (DBG) console.log(`${CN} connectedCallback`, this.group);
     //
     const slot = this.shadowRoot!.querySelector('slot');
     if (!slot) throw Error(`${CN} Slot element not found`);
@@ -52,7 +55,6 @@ class UIGroup extends HTMLElement {
   }
 
   disconnectedCallback(): void {
-    if (DBG) console.log(`${CN} disconnectedCallback`, this.group);
     this._slot.removeEventListener('slotchange', this.handleSlotChange);
     this.removeEventListener('ui-meta-update', this.onMetadataUpdate);
     this.removeEventListener('ui-state-update', this.onStateUpdate);
@@ -76,21 +78,44 @@ class UIGroup extends HTMLElement {
         this.uiElements[inputName] = node;
         if (node.hasAttribute('group')) return;
         node.setAttribute('group', this.group);
-        console.log(`input ${inputName} added to group ${this.group}`);
+        // console.log(`input ${inputName} added to group ${this.group}`);
       }
     });
+
+    this._processMetaQueue();
   }
 
   /// BOILERPLATE ///
 
   private onMetadataUpdate = (event: CustomEvent): void => {
-    const { group, data } = event.detail;
+    const { group } = event.detail;
     if (group !== this.group) return;
-    Object.values(this.uiElements).forEach(element => {
-      if (element instanceof StatelyElement) {
-        element.receiveMetadata(group, data);
-      }
-    });
+    //
+    const elements = Object.values(this!.uiElements);
+    if (elements.length === 0) {
+      LOG(...PR('no elements found, queueing event', event));
+      this._evtqueue.push(event);
+      return;
+    }
+    this._processMetaQueue();
+  };
+
+  private _processMetaQueue = (): void => {
+    LOG(...PR('processing metadata queue', this._evtqueue));
+    // send metadata to elements with matching name
+    this._evtqueue.forEach(event => {
+      const { group, type, meta } = event.detail;
+      const elements = Object.values(this.uiElements);
+      elements.forEach(element => {
+        const isStately = element instanceof StatelyElement;
+        if (!isStately) return;
+        const matchMeta = meta[element.getName()];
+        if (!matchMeta) return;
+        element.receiveMetadata(matchMeta);
+      }); // elements
+    }); // _evtqueue
+    // clear queue
+    this._evtqueue = [];
   };
 
   private onStateUpdate = (event: CustomEvent): void => {

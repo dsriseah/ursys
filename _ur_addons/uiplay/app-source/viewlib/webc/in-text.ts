@@ -6,10 +6,13 @@
 
 import StatelyElement from './lib/class-stately-element.ts';
 import type { DataObj, StateObj } from '../viewstate-mgr.ts';
+import { ConsoleStyler } from '@ursys/core';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
+const LOG = console.log.bind(console);
+const PR = ConsoleStyler('in-text', 'TagPink');
 
 /// WEB COMPONENT /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,15 +52,12 @@ class InputText extends StatelyElement {
 
   /// INCOMING METATDATA, STATE ///
 
-  /** set attributes of the input element */
-  receiveMetadata(name: string, data: DataObj) {
-    if (name === this.name) {
-      const { value } = data;
-      console.log('got metadata', name, data);
-    }
+  /** data received is already filters by group and name */
+  receiveMetadata(meta: DataObj) {
+    LOG(...PR(`receiveMetadata[${this.name}]`), meta);
   }
 
-  /** update state of the input element, which matches the props */
+  /** UPDATE: receive state change */
   receiveState(groupName: string, state: StateObj) {
     // console.log('receiveState:', groupName, state);
     const props = this.decodeState(groupName, state);
@@ -76,13 +76,15 @@ class InputText extends StatelyElement {
 
   /// LOCAL INPUT HANDLING ///
 
+  /** EVENT: submit the value on enter keypress */
   private handleKeypress = (event: KeyboardEvent): void => {
     if (event.key === 'Enter') {
-      this.dispatchValue();
+      this.submitChange();
     }
   };
 
-  private dispatchValue = (): void => {
+  /** ACTION: submit the value change to state manager */
+  private submitChange = (): void => {
     const name = this.getAttribute('name');
     const group = this.getAttribute('group');
     const props = { value: this.input.value };
@@ -91,7 +93,7 @@ class InputText extends StatelyElement {
       console.warn(`encodeState: ${group}/${name} failed`, props);
       return;
     }
-    // console.log(`dispatchValue: ${group}/${name}`, state);
+    // console.log(`submitChange: ${group}/${name}`, state);
     this.sendState(group, state);
   };
 }
