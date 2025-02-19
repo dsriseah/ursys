@@ -95,38 +95,45 @@ async function m_RouteHash(event?: HashChangeEvent) {
 
   // get the data-css and data-js attributes
   const viewRoot = newView.children[0]; // div > fragment html
-  let cssFile = viewRoot.getAttribute('data-viewcss');
-  let jsFile = viewRoot.getAttribute('data-viewjs');
+  if (viewRoot !== undefined) {
+    let cssFile = viewRoot.getAttribute('data-viewcss');
+    let jsFile = viewRoot.getAttribute('data-viewjs');
 
-  // insert a css load for the view
-  if (cssFile) {
-    if (cssFile.endsWith('.css')) cssFile = cssFile.slice(0, -4);
-    const css = document.createElement('link');
-    css.rel = 'stylesheet';
-    css.href = `views/${cssFile}.css`;
-    document.head.appendChild(css);
-  } else if (DBG) {
-    LOG(
-      `router: %c'data-viewcss'%c attribute skipped`,
+    // insert a css load for the view
+    if (cssFile) {
+      if (cssFile.endsWith('.css')) cssFile = cssFile.slice(0, -4);
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = `views/${cssFile}.css`;
+      document.head.appendChild(css);
+    } else if (DBG) {
+      LOG(
+        `router: %c'data-viewcss'%c attribute skipped`,
+        'color: darkgreen',
+        'color:auto'
+      );
+    }
+    // insert a js file to the view itself
+    if (jsFile) {
+      if (jsFile.endsWith('.js')) jsFile = jsFile.slice(0, -3);
+      const js = document.createElement('script');
+      js.src = `/js/${jsFile}.js`;
+      js.type = 'module';
+      viewRoot.appendChild(js);
+    } else if (DBG) {
+      LOG(
+        `router: %c'data-viewjs'%c attribute skipped'`,
+        'color: darkgreen',
+        'color:auto'
+      );
+    }
+  } else {
+    console.warn(
+      `router: %c'${view}.html'%c has no root element; skipped css/js sideloading`,
       'color: darkgreen',
       'color:auto'
     );
   }
-  // insert a js file to the view itself
-  if (jsFile) {
-    if (jsFile.endsWith('.js')) jsFile = jsFile.slice(0, -3);
-    const js = document.createElement('script');
-    js.src = `/js/${jsFile}.js`;
-    js.type = 'module';
-    viewRoot.appendChild(js);
-  } else if (DBG) {
-    LOG(
-      `router: %c'data-viewjs'%c attribute skipped'`,
-      'color: darkgreen',
-      'color:auto'
-    );
-  }
-
   m_ReplaceViewAnchorWith(newView);
 }
 
