@@ -1,6 +1,7 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  input text
+  UIInputText implements a text field, initializing its label and tooltip
+
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -16,17 +17,19 @@ const PR = ConsoleStyler('in-text', 'TagPink');
 
 /// WEB COMPONENT /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class InputText extends StatelyElement {
+class UIInputText extends StatelyElement {
   input: HTMLInputElement;
   label: HTMLLabelElement;
   tooltip: HTMLDivElement;
   timer: ReturnType<typeof setTimeout>;
 
+  /** webcomponent lifecycle: element without attributes */
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
   }
 
+  /** webcomponent lifecycle: element attributes are stable */
   connectedCallback() {
     super.connectedCallback();
     const name = this.name;
@@ -44,6 +47,7 @@ class InputText extends StatelyElement {
         color: white;
         padding: 5px;
         z-index: 1000;
+        max-width: 250px;
         display: none;
       }
     </style>
@@ -73,9 +77,10 @@ class InputText extends StatelyElement {
   /** UPDATE: data received is already filtered by element's group/name */
   receiveMetadata(meta: DataObj) {
     LOG(...PR(`receiveMetadata[${this.name}]`), meta);
-    const { label, tooltip } = meta;
+    const { label, tooltip, placeholder } = meta;
     this.label.innerText = label;
     this.tooltip.innerText = tooltip;
+    if (placeholder) this.input.placeholder = placeholder;
   }
 
   /** UPDATE: state is already filtered by element's group/name */
@@ -108,15 +113,16 @@ class InputText extends StatelyElement {
   private handleHover = (event: MouseEvent): void => {
     const { style: tt } = this.tooltip;
     // position tooltip above label
-    const rect = this.label.getBoundingClientRect();
-    tt.top = `${rect.top - 30}px`;
-    tt.left = `${rect.left}px`;
     const { style: ll } = this.label;
     ll.color = 'maroon';
     if (this.timer) clearTimeout(this.timer);
     this.timer = setTimeout(() => {
-      tt.display = 'block';
       this.timer = null;
+      tt.display = 'block';
+      const labelRect = this.label.getBoundingClientRect();
+      const ttRect = this.tooltip.getBoundingClientRect();
+      tt.top = `${labelRect.top - ttRect.height}px`;
+      tt.left = `${labelRect.left}px`;
     }, 1000);
   };
 
@@ -143,4 +149,4 @@ class InputText extends StatelyElement {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default InputText;
+export default UIInputText;

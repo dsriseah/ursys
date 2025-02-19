@@ -50,22 +50,27 @@ class NCNode extends HTMLElement {
     <button>NEW EDGE</button>
   </div>
   <div data-tabname="Provenance">
-    <display-group group="provenance">
+    <ui-group group="provenance">
       <ui-title>Provenance</ui-title>
       <hr>
       <ui-title>History</ui-title>
-      <label for="created">Created</label><input type="text" name="created" value="2021-01-01"><br>
-      <label for="updated">Updated</label><input type="text" name="updated" value="2021-01-01"><br>
-    </display-group>
+      <hr>
+      <in-text name="created"></in-text>
+      <in-text name="updated"></in-text>
+    </ui-group>
   </div>
 </ui-tabbed>
 <ui-metadata for="attributes">
   notes:
     label: "Notes OK"
-    tooltip: "Notes for this node"
+    tooltip: >
+      Notes for this node are very very long, so you shouldn't 
+      have to worry about anything 
+    placeholder: "type some notes"
   tags:
     label: "Tags"
     tooltip: "Tags for this node"
+    placeholder: "comma separated"
   provenance:
     label: "Provenance"
     tooltip: "Provenance for this node"
