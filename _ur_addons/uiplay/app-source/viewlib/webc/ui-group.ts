@@ -71,14 +71,15 @@ class UIGroup extends HTMLElement {
         if (DBG) console.log(`input ${key} removed from group ${this.group}`);
       }
     });
-    slotNodes.forEach(node => {
-      if (node instanceof StatelyElement) {
-        const inputName = node.getAttribute('name');
+    // add 'group' attribute to all slotted elements
+    slotNodes.forEach(child => {
+      if (child instanceof StatelyElement) {
+        const inputName = child.getAttribute('name');
         if (!inputName) return;
-        this.uiElements[inputName] = node;
-        if (node.hasAttribute('group')) return;
-        node.setAttribute('group', this.group);
-        // console.log(`input ${inputName} added to group ${this.group}`);
+        this.uiElements[inputName] = child;
+        if (child.hasAttribute('group')) return;
+        child.setAttribute('group', this.group);
+        child.initGroup(); // remember to initialize
       }
     });
 
@@ -114,7 +115,7 @@ class UIGroup extends HTMLElement {
       elements.forEach(element => {
         const isStately = element instanceof StatelyElement;
         if (!isStately) return;
-        const matchMeta = meta[element.getName()];
+        const matchMeta = meta[element.name];
         if (!matchMeta) return;
         element.receiveMetadata(matchMeta);
       }); // elements

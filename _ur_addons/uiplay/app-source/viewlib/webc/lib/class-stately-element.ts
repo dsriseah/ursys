@@ -42,7 +42,10 @@ class UIStatelyElement extends HTMLElement {
     return this.name;
   }
 
-  /** set this.group from string or from attribute */
+  /** set this.group from string or from attribute. note that it
+   *  the 'group' attribute may be assigned _after_ the element is created
+   *  (e.g. ui-group on slotchange event), so if this.group is null check
+   *  that it is called again */
   initGroup(group?: string): string {
     if (group === undefined) {
       if (this.getAttribute('group') === undefined) return;
@@ -53,14 +56,6 @@ class UIStatelyElement extends HTMLElement {
       throw Error('UIStatelyElement group attribute must be a string');
     this.group = group;
     return this.group;
-  }
-
-  getName(): string {
-    return this.name || this.getAttribute('name');
-  }
-
-  getGroup(): string {
-    return this.group || this.getAttribute('group');
   }
 
   /// SUBCLASSER METHODS ///
@@ -88,15 +83,13 @@ class UIStatelyElement extends HTMLElement {
 
   /** given an unadorned state object, return a new object with the name as key */
   encodeState(state: StateObj): StateObj {
-    const groupName = this.group || this.getAttribute('group');
-    const name = this.name || this.getAttribute('name');
-    return { [name]: state };
+    return { [this.name]: state };
   }
 
   /** given a state object, try to find matching object in the state, first
    *  looking for groupName/name, then just name. If not found, return {} */
   findState(statish: StateObj): StateObj {
-    const groupName = this.group || this.getAttribute('group');
+    const groupName = this.group;
     const name = this.name || this.getAttribute('name');
     if (statish[groupName]) {
       const obj = statish[groupName][name];
@@ -111,8 +104,8 @@ class UIStatelyElement extends HTMLElement {
 
   /** vestigial methods for subclassers */
   connectedCallback(): void {
-    this.initName();
-    this.initGroup();
+    this.initName(); // this is usually valid
+    this.initGroup(); // see comments for function
   }
 
   /** vestigial methods for subclassers */
