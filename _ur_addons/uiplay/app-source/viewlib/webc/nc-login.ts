@@ -3,6 +3,8 @@
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
+const LOG = console.log.bind(console);
+
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** generic token decoder interface */
@@ -43,7 +45,8 @@ class NCLoginControl extends HTMLElement {
     shadow.appendChild(style);
     // is UR available?
     if (globalThis.UR) {
-      console.log('UR is available');
+      const PR = globalThis.UR.ConsoleStyler('nclogin', 'TagPink');
+      LOG(...PR('UR is defined in nc-login globalThis'));
     }
   }
 
