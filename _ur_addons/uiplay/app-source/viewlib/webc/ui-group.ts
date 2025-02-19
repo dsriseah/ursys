@@ -132,6 +132,7 @@ class UIGroup extends HTMLElement {
     // all elements if ui-group are of type group
     Object.values(this.uiElements).forEach(element => {
       if (!(element instanceof StatelyElement)) return;
+      if (!(element.group === group)) return;
       const matchState = state[element.name];
       if (!matchState) return;
       element.receiveState(matchState);
