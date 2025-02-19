@@ -61,7 +61,7 @@ class NCNode extends HTMLElement {
 </ui-tabbed>
 <ui-metadata for="attributes">
   notes:
-    label: "Notes"
+    label: "Notes OK"
     tooltip: "Notes for this node"
   tags:
     label: "Tags"

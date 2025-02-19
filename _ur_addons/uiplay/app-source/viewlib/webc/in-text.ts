@@ -18,6 +18,9 @@ const PR = ConsoleStyler('in-text', 'TagPink');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class InputText extends StatelyElement {
   input: HTMLInputElement;
+  label: HTMLLabelElement;
+  tooltip: HTMLDivElement;
+  timer: ReturnType<typeof setTimeout>;
 
   constructor() {
     super();
@@ -36,14 +39,52 @@ class InputText extends StatelyElement {
         margin: 0.25rem;
       }
       label { padding-right: 0.5rem; }
+      div.tooltip {
+        position: fixed;
+        background-color: gray;
+        color: white;
+        padding: 5px;
+        z-index: 1000;
+        display: none;
+      }
     </style>
     <label for=${name}}>${name}</label>
     <input type="text" name="${name}" />
+    <div class="tooltip"></div>
     `;
-
     this.input = this.shadowRoot!.querySelector('input')!;
     this.input.addEventListener('keypress', this.handleKeypress);
+    this.label = this.shadowRoot!.querySelector('label')!;
+    this.label.addEventListener('mouseover', this.handleHover);
+    this.label.addEventListener('mouseout', this.handleHoverOut);
+    this.tooltip = this.shadowRoot!.querySelector('div.tooltip')!;
   }
+
+  private handleHover = (event: MouseEvent): void => {
+    const { style: tt } = this.tooltip;
+    // position tooltip above label
+    const rect = this.label.getBoundingClientRect();
+    tt.top = `${rect.top - 30}px`;
+    tt.left = `${rect.left}px`;
+    const { style: ll } = this.label;
+    ll.color = 'maroon';
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = setTimeout(() => {
+      tt.display = 'block';
+      this.timer = null;
+    }, 1000);
+  };
+
+  private handleHoverOut = (event: MouseEvent): void => {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+    const { style } = this.tooltip;
+    style.display = 'none';
+    const { style: ll } = this.label;
+    ll.color = 'inherit';
+  };
 
   disconnectedCallback() {
     super.disconnectedCallback();
@@ -55,6 +96,9 @@ class InputText extends StatelyElement {
   /** data received is already filters by group and name */
   receiveMetadata(meta: DataObj) {
     LOG(...PR(`receiveMetadata[${this.name}]`), meta);
+    const { label, tooltip } = meta;
+    this.label.innerText = label;
+    this.tooltip.innerText = tooltip;
   }
 
   /** UPDATE: receive state change */
