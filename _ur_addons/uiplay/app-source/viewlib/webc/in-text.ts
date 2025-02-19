@@ -53,41 +53,19 @@ class InputText extends StatelyElement {
     `;
     this.input = this.shadowRoot!.querySelector('input')!;
     this.input.addEventListener('keypress', this.handleKeypress);
+    this.input.addEventListener('input', this.handleTyping);
     this.label = this.shadowRoot!.querySelector('label')!;
     this.label.addEventListener('mouseover', this.handleHover);
     this.label.addEventListener('mouseout', this.handleHoverOut);
     this.tooltip = this.shadowRoot!.querySelector('div.tooltip')!;
   }
 
-  private handleHover = (event: MouseEvent): void => {
-    const { style: tt } = this.tooltip;
-    // position tooltip above label
-    const rect = this.label.getBoundingClientRect();
-    tt.top = `${rect.top - 30}px`;
-    tt.left = `${rect.left}px`;
-    const { style: ll } = this.label;
-    ll.color = 'maroon';
-    if (this.timer) clearTimeout(this.timer);
-    this.timer = setTimeout(() => {
-      tt.display = 'block';
-      this.timer = null;
-    }, 1000);
-  };
-
-  private handleHoverOut = (event: MouseEvent): void => {
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = null;
-    }
-    const { style } = this.tooltip;
-    style.display = 'none';
-    const { style: ll } = this.label;
-    ll.color = 'inherit';
-  };
-
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.input.removeEventListener('input', this.handleKeypress);
+    this.input.removeEventListener('keypress', this.handleKeypress);
+    this.input.removeEventListener('input', this.handleTyping);
+    this.label.removeEventListener('mouseover', this.handleHover);
+    this.label.removeEventListener('mouseout', this.handleHoverOut);
   }
 
   /// INCOMING METATDATA, STATE ///
@@ -119,6 +97,42 @@ class InputText extends StatelyElement {
       this.submitChange();
     }
   };
+
+  /** EVENT: live decode the value on input but don't send */
+  private handleTyping = (event: Event): void => {
+    const { value } = this.input;
+    LOG(...PR(`live decode [${this.name}]`), value);
+  };
+
+  /** EVENT: show tooltip on hover */
+  private handleHover = (event: MouseEvent): void => {
+    const { style: tt } = this.tooltip;
+    // position tooltip above label
+    const rect = this.label.getBoundingClientRect();
+    tt.top = `${rect.top - 30}px`;
+    tt.left = `${rect.left}px`;
+    const { style: ll } = this.label;
+    ll.color = 'maroon';
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = setTimeout(() => {
+      tt.display = 'block';
+      this.timer = null;
+    }, 1000);
+  };
+
+  /** EVENT: hide tooltip on mouseout */
+  private handleHoverOut = (event: MouseEvent): void => {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+    const { style } = this.tooltip;
+    style.display = 'none';
+    const { style: ll } = this.label;
+    ll.color = 'inherit';
+  };
+
+  /// USER ACTIONS ///
 
   /** ACTION: submit the value change to state manager */
   private submitChange = (): void => {
