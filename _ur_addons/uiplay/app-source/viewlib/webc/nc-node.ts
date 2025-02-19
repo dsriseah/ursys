@@ -59,7 +59,7 @@ class NCNode extends HTMLElement {
     </display-group>
   </div>
 </ui-tabbed>
-<ui-metadata for="Attributes">
+<ui-metadata for="attributes">
   notes:
     label: "Notes"
     tooltip: "Notes for this node"
@@ -76,7 +76,7 @@ class NCNode extends HTMLElement {
     label: "Degrees"
     tooltip: "Degrees of separation"
 </ui-metadata>
-<ui-metadata for="Actions">
+<ui-metadata for="actions">
   edit:
     label: "Edit"
     tooltip: "Edit this node"

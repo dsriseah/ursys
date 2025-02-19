@@ -3,10 +3,11 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import YAML from 'js-yaml';
+import { TEXT } from '@ursys/core';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { DataObj as StateObj } from '@ursys/core';
+import type { DataObj as StateObj } from '@ursys/core';
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -17,7 +18,12 @@ function ParseText(metaText: string): StateObj {
   }
   return meta as StateObj;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function AssertGroupName(name: string): string {
+  if (!TEXT.IsAtomicKeyword(name)) throw Error(`Invalid group name: ${name}`);
+  return name;
+}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export { ParseText };
+export { ParseText, AssertGroupName };

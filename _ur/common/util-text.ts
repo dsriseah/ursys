@@ -35,11 +35,8 @@ function AssertString(str: string): string {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** a keyword is a string with no spaces and is alphanumeric. */
 function AssertKeyword(str: string): string {
-  if (BadString(str)) throw Error('AssertKeyword: not a string');
-  const noSpaces = HasNoSpaces(str);
-  const isAN = IsAlphaNumeric(str);
-  if (noSpaces && isAN) return str;
-  throw Error(`AssertKeyword: ${str} is not a keyword`);
+  if (!IsAtomicKeyword(str)) throw Error('AssertKeyword: not a keyword');
+  return str;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function AssertAlphaNumeric(str: string): string {
@@ -151,6 +148,18 @@ function IsValidCustomTag(tagName: string) {
   const lowerCase = tagName === tagName.toLowerCase();
   return noSpaces && oneDash && lowerCase;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** alphanumeric, no spaces, no leading numbers, and no special characters,
+ *  lowercase */
+function IsAtomicKeyword(str: string) {
+  ThrowBadString(str);
+  const noSpaces = HasNoSpaces(str);
+  const isAN = IsAlphaNumeric(str);
+  const noLeadNum = !/^[0-9]/.test(str);
+  const noSpecial = !/[^a-zA-Z0-9]/.test(str);
+  const isLower = str === str.toLowerCase();
+  return noSpaces && isAN && noLeadNum && noSpecial && isLower;
+}
 
 /// CONFORMING UTILITIES //////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -205,6 +214,7 @@ export {
   IsKebabCase,
   IsUpperSnakeCase,
   IsValidCustomTag, // check is lower case with one dash
+  IsAtomicKeyword, // true if alphanumeric with no spaces, lowercase
   // PROCESSING UTILITIES
   AssertNumber, // return number|parsed number or throw Error
   AssertString, // return string or throw Error

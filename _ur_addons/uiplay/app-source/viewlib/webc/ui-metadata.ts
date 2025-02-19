@@ -6,7 +6,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ParseText } from './lib/meta-parser.ts';
+import { ParseText, AssertGroupName } from './lib/meta-parser.ts';
 import { UpdateMetadata } from '../viewstate-mgr.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -29,8 +29,7 @@ class UIMetadata extends HTMLElement {
 
   /** parses the YAML text and sends it to the state manager */
   connectedCallback() {
-    this.group = this.getAttribute('for') || '';
-    if (!this.group) throw Error(`${cn} must have a group attribute`);
+    this.group = AssertGroupName(this.getAttribute('for'));
     const slots = this.shadowRoot!.querySelectorAll('slot');
     if (slots.length !== 1) throw Error(`${cn} must have one slot`);
     const tn = slots[0].assignedNodes()[0];
