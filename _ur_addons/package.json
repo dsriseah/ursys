@@ -29,6 +29,7 @@
     "vitest": "^1.6.0"
   },
   "dependencies": {
+    "@melloware/coloris": "^0.24.0",
     "@ursys/core": "file:../_ur",
     "chokidar": "^3.5.3",
     "express": "^4.19.2",
