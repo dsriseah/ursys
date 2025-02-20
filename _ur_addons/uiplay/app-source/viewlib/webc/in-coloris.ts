@@ -10,19 +10,35 @@
 import StatelyElement from './lib/class-stately-element.ts';
 import type { DataObj, StateObj } from '../viewstate-mgr.ts';
 import { ConsoleStyler } from '@ursys/core';
-
-/// COLORIS RUNTIME INITIALIZATION ////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//
 import '@melloware/coloris/dist/coloris.css';
 import Coloris from '@melloware/coloris';
-Coloris.init();
-Coloris({ el: '.coloris', alpha: false });
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('in-color', 'TagPink');
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const SWATCHES = {
+  '#067bc2': 'blue',
+  '#84bcda': 'lightblue',
+  '#80e377': 'green',
+  '#ecc30b': 'yellow',
+  '#f37748': 'orange',
+  '#d56062': 'red'
+};
+
+/// COLORIS RUNTIME INITIALIZATION ////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Coloris.init();
+Coloris({
+  el: '.coloris', // used for wrapper div
+  alpha: false, // disable selection with alpha
+  format: 'hex', // output format
+  swatchesOnly: true, // only show swatches
+  swatches: Object.keys(SWATCHES) // swatches to show
+});
 
 /// WEB COMPONENT /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -70,6 +86,7 @@ class UIColorPicker extends StatelyElement {
 </div>
     `;
     this.input = this.shadowRoot!.querySelector('input');
+    this.input.readOnly = true;
     this.input.addEventListener('change', this.handleChange);
     this.label = this.shadowRoot!.querySelector('label')!;
     this.label.addEventListener('mouseover', this.handleHover);
@@ -99,24 +116,17 @@ class UIColorPicker extends StatelyElement {
   /** UPDATE: state is already filtered by element's group/name */
   receiveState(state: StateObj) {
     const { value: hexvalue } = state;
-    if (hexvalue !== this.input.value) {
-      this.input.value = hexvalue;
-    }
+    this.input.value = SWATCHES[hexvalue] || hexvalue;
     this._updateColor(hexvalue);
   }
 
   /// LOCAL INPUT HANDLING ///
 
-  handleChange = (e: Event) => {
+  /** EVENT: forward color change from Coloris */
+  private handleChange = (e: Event) => {
     const hex = (e.target as HTMLInputElement).value;
     const state = this.encodeState({ value: hex });
     this.sendState(state);
-  };
-
-  /** EVENT: live decode the value on input but don't send */
-  private handleTyping = (event: Event): void => {
-    const { value } = this.input;
-    LOG(...PR(`live decode [${this.name}]`), value);
   };
 
   /** EVENT: show tooltip on hover */
