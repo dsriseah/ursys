@@ -14,23 +14,21 @@
 /jot-*
 /sna-*
 
-# URSYS apps use a common runtime directory
-/runtime
+# URSYS user addons shouldn't been committed to the framework
+/_ur_addons/x-*
 
 # ignore dynamically-generated bundle entry point
 **/__*
 **/auto-*
 
-# _dist is the esbuild out directory for _ur and _ur_addons
+# ignore generated directories and files
 # _runtime is used by apps in the root level of the framework
-_dist
 _public
+_dist
 **/_dist
+/runtime
 **/_runtime*
-
-
-# don't commit _nocommit files or directories
-*_nocommit*
+**/__app_imports.ts
 
 # Also ignore build system directories
 .npmignore
