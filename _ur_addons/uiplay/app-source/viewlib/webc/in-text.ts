@@ -41,6 +41,7 @@ class UIInputText extends StatelyElement {
         margin: 0.25rem;
       }
       label { padding-right: 0.5rem; }
+      input { border: 1px solid #ccc8 }
       div.tooltip {
         position: fixed;
         background-color: gray;
@@ -52,7 +53,7 @@ class UIInputText extends StatelyElement {
       }
     </style>
     <label for=${name}}>${name}</label>
-    <input type="text" name="${name}" />
+    <input type="text" name="${name}">
     <div class="tooltip"></div>
     `;
     this.input = this.shadowRoot!.querySelector('input')!;
@@ -117,6 +118,7 @@ class UIInputText extends StatelyElement {
     ll.color = 'maroon';
     if (this.timer) clearTimeout(this.timer);
     this.timer = setTimeout(() => {
+      if (this.tooltip.textContent === '') return;
       this.timer = null;
       tt.display = 'block';
       const labelRect = this.label.getBoundingClientRect();

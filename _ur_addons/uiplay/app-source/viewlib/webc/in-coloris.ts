@@ -2,11 +2,21 @@
 
   UIColorPicker imports Coloris
 
+  Since this is a web component, the Coloris library has issues with
+  the shadow DOM. This component minimally hacks around it
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import UITextInput from './in-text.ts';
+import StatelyElement from './lib/class-stately-element.ts';
 import type { DataObj, StateObj } from '../viewstate-mgr.ts';
 import { ConsoleStyler } from '@ursys/core';
+
+/// COLORIS RUNTIME INITIALIZATION ////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import '@melloware/coloris/dist/coloris.css';
+import Coloris from '@melloware/coloris';
+Coloris.init();
+Coloris({ el: '.coloris', alpha: false });
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -16,32 +26,144 @@ const PR = ConsoleStyler('in-color', 'TagPink');
 
 /// WEB COMPONENT /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class UIColorPicker extends UITextInput {
-  /** webcomponent lifecycle: element without attributes */
+class UIColorPicker extends StatelyElement {
+  //
+  input: HTMLInputElement;
+  label: HTMLLabelElement;
+  tooltip: HTMLDivElement;
+  timer: ReturnType<typeof setTimeout>;
+  //
   constructor() {
     super();
+    this.attachShadow({ mode: 'open' });
   }
 
-  /** webcomponent lifecycle: element attributes are stable */
+  /** Called when element is inserted in DOM */
   connectedCallback() {
     super.connectedCallback();
+    const name = this.name;
+    this.shadowRoot!.innerHTML = `
+<style>
+  div.coloris {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    margin: 0.25rem;
+  }
+  label { padding-right: 0.5rem; }
+  div.tooltip {
+    position: fixed;
+    background-color: gray;
+    color: white;
+    padding: 5px;
+    z-index: 1000;
+    max-width: 250px;
+    display: none;
+  }
+  input { border: 1px solid #ccc8 }
+  .clr-field button { display: none; }
+</style>
+
+<div class="coloris">
+  <label for=${name}>${name}</label>
+  <input type="text" name="${name}" data-coloris class="coloris-${name}">
+  <div class="tooltip"></div>
+</div>
+    `;
+    this.input = this.shadowRoot!.querySelector('input');
+    this.input.addEventListener('change', this.handleChange);
+    this.label = this.shadowRoot!.querySelector('label')!;
+    this.label.addEventListener('mouseover', this.handleHover);
+    this.label.addEventListener('mouseout', this.handleHoverOut);
+    this.tooltip = this.shadowRoot!.querySelector('div.tooltip')!;
+
+    Coloris({ el: this.input });
   }
 
+  /** Called when element is removed from DOM */
   disconnectedCallback() {
     super.disconnectedCallback();
+    this.input.removeEventListener('change', this.handleChange);
   }
 
   /// INCOMING METATDATA, STATE ///
 
   /** UPDATE: data received is already filtered by element's group/name */
-  receiveMetadata(meta: DataObj) {}
+  receiveMetadata(meta: DataObj) {
+    LOG(...PR(`receiveMetadata[${this.name}]`), meta);
+    const { label, tooltip, placeholder } = meta;
+    this.label.innerText = label;
+    this.tooltip.innerText = tooltip;
+    if (placeholder) this.input.placeholder = placeholder;
+  }
 
   /** UPDATE: state is already filtered by element's group/name */
-  receiveState(state: StateObj) {}
+  receiveState(state: StateObj) {
+    const { value: hexvalue } = state;
+    if (hexvalue !== this.input.value) {
+      this.input.value = hexvalue;
+    }
+    this._updateColor(hexvalue);
+  }
 
   /// LOCAL INPUT HANDLING ///
 
-  /// USER ACTIONS ///
+  handleChange = (e: Event) => {
+    const hex = (e.target as HTMLInputElement).value;
+    const state = this.encodeState({ value: hex });
+    this.sendState(state);
+  };
+
+  /** EVENT: live decode the value on input but don't send */
+  private handleTyping = (event: Event): void => {
+    const { value } = this.input;
+    LOG(...PR(`live decode [${this.name}]`), value);
+  };
+
+  /** EVENT: show tooltip on hover */
+  private handleHover = (event: MouseEvent): void => {
+    const { style: tt } = this.tooltip;
+    // position tooltip above label
+    const { style: ll } = this.label;
+    ll.color = 'maroon';
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = setTimeout(() => {
+      if (this.tooltip.textContent === '') return;
+      this.timer = null;
+      tt.display = 'block';
+      const labelRect = this.label.getBoundingClientRect();
+      const ttRect = this.tooltip.getBoundingClientRect();
+      tt.top = `${labelRect.top - ttRect.height}px`;
+      tt.left = `${labelRect.left}px`;
+    }, 1000);
+  };
+
+  /** EVENT: hide tooltip on mouseout */
+  private handleHoverOut = (event: MouseEvent): void => {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+    const { style } = this.tooltip;
+    style.display = 'none';
+    const { style: ll } = this.label;
+    ll.color = 'inherit';
+  };
+
+  /// HELPERS ///
+
+  _updateColor(hexvalue: string) {
+    this.input.style.backgroundColor = hexvalue;
+    const bright = this._getBrightness(this.input);
+    if (bright > 125) this.input.style.color = 'black';
+    else this.input.style.color = 'white';
+  }
+
+  _getBrightness(element: HTMLElement): number {
+    const rgb = element.style.backgroundColor
+      .match(/\d+/g)
+      .map(elem => parseInt(elem));
+    return (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
+  }
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

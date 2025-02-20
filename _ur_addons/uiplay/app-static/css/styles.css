@@ -3,3 +3,4 @@
 /* Styles in this file are global */
 
 @import url('./ui-shell.css');
+@import url('../js/app.css');

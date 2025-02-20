@@ -1,3 +1,6 @@
+/* dependent coloris css */
+@import url('https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css');
+
 /* define root color bgcolor */
 #netcreate {
   --row-bg: darkgray;

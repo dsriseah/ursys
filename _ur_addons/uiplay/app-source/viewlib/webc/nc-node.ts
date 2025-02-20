@@ -31,6 +31,7 @@ class NCNode extends HTMLElement {
   <div data-tabname="Attributes">
     <ui-group group="attributes">
       <in-text name="notes"></in-text>
+      <in-coloris name="color"></in-coloris>
       <in-text name="tags"></in-text>
       <in-text name="provenance"></in-text>
       <in-text name="comments"></in-text>
@@ -54,6 +55,7 @@ class NCNode extends HTMLElement {
       <ui-title>Provenance</ui-title>
       <hr>
       <ui-title>History</ui-title>
+      <in-coloris name="color"></in-coloris>
       <hr>
       <in-text name="created"></in-text>
       <in-text name="updated"></in-text>
@@ -67,6 +69,9 @@ class NCNode extends HTMLElement {
       Notes for this node are very very long, so you shouldn't 
       have to worry about anything 
     placeholder: "type some notes"
+  color:
+    label: "Color"
+    tooltip: "Click to set a color"
   tags:
     label: "Tags"
     tooltip: "Tags for this node"
