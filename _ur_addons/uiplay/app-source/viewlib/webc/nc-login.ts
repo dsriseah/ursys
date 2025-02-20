@@ -1,5 +1,7 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
   
+  Proof of concept web component
+  Does not use StatelyElement...needs update?
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -45,7 +47,7 @@ class NCLoginControl extends HTMLElement {
     shadow.appendChild(style);
     // is UR available?
     if (globalThis.UR) {
-      const PR = globalThis.UR.ConsoleStyler('nclogin', 'TagPink');
+      const PR = globalThis.UR.ConsoleStyler('nclogin');
       LOG(...PR('UR is defined in nc-login globalThis'));
     }
   }

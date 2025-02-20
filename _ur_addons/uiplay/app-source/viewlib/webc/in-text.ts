@@ -13,7 +13,7 @@ import { ConsoleStyler } from '@ursys/core';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const LOG = console.log.bind(console);
-const PR = ConsoleStyler('in-text', 'TagPink');
+const PR = ConsoleStyler('in-text');
 
 /// WEB COMPONENT /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

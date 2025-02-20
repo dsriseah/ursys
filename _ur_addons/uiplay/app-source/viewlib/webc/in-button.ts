@@ -36,7 +36,7 @@ class InputButton extends StatelyElement {
 
   /// INCOMING METATDATA ///
 
-  receiveMetadata(name: string, data: DataObj) {}
+  receiveMetadata(data: DataObj) {}
 
   /// LOCAL INPUT HANDLING ///
 

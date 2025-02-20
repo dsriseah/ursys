@@ -15,12 +15,12 @@ import { AssertGroupName } from './lib/meta-parser.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import StatelyElement from './lib/class-stately-element.ts';
 const LOG = console.log.bind(console);
-const PR = ConsoleStyler('ui-group', 'TagBlue');
+const PR = ConsoleStyler('ui-group', 'TagGray');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const CN = 'UIGroup:';
-const DBG = true;
+const DBG = false;
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -68,7 +68,7 @@ class UIGroup extends HTMLElement {
     Object.keys(this.uiElements).forEach(key => {
       if (!slotNodes.includes(this.uiElements[key])) {
         delete this.uiElements[key];
-        if (DBG) console.log(`input ${key} removed from group ${this.group}`);
+        if (DBG) LOG(...PR(`input ${key} removed from group ${this.group}`));
       }
     });
     // add 'group' attribute to all slotted elements
@@ -96,7 +96,7 @@ class UIGroup extends HTMLElement {
     //
     const elements = Object.values(this!.uiElements);
     if (elements.length === 0) {
-      LOG(...PR('no elements found, queueing event', event));
+      if (DBG) LOG(...PR('no elements found, queueing event', event));
       this._evtqueue.push(event);
       return;
     }
@@ -107,7 +107,7 @@ class UIGroup extends HTMLElement {
    *  with matching name. This is called when the slotchange event has
    *  been processed and the elements are available. */
   private _processMetaQueue = (): void => {
-    LOG(...PR('processing metadata queue', this._evtqueue));
+    if (DBG) LOG(...PR('processing metadata queue', this._evtqueue));
     // send metadata to elements with matching name
     this._evtqueue.forEach(event => {
       const { group, type, meta } = event.detail;
