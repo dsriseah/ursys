@@ -1,0 +1,52 @@
+/* dependent coloris css */
+@import url('https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css');
+
+/* define root color bgcolor */
+#netcreate {
+  --row-bg: darkgray;
+  --main-bg: #ffffff;
+  --graph-bg: lightblue;
+  --header-bg: #f0f0f0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+}
+
+.header-row,
+.footer-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: var(--row-bg);
+}
+
+.header-left,
+.footer-left {
+  text-align: left;
+}
+
+.header-right,
+.footer-right {
+  text-align: right;
+}
+
+.main-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  justify-content: space-between;
+  background-color: var(--main-bg);
+}
+
+.main-row .main,
+.main-row .left,
+.main-row .right-insert {
+  flex-grow: 1;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  border: 1px solid #ccc;
+}
+
+.main-row .graph-panel {
+  background-color: var(--graph-bg);
+  height: 100%;
+}

@@ -21,6 +21,7 @@ type BuildOptions = {
   runtime_dir?: string; // (opt) path to runtime data directory
   //
   entry_file?: string; // main entry file for the app
+  entry_files?: string[]; // (alt) multiple entry files for the app
   index_file?: string; // default index file for web server
   bundle_name?: string; // (opt) short name for the bundle
   notify_cb?: NotifyCallback; // (opt) callback to notify on build
@@ -44,6 +45,7 @@ let RUNTIME: string; // convenience runtime data directory
 let BUNDLE_NAME: string; // name of the bundle file
 let NOTIFY_CB: NotifyCallback; // callback to notify on build
 let ENTRY_FILE: string; // default entry file for the app
+let ENTRY_FILES: string[]; // multiple entry files for the app
 let INDEX_FILE: string; // default index file for the app
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import { ANSI_COLORS } from '../common/declare-colors.ts';
@@ -65,6 +67,7 @@ function GetBuildOptions(): BuildOptions {
     runtime_dir: RUNTIME,
     //
     entry_file: ENTRY_FILE,
+    entry_files: ENTRY_FILES,
     index_file: INDEX_FILE,
     // optional values
     bundle_name: BUNDLE_NAME,
@@ -81,6 +84,7 @@ function SetBuildOptions(opts: BuildOptions) {
     output_dir,
     runtime_dir,
     entry_file,
+    entry_files,
     index_file,
     bundle_name,
     notify_cb
@@ -92,6 +96,7 @@ function SetBuildOptions(opts: BuildOptions) {
   PUBLIC = output_dir;
   RUNTIME = runtime_dir || `${source_dir}/_runtime`;
   ENTRY_FILE = entry_file;
+  ENTRY_FILES = entry_files;
   INDEX_FILE = index_file;
   BUNDLE_NAME = bundle_name;
   NOTIFY_CB = notify_cb;
@@ -151,6 +156,57 @@ async function BuildApp(opts: BuildOptions) {
   await context.watch();
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: Similar to BuildApp, except using multiple entry points and outputting
+ *  as esm module format (rather than iife)
+ */
+async function MultiBuildApp(opts: BuildOptions) {
+  const fn = 'MultiBuildApp:';
+  // save options for later. these are NOT esbuild-specific options
+  let { entry_files, notify_cb } = SetBuildOptions(opts);
+  entry_files = entry_files.map(file => `${SRC_JS}/${file}`);
+  // ensure the output directory exists
+  fse.ensureDir(PUBLIC);
+  // build the webapp and stuff it into public
+  const context = await esbuild.context({
+    entryPoints: entry_files,
+    bundle: true,
+    loader: { '.js': 'jsx' },
+    target: 'es2020',
+    platform: 'browser',
+    format: 'esm',
+    splitting: true,
+    sourcemap: true,
+    outdir: `${PUBLIC}/js/`,
+    plugins: [
+      // @ts-ignore - esbuild-plugin-copy not in types
+      copy({
+        resolveFrom: 'cwd',
+        assets: [
+          {
+            from: [`${SRC_ASSETS}/**/*`],
+            to: [`${PUBLIC}/`]
+          }
+        ],
+        watch: true
+      }),
+      {
+        name: 'rebuild-notify',
+        setup(build) {
+          build.onStart(() => {
+            // LOG(`BuildApp: ${DIM}building app${NRM}`);
+          });
+          build.onEnd(() => {
+            // LOG(`BuildApp: ${DIM}app built${NRM}`);
+            if (notify_cb) notify_cb({ changed: 'rebuild-notify' });
+          });
+        }
+      }
+    ]
+  });
+  // activate rebuild on change
+  await context.watch();
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: Watch for changes with chokidar, rebuilding app with esbuild when a
  *  change to any source file is detected. This used for catching changes
  *  outside of the source directory, such as changes to assets.
@@ -168,7 +224,8 @@ async function WatchExtra(opts: WatchOptions) {
   watcher.on('change', async changed => {
     const opts = GetBuildOptions();
     LOG(`${DIM}watch-extra: rebuilding app...${NRM}`);
-    await BuildApp(opts);
+    if (opts.entry_file) await BuildApp(opts);
+    else if (opts.entry_files) await MultiBuildApp(opts);
     if (notify_cb) notify_cb({ changed });
     else LOG(`watch-extra: no notify_cb set`);
   });
@@ -181,6 +238,7 @@ export {
   GetBuildOptions, // return the saved build options
   //
   BuildApp, // build a webapp from source/assets, watching for changes
+  MultiBuildApp, // build multiple entry files as separate bundles, watching
   WatchExtra // watch for changes outside of the source directory
 };
 export type { BuildOptions, WatchOptions, NotifyCallback };

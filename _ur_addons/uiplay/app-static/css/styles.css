@@ -1,0 +1,6 @@
+/* MAIN STYLESHEET */
+/* Styles in views are autoloaded by the router and are scoped to the #app-view div */
+/* Styles in this file are global */
+
+@import url('./ui-shell.css');
+@import url('../js/app.css');

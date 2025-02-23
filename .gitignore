@@ -17,8 +17,9 @@
 # URSYS user addons shouldn't been committed to the framework
 /_ur_addons/x-*
 
-# don't commit _nocommit files or directories
-*_nocommit*
+# ignore dynamically-generated bundle entry point
+**/__*
+**/auto-*
 
 # ignore generated directories and files
 # _runtime is used by apps in the root level of the framework

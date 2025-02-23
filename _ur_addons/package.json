@@ -21,7 +21,7 @@
     }
   },
   "devDependencies": {
-    "esbuild": "^0.21.4",
+    "esbuild": "^v0.24.2",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-plugin-umd-wrapper": "^2.0.0",
     "fs-extra": "^11.1.1",
@@ -32,9 +32,12 @@
     "@ursys/core": "file:../_ur"
   },
   "dependencies": {
+    "@melloware/coloris": "^0.24.0",
+    "@ursys/core": "file:../_ur",
     "chokidar": "^3.5.3",
     "express": "^4.19.2",
     "graphology": "^0.25.4",
+    "js-yaml": "^4.1.0",
     "lokijs": "^1.5.12",
     "peggy": "^3.0.2",
     "serve-index": "^1.9.1",

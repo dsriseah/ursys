@@ -1,0 +1,141 @@
+<div id="nc">
+  <div class="--TokenLoginInput">
+    <input name="sessionToken" type="text" placeholder="CLASSID-PROJID-CODE" />
+    <button>LOGIN</button>
+    <div>type your login token</div>
+  </div>
+
+  <div class="--NCNodeSearch">
+    <input type="string" placeholder="..." autocomplete="off" value="" />
+    <button hidden="" disabled="">New Node</button>
+    <div>Click on a node, or type a node name</div>
+  </div>
+
+  <div class="--NCNodeView">
+    <div class="titlebar">
+      <div class="nodenumber">NODE 18</div>
+      <div class="nodelabel"><label for="label">Selena Steinberg</label></div>
+    </div>
+    <div class="typeview">
+      <label for="type" title="See the key below for the node types">Type</label>
+      <div id="type" class="viewvalue">Person</div>
+    </div>
+    <div class="--NCNodeViewTabs">
+      <div class="tabselectors">
+        <button value="ATTRIBUTES">ATTRIBUTES</button>
+        <button value="EDGES">EDGES (14)</button>
+        <button value="PROVENANCE">PROVENANCE</button>
+      </div>
+      <div class="tabview">
+        <label for="notes" title="Add additional information here">Notes</label>
+        <div>She/Her IULS Grad Student</div>
+        <label
+          for="info"
+          title="Add comma separated keywords here that we can use for search and filtering"
+          >Tags</label
+        >
+        <div>Grad Student, Learning Scientist</div>
+        <label for="provenance" title="Who created this and when? (aka Provenance)"
+          >Provenance</label
+        >
+        <div></div>
+        <label for="comments" title='Enter "<comment> -- <name> <date>"'
+          >Comments</label
+        >
+        <div id="comments" class="viewvalue"></div>
+        <label for="degrees">Degrees</label>
+        <div id="degrees">14</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="--NCNodeViewActions">
+    <button>Cite Node</button>
+  </div>
+
+  <div class="--CommentBadge">
+    <div class="comment-count">1</div>
+    <svg width="32" height="32">
+      <g class="svgcmt-unread">
+        <g transform="matrix(1.6,0,0,1.6,4,0)">
+          <path
+            class="svg-fill"
+            d="M8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1C4.13401 1 1 4.13401 1 8C1 9.15705 1.28072 10.2485 1.77778 11.21V15H8Z"
+          ></path>
+          <path
+            class="svg-outline"
+            d="M3.17778 10.8696V13.6H8C11.0928 13.6 13.6 11.0928 13.6 8C13.6 4.90721 11.0928 2.4 8 2.4C4.90721 2.4 2.4 4.90721 2.4 8C2.4 8.92813 2.62469 9.79968 3.02143 10.5671L3.17778 10.8696ZM15 8C15 11.866 11.866 15 8 15H1.77778V11.21C1.28072 10.2485 1 9.15705 1 8C1 4.13401 4.13401 1 8 1C11.866 1 15 4.13401 15 8Z"
+          ></path>
+          <path fill="none" d="M0 0h24v24H0z"></path>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <div class="--NCTabbedMainView">
+    <ul>
+      <li class="nav-item"><a class="active">Graph</a></li>
+      <li class="nav-item"><a>Nodes Table</a></li>
+      <li class="nav-item"><a>Edges Table</a></li>
+      <li class="nav-item"><a>More...</a></li>
+    </ul>
+    <div class="pane active"></div>
+    <div class="pane"></div>
+    <div class="pane"></div>
+    <div class="pane"></div>
+  </div>
+
+  <div class="--DraggableDivider" hidden=""></div>
+
+  <div class="--NCGraphControls">
+    <button>+</button>
+    <button>•</button>
+    <button>-</button>
+  </div>
+
+  <div class="--NCTooltipFloatingInfo">
+    <div>KEY</div>
+    <br />
+    <div>Node Types:</div>
+    <div class="tooltipAnchor">Type</div>
+    <div class="tooltipAnchor">Person</div>
+    <div class="tooltipAnchor">Interest</div>
+    <div>Edge Types:</div>
+    <div class="tooltipAnchor">No Type Selected</div>
+    <div class="tooltipAnchor">is interested in</div>
+  </div>
+
+  <svg class="--NCNetGraph"></svg>
+
+  <button class="--NCFilterViewToggle">FILTERS</button>
+
+  <div class="--TabSelector">
+    <button disabled="">FADE</button>
+    <button>REMOVE</button>
+    <button>FOCUS</button>
+  </div>
+  <div class="--TabSelectorPane">
+    <div>Node Filters</div>
+    <label>Id</label>
+    <select>
+      <option value="NO_OP">--</option>
+      <option value="EQ">=</option>
+      <option value="NOT_EQ">≠</option>
+      <option value="LT">&lt;</option>
+      <option value="LT_EQ">&lt;=</option>
+      <option value="GT">&gt;</option>
+      <option value="GT_EQ">&gt;=</option>
+    </select>
+    <input type="number" placeholder="..." disabled="" value="" />
+    <label>Name</label>
+    <select>
+      <option value="NO_OP">--</option>
+      <option value="CONTAINS">contains</option>
+      <option value="NOT_CONTAINS">does not contain</option>
+      <option value="IS_EMPTY">is empty</option>
+      <option value="IS_NOT_EMPTY">is not empty</option>
+    </select>
+    <input type="text" placeholder="..." disabled="" value="" />
+    <hr />
+  </div>
+</div>

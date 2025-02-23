@@ -25,7 +25,7 @@ type LockState = 'init' | 'preconfig' | 'prehook' | 'locked';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('sna.ctxt', 'TagGray');
-const DBG = true;
+const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let APP_CFG: DataObj = {}; // pre-provided configuration object
 let CFG_STATE: Set<LockState> = new Set();
@@ -62,10 +62,7 @@ function SNA_SetAppConfig(config: DataObj): DataObj {
   } else if (DBG) LOG(...PR(`Updating SNA Global Configuration`));
   APP_CFG = Object.assign(APP_CFG, config);
   // return a copy of the global config
-  if (DBG) {
-    LOG(...PR('AppConfig <='), config);
-    LOG(...PR('AppConfig =>', APP_CFG));
-  }
+  if (DBG) LOG(...PR('SetAppConfig()', APP_CFG));
   return { ...APP_CFG };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

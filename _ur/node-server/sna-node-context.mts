@@ -30,12 +30,22 @@ let CFG_STATE: Set<LockState> = new Set();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /*** return lockstate if state successfully changed, undefined otherwise */
 function SNA_SetLockState(state: LockState): LockState {
-  if (CFG_STATE.has(state)) return undefined;
+  if (CFG_STATE.has(state)) {
+    throw Error(`Lock state ${state} already set`);
+  }
   // enforce order of state progression
-  if (state === 'init' && CFG_STATE.size !== 0) return undefined;
-  if (state === 'preconfig' && !CFG_STATE.has('init')) return undefined;
-  if (state === 'prehook' && !CFG_STATE.has('preconfig')) return undefined;
-  if (state === 'locked' && !CFG_STATE.has('prehook')) return undefined;
+  if (state === 'init' && CFG_STATE.size !== 0) {
+    throw Error(`Lock state ${state} can only be set first`);
+  }
+  if (state === 'preconfig' && !CFG_STATE.has('init')) {
+    throw Error(`Lock state ${state} can only be set after 'init'`);
+  }
+  if (state === 'prehook' && !CFG_STATE.has('preconfig')) {
+    throw Error(`Lock state ${state} can only be set after 'preconfig'`);
+  }
+  if (state === 'locked' && !CFG_STATE.has('prehook')) {
+    throw Error(`Lock state ${state} can only be set after 'prehook'`);
+  }
   CFG_STATE.add(state);
   return state;
 }
@@ -64,9 +74,13 @@ function SNA_SetServerConfig(config: DataObj): DataObj {
 /** API: return the current global configuration object for server after start */
 function SNA_GetServerConfig(): DataObj {
   const fn = 'SNA_GetServerConfig:';
-  if (SNA_GetLockState('preconfig') === false) {
-    console.warn(`${fn} Derived config should be set in PreHook at earliest.`);
-    console.warn(`Complete config is guaranteed at lifecycle start.`);
+  if (!SNA_GetLockState('preconfig')) {
+    const keys = Array.from(CFG_STATE);
+    if (keys.length === 0) {
+      console.warn(`${fn} called early; no config keys are set`);
+    } else {
+      console.warn(`${fn} early config access detected; has ${keys.join(',')}`);
+    }
   }
   return { ...SERVER_CFG };
 }

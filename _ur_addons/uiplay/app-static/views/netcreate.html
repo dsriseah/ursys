@@ -1,0 +1,60 @@
+<!-- NetCreate Shell -->
+<div id="netcreate" data-viewcss="netcreate" data-viewjs="nc-bundle">
+  <div class="header-row">
+    <div class="header-left">NetCreateLogo</div>
+    <nc-login></nc-login>
+  </div>
+  <div class="main-row">
+    <div class="left">
+      <div class="search-selector">TypeToSelect</div>
+      <div class="inspector-panel">
+        <nc-node></nc-node>
+        <div class="edge-panel">EdgePanel</div>
+      </div>
+    </div>
+    <div class="main">
+      <div class="main-tabs">
+        <ui-tabbed>
+          <div data-tabname="Graph"></div>
+          <div data-tabname="Nodes Table">
+            <div>Node Table</div>
+          </div>
+          <div data-tabname="Edges Table">
+            <div>Edge Table</div>
+          </div>
+          <div data-tabname="More">
+            <div>More Overlay</div>
+          </div>
+        </ui-tabbed>
+        <div>GraphView</div>
+      </div>
+    </div>
+    <div class="right-insert">
+      <div class="filter-view-toggle">FilterBackToView</div>
+      <div class="filter-tabs">FilterTabs</div>
+      <div class="filter-panel">FilterPanel</div>
+    </div>
+  </div>
+  <div class="footer-row">
+    <div class="footer-left">ContactInfo</div>
+    <div class="footer-right">CopyrightInfo</div>
+  </div>
+</div>
+
+<script>
+  if (UR) {
+    const PR = UR.ConsoleStyler('fragment');
+    console.log(...PR('UR is defined in netcreate.html <script>'));
+  }
+  const login = document.querySelector('nc-login');
+  const validatorModule = {
+    decodeToken: token => {
+      console.log('decoding token', token);
+      const parts = token.split('-');
+      if (parts.length !== 3)
+        return { error: 'invalid token', hint: 'must have 3 parts' };
+      return { parts, hint: 'valid token' };
+    }
+  };
+  login.validator = validatorModule;
+</script>
