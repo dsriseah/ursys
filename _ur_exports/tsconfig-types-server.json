@@ -2,6 +2,9 @@
 
   This tsconfig file is used only by tsc to generate server type definitions
 
+  In addition to the type exports, this configuration also handles mixed code
+  and NodeJS's module resolution idiocyncracies.
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 {

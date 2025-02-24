@@ -1,6 +1,8 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  This tsconfig file is used by rollup for nodejs exports
+  This tsconfig file is used by rollup for nodejs exports.
+
+  It handles mixed ts and mts sources related to the server.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -13,8 +15,6 @@
     "strict": true,
     "importHelpers": true
   },
-  "ts-node": {
-    "esm": true
-  },
-  "include": ["../_ur/**/*.mts", "../_ur/common/**/*.ts", "../_ur/common/**/*.mts"]
+  "include": ["../_ur/**/*.mts", "../_ur/common/**/*.ts", "../_ur/common/**/*.mts"],
+  "exclude": ["../_ur/tests"]
 }

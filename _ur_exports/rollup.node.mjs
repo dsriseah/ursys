@@ -2,8 +2,9 @@
 
   rollup config file for ursys node build
 
-  unlike the web build, this config is transorming .mts files to .mjs and .cjs
-  and retaining the structure rather than bundling everything into one file
+  Unlike the web build, this config is transorming .mts files to .mjs and .cjs
+  and retaining the structure rather than bundling everything into one file.
+  The entire directory will end up in someone's node_modules
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 

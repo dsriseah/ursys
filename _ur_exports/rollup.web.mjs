@@ -2,6 +2,8 @@
 
   rollup config file for ursys web build
 
+  This config builds a single bundled file for the web client.
+
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import typescript from 'rollup-plugin-typescript2';
