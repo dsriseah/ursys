@@ -57,7 +57,7 @@ class DatasetManifest {
   _setFromManifestObj(maniObj: UR_ManifestObj): void {
     const { error, ...decoded } = DecodeManifest(maniObj);
     if (error) throw Error(`error constructing DatasetManifest: ${error}`);
-    const { _dataURI, _metaInfo, ...bins } = decoded;
+    const { _dataURI, _meta, ...bins } = decoded;
     this._manifest = decoded;
     // memory note: ? none-duplicated pointers ?
     this._dataURI = _dataURI;
@@ -105,7 +105,7 @@ class DatasetManifest {
     });
     return {
       _dataURI,
-      _metaInfo,
+      _meta: _metaInfo,
       ...bins
     };
   }

@@ -9,10 +9,10 @@ import serveIndex from 'serve-index';
 import { WebSocketServer } from 'ws';
 import http from 'node:http';
 import * as FILE from './file.mts';
-import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
-import { NetEndpoint } from '../common/class-urnet-endpoint.ts';
-import { NetSocket } from '../common/class-urnet-socket.ts';
-import { NetPacket } from '../common/class-urnet-packet.ts';
+import { makeTerminalOut, ANSI } from '../common/util-prompts.js';
+import { NetEndpoint } from '../common/class-urnet-endpoint.js';
+import { NetSocket } from '../common/class-urnet-socket.js';
+import { NetPacket } from '../common/class-urnet-packet.js';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

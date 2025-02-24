@@ -18,17 +18,17 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler } from '../common/util-prompts.ts';
+import { ConsoleStyler } from '../common/util-prompts';
 import {
   HookAppPhase,
   AddMessageHandler,
   ClientEndpoint,
   RegisterMessages,
   NewComponent
-} from './sna-web.ts';
-import { Dataset } from '../common/class-data-dataset.ts';
-import { DatasetAdapter } from '../common/abstract-dataset-adapter.ts';
-import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops.ts';
+} from './sna-web';
+import { Dataset } from '../common/class-data-dataset';
+import { DatasetAdapter } from '../common/abstract-dataset-adapter';
+import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

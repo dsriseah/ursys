@@ -10,7 +10,7 @@ import { ChildProcess } from 'node:child_process';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { makeTerminalOut } from '../common/util-prompts.ts';
+import { makeTerminalOut } from '../common/util-prompts.js';
 const LOG = makeTerminalOut('URMOD', 'TagYellow');
 const DBG = true;
 

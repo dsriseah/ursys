@@ -35,24 +35,24 @@
   NetEndpoint class. If you want to import other exports, you need to
   destructure the .default prop; to access the NetPacket class do this:
 
-    import EP_DEFAULT from './class-urnet-endpoint.ts';
+    import EP_DEFAULT from './class-urnet-endpoint';
     const NetEndpoint = EP_DEFAULT.default; // note .default
 
   You can import the types as usual, though:
 
-    import EP_DEFAULT, { I_NetSocket } from './types-urnet.ts';
+    import EP_DEFAULT, { I_NetSocket } from './types-urnet';
 
   This is not required when importing from another .ts typescript file.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import NetPacket from './class-urnet-packet.ts';
-import ServiceMap from './class-urnet-servicemap.ts';
-import TransactionMgr from './class-urnet-transaction.ts';
-import { GetPacketHashString, SkipOriginType } from './util-urnet.ts';
-import { IsLocalMessage, IsNetMessage, IsValidAddress } from './util-urnet.ts';
-import { UADDR_NONE, AllocateAddress } from './util-urnet.ts';
-import { NormalizeData } from './util-urnet.ts';
+import NetPacket from './class-urnet-packet';
+import ServiceMap from './class-urnet-servicemap';
+import TransactionMgr from './class-urnet-transaction';
+import { GetPacketHashString, SkipOriginType } from './util-urnet';
+import { IsLocalMessage, IsNetMessage, IsValidAddress } from './util-urnet';
+import { UADDR_NONE, AllocateAddress } from './util-urnet';
+import { NormalizeData } from './util-urnet';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

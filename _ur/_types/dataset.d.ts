@@ -4,11 +4,11 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import type { DataObj, ErrObj, OpResult } from './ursys.d.ts';
+import type { DataObj, ErrObj, OpResult } from './ursys.d';
 export type * from './ursys.d.ts';
-export type { DataBin } from '../common/abstract-data-databin.ts';
-export type { Dataset, SyncOptions } from '../common/class-data-dataset.ts';
-export type { RecordSet } from '../common/class-data-recordset.ts';
+export type { DataBin } from '../common/abstract-data-databin';
+export type { Dataset, SyncOptions } from '../common/class-data-dataset';
+export type { RecordSet } from '../common/class-data-recordset';
 
 /// BASE TYPES ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

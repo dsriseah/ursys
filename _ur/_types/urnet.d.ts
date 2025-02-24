@@ -86,4 +86,4 @@ export interface I_NetSocket {
 
 /// FORWARDED CLASS TYPES /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export type { NetEndpoint } from '../common/class-urnet-endpoint.ts';
+export type { NetEndpoint } from '../common/class-urnet-endpoint';

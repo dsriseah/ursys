@@ -134,10 +134,10 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import * as COMMENTS from './dc-comment.ts';
-import * as USERS from './dc-comment-users.ts';
-import { APPSTATE, TIME } from './mock-core.ts';
-import * as TEMPLATES from './dc-template.ts';
+import * as COMMENTS from './dc-comment';
+import * as USERS from './dc-comment-users';
+import { APPSTATE, TIME } from './mock-core';
+import * as TEMPLATES from './dc-template';
 import type {
   TComment,
   TAnnotableRef,
@@ -149,7 +149,7 @@ import type {
   TCommentQueueActions,
   TCommentData,
   TDataSet
-} from './types-comment.ts';
+} from './types-comment';
 
 const DBG = true;
 const PR = 'ac-comments';
@@ -164,7 +164,7 @@ const PR = 'ac-comments';
  *  - uuiid is a unique id for the element that is optionally added when
  *    a CommentBtn (badge) is created
  */
-type CommentUIRef = string; 
+type CommentUIRef = string;
 type OpenCommentsMap = Map<TAnnotableRef, CommentUIRef>;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** used for the comment badges that attach to each annotable object */
@@ -426,7 +426,7 @@ function DeriveThreadedViewObjects(
   ccol.hasUnreadComments = hasUnreadComments;
   ccol.hasReadComments = hasReadComments;
   COMMENTCOLLECTION.set(cref, ccol);
-  // 
+  //
   return commentReplyVObjs;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

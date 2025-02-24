@@ -61,8 +61,8 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import DEFAULT_TEMPLATE from './dc-template-default.ts';
-import { APPSTATE, TIME } from './mock-core.ts';
+import DEFAULT_TEMPLATE from './dc-template-default';
+import { APPSTATE, TIME } from './mock-core';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -245,7 +245,8 @@ function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
     } else {
       // is not admin and is reply thread...
       const hasNext = NEXT.get(cidToDelete);
-      if (hasNext) markDeleted = true; // ...has Next so just mark it
+      if (hasNext)
+        markDeleted = true; // ...has Next so just mark it
       else deleteTarget = true; // ...else orphan, just delete
     }
   }
@@ -317,7 +318,8 @@ function RemoveComment(selector: TCommentSelector): TCommentQueueActions[] {
   // This an odd call because if we're deleting a thread item, we need to pop up a level
   // and also delete and relink the root
   let rootId;
-  if (cobjIsRoot) rootId = cid; // get the first reply and the next
+  if (cobjIsRoot)
+    rootId = cid; // get the first reply and the next
   else rootId = cobjToDelete.cid_root; // is a thread reply, so pop up a level and get the root
   if (m_AllAreMarkedDeleted(rootId)) {
     if (DBG) console.log('delete all!');

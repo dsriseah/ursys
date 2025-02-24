@@ -25,7 +25,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { DecodeDataURI, IsAssetDirname } from './util-data-ops.ts';
+import { DecodeDataURI, IsAssetDirname } from './util-data-ops';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

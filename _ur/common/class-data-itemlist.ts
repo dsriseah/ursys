@@ -10,10 +10,10 @@
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { NormItemList, NormIDs } from './util-data-norm.ts';
-import { Find, Query } from './util-data-search.ts';
-import { DataBin } from './abstract-data-databin.ts';
-import { RecordSet } from './class-data-recordset.ts';
+import { NormItemList, NormIDs } from './util-data-norm';
+import { Find, Query } from './util-data-search';
+import { DataBin } from './abstract-data-databin';
+import { RecordSet } from './class-data-recordset';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

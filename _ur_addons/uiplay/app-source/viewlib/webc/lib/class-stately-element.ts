@@ -7,11 +7,11 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { UpdateMetadata, UpdateStateGroup } from '../../viewstate-mgr.ts';
+import { UpdateMetadata, UpdateStateGroup } from '../../viewstate-mgr';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj, StateObj } from '../../viewstate-mgr.ts';
+import type { DataObj, StateObj } from '../../viewstate-mgr';
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

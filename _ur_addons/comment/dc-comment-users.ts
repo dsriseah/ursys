@@ -4,11 +4,11 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { APPSTATE } from './mock-core.ts';
+import { APPSTATE } from './mock-core';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { TUserID, TUser, TDataSet, TUserName } from './types-comment.ts';
+import type { TUserID, TUser, TDataSet, TUserName } from './types-comment';
 type UserMap = Map<TUserID, TUser>;
 const USERS: UserMap = new Map(); // Map<uid, name>
 

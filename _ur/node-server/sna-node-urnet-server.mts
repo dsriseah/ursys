@@ -13,7 +13,7 @@ import * as APPSERV from './appserver.mts';
 import * as APPBUILD from './appbuilder.mts';
 import * as IMPORT from './util-dynamic-import.mts';
 import * as CONTEXT from './sna-node-context.mts';
-import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
+import { makeTerminalOut, ANSI } from '../common/util-prompts.js';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

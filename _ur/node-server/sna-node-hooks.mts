@@ -7,16 +7,16 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
-import { PhaseMachine } from '../common/class-phase-machine.ts';
+import { makeTerminalOut, ANSI } from '../common/util-prompts.js';
+import { PhaseMachine } from '../common/class-phase-machine.js';
 import {
   RunPhaseGroup,
   HookPhase,
   GetDanglingHooks,
   GetMachine
-} from '../common/class-phase-machine.ts';
-import { SNA_Component } from '../common/class-sna-component.ts';
-import { IsSnakeCase } from '../common/util-text.ts';
+} from '../common/class-phase-machine.js';
+import { SNA_Component } from '../common/class-sna-component.js';
+import { IsSnakeCase } from '../common/util-text.js';
 import {
   SNA_GetServerConfigUnsafe,
   SNA_GetLockState,
@@ -25,7 +25,7 @@ import {
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
+import type { PhaseID, HookFunction } from '../common/class-phase-machine.js';
 import type { SNA_ComponentProps } from '../_types/sna.d.ts';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////

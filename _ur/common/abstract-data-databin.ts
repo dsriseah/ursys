@@ -11,8 +11,8 @@
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { RecordSet } from './class-data-recordset.ts';
-import { EventMachine } from './class-event-machine.ts';
+import { RecordSet } from './class-data-recordset';
+import { EventMachine } from './class-event-machine';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

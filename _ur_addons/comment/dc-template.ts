@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { APPSTATE, TIME } from './mock-core.ts';
+import { APPSTATE, TIME } from './mock-core';
 import DEFAULT_TEMPLATE from './dc-template-default';
 
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////

@@ -5,7 +5,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { FILE } from '@ursys/core';
-import CLIENT_CONSTANTS from './urnet-constants-webclient.ts';
+import CLIENT_CONSTANTS from './urnet-constants-webclient.js';
 const { HTTP_CLIENT_INFO } = CLIENT_CONSTANTS;
 
 /// TYPES & INTERFACES ////////////////////////////////////////////////////////

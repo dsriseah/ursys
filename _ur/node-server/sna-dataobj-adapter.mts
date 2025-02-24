@@ -12,8 +12,8 @@ import {
   DecodeDataURI,
   IsAssetDirname,
   GetBinPropsByDirname
-} from '../common/util-data-ops.ts';
-import { DataObjAdapter } from '../common/abstract-dataobj-adapter.ts';
+} from '../common/util-data-ops.js';
+import { DataObjAdapter } from '../common/abstract-dataobj-adapter.js';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -5,7 +5,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
+import { makeTerminalOut, ANSI } from '../common/util-prompts.js';
 import {
   ServerEndpoint,
   AddMessageHandler,

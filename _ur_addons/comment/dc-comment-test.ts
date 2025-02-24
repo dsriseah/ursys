@@ -46,8 +46,8 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import * as DC from './dc-comment.ts';
-import * as DTPL from './dc-template.ts';
+import * as DC from './dc-comment';
+import * as DTPL from './dc-template';
 
 /// IMPORTED TYPES ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -60,7 +60,7 @@ import type {
   TComment,
   TCommentQueueActions,
   TCommentTypeMap
-} from './types-comment.ts';
+} from './types-comment';
 
 /// EXTRACTED METHODS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

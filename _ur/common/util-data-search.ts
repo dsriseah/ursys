@@ -29,8 +29,8 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { DeepClone } from './util-data-norm.ts';
-import { RecordSet } from './class-data-recordset.ts';
+import { DeepClone } from './util-data-norm';
+import { RecordSet } from './class-data-recordset';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

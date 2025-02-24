@@ -10,29 +10,29 @@
 import * as ADDON from './ur-addon-mgr.mts';
 import * as APPSERV from './appserver.mts';
 import * as APPBUILD from './appbuilder.mts';
-import * as ASSET from '../common/util-data-ops.ts';
+import * as ASSET from '../common/util-data-ops.js';
 import * as FILE from './file.mts';
 import * as PROC from './process.mts';
-import * as TEXT from '../common/util-text.ts';
-import * as PROMPTS from '../common/util-prompts.ts';
-import * as NORM from '../common/util-data-norm.ts';
+import * as TEXT from '../common/util-text.js';
+import * as PROMPTS from '../common/util-prompts.js';
+import * as NORM from '../common/util-data-norm.js';
 import * as SNA from './sna-node.mts';
 
 // typescript classes
 import UrModule from './class-urmodule.mts';
-import OpSequencer from '../common/class-op-seq.ts';
-import StateMgr from '../common/class-state-mgr.ts';
-import NetSocket from '../common/class-urnet-socket.ts';
-import NetEndpoint from '../common/class-urnet-endpoint.ts';
-import NetPacket from '../common/class-urnet-packet.ts';
-import PhaseMachine from '../common/class-phase-machine.ts';
+import OpSequencer from '../common/class-op-seq.js';
+import StateMgr from '../common/class-state-mgr.js';
+import NetSocket from '../common/class-urnet-socket.js';
+import NetEndpoint from '../common/class-urnet-endpoint.js';
+import NetPacket from '../common/class-urnet-packet.js';
+import PhaseMachine from '../common/class-phase-machine.js';
 // typescript library modules
-import * as UID from '../common/module-uid.ts';
+import * as UID from '../common/module-uid.js';
 import * as CONSTANTS from './constants-urnet.mts';
 
 /// TYPES /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { PhaseID, PhaseDefinition } from '../common/class-phase-machine.ts';
+import type { PhaseID, PhaseDefinition } from '../common/class-phase-machine.js';
 type InitOptions = {};
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -105,7 +105,7 @@ export {
   RunPhaseGroup,
   GetMachine,
   GetMachineStates
-} from '../common/class-phase-machine.ts';
+} from '../common/class-phase-machine.js';
 
 // export types
 export type { BuildOptions, WatchOptions, NotifyCallback } from './appbuilder.mts';

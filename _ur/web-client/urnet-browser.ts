@@ -5,9 +5,9 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import * as PROMPT from '../common/util-prompts.ts';
-import NetEndpoint from '../common/class-urnet-endpoint.ts';
-import NetSocket from '../common/class-urnet-socket.ts';
+import * as PROMPT from '../common/util-prompts';
+import NetEndpoint from '../common/class-urnet-endpoint';
+import NetSocket from '../common/class-urnet-socket';
 import type { NP_Msg, NP_Address, NM_Handler } from '../_types/urnet.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

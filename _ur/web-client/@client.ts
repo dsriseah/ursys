@@ -8,24 +8,24 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 // utility modules
-import * as PROMPTS from '../common/util-prompts.ts';
+import * as PROMPTS from '../common/util-prompts';
 import * as TEXT from '../common/util-text.js';
-import * as NORM from '../common/util-data-norm.ts';
+import * as NORM from '../common/util-data-norm';
 // typescript classes
-import * as CLIENT_EP from './urnet-browser.ts';
-import * as UID from '../common/module-uid.ts';
-import OpSequencer from '../common/class-op-seq.ts';
-import StateMgr from '../common/class-state-mgr.ts';
-import NetSocket from '../common/class-urnet-socket.ts';
-import NetEndpoint from '../common/class-urnet-endpoint.ts';
-import NetPacket from '../common/class-urnet-packet.ts';
-import PhaseMachine from '../common/class-phase-machine.ts';
-import * as SNA from './sna-web.ts';
+import * as CLIENT_EP from './urnet-browser';
+import * as UID from '../common/module-uid';
+import OpSequencer from '../common/class-op-seq';
+import StateMgr from '../common/class-state-mgr';
+import NetSocket from '../common/class-urnet-socket';
+import NetEndpoint from '../common/class-urnet-endpoint';
+import NetPacket from '../common/class-urnet-packet';
+import PhaseMachine from '../common/class-phase-machine';
+import * as SNA from './sna-web';
 // constants
 import {
   HTTP_CLIENT_INFO,
   GetClientInfoFromWindowLocation
-} from '../common/constants-urnet-web.ts';
+} from '../common/constants-urnet-web';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -88,4 +88,4 @@ export {
   RunPhaseGroup,
   GetMachine,
   GetMachineStates
-} from '../common/class-phase-machine.ts';
+} from '../common/class-phase-machine';

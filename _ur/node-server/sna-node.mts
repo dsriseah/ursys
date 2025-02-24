@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
+import { makeTerminalOut, ANSI } from '../common/util-prompts.js';
 import {
   SNA_Build,
   SNA_MultiBuild,
@@ -18,7 +18,7 @@ import {
   GetDanglingHooks
 } from './sna-node-hooks.mts';
 import { SNA_SetServerConfig, SNA_GetServerConfig } from './sna-node-context.mts';
-import { SNA_NewComponent } from '../common/class-sna-component.ts';
+import { SNA_NewComponent } from '../common/class-sna-component.js';
 
 /// SNA MODULES PACKAGING /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

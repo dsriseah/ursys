@@ -23,7 +23,7 @@ const DEFAULT_SPACE = IS_NODE
 
 /// CONSTANTS & DECLARATIONS /////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { TERM_COLORS, CSS_COLORS, ANSI_COLORS } from './declare-colors.ts';
+import { TERM_COLORS, CSS_COLORS, ANSI_COLORS } from './declare-colors';
 const DEFAULT_COLOR = 'TagNull';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // div console

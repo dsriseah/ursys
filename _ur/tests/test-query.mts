@@ -5,12 +5,12 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import { Find } from '../lib/util-data-search.ts';
+import { Find } from '../lib/util-data-search.js';
 import {
   m_SetCriteria,
   m_EnforceFlags,
   m_GetCriteria
-} from '../lib/util-data-search.ts';
+} from '../lib/util-data-search.js';
 import type { SearchOptions } from '../_types/dataset.js';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

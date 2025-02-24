@@ -7,21 +7,21 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler } from '../common/util-prompts.ts';
+import { ConsoleStyler } from '../common/util-prompts';
 import {
   SNA_NetConnect,
   AddMessageHandler,
   RegisterMessages
-} from './sna-web-urnet-client.ts';
+} from './sna-web-urnet-client';
 import {
   SNA_UseComponent,
   SNA_LifecycleStart,
   SNA_LifecycleStatus,
   SNA_HookAppPhase,
   GetDanglingHooks
-} from './sna-web-hooks.ts';
-import { SNA_NewComponent } from '../common/class-sna-component.ts';
-import { SNA_SetAppConfig, SNA_GetAppConfig } from './sna-web-context.ts';
+} from './sna-web-hooks';
+import { SNA_NewComponent } from '../common/class-sna-component';
+import { SNA_SetAppConfig, SNA_GetAppConfig } from './sna-web-context';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -98,11 +98,11 @@ function SNA_Status() {
 /// SNA MODULES PACKAGING /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// remember to import SNA_Component default, which has _name property set
-import MOD_DataClient from './sna-dataclient.ts';
-import MOD_AppContext from './sna-web-context.ts';
+import MOD_DataClient from './sna-dataclient';
+import MOD_AppContext from './sna-web-context';
 /// export the actual module API
-export * as DATACLIENT from './sna-dataclient.ts';
-export * as APPCONTEXT from './sna-web-context.ts';
+export * as DATACLIENT from './sna-dataclient';
+export * as APPCONTEXT from './sna-web-context';
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -126,11 +126,11 @@ export {
   RunPhaseGroup,
   GetMachine,
   GetDanglingHooks
-} from './sna-web-hooks.ts';
+} from './sna-web-hooks';
 export {
   // urnet static methods
   AddMessageHandler,
   DeleteMessageHandler,
   RegisterMessages,
   ClientEndpoint
-} from './sna-web-urnet-client.ts';
+} from './sna-web-urnet-client';

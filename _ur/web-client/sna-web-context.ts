@@ -8,13 +8,13 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler } from '../common/util-prompts.ts';
-import { SNA_NewComponent, SNA_HookAppPhase } from './sna-web-hooks.ts';
+import { ConsoleStyler } from '../common/util-prompts';
+import { SNA_NewComponent, SNA_HookAppPhase } from './sna-web-hooks';
 import {
   AddMessageHandler,
   ClientEndpoint,
   RegisterMessages
-} from './sna-web-urnet-client.ts';
+} from './sna-web-urnet-client';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

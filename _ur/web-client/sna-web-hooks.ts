@@ -7,19 +7,19 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PhaseMachine } from '../common/class-phase-machine.ts';
-import { ConsoleStyler } from '../common/util-prompts.ts';
-import { IsSnakeCase } from '../common/util-text.ts';
-import { SNA_Component } from '../common/class-sna-component.ts';
+import { PhaseMachine } from '../common/class-phase-machine';
+import { ConsoleStyler } from '../common/util-prompts';
+import { IsSnakeCase } from '../common/util-text';
+import { SNA_Component } from '../common/class-sna-component';
 import {
   SNA_GetAppConfigUnsafe,
   SNA_SetLockState,
   SNA_GetLockState
-} from './sna-web-context.ts';
+} from './sna-web-context';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
+import type { PhaseID, HookFunction } from '../common/class-phase-machine';
 import type { SNA_ComponentProps, DataObj } from '../@ur-types.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

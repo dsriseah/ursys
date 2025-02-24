@@ -15,8 +15,8 @@ import { join } from 'node:path';
 // MTS
 import { DirExists, Files, GetRootDirs, u_short } from './file.mts';
 import UrModule from './class-urmodule.mts';
-import { DIE } from '../common/util-error-mgr.ts';
-import * as PROMPT from '../common/util-prompts.ts';
+import { DIE } from '../common/util-error-mgr.js';
+import * as PROMPT from '../common/util-prompts.js';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

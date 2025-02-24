@@ -9,7 +9,7 @@ import path from 'node:path';
 import chokidar from 'chokidar';
 import esbuild from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
-import { makeTerminalOut } from '../common/util-prompts.ts';
+import { makeTerminalOut } from '../common/util-prompts.js';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -48,7 +48,7 @@ let ENTRY_FILE: string; // default entry file for the app
 let ENTRY_FILES: string[]; // multiple entry files for the app
 let INDEX_FILE: string; // default index file for the app
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { ANSI_COLORS } from '../common/declare-colors.ts';
+import { ANSI_COLORS } from '../common/declare-colors.js';
 const { DIM, NRM } = ANSI_COLORS;
 const LOG = makeTerminalOut('URBUILD', 'TagBlue');
 

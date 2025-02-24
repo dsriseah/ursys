@@ -13,10 +13,10 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
-import { APPSTATE, TIME, UDATA } from './mock-core.ts';
-import { ReactDOM, DATASET, EDITORTYPE, ARROW_RIGHT } from './mock-core.ts';
-import * as DC from './dc-comment.ts';
-import * as AC from './ac-comment.ts';
+import { APPSTATE, TIME, UDATA } from './mock-core';
+import { ReactDOM, DATASET, EDITORTYPE, ARROW_RIGHT } from './mock-core';
+import * as DC from './dc-comment';
+import * as AC from './ac-comment';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
