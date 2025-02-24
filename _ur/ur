@@ -7,15 +7,13 @@ prln() {
   printf "%s\n" "$*"
 }
 
-# BUILD OPTIONS
-BUILD_TYPES="false" 
-
 # PATH SETTINGS
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 UR_BUILD="$SCRIPT_DIR/"
 CLI_BUILD="$SCRIPT_DIR/npm-scripts"
 ADDONS_LIB="$SCRIPT_DIR/../_ur_addons"
 TEST_BUILD="$SCRIPT_DIR/../_ur_addons/loki"
+UR_EXPORTS="$SCRIPT_DIR/../_ur_exports"
 
 # TERMINAL COLORS
 DIM=$(tput dim)
@@ -26,7 +24,7 @@ BRITE=$(tput bold)
 
 
 usage() {
-    COMMANDS="build test new:addon"
+    COMMANDS="build test package new:addon"
     ADDONS=""
     a_dirs=$(find "$ADDONS_LIB" -mindepth 1 -maxdepth 1 -type d -name "[!_]*" -exec basename {} \;)
     a_dirs=$(prln "$a_dirs" | tr '\n' ' ')
@@ -68,18 +66,18 @@ case "$1" in
         npx ts-node-esm $TSOPTS $CLI_BUILD/@build-core.mts 2>&1 | cat
         # (2) add additional tasks here (eventually can be command args)
         npx ts-node-esm $TSOPTS $CLI_BUILD/@build-addons.mts 2>&1 | cat
-        # (3) build the type exports with rollup (not working due to type conflicts)
+        # (3) to build type files, see _ur_exports
+        exit 0;
+        ;;
 
-        # if BUILD_TYPES is defined, build the type exports
-        # this is a non-functioning work-in-progress figuring out library building
-        if [ "$BUILD_TYPES" = "true" ]; then
-            npx tsc --project ./.types.node.tsconfig.json 
-            prln "${DIM}info: built node type files${RESET}"
-            npx tsc --project ./.types.web.tsconfig.json 
-            prln "${DIM}info: built web type files${RESET}"
-            # this doesn't seem to work...the idea is to a single types file for node and web
-            # npx rollup -c ./.types.config.js
-        fi
+    package)
+        cd $UR_EXPORTS
+        prln ""
+        prln "${BGBLUE} UR PACKAGE TO '$UR_EXPORTS' ${RESET}"
+        ./@build-exports.sh
+        prln "package export complete"
+        prln ""
+        cd ..
         exit 0;
         ;;
 
