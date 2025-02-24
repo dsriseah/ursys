@@ -1,4 +1,5 @@
-import * as UPATH from './util-path.mts';
+import * as PATH from 'node:path';
+import { basename, extname } from 'path';
 import * as UFILE from './file.mts';
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -10,7 +11,7 @@ function GetReqInfo(req, baseRoute?: string) {
     req = baseRoute;
     baseRoute = '';
   }
-  baseRoute = UPATH.trimSlashes(baseRoute);
+  if (baseRoute.endsWith('/')) baseRoute = baseRoute.slice(0, -1);
   if (typeof req !== 'object') {
     console.log('error: arg1 should be route, arg2 should be request objets');
     return undefined;
@@ -22,8 +23,8 @@ function GetReqInfo(req, baseRoute?: string) {
   // note: req.originalURL = this is the url INCLUDING the route
   // req.url, by comparison, omits the route
   const { pathname, searchParams } = new URL(req.url, baseURL);
-  const basename = UPATH.basename(pathname);
-  const extname = UPATH.extname(pathname);
+  const basename = PATH.basename(pathname);
+  const extname = PATH.extname(pathname);
   return {
     // given req to http://domain.com/path/to/name?foo=12&bar
     baseURL, // http://domain.com/route
