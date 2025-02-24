@@ -20,6 +20,7 @@
 # ignore dynamically-generated bundle entry point
 **/__*
 **/auto-*
+**/*_nocommit*
 
 # ignore generated directories and files
 # _runtime is used by apps in the root level of the framework
