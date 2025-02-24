@@ -20,7 +20,6 @@ import {
   SNA_HookAppPhase,
   GetDanglingHooks
 } from './sna-web-hooks';
-import { SNA_NewComponent } from '../common/class-sna-component';
 import { SNA_SetAppConfig, SNA_GetAppConfig } from './sna-web-context';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -99,7 +98,6 @@ function SNA_Status() {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// remember to import SNA_Component default, which has _name property set
 import MOD_DataClient from './sna-dataclient';
-import MOD_AppContext from './sna-web-context';
 /// export the actual module API
 export * as DATACLIENT from './sna-dataclient';
 export * as APPCONTEXT from './sna-web-context';
@@ -114,18 +112,17 @@ export {
   SNA_Start as Start,
   SNA_Status as Status,
   SNA_HookAppPhase as HookAppPhase,
-  // sna modules
-  SNA_NewComponent as NewComponent,
   // included modules
-  MOD_DataClient,
-  MOD_AppContext
+  MOD_DataClient
 };
 export {
   // phase machine static methods
   HookPhase as HookPhase,
   RunPhaseGroup,
   GetMachine,
-  GetDanglingHooks
+  GetDanglingHooks,
+  // sna modules
+  SNA_NewComponent as NewComponent
 } from './sna-web-hooks';
 export {
   // urnet static methods

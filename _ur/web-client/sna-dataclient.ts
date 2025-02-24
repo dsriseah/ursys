@@ -19,13 +19,13 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler } from '../common/util-prompts';
+import { SNA_HookAppPhase } from './sna-web-hooks';
+import { SNA_NewComponent } from '../common/class-sna-component';
 import {
-  HookAppPhase,
   AddMessageHandler,
   ClientEndpoint,
-  RegisterMessages,
-  NewComponent
-} from './sna-web';
+  RegisterMessages
+} from './sna-web-urnet-client';
 import { Dataset } from '../common/class-data-dataset';
 import { DatasetAdapter } from '../common/abstract-dataset-adapter';
 import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops';
@@ -416,7 +416,7 @@ function PreConfig(config: DataObj) {
  *  where your module can declare where it needs to do something */
 function PreHook() {
   // hook into NET_DATASET to initialize dataclient connection to dataserver
-  HookAppPhase('NET_DATASET', async () => {
+  SNA_HookAppPhase('NET_DATASET', async () => {
     let dataURI = DS_URI;
     const opts = { mode: DS_MODE };
     let res: OpResult;
@@ -456,7 +456,7 @@ function Unsubscribe(binID: string, evHdl: SNA_EvtHandler) {
  *  with the PreConfig() and PreHook() methods to allow the module to
  *  independently manage itself and its data */
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default NewComponent('dataclient', {
+export default SNA_NewComponent('dataclient', {
   PreConfig,
   PreHook,
   Subscribe,
