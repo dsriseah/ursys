@@ -96,7 +96,7 @@ async function SNA_Build(rootDir: string): Promise<void> {
   // which includes an index.html file that loads the js bundle. You have to write
   // the index file yourself.
 
-  const bundle_name = 'js/bundle.js';
+  const bundle_name = 'bundle.js';
   const { entryFile, tsFiles } = await IMPORT.MakeAppImports(source_dir);
   if (tsFiles.length) {
     LOG(`Build: bundling ${BLU}${tsFiles.join(' ')}${NRM}`);
