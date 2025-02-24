@@ -1,13 +1,5 @@
 #!/bin/sh
 
-# detect --notype flag, which disables tsc type building steps
-NOTYPE=0
-for arg in "$@"; do
-    if [ "$arg" = "--notype" ]; then
-        NOTYPE=1
-    fi
-done
-
 # TERMINAL COLORS
 YEL=$(tput setaf 3)
 BLU=$(tput setaf 4)
@@ -17,8 +9,6 @@ DIM=$(tput dim)
 RST=$(tput sgr0)
 
 # DIRECTORY DETECTION
-CPWD=$(pwd)
-# root directory has the .nvmrc file in it
 ROOT=$(pwd)
 while [ ! -f "$ROOT/.nvmrc" ]; do
     ROOT=$(dirname "$ROOT")
@@ -45,19 +35,9 @@ npx ts-node-esm $TSOPTS $DIR/@build-core.mts 2>&1 | cat
 # (2) add additional tasks here (eventually can be command args)
 npx ts-node-esm $TSOPTS $DIR/@build-addons.mts 2>&1 | cat
 
-# (3) optional build typescript types if NOTYPE is not set
-if [ $NOTYPE -ne 1 ]; then
-  npx tsc --project _ur/.types.node.tsconfig.json 
-  printf "${DIM}type: built ursys node definitions${RST}\n"
-  npx tsc --project _ur/.types.web.tsconfig.json 
-  printf "${DIM}type: built ursys web client definitions${RST}\n"
-else
-  printf "${DIM}type: skipped build${RST}\n"
-fi
-
 # return to the original directory
 cd - 2>&1 >/dev/null
-printf "${DIM}<-- cd ${CPWD}${RST}\n"
+printf "${DIM}<-- cd ${ROOT}${RST}\n"
 
 
 
