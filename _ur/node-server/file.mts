@@ -7,7 +7,8 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
-import * as FSE from 'fs-extra';
+import * as fse_cjs from 'fs-extra'; // fs-extra has a weird export structure
+const FSE = fse_cjs.default;
 import PATH from 'node:path';
 import PROMPT from '../common/util-prompts.js';
 import * as CRYPTO from 'node:crypto';
