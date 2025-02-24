@@ -12,13 +12,8 @@ export default [
   {
     input: '../_ur/web-client/@client.ts',
     output: [
-      { file: 'dist/core-web.esm.js', format: 'esm' },
-      { file: 'dist/core-web.cjs.js', format: 'cjs' },
-      {
-        file: 'dist/core-web.amd.js',
-        format: 'amd',
-        name: 'UrsysCore'
-      }
+      { file: 'dist/core-web-umd.js', format: 'umd', name: 'UrsysCore' },
+      { file: 'dist/core-web-iife.js', format: 'iife', name: 'UrsysCore' }
     ],
     plugins: [
       nodeResolve(),
