@@ -23,7 +23,6 @@ import { SNA_NewComponent } from '../common/class-sna-component.js';
 /// SNA MODULES PACKAGING /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import MOD_DataServer from './sna-dataserver.mts';
-import MOD_NodeContext from './sna-node-context.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -43,7 +42,6 @@ const DBG = true;
 /** API: initialize the server's lifecycle */
 async function SNA_Start() {
   SNA_UseComponent(MOD_DataServer);
-  SNA_UseComponent(MOD_NodeContext);
   // prepare own hooks before starting the lifecycle
   SNA_HookServerPhase('SRV_READY', LOG('Server Ready'));
   // now start the lifecycle

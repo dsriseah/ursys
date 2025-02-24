@@ -6,15 +6,11 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { makeTerminalOut, ANSI } from '../common/util-prompts.js';
-import {
-  ServerEndpoint,
-  AddMessageHandler,
-  RegisterMessages
-} from './sna-node-urnet-server.mts';
 import { SNA_NewComponent, SNA_HookServerPhase } from './sna-node-hooks.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import type { NetEndpoint } from '../common/class-urnet-endpoint.js';
 import type { OpResult, DataObj } from '../_types/dataset.d.ts';
 type LockState = 'init' | 'preconfig' | 'prehook' | 'locked';
 
@@ -90,22 +86,18 @@ function SNA_GetServerConfigUnsafe(): DataObj {
   return SERVER_CFG;
 }
 
-/// SNA COMPONENT SETUP ///////////////////////////////////////////////////////
+/// ENABLE CONTEXT HOOK ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function PreHook() {
-  SNA_HookServerPhase('SRV_START', async () => {
-    AddMessageHandler('SYNC:SRV_CONTEXT', data => {
-      // handle server context messages
-      const { op } = data;
-    });
-  });
+/** internal handler for updating the global configuration */
+function HandleUpdateMessage(data: DataObj) {}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: app startup should invoke this during SNA/NET_ACTIVE,
+ *  passing the NetEndpoint instance */
+function AddMessageHandlers(EP: NetEndpoint) {
+  EP.addMessageHandler('SNA/SET_APP_CONFIG', HandleUpdateMessage);
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default SNA_NewComponent('context', {
-  PreHook
-});
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
   SNA_SetLockState, // set locks state
@@ -113,5 +105,7 @@ export {
   SNA_SetServerConfig, // set global server config
   SNA_GetServerConfig, // get copy global server config
   // direct access to global config object
-  SNA_GetServerConfigUnsafe // get direct global server config
+  SNA_GetServerConfigUnsafe, // get direct global server config
+  //
+  AddMessageHandlers // add message handlers
 };

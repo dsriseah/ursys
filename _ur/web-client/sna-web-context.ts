@@ -75,18 +75,15 @@ function SNA_GetAppConfigUnsafe(): DataObj {
   return APP_CFG;
 }
 
-/// HOOK UPDATES //////////////////////////////////////////////////////////////
+/// ENABLE CONTEXT HOOK ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** internal handler for updating the global configuration */
 function HandleUpdateMessage(data: DataObj) {}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
+/** API: app startup should invoke this during SNA/NET_ACTIVE,
+ *  passing the NetEndpoint instance */
 function AddMessageHandlers(EP: NetEndpoint) {
   EP.addMessageHandler('SNA/SET_APP_CONFIG', HandleUpdateMessage);
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** */
-function RemoveMessageHandlers(EP: NetEndpoint) {
-  EP.deleteMessageHandler('SNA/SET_APP_CONFIG', HandleUpdateMessage);
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
@@ -99,6 +96,5 @@ export {
   // direct access to global config object
   SNA_GetAppConfigUnsafe, // get direct global server config
   //
-  AddMessageHandlers, // add message handlers
-  RemoveMessageHandlers
+  AddMessageHandlers // add message handlers
 };

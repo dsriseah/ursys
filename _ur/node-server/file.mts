@@ -7,7 +7,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * //////////////////////////////////////*/
 
-import FSE from 'fs-extra';
+import * as FSE from 'fs-extra';
 import PATH from 'node:path';
 import PROMPT from '../common/util-prompts.js';
 import * as CRYPTO from 'node:crypto';
