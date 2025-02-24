@@ -12,7 +12,7 @@
     // type exports
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "dist/types-client",
+    "outDir": "dist/types",
     "stripInternal": true,
     "skipLibCheck": true,
 
