@@ -99,15 +99,16 @@ async function SNA_Build(rootDir: string): Promise<void> {
   const bundle_name = 'bundle.js';
   const { entryFile, tsFiles } = await IMPORT.MakeAppImports(source_dir);
   if (tsFiles.length) {
-    LOG(`Build: bundling ${BLU}${tsFiles.join(' ')}${NRM}`);
-    LOG(`.. to ${BLU}${bundle_name}${NRM}`);
+    const ff = tsFiles.length > 1 ? 'files' : 'file';
+    LOG(`Build: bundling entry ${ff} ${BLU}${tsFiles.join(' ')}${NRM}`);
+    LOG(`.. into ${BLU}${bundle_name}${NRM}`);
   } else LOG(`No client components found in ${source_dir}`);
 
   const { webcFile, webcFiles } = await IMPORT.MakeWebCustomImports(webc_dir);
   if (webcFiles.length) {
     LOG(`Found web components: ${BLU}${webcFiles.join(' ')}${NRM}`);
     LOG(`import as ${BLU}${webcFile}${NRM}`);
-  } else LOG(`No web components found in ${webc_dir}`);
+  } else LOG(`${YEL}**${NRM} No web components in ${FILE.u_short(webc_dir)}`);
 
   /// BUILD APP ///
 
@@ -155,7 +156,7 @@ async function SNA_Build(rootDir: string): Promise<void> {
   const sdir = FILE.u_short(source_dir);
   if (mtsFiles.length)
     LOG(`Loaded server components: ${BLU}${mtsFiles.join(' ')}${NRM}`);
-  else LOG(`No server components found in '${sdir}'`);
+  else LOG(`${YEL}**${NRM} No server components in '${sdir}'`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: SNA_MultiBuild is a variant of SNA_Build. Found client ts files are
@@ -177,7 +178,7 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
   if (webcFiles.length) {
     LOG(`Found web components: ${BLU}${webcFiles.join(' ')}${NRM}`);
     LOG(`import as ${BLU}${webcFile}${NRM}`);
-  } else LOG(`No web components found in ${webc_dir}`);
+  } else LOG(`${YEL}**${NRM} No web components in ${webc_dir}`);
 
   /// BUILD APP ///
 
@@ -224,7 +225,7 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
   const sdir = FILE.u_short(source_dir);
   if (mtsFiles.length)
     LOG(`Loaded server components: ${BLU}${mtsFiles.join(' ')}${NRM}`);
-  else LOG(`No server components found in '${sdir}'`);
+  else LOG(`${YEL}**${NRM} No server components in '${sdir}'`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: used by SNA_Build() to configure watch dirs for hot reload */
