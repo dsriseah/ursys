@@ -12,8 +12,8 @@
     "create": "./_ur/ur-create.sh"
   },
   "scripts": {
-    "example": "npx tsx ./example-sna/@run-sna.mts",
-    "build-core": "npx tsx ./_ur/npm-scripts/@build-core.mts",
+    "example": "./@build-ursys.sh && tsx ./example-app/@run-example.mts",
+    "build-core": "tsx ./_ur/npm-scripts/@build-core.mts",
     "lint": "npm exec --workspaces -- npm run lint && eslint example-app/"
   },
   "author": "DSri Seah",
