@@ -147,7 +147,7 @@ async function SNA_Build(rootDir: string, opt?: Options): Promise<void> {
     index_file: 'index.html',
     wss_path: 'sna-ws',
     get_client_cfg: () => {
-      const { dataURI } = CONTEXT.SNA_GetServerConfig();
+      const { dataURI } = CONTEXT.SNA_GetServerConfigUnsafe();
       return { dataURI };
     }
   };
