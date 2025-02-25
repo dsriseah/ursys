@@ -1,7 +1,7 @@
 {
   "name": "sna-test",
   "version": "1.0.0",
-  "description": "",
+  "description": "test environment for adding SNA features",
   "scripts": {
     "core": "tsx ../_ur/npm-scripts/@build-core.mts",
     "dev": "npm run core && tsx ./@run-sna.mts",
