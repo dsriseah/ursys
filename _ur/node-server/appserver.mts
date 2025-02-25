@@ -45,7 +45,7 @@ type HookOptions = {
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const { DIM, NRM } = ANSI;
+const { DIM, NRM, BLU, BRI } = ANSI;
 const LOG = makeTerminalOut('URSERVE', 'TagBlue');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let APP: express.Application; // express app instance, init by ListenHTTP
@@ -186,7 +186,9 @@ function ListenHTTP(opt: HTOptions) {
     });
     // start the server
     SERVER = APP.listen(http_port, http_host, () => {
-      LOG.info(`${SERVER_NAME} started on http://${http_host}:${http_port}`);
+      LOG.info(
+        `${SERVER_NAME} started on ${NRM}${BRI}${BLU}http://${http_host}:${http_port}`
+      );
       resolve();
     });
   });
