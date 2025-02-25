@@ -85,7 +85,11 @@ function SNA_EnsureAppDirs(rootDir: string) {
  *  are app-client side. Client-side files are bundled into 'js/bundle.js'
  *  Can be called after URNET_READY (e.g. APP_READY)
  */
-async function SNA_Build(rootDir: string): Promise<void> {
+type Options = {
+  port: number;
+};
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+async function SNA_Build(rootDir: string, opt?: Options): Promise<void> {
   LOG(`SNA Build: Transpiling and bundling javascript`);
 
   // ensure the required SNA APP directories exist
@@ -137,7 +141,7 @@ async function SNA_Build(rootDir: string): Promise<void> {
     notify_cb
   });
   const serverOpts = {
-    http_port: 8080,
+    http_port: opt?.port || 8080,
     http_host: 'localhost',
     http_docs: output_dir,
     index_file: 'index.html',
