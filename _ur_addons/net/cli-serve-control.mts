@@ -65,11 +65,7 @@ async function SpawnServer(scriptName: string, id: string) {
     detached: true,
     stdio: DBG ? 'inherit' : 'ignore'
   };
-  const proc = spawn(
-    'ts-node-esm',
-    ['--transpile-only', scriptName, ...m_args],
-    options
-  );
+  const proc = spawn('tsx', [scriptName, ...m_args], options);
   if (DBG_PROC) LOG(`Spawning ${identifier} with pid:${proc.pid}`);
 
   const pid = proc.pid.toString();

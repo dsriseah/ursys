@@ -12,8 +12,8 @@
     "create": "./_ur/ur-create.sh"
   },
   "scripts": {
-    "example": "npx ts-node-esm ./_ur/npm-scripts/@build-core.mts && node ./example-app/@build-example.mjs",
-    "build-core": "npx ts-node-esm ./_ur/npm-scripts/@build-core.mts",
+    "example": "npx tsx ./_ur/npm-scripts/@build-core.mts && node ./example-app/@build-example.mjs",
+    "build-core": "npx tsx ./_ur/npm-scripts/@build-core.mts",
     "lint": "npm exec --workspaces -- npm run lint && eslint example-app/"
   },
   "author": "DSri Seah",
@@ -41,7 +41,6 @@
   },
   "dependencies": {
     "@ursys/addons": "file:./_ur_addons",
-    "@ursys/core": "file:./_ur",
-    "ts-node": "^10.9.2"
+    "@ursys/core": "file:./_ur"
   }
 }

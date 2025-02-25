@@ -80,7 +80,7 @@ async function m_StartTSNode() {
     const fname = PATH.basename(fp);
     const date = new Date().toLocaleTimeString();
     LOG(`${DIM}${date} running ${BLU}${fname}${NRM}`);
-    PROCS.push(PROCESS.spawn('ts-node-esm', [fp], { stdio: 'inherit' }));
+    PROCS.push(PROCESS.spawn('tsx', [fp], { stdio: 'inherit' }));
   }
   await m_TSNodeStarted();
   WATCHER_SUSPEND = false;

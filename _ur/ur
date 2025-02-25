@@ -7,6 +7,10 @@ prln() {
   printf "%s\n" "$*"
 }
 
+# Select ts-node-esm or tsx typescript-aware node runner
+# NODEXEC="npx ts-node-esm --transpile-only"
+NODEXEC="npx tsx "
+
 # PATH SETTINGS
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 UR_BUILD="$SCRIPT_DIR/"
@@ -58,14 +62,12 @@ fi
 # handle built-in commands
 # note: Use --max-old-space-size to limit memory (values are in MB, so 128 is 128MB)
 #
-DEBUG="--inspect-brk" # use --inspect-brk to break on first line
-TSOPTS="--transpile-only" # use --no-cache to force a full rebuild tsnode (disables typecheck)
 case "$1" in
     build)
         # (1) always build library first
-        npx ts-node-esm $TSOPTS $CLI_BUILD/@build-core.mts 2>&1 | cat
+        $NODEXEC $CLI_BUILD/@build-core.mts 2>&1 | cat
         # (2) add additional tasks here (eventually can be command args)
-        npx ts-node-esm $TSOPTS $CLI_BUILD/@build-addons.mts 2>&1 | cat
+        $NODEXEC $CLI_BUILD/@build-addons.mts 2>&1 | cat
         # (3) to build type files, see _ur_exports
         exit 0;
         ;;
@@ -83,7 +85,7 @@ case "$1" in
 
     test)
         # get additional argument after 'test' into $option
-        npx ts-node-esm $TSOPTS  $CLI_BUILD/@build-core.mts 2>&1 | cat
+        $NODEXEC $CLI_BUILD/@build-core.mts 2>&1 | cat
         PROMPT="${BGBLUE} UR TEST ${RESET}"
         if [ "$2" = "core" ]; then
             prln "${PROMPT} running ${BRITE}ursys core tests${RESET}"
@@ -138,6 +140,5 @@ esac
 # load the designated addon directory in $1 and pass the remaining arguments
 # to our loader scripts
 # build the core first, then load the addon
-npx ts-node-esm $TSOPTS $CLI_BUILD/@build-core.mts 2>&1 | cat
-npx ts-node-esm $TSOPTS $ADDONS_LIB/@load-addon.mts "$@"
-# to debug the addon loader, remove the TSOPTS (--transpile-only)
+$NODEXEC $CLI_BUILD/@build-core.mts 2>&1 | cat
+$NODEXEC $ADDONS_LIB/@load-addon.mts "$@"

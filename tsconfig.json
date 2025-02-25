@@ -15,7 +15,7 @@
   all options apply to each system. Annotations are provided to explain
   which systems use each option.
 
-  NOTE: URSYS is using ts-node-esm as the runtime to enable pure
+  NOTE: URSYS is using tsx as the runtime to enable pure
   typescript execution in nodejs without transpilation.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
