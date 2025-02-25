@@ -21,12 +21,12 @@
     }
   },
   "devDependencies": {
-    "esbuild": "^v0.24.2",
+    "esbuild": "^v0.25.0",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-plugin-umd-wrapper": "^2.0.0",
     "fs-extra": "^11.3.0",
     "node-dir": "^0.1.17",
-    "vitest": "^1.6.0"
+    "vitest": "^3.0.7"
   },
   "peerDependencies": {
     "@ursys/core": "file:../_ur"

@@ -21,3 +21,4 @@ const datadir = FILE.AbsLocalPath('_ur_addons/loki/_data');
 await PromiseLoadDatabase(`${datadir}/test-graph.loki`);
 ListCollections();
 LOG('run complete');
+process.exit(0);
