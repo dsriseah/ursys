@@ -25,6 +25,7 @@ const { BLU, YEL, RED, DIM, NRM } = ANSI;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const WARN = `${YEL}**${NRM}`;
 const LOG = makeTerminalOut('SNA.UNET', 'TagCyan');
 const DBG = true;
 
@@ -94,6 +95,8 @@ async function SNA_Build(rootDir: string, opt?: Options): Promise<void> {
 
   // ensure the required SNA APP directories exist
   const { source_dir, asset_dir, output_dir, webc_dir } = SNA_EnsureAppDirs(rootDir);
+  const sdir = FILE.u_short(source_dir);
+  const wcdir = FILE.u_short(webc_dir);
 
   // A build consists of (1) building js bundle from CLIENT_ENTRY, and copying the
   // output to HT_DOCS/js followed by (2) copying assets from HT_ASSETS to HT_DOCS,
@@ -106,13 +109,13 @@ async function SNA_Build(rootDir: string, opt?: Options): Promise<void> {
     const ff = tsFiles.length > 1 ? 'files' : 'file';
     LOG(`Build: bundling entry ${ff} ${BLU}${tsFiles.join(' ')}${NRM}`);
     LOG(`.. into ${BLU}${bundle_name}${NRM}`);
-  } else LOG(`No client components found in ${source_dir}`);
+  } else LOG(`${WARN} Build: No client components in ${sdir}`);
 
   const { webcFile, webcFiles } = await IMPORT.MakeWebCustomImports(webc_dir);
   if (webcFiles.length) {
     LOG(`Found web components: ${BLU}${webcFiles.join(' ')}${NRM}`);
     LOG(`import as ${BLU}${webcFile}${NRM}`);
-  } else LOG(`${YEL}**${NRM} No web components in ${FILE.u_short(webc_dir)}`);
+  } else LOG(`${WARN} No web components in ${wcdir}`);
 
   /// BUILD APP ///
 
@@ -157,10 +160,9 @@ async function SNA_Build(rootDir: string, opt?: Options): Promise<void> {
   /// this happens after APPSERV.Start() because SNA relies on the Express
   /// server being up and running to handle URNET messages
   const mtsFiles = await IMPORT.FindServerModules(source_dir);
-  const sdir = FILE.u_short(source_dir);
   if (mtsFiles.length)
     LOG(`Loaded server components: ${BLU}${mtsFiles.join(' ')}${NRM}`);
-  else LOG(`${YEL}**${NRM} No server components in '${sdir}'`);
+  else LOG(`${WARN} No server components in '${sdir}'`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: SNA_MultiBuild is a variant of SNA_Build. Found client ts files are
@@ -169,12 +171,12 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
   LOG(`SNA MultiBuild: Transpiling and bundling entry files`);
   // ensure the required SNA APP directories exist
   const { source_dir, asset_dir, output_dir, webc_dir } = SNA_EnsureAppDirs(rootDir);
-
+  const sdir = FILE.u_short(source_dir);
   const entryFiles = await IMPORT.FindClientEntryFiles(source_dir);
   if (entryFiles.length) {
     LOG(`MultiBuild: bundling entry files: ${BLU}${entryFiles.join(' ')}${NRM}`);
   } else {
-    LOG(`MultiBuild: No entry files found in ${source_dir}`);
+    LOG(`${WARN} MultiBuild: No entry files in ${sdir}`);
     return;
   }
 
@@ -182,7 +184,7 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
   if (webcFiles.length) {
     LOG(`Found web components: ${BLU}${webcFiles.join(' ')}${NRM}`);
     LOG(`import as ${BLU}${webcFile}${NRM}`);
-  } else LOG(`${YEL}**${NRM} No web components in ${webc_dir}`);
+  } else LOG(`${WARN} No web components in ${webc_dir}`);
 
   /// BUILD APP ///
 
@@ -226,10 +228,9 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
   /// this happens after APPSERV.Start() because SNA relies on the Express
   /// server being up and running to handle URNET messages
   const mtsFiles = await IMPORT.FindServerModules(source_dir);
-  const sdir = FILE.u_short(source_dir);
   if (mtsFiles.length)
     LOG(`Loaded server components: ${BLU}${mtsFiles.join(' ')}${NRM}`);
-  else LOG(`${YEL}**${NRM} No server components in '${sdir}'`);
+  else LOG(`${WARN} No server components in ${sdir}`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** HELPER: used by SNA_Build() to configure watch dirs for hot reload */
