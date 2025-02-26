@@ -32,9 +32,8 @@ import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import type { DataObj, OpResult } from '../_types/ursys';
 import type {
-  DataObj,
-  OpResult,
   IDS_DatasetAdapter,
   DatasetReq,
   DatasetRes,
@@ -46,10 +45,9 @@ import type {
   DS_DataURI,
   DS_DatasetObj,
   SearchOptions,
-  RecordSet,
-  SNA_EvtHandler,
-  SNA_Component
-} from '../@ur-types.d.ts';
+  RecordSet
+} from '../_types/dataset';
+import type { SNA_EvtHandler } from '../_types/sna';
 //
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

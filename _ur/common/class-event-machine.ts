@@ -20,9 +20,9 @@
 
 /// TYPES & INTERFACES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj } from '../_types/ursys.d.ts';
-import type { DataEncoding } from './declare-encodings.ts';
-import type { SNA_EvtName, SNA_EvtHandler } from '../_types/sna.d.ts';
+import type { DataObj } from '../_types/ursys';
+import type { DataEncoding } from './declare-encodings';
+import type { SNA_EvtName, SNA_EvtHandler } from '../_types/sna';
 
 type EVM_Descriptor = {
   name: SNA_EvtName; // name of the event

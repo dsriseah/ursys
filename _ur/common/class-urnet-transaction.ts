@@ -18,7 +18,7 @@
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_Hash } from '../_types/urnet.d.ts';
+import type { NP_Hash } from '../_types/urnet';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** a transaction consists functions used to resolve or reject the transaction
  *  for async operations. Additional data can be stored with the transaction

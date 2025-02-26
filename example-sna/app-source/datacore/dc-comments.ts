@@ -14,8 +14,8 @@ import { SNA, DataBin, ConsoleStyler } from '@ursys/core';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj, DataSyncRes, OpResult } from 'tsconfig/types';
-import type { SNA_EvtName } from 'tsconfig/types';
+import type { DataObj, DataSyncRes, OpResult } from '@ursys/core';
+import type { SNA_EvtName } from '@ursys/core';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

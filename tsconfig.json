@@ -35,9 +35,9 @@
     // 'paths' sets module import aliases for use by bundlers and compilers.
     // Do not use in imports for library entrypoints! See details in link.
     // https://typescriptlang.org/docs/handbook/modules/reference.html#paths
-    "paths": {
-      "tsconfig/types": ["./_ur/@ur-types.d.ts"]
-    },
+    // "paths": {
+    //   "@ursys/types": ["./_ur/_types"]
+    // },
 
     // when set, typeRoots looks ONLY at these paths for type resolution
     "typeRoots": ["node_modules/@types", "_ur/_types"],
@@ -74,6 +74,7 @@
     // 'outDir' sets the output directory for the compiled files
     // This is set by esbuild in the build script, so it is not needed here
   },
+
   // process all these files. per 'isolatedModules', they are all scanned individually
   // rather than as a unified type system
   "include": [

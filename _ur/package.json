@@ -12,18 +12,16 @@
     "lint": "eslint .",
     "clean": "rm -rf ./node_modules ./_dist"
   },
-  "browser": "./_dist/client-cjs.js",
-  "main": "./_dist/server.cjs",
-  "types": "./@ur-types.d.ts",
   "exports": {
-    "node": {
-      "import": "./_dist/server-esm.mjs",
-      "require": "./_dist/server.cjs"
-    },
     "browser": {
-      "import": "./_dist/client-esm.js",
-      "require": "./_dist/client-cjs.js",
-      "default": "./_dist/client-umd.js"
+      "types": "./_types/@core-browser.d.ts",
+      "import": "./_dist/core-browser-esm.js",
+      "require": "./_dist/core-browser-cjs.js"
+    },
+    "node": {
+      "types": "./_types/@core-node.d.ts",
+      "import": "./_dist/core-node.mjs",
+      "require": "./_dist/core-node.cjs"
     }
   },
   "devDependencies": {
@@ -32,7 +30,6 @@
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-plugin-umd-wrapper": "^2.0.0",
     "rollup-plugin-dts": "^6.1.1",
-    "ts-node": "^10.9.1",
     "vitest": "^3.0.7"
   },
   "dependencies": {

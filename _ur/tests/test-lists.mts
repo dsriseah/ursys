@@ -5,12 +5,13 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test } from 'vitest';
-import type { UR_NewItem } from 'tsconfig/types';
 import { Dataset } from '../common/class-data-dataset.ts';
+import type { UR_NewItem } from '../_types/dataset.ts';
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const DATA = new Dataset('test');
+const dummyDSID = 'org:schema/bucket/group:vars`';
+const DATA = new Dataset(dummyDSID);
 
 test('instantiation', () => {
   expect(DATA).toBeDefined();

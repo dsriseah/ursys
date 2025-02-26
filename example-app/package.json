@@ -10,6 +10,6 @@
   "author": "dsriseah",
   "license": "MIT",
   "dependencies": {
-    "@ursys/core": "file:../_ur"
+    "ursys": "file:../_ur"
   }
 }

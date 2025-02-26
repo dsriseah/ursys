@@ -56,9 +56,9 @@ import { NormalizeData } from './util-urnet';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NP_ID, NP_Address, NP_Msg, NP_Data } from '../_types/urnet.d.ts';
-import type { I_NetSocket } from './class-urnet-socket.ts';
-import type { THandlerFunc } from './class-urnet-servicemap.ts';
+import type { NP_ID, NP_Address, NP_Msg, NP_Data } from '../_types/urnet';
+import type { I_NetSocket } from './class-urnet-socket';
+import type { THandlerFunc } from './class-urnet-servicemap';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

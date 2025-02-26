@@ -5,7 +5,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import type { DataObj, ErrObj, OpResult } from './ursys.d';
-export type * from './ursys.d.ts';
+export type * from './ursys';
 export type { DataBin } from '../common/abstract-data-databin';
 export type { Dataset, SyncOptions } from '../common/class-data-dataset';
 export type { RecordSet } from '../common/class-data-recordset';

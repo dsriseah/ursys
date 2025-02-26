@@ -28,7 +28,7 @@ import type {
   DataObj,
   OpResult
 } from '../_types/dataset';
-import type { SNA_EvtName, SNA_EvtHandler } from '../_types/sna.d.ts';
+import type { SNA_EvtName, SNA_EvtHandler } from '../_types/sna';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

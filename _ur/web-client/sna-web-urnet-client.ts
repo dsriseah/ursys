@@ -14,7 +14,7 @@ import * as CONTEXT from './sna-web-context';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NM_Handler } from '../@ur-types.d.ts';
+import type { NM_Handler } from '../_types/urnet';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

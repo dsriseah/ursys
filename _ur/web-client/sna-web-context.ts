@@ -11,7 +11,7 @@ import { ConsoleStyler } from '../common/util-prompts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpResult, DataObj } from '../_types/dataset.d.ts';
+import type { OpResult, DataObj } from '../_types/dataset';
 import type { NetEndpoint } from '../common/class-urnet-endpoint';
 type LockState = 'init' | 'preconfig' | 'prehook' | 'locked';
 
