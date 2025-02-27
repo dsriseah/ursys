@@ -8,7 +8,7 @@
 
 import PATH from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PR, PROC, FILE } from '@ursys/core';
+import { PROMPTS, PROC, FILE } from '@ursys/core';
 import * as KV from './kv-json.mts';
 import * as CTRL from './cli-serve-control.mts';
 import { UseServer } from './urnet-constants.mts';
@@ -19,7 +19,7 @@ import * as CLIENT_WSS from './client-wss.mts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const DBG_CLI = false;
-const LOG = PR('UR-CLI', 'TagCyan');
+const LOG = PROMPTS.TerminalLog('UR-CLI', 'TagCyan');
 const ARGS = process.argv.slice(2);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);

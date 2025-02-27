@@ -8,13 +8,13 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { WebSocketServer } from 'ws';
-import { PR, PROC, CLASS } from '@ursys/core';
+import { PROMPTS, PROC, CLASS } from '@ursys/core';
 const { NetEndpoint, NetSocket } = CLASS;
 import { WSS_INFO } from './urnet-constants.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('WSSHost', 'TagBlue');
+const LOG = PROMPTS.TerminalLog('WSSHost', 'TagBlue');
 const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);
 
 /// PROCESS SIGNAL HANDLING ///////////////////////////////////////////////////

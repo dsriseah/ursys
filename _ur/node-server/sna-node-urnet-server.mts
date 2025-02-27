@@ -13,7 +13,7 @@ import * as APPSERV from './appserver.mts';
 import * as APPBUILD from './appbuilder.mts';
 import * as IMPORT from './util-dynamic-import.mts';
 import * as CONTEXT from './sna-node-context.mts';
-import { makeTerminalOut, ANSI } from '../common/util-prompts.js';
+import { TerminalLog, ANSI } from '../common/util-prompts.js';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,7 +26,7 @@ const { BLU, YEL, RED, DIM, NRM } = ANSI;
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const WARN = `${YEL}**${NRM}`;
-const LOG = makeTerminalOut('SNA.UNET', 'TagCyan');
+const LOG = TerminalLog('SNA.UNET', 'TagCyan');
 const DBG = true;
 
 /// API: SERVER RUNTIME ///////////////////////////////////////////////////////

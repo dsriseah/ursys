@@ -10,7 +10,7 @@
 import * as fse_cjs from 'fs-extra'; // fs-extra has a weird export structure
 const FSE = fse_cjs.default;
 import PATH from 'node:path';
-import PROMPT from '../common/util-prompts.js';
+import * as _P from '../common/util-prompts.ts';
 import * as CRYPTO from 'node:crypto';
 import * as url from 'url';
 import { pipeline } from 'node:stream/promises';
@@ -27,7 +27,8 @@ type HashInfo = {
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PROMPT.makeTerminalOut('FILE', 'TagGreen');
+const { TerminalLog } = _P.default;
+const LOG = TerminalLog('FILE', 'TagGreen');
 const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let ROOT: string; // root of the project
@@ -374,15 +375,6 @@ function GetPathInfo(path: string) {
   };
 }
 
-/// SYNCHRONOUS TESTS /////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function Test() {
-  const files = Files(__dirname);
-  if (files.length && files.length > 0) LOG('FM.Files: success');
-  else LOG('Files: fail');
-  LOG(`found ${files.length} files`);
-}
-
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export {
@@ -421,7 +413,5 @@ export {
   AsyncReadJSON,
   AsyncWriteJSON,
   // delete
-  UnlinkFile,
-  //
-  Test
+  UnlinkFile
 };

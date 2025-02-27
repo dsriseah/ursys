@@ -4,14 +4,14 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR, PROC, CLASS } from '@ursys/core';
+import { PROMPTS, PROC, CLASS } from '@ursys/core';
 import { WebSocket } from 'ws';
 import { WSS_INFO } from './urnet-constants.mts';
 const { NetEndpoint, NetSocket } = CLASS;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('WSSClient', 'TagBlue');
+const LOG = PROMPTS.TerminalLog('WSSClient', 'TagBlue');
 const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);

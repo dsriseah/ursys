@@ -15,7 +15,7 @@ const PROMPTS = require('../common/util-prompts');
 /// CONSTANTS AND DECLARATIONS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const LOG = PROMPTS.makeTerminalOut('BUILD-APP', 'TagSystem');
+const LOG = PROMPTS.TerminalLog('BUILD-APP', 'TagSystem');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { ROOT, DIR_PUBLIC } = FILE.GetRootDirs();
 const ENTRY_JS = PATH.join(ROOT, 'app/init.jsx');

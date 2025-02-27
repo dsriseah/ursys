@@ -5,7 +5,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { FILE, PROMPTS, PR } from '@ursys/core';
+import { FILE, PROMPTS } from '@ursys/core';
 import { UR_StartLifecycle, UR_Build } from './webplay-svc-server.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@ const ADDON = AO_NAME.toUpperCase();
 const [script_name, ...script_args] = process.argv.slice(2);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const LOG = PR(ADDON, 'TagCyan');
+const LOG = PROMPTS.TerminalLog(ADDON, 'TagCyan');
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -5,12 +5,12 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { FILE, PR } from '@ursys/core';
+import { FILE, PROMPTS } from '@ursys/core';
 import { PromiseLoadDatabase, ListCollections } from './import-lokidb.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('LOKI', 'TagBlue');
+const LOG = PROMPTS.TerminalLog('LOKI', 'TagBlue');
 
 /// RUNTIME TESTS /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

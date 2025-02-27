@@ -1087,6 +1087,7 @@ class NetEndpoint {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// export both default and named for interoperability
 export default NetEndpoint;
 export {
   NetEndpoint // the class

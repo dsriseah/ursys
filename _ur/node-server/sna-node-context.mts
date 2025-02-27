@@ -5,7 +5,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { makeTerminalOut, ANSI } from '../common/util-prompts.js';
+import { TerminalLog, ANSI } from '../common/util-prompts.js';
 import { SNA_NewComponent, SNA_HookServerPhase } from './sna-node-hooks.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@ type LockState = 'init' | 'preconfig' | 'prehook' | 'locked';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = makeTerminalOut('SNA.HOOK', 'TagCyan');
+const LOG = TerminalLog('SNA.HOOK', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let SERVER_CFG: DataObj = {}; // pre-provided configuration object

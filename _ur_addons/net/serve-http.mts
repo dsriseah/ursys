@@ -18,7 +18,7 @@ import esbuild from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
 import { WebSocketServer } from 'ws';
 //
-import { PR, PROC, FILE, CLASS } from '@ursys/core';
+import { PROMPTS, PROC, FILE, CLASS } from '@ursys/core';
 const { NetEndpoint, NetSocket } = CLASS;
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ import { BuildOptions } from 'esbuild';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import { HTTP_INFO, ESBUILD_INFO } from './urnet-constants.mts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('HTTP', 'TagBlue');
+const LOG = PROMPTS.TerminalLog('HTTP', 'TagBlue');
 const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);
 let m_proxy_locations: Array<any>;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -7,7 +7,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { makeTerminalOut, ANSI } from '../common/util-prompts.js';
+import { TerminalLog, ANSI } from '../common/util-prompts.js';
 import { PhaseMachine } from '../common/class-phase-machine.js';
 import {
   RunPhaseGroup,
@@ -34,7 +34,7 @@ const { BLU, YEL, RED, DIM, NRM } = ANSI;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = makeTerminalOut('SNA.HOOK', 'TagCyan');
+const LOG = TerminalLog('SNA.HOOK', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let COMPONENTS: Set<SNA_Component> = new Set();

@@ -14,7 +14,7 @@ import * as UR from '@ursys/core';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// const PR = PROMPT.makeStyleFormatter('UR', 'TagCyan');
+// const LOG = PROMPTS.TerminalLog('UR', 'TagCyan');
 
 /// TEST METHODS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

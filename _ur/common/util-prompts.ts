@@ -219,9 +219,9 @@ function m_HTMLTextPlot(str = '', lineBuffer, id, row = 0, col = 0) {
  *  returns an array to destructure into console.log(). This is supported
  *  in Chrome and Safari (somewhat), but not in Firefox as of last testing.
  *
- *  To create the function, provide a short PROMPT. This will be color coded
+ *  To create the function, provide a short prompt. This will be color coded
  *  according to the PROMPTS_DICT table, or gray otherwise. You can turn off the
- *  debug output for all PROMPTS in a category also for centralized debug
+ *  debug output for all prompts in a category also for centralized debug
  *  statement control.
  *
  *  The prompt function accepts a string followed by any number of parameters.
@@ -371,24 +371,19 @@ function printTagColors() {
 
 /// MODULE EXPORTS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// for esm
 export {
   TERM_COLORS as TERM,
   CSS_COLORS as CSS,
   ANSI_COLORS as ANSI,
-  u_pad,
-  makeStyleFormatter,
-  makeErrorFormatter,
-  makeWarningFormatter,
-  dbgPrint,
-  makeTerminalOut,
-  makeHTMLConsole,
-  printTagColors,
-  colorTagString,
-  //
-  makeStyleFormatter as ConsoleStyler
+  makeStyleFormatter as ConsoleStyler,
+  makeTerminalOut as TerminalLog
 };
+// for node cjs bs
 export default {
-  makeTerminalOut,
-  makeStyleFormatter,
-  u_pad
+  TERM: TERM_COLORS,
+  CSS: CSS_COLORS,
+  ANSI: ANSI_COLORS,
+  ConsoleStyler: makeStyleFormatter,
+  TerminalLog: makeTerminalOut
 };

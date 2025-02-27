@@ -5,14 +5,14 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR, FILE } from '@ursys/core';
+import { PROMPTS, FILE } from '@ursys/core';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const [AO_NAME, AO_DIR] = FILE.DetectedAddonDir();
 const ADDON = AO_NAME.toUpperCase();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR(ADDON, 'TagCyan');
+const LOG = PROMPTS.TerminalLog(ADDON, 'TagCyan');
 const BRT = '\x1b[34;1m';
 const NRM = '\x1b[0m';
 const scriptDir = `${AO_DIR}/scripts`;

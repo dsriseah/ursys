@@ -7,7 +7,7 @@
 
 import FS from 'node:fs';
 import PATH from 'node:path';
-import { makeTerminalOut, ANSI } from '../common/util-prompts.js';
+import { TerminalLog, ANSI } from '../common/util-prompts.js';
 import { DetectedRootDir, AbsLocalPath } from './file.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@ import { DetectedRootDir, AbsLocalPath } from './file.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = makeTerminalOut('DIMPORT', 'TagCyan');
+const LOG = TerminalLog('DIMPORT', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { BLU, YEL, RED, DIM, NRM } = ANSI;

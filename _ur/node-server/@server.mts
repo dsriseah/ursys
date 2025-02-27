@@ -7,107 +7,47 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import * as ADDON from './ur-addon-mgr.mts';
-import * as APPSERV from './appserver.mts';
-import * as APPBUILD from './appbuilder.mts';
-import * as ASSET from '../common/util-data-ops.js';
-import * as FILE from './file.mts';
-import * as PROC from './process.mts';
-import * as TEXT from '../common/util-text.js';
-import * as PROMPTS from '../common/util-prompts.js';
-import * as NORM from '../common/util-data-norm.js';
-import * as SNA from './sna-node.mts';
-
-// typescript classes
-import UrModule from './class-urmodule.mts';
-import OpSequencer from '../common/class-op-seq.js';
-import StateMgr from '../common/class-state-mgr.js';
-import NetSocket from '../common/class-urnet-socket.js';
-import NetEndpoint from '../common/class-urnet-endpoint.js';
-import NetPacket from '../common/class-urnet-packet.js';
-import PhaseMachine from '../common/class-phase-machine.js';
-// typescript library modules
-import * as UID from '../common/module-uid.js';
-import * as CONSTANTS from './constants-urnet.mts';
-
-/// TYPES /////////////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { PhaseID, PhaseDefinition } from '../common/class-phase-machine.js';
-type InitOptions = {};
-
-/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { makeTerminalOut } = PROMPTS;
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const CLASS = {
-  OpSequencer,
-  StateMgr,
-  UrModule,
-  NetSocket,
-  NetEndpoint,
-  NetPacket,
-  PhaseMachine
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LIB = {
-  UID
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { UDS_INFO, WSS_INFO, HTTP_INFO } = CONSTANTS;
-const { ESBUILD_INFO } = CONSTANTS;
-const CONSTANT = {
-  URNET: {
-    UDS_INFO,
-    WSS_INFO,
-    HTTP_INFO
-  },
-  BUILD: {
-    ESBUILD_INFO
-  }
-};
-
-/// RUNTIME API ///////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** first time initialization */
-function Initialize(options: InitOptions): void {}
-
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export {
-  // ursys control
-  Initialize,
-  // common typescript classes, libraries
-  CONSTANT,
-  CLASS,
-  LIB,
-  // basic server modules
-  FILE,
-  PROC,
-  TEXT,
-  NORM,
-  // server-based services
-  APPSERV, // application server
-  APPBUILD, // application builder
-  ASSET, // asset management
-  //
-  SNA, // Sri New Architecture (SNA)
-  ADDON, // ur module manager,
-  PROMPTS // prompt style formatter
-};
-// debugging helpers
-export {
-  makeTerminalOut as PR // makes a styled console.log for node
-};
-// PhaseMachine interface
-export {
-  NewPhaseMachine,
-  HookPhase,
-  RunPhaseGroup,
-  GetMachine,
-  GetMachineStates
-} from '../common/class-phase-machine.js';
+/** named: GetProcessInfo, Build, MultiBuild, Start, Status
+ *  -      HookServerPhase, GetServerConfig, UseComponent, NewComponent
+ * -       HookPhase, RunPhaseGroup, GetMachine,GetDanglingHooks
+ *  -      MOD_DataServer */
+export * as SNA from './sna-node.mts';
 
-// export types
-export type { BuildOptions, WatchOptions, NotifyCallback } from './appbuilder.mts';
-export type { InitOptions };
-export type { PhaseID, PhaseDefinition };
+/** named: SetBuildOptions, GetBuildOptions,
+ *         BuildApp, MultiBuildApp, WatchExtra
+ *  types: BuildOptions, WatchOptions, NotifyCallback */
+export * as APPBUILD from './appbuilder.mts';
+
+/** named: Start, Stop, ListenHTTP, ListenWSS, StopHTTP, StopWSS,
+ *         AddMessageHandler, DeleteMessageHandler, RegisterMessages,
+ *         GetAppInstance, ServerEndpoint */
+export * as APPSERV from './appserver.mts';
+
+/** named: SetupServer, AssetManifest_Middleware, DeliverManifest */
+export * as ASSETSERV from './assetserver.mts';
+
+/** named: u_path, u_short
+ *         FileExists, DirExists, IsDir, IsFile,
+ *         EnsureDir, EnsureDirChecked, RemoveDir,
+ * -       GetRootDirts, DetectedRootDir, DetectedAddonDir,
+ *         FindParentDir, AbsLocalPath, RelLocalPath, TrimPath,
+ *         GetPathInfo, AsyncFileHash,
+ * -       GetDirContent, Files, FilesHashInfo, Subdirs
+ * -       ReadFile, AsyncReadFile, UnsafeWriteFile, ReadJSON,
+ *         WriteJSON, AsyncReadJSON, AsyncWriteJSON,
+ * -       UnlinkFile */
+export * as FILE from './file.mts';
+
+/** named: DecodeAddonArgs, ValidateAddon */
+export * as PROC from './process.mts'; // merge into ADDON?
+
+/** named: UR_Fork, ProcTest */
+export * as ADDON from './ur-addon-mgr.mts'; // merge with PROC?
+
+/// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export * from '../common/@common.ts';
+import * as CLASS from '../common/@classes.ts';
+export { CLASS };

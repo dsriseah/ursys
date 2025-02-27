@@ -23,8 +23,8 @@
 import { expect, test, vi } from 'vitest';
 import PhaseMachine from '../common/class-phase-machine';
 import * as PROMPTS from '../common/util-prompts';
-const { makeTerminalOut } = PROMPTS;
-const TERM = makeTerminalOut(' TEST', 'TagPink');
+const { TerminalLog } = PROMPTS;
+const TERM = TerminalLog(' TEST', 'TagPink');
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

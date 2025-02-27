@@ -9,7 +9,7 @@ import serveIndex from 'serve-index';
 import { WebSocketServer } from 'ws';
 import http from 'node:http';
 import * as FILE from './file.mts';
-import { makeTerminalOut, ANSI } from '../common/util-prompts.js';
+import { TerminalLog, ANSI } from '../common/util-prompts.js';
 import { NetEndpoint } from '../common/class-urnet-endpoint.js';
 import { NetSocket } from '../common/class-urnet-socket.js';
 import { NetPacket } from '../common/class-urnet-packet.js';
@@ -46,7 +46,7 @@ type HookOptions = {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
 const { DIM, NRM, BLU, BRI } = ANSI;
-const LOG = makeTerminalOut('URSERVE', 'TagBlue');
+const LOG = TerminalLog('URSERVE', 'TagBlue');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let APP: express.Application; // express app instance, init by ListenHTTP
 let SERVER: http.Server; // http server instance, init by ListenHTTP
@@ -316,7 +316,6 @@ function DeleteMessageHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
 async function RegisterMessages() {
   // declare messages to server
   const resdata = await EP.declareClientMessages();
-  // LOG(...PR(`RegisterMessages: ${resdata.error || 'success'}`));
   // LOG(resdata);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -7,7 +7,7 @@
 import esbuild from 'esbuild';
 import { umdWrapper } from 'esbuild-plugin-umd-wrapper';
 import FSE from 'fs-extra';
-import PROMPT from '../common/util-prompts.js';
+import PROMPTS from '../common/util-prompts.js'; // ts -> js default export
 import { GetRootDirs } from '../node-server/file.mts';
 
 /// CONSTANTS AND DECLARATIONS ///////////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@ import { GetRootDirs } from '../node-server/file.mts';
 const { ROOT, DIR_UR_ADDS, DIR_UR_ADDS_DIST } = GetRootDirs();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const LOG = PROMPT.makeTerminalOut('BUILD-MOD', 'TagSystem');
+const LOG = PROMPTS.TerminalLog('BUILD-MOD', 'TagSystem');
 
 /// ESBUILD API ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

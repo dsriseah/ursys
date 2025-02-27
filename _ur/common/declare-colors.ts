@@ -25,7 +25,7 @@ const COLOR_NAMES = [
 ];
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const TERM_COLORS: ColorDict = {
-  // TOUT = makeTerminalOut(str); TOUT('hi')
+  // TOUT = TerminalLog(str); TOUT('hi')
   Reset: '\x1b[0m',
   Bright: '\x1b[1m',
   Dim: '\x1b[2m',
@@ -209,4 +209,6 @@ const ANSI_COLORS = {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// export both named and default for mts and ts interoperability
 export { TERM_COLORS, CSS_COLORS, ANSI_COLORS };
+export default { TERM_COLORS, CSS_COLORS, ANSI_COLORS };

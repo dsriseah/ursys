@@ -14,12 +14,12 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { FILE, PR, PROC } from '@ursys/core';
+import { FILE, PROMPTS, PROC } from '@ursys/core';
 import { fork } from 'node:child_process';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('ADO-LOADR', 'TagCyan');
+const LOG = PROMPTS.TerminalLog('ADO-LOADR', 'TagCyan');
 const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const ADDON_DIR = process.argv[1];

@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { makeTerminalOut, ANSI } from '../common/util-prompts.js';
+import { TerminalLog, ANSI } from '../common/util-prompts.js';
 import {
   SNA_Build,
   SNA_MultiBuild,
@@ -34,7 +34,7 @@ const { BLU, YEL, RED, DIM, NRM } = ANSI;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = makeTerminalOut('SNA', 'TagCyan');
+const LOG = TerminalLog('SNA', 'TagCyan');
 const DBG = true;
 
 /// API METHODS ///////////////////////////////////////////////////////////////
@@ -88,10 +88,12 @@ export {
   SNA_SetServerConfig as SetServerConfig,
   SNA_GetServerConfig as GetServerConfig,
   SNA_UseComponent as UseComponent,
-  SNA_NewComponent as NewComponent,
-  // included modules
-  MOD_DataServer
+  SNA_NewComponent as NewComponent
 };
+/** named: LoadDataset, CloseDataset, PersistDataset, OpenBin, CloseBin,
+ *  default export registers 'dataserver' SNA Component */
+export * as MOD_DataServer from './sna-dataserver.mts';
+//
 export {
   // sna hook methods
   HookPhase,

@@ -47,8 +47,8 @@ import type {
 /// RUNTIME UTILITIES /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** note: these runtime checks have mirrored declarations in ursys.d.ts **/
-export const VALID_MSG_CHANNELS = ['SYNC', 'NET', 'SRV', 'LOCAL', ''] as const;
-export const VALID_PKT_TYPES = [
+const VALID_MSG_CHANNELS = ['SYNC', 'NET', 'SRV', 'LOCAL', ''] as const;
+const VALID_PKT_TYPES = [
   'ping',
   'signal',
   'send',
@@ -57,43 +57,43 @@ export const VALID_PKT_TYPES = [
   '_reg', // special packet
   '_decl' // special packet
 ] as const;
-export const VALID_ADDR_PREFIX = ['???', 'UR_', 'WSS', 'UDS', 'MQT', 'SRV'] as const;
-export const SKIP_SELF_PKT_TYPES = ['call', 'send'];
+const VALID_ADDR_PREFIX = ['???', 'UR_', 'WSS', 'UDS', 'MQT', 'SRV'] as const;
+const SKIP_SELF_PKT_TYPES = ['call', 'send'];
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export const UADDR_DIGITS = 3; // number of digits in UADDR (padded with 0)
+const UADDR_DIGITS = 3; // number of digits in UADDR (padded with 0)
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export const USED_ADDRS = new Set<NP_Address>();
+const USED_ADDRS = new Set<NP_Address>();
 // make string foo with a number of zeros equal to UADDR_DIGITS length
 const zeroPad = `0`.padStart(UADDR_DIGITS, '0');
-export const UADDR_NONE = `???${zeroPad}` as NP_Address; // unroutable address
+const UADDR_NONE = `???${zeroPad}` as NP_Address; // unroutable address
 
 /// FUNCTION SIGNATURES ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** runtime check of NP_Type */
-export function IsValidType(msg_type: string): boolean {
+function IsValidType(msg_type: string): boolean {
   return VALID_PKT_TYPES.includes(msg_type as NP_Type);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** some message types should not invoke back to the same pkt origin
  *  returning true 'call' and 'send'
  */
-export function SkipOriginType(msg_type: string): boolean {
+function SkipOriginType(msg_type: string): boolean {
   return SKIP_SELF_PKT_TYPES.includes(msg_type as NP_Type);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** runtime check of protocol-related NP_Type */
-export function isSpecialPktType(msg_type: string): boolean {
+function isSpecialPktType(msg_type: string): boolean {
   if (!IsValidType(msg_type)) return false;
   return msg_type.startsWith('_');
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** runtime check of NP_Chan */
-export function IsValidChannel(msg_chan: string): boolean {
+function IsValidChannel(msg_chan: string): boolean {
   return VALID_MSG_CHANNELS.includes(msg_chan as NP_Chan);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** runtime check of NP_Address */
-export function IsValidAddress(addr: string): boolean {
+function IsValidAddress(addr: string): boolean {
   if (typeof addr !== 'string') return false;
   let prelen = 0;
   if (
@@ -109,7 +109,7 @@ export function IsValidAddress(addr: string): boolean {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** runtime check of NP_Msg, returns array if good otherwise it returns undefined */
-export function IsValidMessage(msg: NP_Msg): [NP_Chan, string] {
+function IsValidMessage(msg: NP_Msg): [NP_Chan, string] {
   try {
     return DecodeMessage(msg);
   } catch (err) {
@@ -125,7 +125,7 @@ let ADDR_MAX_ID = 0;
 type AllocateOptions = { prefix?: NP_AddrPre; addr?: NP_Address };
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** allocate a new address, optionally with a label */
-export function AllocateAddress(opt?: AllocateOptions): NP_Address {
+function AllocateAddress(opt?: AllocateOptions): NP_Address {
   const fn = 'AllocateAddress';
   let addr = opt?.addr; // manually-set address
   let pre = opt?.prefix || 'UA'; // address prefix
@@ -144,7 +144,7 @@ export function AllocateAddress(opt?: AllocateOptions): NP_Address {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a CHANNEL:MESSAGE string, return the channel and message name in
  *  an array */
-export function DecodeMessage(msg: NP_Msg): [NP_Chan, string] {
+function DecodeMessage(msg: NP_Msg): [NP_Chan, string] {
   if (typeof msg !== 'string') throw Error(`message must be string: ${msg}`);
   if (msg !== msg.toUpperCase()) throw Error(`message must be uppercase: ${msg}`);
   if (msg.endsWith('_')) throw Error(`message can not end with _: ${msg}`);
@@ -165,14 +165,14 @@ export function DecodeMessage(msg: NP_Msg): [NP_Chan, string] {
 /** make sure that the message is always consistent. Officially, a local
  *  message begins with : and a network message begins with NET:
  */
-export function NormalizeMessage(msg: NP_Msg): NP_Msg {
+function NormalizeMessage(msg: NP_Msg): NP_Msg {
   let [chan, name] = DecodeMessage(msg);
   if (chan === 'LOCAL') chan = '';
   return `${chan}:${name}`;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** make sure that degenerate arrays turn into single object */
-export function NormalizeData(data: NP_Data): NP_Data {
+function NormalizeData(data: NP_Data): NP_Data {
   // if not an array just return as-is
   if (!Array.isArray(data)) return data;
   // no handlers for empty array
@@ -186,24 +186,51 @@ export function NormalizeData(data: NP_Data): NP_Data {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if message is a local request */
-export function IsLocalMessage(msg: NP_Msg): boolean {
+function IsLocalMessage(msg: NP_Msg): boolean {
   const [chan] = DecodeMessage(msg);
   return chan === 'LOCAL';
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if message is a network request */
-export function IsNetMessage(msg: NP_Msg): boolean {
+function IsNetMessage(msg: NP_Msg): boolean {
   const [chan] = DecodeMessage(msg);
   return chan === 'NET' || chan === 'SRV' || chan === 'SYNC';
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return true if message is implemented by main URNET server */
-export function IsServerMessage(msg: NP_Msg): boolean {
+function IsServerMessage(msg: NP_Msg): boolean {
   const [chan] = DecodeMessage(msg);
   return chan === 'SRV' || chan === 'SYNC';
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a packet, return a unique hash string */
-export function GetPacketHashString(pkt: I_NetMessage): NP_Hash {
+function GetPacketHashString(pkt: I_NetMessage): NP_Hash {
   return `${pkt.src_addr}:${pkt.id}`;
 }
+
+/// EXPORTS /////////////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export {
+  IsValidType,
+  SkipOriginType,
+  isSpecialPktType,
+  IsValidChannel,
+  IsValidAddress,
+  IsValidMessage,
+  AllocateAddress,
+  DecodeMessage,
+  NormalizeMessage,
+  NormalizeData,
+  IsLocalMessage,
+  IsNetMessage,
+  IsServerMessage,
+  GetPacketHashString
+};
+export {
+  VALID_MSG_CHANNELS,
+  VALID_PKT_TYPES,
+  VALID_ADDR_PREFIX,
+  SKIP_SELF_PKT_TYPES,
+  UADDR_DIGITS,
+  UADDR_NONE
+};

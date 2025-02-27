@@ -8,14 +8,14 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR, FILE } from '@ursys/core';
+import { PROMPTS, FILE } from '@ursys/core';
 import FSE from 'fs-extra';
 import { copy } from 'esbuild-plugin-copy';
 import esbuild from 'esbuild';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('MIDI', 'TagPurple');
+const LOG = PROMPTS.TerminalLog('MIDI', 'TagPurple');
 
 /// BUILD FILE ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

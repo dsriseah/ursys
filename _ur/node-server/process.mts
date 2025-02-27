@@ -10,10 +10,10 @@
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { makeTerminalOut } from '../common/util-prompts.js';
+import { TerminalLog } from '../common/util-prompts.js';
 import process from 'node:process';
 import PATH from 'node:path';
-const LOG = makeTerminalOut('PROCESS', 'TagGreen');
+const LOG = TerminalLog('PROCESS', 'TagGreen');
 import * as FILE from './file.mts';
 
 /// TYPES DECLARATIONS ////////////////////////////////////////////////////////

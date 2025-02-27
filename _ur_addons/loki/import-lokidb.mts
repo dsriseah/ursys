@@ -9,7 +9,7 @@ import Loki from 'lokijs';
 import FSE from 'fs-extra';
 import PATH from 'path';
 // our library import
-import { PR } from '@ursys/core';
+import { PROMPTS } from '@ursys/core';
 // import from local files require extensions
 import * as SESSION from '../_proposals/session.js';
 
@@ -31,7 +31,7 @@ let EDGES: Loki.Collection;
 
 /// INITIALIZATION ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('LOKI', 'TagBlue');
+const LOG = PROMPTS.TerminalLog('LOKI', 'TagBlue');
 if (DBG) LOG('module: import-lokidb.mts ');
 LOG('session init:', JSON.stringify(SESSION));
 

@@ -5,8 +5,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR, CLASS } from '@ursys/core';
-import { FILE, PROMPTS } from '@ursys/core';
+import { PROMPTS, FILE, CLASS } from '@ursys/core';
 import { APPSERV, APPBUILD } from '@ursys/core';
 import PATH from 'node:path';
 import FS from 'node:fs';
@@ -30,7 +29,7 @@ const [AO_NAME, AO_DIR] = FILE.DetectedAddonDir();
 const ADDON = AO_NAME.toUpperCase();
 const [script_name, ...script_args] = process.argv.slice(2);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('WP.SVC', 'TagCyan');
+const LOG = PROMPTS.TerminalLog('WP.SVC', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let PM: typeof PhaseMachine;
