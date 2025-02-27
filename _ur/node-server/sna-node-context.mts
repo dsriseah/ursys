@@ -5,7 +5,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { TerminalLog, ANSI } from '../common/util-prompts.js';
+import { TerminalLog, ANSI } from '../common/util-prompts.ts';
 import { SNA_NewComponent, SNA_HookServerPhase } from './sna-node-hooks.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////

@@ -9,7 +9,7 @@ import path from 'node:path';
 import chokidar from 'chokidar';
 import esbuild from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
-import { TerminalLog } from '../common/util-prompts.js';
+import { TerminalLog } from '../common/util-prompts.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

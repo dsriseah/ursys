@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { DataObj, OpResult } from './ursys';
+import type { DataObj, OpResult } from './ursys.d.ts';
 
 /// SNA MODULE DEFAULT EXPORT /////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

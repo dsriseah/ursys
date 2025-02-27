@@ -9,7 +9,7 @@ import {
   DecodeManifest,
   DecodeSchemaID,
   DecodeDataURI
-} from '../common/util-data-ops';
+} from '../common/util-data-ops.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,7 +22,7 @@ import type {
   ResourceURI,
   UR_SchemaID,
   DS_DataURI
-} from '../_types/dataset';
+} from '../_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

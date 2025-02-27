@@ -7,20 +7,20 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler } from '../common/util-prompts';
+import { ConsoleStyler } from '../common/util-prompts.ts';
 import {
   SNA_NetConnect,
   AddMessageHandler,
   RegisterMessages
-} from './sna-web-urnet-client';
+} from './sna-web-urnet-client.ts';
 import {
   SNA_UseComponent,
   SNA_LifecycleStart,
   SNA_LifecycleStatus,
   SNA_HookAppPhase,
   GetDanglingHooks
-} from './sna-web-hooks';
-import { SNA_SetAppConfig, SNA_GetAppConfig } from './sna-web-context';
+} from './sna-web-hooks.ts';
+import { SNA_SetAppConfig, SNA_GetAppConfig } from './sna-web-context.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -97,10 +97,10 @@ function SNA_Status() {
 /// SNA MODULES PACKAGING /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// remember to import SNA_Component default, which has _name property set
-import MOD_DataClient from './sna-dataclient';
+import MOD_DataClient from './sna-dataclient.ts';
 /// export the actual module API
-export * as DATACLIENT from './sna-dataclient';
-export * as APPCONTEXT from './sna-web-context';
+export * as DATACLIENT from './sna-dataclient.ts';
+export * as APPCONTEXT from './sna-web-context.ts';
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -123,11 +123,11 @@ export {
   GetDanglingHooks,
   // sna modules
   SNA_NewComponent as NewComponent
-} from './sna-web-hooks';
+} from './sna-web-hooks.ts';
 export {
   // urnet static methods
   AddMessageHandler,
   DeleteMessageHandler,
   RegisterMessages,
   ClientEndpoint
-} from './sna-web-urnet-client';
+} from './sna-web-urnet-client.ts';

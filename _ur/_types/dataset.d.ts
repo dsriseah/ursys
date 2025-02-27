@@ -4,11 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import type { DataObj, ErrObj, OpResult } from './ursys.d';
-export type * from './ursys';
-export type { DataBin } from '../common/abstract-data-databin';
-export type { Dataset, SyncOptions } from '../common/class-data-dataset';
-export type { RecordSet } from '../common/class-data-recordset';
+import type { DataObj, ErrObj, OpResult } from './ursys.d.ts';
 
 /// BASE TYPES ////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -336,3 +332,10 @@ export type ItemStatsResult = {
   groups?: { [test: string]: UR_Item[] };
   [stat: string]: any;
 };
+
+/// FORWARDED EXPORTS /////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export type { DataObj, ErrObj, OpResult } from './ursys.d.ts';
+export type { DataBin } from '../common/abstract-data-databin.d.ts';
+export type { Dataset, SyncOptions } from '../common/class-data-dataset.d.ts';
+export type { RecordSet } from '../common/class-data-recordset.d.ts';

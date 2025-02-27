@@ -26,13 +26,13 @@ import {
   IsValidAddress,
   IsValidType,
   UADDR_NONE
-} from './util-urnet';
+} from './util-urnet.ts';
 
 /// TYPE IMPORTS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { I_NetMessage, I_NetSocket, NP_Address } from '../_types/urnet';
-import type { NP_ID, NP_Type, NP_Dir, NP_Msg, NP_Data } from '../_types/urnet';
-import type { NP_Options } from '../_types/urnet';
+import type { I_NetMessage, I_NetSocket, NP_Address } from '../_types/urnet.d.ts';
+import type { NP_ID, NP_Type, NP_Dir, NP_Msg, NP_Data } from '../_types/urnet.d.ts';
+import type { NP_Options } from '../_types/urnet.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

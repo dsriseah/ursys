@@ -6,9 +6,9 @@
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { EXIT_CODES } from './declare-errors';
+import { EXIT_CODES } from './declare-errors.ts';
 const { ERR_UR } = EXIT_CODES;
-import { TerminalLog } from './util-prompts';
+import { TerminalLog } from './util-prompts.ts';
 const ERROUT = TerminalLog('ERR', 'TagRed');
 
 /// API METHODS ///////////////////////////////////////////////////////////////

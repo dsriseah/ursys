@@ -48,7 +48,7 @@
 import {
   NormItemList, //
   DeepCloneArray
-} from './util-data-norm';
+} from './util-data-norm.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -60,7 +60,7 @@ import type {
   ItemFormatOptions,
   ItemStatsOptions,
   ItemStatsResult
-} from '../_types/dataset';
+} from '../_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

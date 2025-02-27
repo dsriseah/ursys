@@ -8,8 +8,8 @@
 
 /// TYPES & INTERFACES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj } from '../_types/dataset';
-import type { DataEncoding } from './declare-encodings';
+import type { DataObj } from '../_types/dataset.d.ts';
+import type { DataEncoding } from './declare-encodings.d.ts';
 type ModeMachineClass = string; // lower_snake_case
 type ModeName = `::${string}`; // PascalCase
 

@@ -7,12 +7,12 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler } from '../common/util-prompts';
+import { ConsoleStyler } from '../common/util-prompts.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpResult, DataObj } from '../_types/dataset';
-import type { NetEndpoint } from '../common/class-urnet-endpoint';
+import type { OpResult, DataObj } from '../_types/dataset.d.ts';
+import type { NetEndpoint } from '../common/class-urnet-endpoint.d.ts';
 type LockState = 'init' | 'preconfig' | 'prehook' | 'locked';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

@@ -6,7 +6,7 @@
 
 import * as FILE from './file.mts';
 // typescript imports as default
-import * as CLIENT_CONSTANTS from '../common/constants-urnet-web.js';
+import * as CLIENT_CONSTANTS from '../common/constants-urnet-web.ts';
 
 /// TYPES & INTERFACES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

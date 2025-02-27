@@ -25,7 +25,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { DecodeDataURI, IsAssetDirname } from './util-data-ops';
+import { DecodeDataURI, IsAssetDirname } from './util-data-ops.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ import type {
   UR_ManifestObj,
   DS_DataURI,
   DataBinID
-} from '../_types/dataset.js';
+} from '../_types/dataset.d.ts';
 type DSObj = DS_DatasetObj;
 type DSMan = UR_ManifestObj;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

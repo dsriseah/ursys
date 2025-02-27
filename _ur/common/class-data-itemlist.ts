@@ -10,10 +10,10 @@
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { NormItemList, NormIDs } from './util-data-norm';
-import { Find, Query } from './util-data-search';
-import { DataBin } from './abstract-data-databin';
-import { RecordSet } from './class-data-recordset';
+import { NormItemList, NormIDs } from './util-data-norm.ts';
+import { Find, Query } from './util-data-search.ts';
+import { DataBin } from './abstract-data-databin.ts';
+import { RecordSet } from './class-data-recordset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -29,7 +29,7 @@ import type {
   IDS_Serialize,
   //
   SearchOptions
-} from '../_types/dataset';
+} from '../_types/dataset.d.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type ItemListOptions = {
   idPrefix?: string; // prefix to use for ids, otherwise simple ids

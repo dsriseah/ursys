@@ -7,7 +7,7 @@
 import esbuild from 'esbuild';
 import { umdWrapper } from 'esbuild-plugin-umd-wrapper';
 import FSE from 'fs-extra';
-import PROMPTS from '../common/util-prompts.js'; // js conversion to default
+import PROMPTS from '../common/util-prompts.ts';
 import { GetRootDirs } from '../node-server/file.mts';
 
 /// CONSTANTS AND DECLARATIONS ///////////////////////////////////////////////////////////////

@@ -24,7 +24,7 @@ import type {
   MOD_PreHook,
   SNA_EvtOn,
   SNA_EvtOff
-} from '../_types/sna';
+} from '../_types/sna.d.ts';
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

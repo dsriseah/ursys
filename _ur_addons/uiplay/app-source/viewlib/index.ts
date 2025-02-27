@@ -6,5 +6,5 @@
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export { DeclareComponents } from './webc/auto-webc-imports';
-export { AttachRouter } from './router';
+export { DeclareComponents } from './webc/auto-webc-imports.ts';
+export { AttachRouter } from './router.ts';

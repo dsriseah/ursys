@@ -13,7 +13,7 @@ import express from 'express';
 import serveIndex from 'serve-index';
 import * as FILE from './file.mts';
 import { GetReqInfo } from './util-express.mts';
-import { IsAssetDirname } from '../common/util-data-ops.js';
+import { IsAssetDirname } from '../common/util-data-ops.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

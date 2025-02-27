@@ -10,7 +10,7 @@ import { umdWrapper } from 'esbuild-plugin-umd-wrapper';
 import FSE from 'fs-extra';
 // build-core can not use URSYS library because it's BUILDING it!
 // so we yoink the routines out of the source directly
-import { TerminalLog } from '../common/util-prompts.js';
+import { TerminalLog } from '../common/util-prompts.ts';
 import { GetRootDirs } from '../node-server/file.mts';
 
 /// CONSTANTS AND DECLARATIONS ///////////////////////////////////////////////////////////////

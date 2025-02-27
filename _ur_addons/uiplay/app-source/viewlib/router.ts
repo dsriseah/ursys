@@ -154,3 +154,4 @@ function AttachRouter(e: HTMLElement, defaultHash?: string) {
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export { AttachRouter };
+export { DeclareComponents } from './webc/auto-webc-imports.ts';

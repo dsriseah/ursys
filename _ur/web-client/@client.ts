@@ -8,18 +8,18 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 // utility modules
-import * as PROMPTS from '../common/util-prompts';
-import * as TEXT from '../common/util-text.js';
-import * as NORM from '../common/util-data-norm';
+import * as PROMPTS from '../common/util-prompts.ts';
+import * as TEXT from '../common/util-text.ts';
+import * as NORM from '../common/util-data-norm.ts';
 // typescript classes
 import * as CLIENT_EP from './urnet-browser';
-import * as UID from '../common/module-uid';
-import OpSequencer from '../common/class-op-seq';
-import StateMgr from '../common/class-state-mgr';
-import NetSocket from '../common/class-urnet-socket';
-import NetEndpoint from '../common/class-urnet-endpoint';
-import NetPacket from '../common/class-urnet-packet';
-import PhaseMachine from '../common/class-phase-machine';
+import * as UID from '../common/module-uid.ts';
+import OpSequencer from '../common/class-op-seq.ts';
+import StateMgr from '../common/class-state-mgr.ts';
+import NetSocket from '../common/class-urnet-socket.ts';
+import NetEndpoint from '../common/class-urnet-endpoint.ts';
+import NetPacket from '../common/class-urnet-packet.ts';
+import PhaseMachine from '../common/class-phase-machine.ts';
 import * as SNA from './sna-web';
 // constants
 import {

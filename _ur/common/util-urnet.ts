@@ -42,7 +42,7 @@ import type {
   NP_Address,
   NP_AddrPre,
   I_NetMessage
-} from '../_types/urnet';
+} from '../_types/urnet.d.ts';
 
 /// RUNTIME UTILITIES /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

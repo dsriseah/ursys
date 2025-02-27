@@ -29,8 +29,8 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { DeepClone } from './util-data-norm';
-import { RecordSet } from './class-data-recordset';
+import { DeepClone } from './util-data-norm.ts';
+import { RecordSet } from './class-data-recordset.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,7 +42,7 @@ import type {
   SearchFlags,
   SearchProps,
   SearchState
-} from '../_types/dataset';
+} from '../_types/dataset.d.ts';
 
 /// CONSTANT DECLARATIONS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

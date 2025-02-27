@@ -7,7 +7,7 @@
 
 import FS from 'node:fs';
 import PATH from 'node:path';
-import { TerminalLog, ANSI } from '../common/util-prompts.js';
+import { TerminalLog, ANSI } from '../common/util-prompts.ts';
 import { DetectedRootDir, AbsLocalPath } from './file.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////

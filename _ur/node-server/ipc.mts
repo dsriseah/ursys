@@ -30,9 +30,9 @@
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { TerminalLog } from '../common/util-prompts.js';
+import { TerminalLog } from '../common/util-prompts.ts';
 const LOG = TerminalLog('IPC', 'TagGreen');
-import * as UR_EVENTS from '../common/declare-async.js';
+import * as UR_EVENTS from '../common/declare-async.ts';
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

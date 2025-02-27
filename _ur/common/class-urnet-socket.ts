@@ -12,29 +12,29 @@
   NetEndpoint class. If you want to import other exports, you need to
   destructure the .default prop; to access the NetPacket class do this:
 
-    import EP_DEFAULT from './my-class';
+    import EP_DEFAULT from './my-class.ts';
     const { NetSocket } = EP_DEFAULT.default; // note .default
 
   You can import the types through dereferencing as usual:
 
-    import EP_DEFAULT, { I_NetSocket } from './my-module';
+    import EP_DEFAULT, { I_NetSocket } from './my-module.ts';
 
   This is not required when importing from another .ts typescript file.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import NetPacket from './class-urnet-packet';
+import NetPacket from './class-urnet-packet.ts';
 
 /// TYPE IMPORTS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { I_NetSocket, NP_Address, NP_Msg } from '../_types/urnet';
+import type { I_NetSocket, NP_Address, NP_Msg } from '../_types/urnet.d.ts';
 import type {
   NS_SendFunc,
   NS_DataFunc,
   NS_CloseFunc,
   NS_GetConfigFunc,
   NS_Options
-} from '../_types/urnet';
+} from '../_types/urnet.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -11,7 +11,7 @@ import PATH from 'path';
 // our library import
 import { PROMPTS } from '@ursys/core';
 // import from local files require extensions
-import * as SESSION from '../_proposals/session.js';
+import * as SESSION from '../_proposals/session.ts';
 
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;

@@ -23,7 +23,7 @@ import type {
   UR_Item,
   UR_ItemDict,
   UR_ItemList
-} from '../_types/dataset';
+} from '../_types/dataset.d.ts';
 
 /// SINGLE OBJ HELPERS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

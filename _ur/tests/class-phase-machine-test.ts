@@ -21,8 +21,8 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { expect, test, vi } from 'vitest';
-import PhaseMachine from '../common/class-phase-machine';
-import * as PROMPTS from '../common/util-prompts';
+import PhaseMachine from '../common/class-phase-machine.ts';
+import * as PROMPTS from '../common/util-prompts.ts';
 const { TerminalLog } = PROMPTS;
 const TERM = TerminalLog(' TEST', 'TagPink');
 

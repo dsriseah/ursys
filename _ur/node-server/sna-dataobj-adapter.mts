@@ -12,8 +12,8 @@ import {
   DecodeDataURI,
   IsAssetDirname,
   GetBinPropsByDirname
-} from '../common/util-data-ops.js';
-import { DataObjAdapter } from '../common/abstract-dataobj-adapter.js';
+} from '../common/util-data-ops.ts';
+import { DataObjAdapter } from '../common/abstract-dataobj-adapter.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -24,7 +24,7 @@ import type {
   IDS_Serialize,
   UR_ManifestObj,
   DataBinID
-} from '../_types/dataset.js';
+} from '../_types/dataset.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

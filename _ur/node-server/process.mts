@@ -10,7 +10,7 @@
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { TerminalLog } from '../common/util-prompts.js';
+import { TerminalLog } from '../common/util-prompts.ts';
 import process from 'node:process';
 import PATH from 'node:path';
 const LOG = TerminalLog('PROCESS', 'TagGreen');

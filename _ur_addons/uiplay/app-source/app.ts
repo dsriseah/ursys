@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { DeclareComponents, AttachRouter } from './viewlib';
+import { DeclareComponents, AttachRouter } from './viewlib/router.ts';
 import { SNA } from '@ursys/core';
 import * as UR from '@ursys/core';
 

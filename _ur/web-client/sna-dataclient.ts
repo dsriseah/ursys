@@ -18,21 +18,21 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler } from '../common/util-prompts';
-import { SNA_HookAppPhase } from './sna-web-hooks';
-import { SNA_NewComponent } from '../common/class-sna-component';
+import { ConsoleStyler } from '../common/util-prompts.ts';
+import { SNA_HookAppPhase } from './sna-web-hooks.ts';
+import { SNA_NewComponent } from '../common/class-sna-component.ts';
 import {
   AddMessageHandler,
   ClientEndpoint,
   RegisterMessages
-} from './sna-web-urnet-client';
-import { Dataset } from '../common/class-data-dataset';
-import { DatasetAdapter } from '../common/abstract-dataset-adapter';
-import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops';
+} from './sna-web-urnet-client.ts';
+import { Dataset } from '../common/class-data-dataset.ts';
+import { DatasetAdapter } from '../common/abstract-dataset-adapter.ts';
+import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj, OpResult } from '../_types/ursys';
+import type { DataObj, OpResult } from '../_types/ursys.d.ts';
 import type {
   IDS_DatasetAdapter,
   DatasetReq,
@@ -46,8 +46,8 @@ import type {
   DS_DatasetObj,
   SearchOptions,
   RecordSet
-} from '../_types/dataset';
-import type { SNA_EvtHandler } from '../_types/sna';
+} from '../_types/dataset.d.ts';
+import type { SNA_EvtHandler } from '../_types/sna.d.ts';
 //
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

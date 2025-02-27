@@ -8,14 +8,15 @@ import esbuild from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
 import PATH from 'node:path';
 import { FILE } from '@ursys/core';
+
 // build-web can not use URSYS library because it's BUILDING it!
 // so we yoink the routines out of the source directly
-const PROMPTS = require('../common/util-prompts');
+import { TerminalLog } from '../common/util-prompts.ts';
 
 /// CONSTANTS AND DECLARATIONS ////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const LOG = PROMPTS.TerminalLog('BUILD-APP', 'TagSystem');
+const LOG = TerminalLog('BUILD-APP', 'TagSystem');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { ROOT, DIR_PUBLIC } = FILE.GetRootDirs();
 const ENTRY_JS = PATH.join(ROOT, 'app/init.jsx');

@@ -7,14 +7,14 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { NetEndpoint } from '../common/class-urnet-endpoint';
-import { NetSocket } from '../common/class-urnet-socket';
-import { ConsoleStyler } from '../common/util-prompts';
-import * as CONTEXT from './sna-web-context';
+import { NetEndpoint } from '../common/class-urnet-endpoint.ts';
+import { NetSocket } from '../common/class-urnet-socket.ts';
+import { ConsoleStyler } from '../common/util-prompts.ts';
+import * as CONTEXT from './sna-web-context.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { NM_Handler } from '../_types/urnet';
+import type { NM_Handler } from '../_types/urnet.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

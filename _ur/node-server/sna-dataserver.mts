@@ -17,14 +17,14 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { Dataset } from '../common/class-data-dataset.js';
-import { DataBin } from '../common/abstract-data-databin.js';
-import { DecodeDatasetReq, DecodeSyncReq } from '../common/util-data-ops.js';
+import { Dataset } from '../common/class-data-dataset.ts';
+import { DataBin } from '../common/abstract-data-databin.ts';
+import { DecodeDatasetReq, DecodeSyncReq } from '../common/util-data-ops.ts';
 import { SNA_DataObjAdapter } from './sna-dataobj-adapter.mts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
 import { SNA_HookServerPhase, SNA_NewComponent } from './sna-node-hooks.mts';
 import { SNA_GetServerConfig } from './sna-node-context.mts';
-import { TerminalLog } from '../common/util-prompts.js';
+import { TerminalLog } from '../common/util-prompts.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

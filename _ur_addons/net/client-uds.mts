@@ -60,7 +60,7 @@ function Connect(): Promise<boolean> {
       const send = pkt => SERVER_LINK.write(pkt.serialize());
       const onData = data => EP._ingestServerPacket(data, client_sock);
       const close = () => SERVER_LINK.end();
-      const client_sock = new NetSocket(SERVER_LINK, { send, onData, close });
+      const client_sock = new CLASS.NetSocket(SERVER_LINK, { send, onData, close });
       SERVER_LINK.on('data', onData);
       SERVER_LINK.on('end', () => {
         EP.disconnectAsClient();

@@ -11,8 +11,8 @@
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { RecordSet } from './class-data-recordset';
-import { EventMachine } from './class-event-machine';
+import { RecordSet } from './class-data-recordset.ts';
+import { EventMachine } from './class-event-machine.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -27,8 +27,8 @@ import type {
   SearchOptions,
   DataObj,
   OpResult
-} from '../_types/dataset';
-import type { SNA_EvtName, SNA_EvtHandler } from '../_types/sna';
+} from '../_types/dataset.ts';
+import type { SNA_EvtName, SNA_EvtHandler } from '../_types/sna.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ const DBG = true;
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { IDS_DataBin, IDS_Serialize } from '../_types/dataset';
+import type { IDS_DataBin, IDS_Serialize } from '../_types/dataset.d.ts';
 abstract class DataBin implements IDS_DataBin, IDS_Serialize {
   //
   name: DataBinID; // name of this collection
