@@ -1,9 +1,10 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  entrypoint for server
+  Master Entrypoint for Public UR Server Library (node, ts-node runtimes)
 
-  when making live changes, make sure that the ur builder is also running and
-  users of this library are watching for changes to the ur library
+  A currated set of server-related exports, used to build an URSYS server
+  in the addon system. For non-addon uses, it's recommended to us the SNA
+  export to build the server; see example-app/ for a working code template.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -14,17 +15,17 @@
  * -       HookPhase, RunPhaseGroup, GetMachine,GetDanglingHooks
  *  -      MOD_DataServer */
 export * as SNA from './sna-node.mts';
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: SetBuildOptions, GetBuildOptions,
  *         BuildApp, MultiBuildApp, WatchExtra
  *  types: BuildOptions, WatchOptions, NotifyCallback */
 export * as APPBUILD from './appbuilder.mts';
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: Start, Stop, ListenHTTP, ListenWSS, StopHTTP, StopWSS,
  *         AddMessageHandler, DeleteMessageHandler, RegisterMessages,
  *         GetAppInstance, ServerEndpoint */
 export * as APPSERV from './appserver.mts';
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: SetupServer, AssetManifest_Middleware, DeliverManifest */
 export * as ASSETSERV from './assetserver.mts';
 
@@ -39,10 +40,10 @@ export * as ASSETSERV from './assetserver.mts';
  *         WriteJSON, AsyncReadJSON, AsyncWriteJSON,
  * -       UnlinkFile */
 export * as FILE from './file.mts';
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: DecodeAddonArgs, ValidateAddon */
 export * as PROC from './process.mts'; // merge into ADDON?
-
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: UR_Fork, ProcTest */
 export * as ADDON from './ur-addon-mgr.mts'; // merge with PROC?
 
@@ -51,3 +52,4 @@ export * as ADDON from './ur-addon-mgr.mts'; // merge with PROC?
 export * from '../common/@common.ts';
 import * as CLASS from '../common/@classes.ts';
 export { CLASS };
+export { TerminalLog } from '../common/util-prompts.ts';

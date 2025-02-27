@@ -1,91 +1,37 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  entrypoint for client
+  Master Entrypoint for Public UR Client Library (client web browsers)
 
-  when making live changes, make sure that the ur builder is also running and
-  users of this library are watching for changes to the ur library
-
+  A currated set of client-related exports, used to build client-side apps and
+  support modules. 
+  
+  Most of the useful constructs are exposed through the SNA object; see
+  the example-app/ for a working code template.
+  
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
-
-// utility modules
-import * as PROMPTS from '../common/util-prompts.ts';
-import * as TEXT from '../common/util-text.ts';
-import * as NORM from '../common/util-data-norm.ts';
-// typescript classes
-import * as CLIENT_EP from './urnet-browser';
-import * as UID from '../common/module-uid.ts';
-import OpSequencer from '../common/class-op-seq.ts';
-import StateMgr from '../common/class-state-mgr.ts';
-import NetSocket from '../common/class-urnet-socket.ts';
-import NetEndpoint from '../common/class-urnet-endpoint.ts';
-import NetPacket from '../common/class-urnet-packet.ts';
-import PhaseMachine from '../common/class-phase-machine.ts';
-import * as SNA from './sna-web';
-// constants
-import {
-  HTTP_CLIENT_INFO,
-  GetClientInfoFromWindowLocation
-} from '../common/constants-urnet-web';
-
-/// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { makeStyleFormatter } = PROMPTS;
-const PR = makeStyleFormatter('UR', 'TagCyan');
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const CLASS = {
-  OpSequencer,
-  StateMgr,
-  NetSocket,
-  NetEndpoint,
-  NetPacket,
-  PhaseMachine
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LIB = {
-  UID
-};
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const CONSTANT = {
-  URNET: { ...HTTP_CLIENT_INFO, GetClientInfoFromWindowLocation }
-};
-
-/// TEST METHODS //////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function ClientTest(): void {
-  console.log(...PR('System Integration of new URSYS module successful!'));
-}
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export {
-  // moduiles
-  PROMPTS,
-  TEXT,
-  NORM,
-  SNA,
-  // typescript classes, libraries
-  CONSTANT,
-  CLASS,
-  LIB,
-  // services
-  CLIENT_EP, // endpoint for browsers (deprecated by SNA)
-  // classes
-  StateMgr,
-  OpSequencer,
-  NetSocket,
-  NetEndpoint,
-  NetPacket,
-  PhaseMachine
-};
-/// debugging helpers
-export {
-  makeStyleFormatter as ConsoleStyler // style formatter for browser
-};
-/// PhaseMachine Interface
-export {
-  NewPhaseMachine,
-  HookPhase,
-  RunPhaseGroup,
-  GetMachine,
-  GetMachineStates
-} from '../common/class-phase-machine';
+/** named: DATACLIENT, APPCONTEXT,
+ * -       UseComponent, SetAppConfig, GetAppConfig, NewComponent
+ *         Start, Status, HookAppPhase,
+ * -       HookPhase, RunPhaseGroup, GetMachine, GetDangling
+ * -       AddMessageHandler, DeleteMessageHandler, RegisterMessages,
+ *         ClientEndpoint
+ * -       MOD_DATACLIENT */
+export * as SNA from './sna-web.ts';
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** named: Connect, AddMessageHandler, RegisterMessages,Disconnect */
+/// export * as CLIENT_EP from './urnet-browser.ts';
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** named: DecodeID, NewID, NewFullID, PrefixShortID,
+ *         IsValidFormat, IsValidSchema, IsValidPrefix,
+ *         SetDefaultSchema, GetDefaultSchema */
+/// export * as UID from '../common/module-uid.ts';
+
+/// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export * from '../common/@common.ts';
+import * as CLASS from '../common/@classes.ts';
+export { CLASS };
+export { ConsoleStyler } from '../common/util-prompts.ts';

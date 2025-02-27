@@ -1,6 +1,9 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  master entrypoint for ur common library
+  Master Entrypoint for Public UR Common Library
+
+  A currated set of user-facing exports. The commented-out modules are ones
+  that are generally used for internal operations.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -22,46 +25,42 @@ export * as TEXT from './util-text.ts';
 /// DECLARATIONS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: APP_LIFECYCLE, UR_EVENTS */
-export * from './declare-async.ts';
+/// export * as DEF_ASYNC from './declare-async.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: TERM_COLORS, CSS_COLORS, ANSI_COLORS */
-export * from './declare-colors.ts';
+/// export * as COLORS from './declare-colors.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: ENCODING_TYPES, TRIGGER_LOGIC
  *  types: DataEncoding, DataTrigger */
-export * from './declare-encodings.ts';
+/// export * from './declare-encodings.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: EXIT_CODES */
-export * from './declare-errors.ts'; // deprecated or unused
+/// export * from './declare-errors.ts'; // deprecated or unused
 
 /// PROCESSES /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: NewID, NewFullID, PrefixShortID, DecodeID,
  *         IsValidFormat, IsValidSchema, IsValidPrefix,
  *         SetDefaultSchema, GetDefaultSchema */
-export * from './module-uid.ts';
+export * as UID from './module-uid.ts';
 
 /// DATA OPERATIONS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: NormEntID, NormItem, NormItemList, NormItemDict, NormIDs,
  *         NormStringToValue, DeepClone, DeepCloneObject, DeepCloneArray */
-export * from './util-data-norm.ts';
+export * as NORM from './util-data-norm.ts';
+
+/// INTERNALS /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: IsAssetDirname, IsValidDataURI, IsValidDataConfig, IsDataSyncOp,
  *         IsDatasetOp, DecodeDataURI, DecodeDataConfig, DecodeDatasetReq,
  *         DecodeSyncReq, GetDatsetObjectProps, GetBinPropsByDirname */
-export * from './util-data-ops.ts';
+export * as DATAOPS from './util-data-ops.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: Find, Query
  *  test:  m_SetCriteria, m_GetCriteria, m_EnforceFlags, m_AssessPropKeys,
  *         u_matchValues, u_matchRanges */
-export { Find, Query } from './util-data-search.ts';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** named: DIE, NewConsoleError */
-export * from './util-error-mgr.ts';
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** named: IsBrowser, IsNode, IsNodeCJS, IsNodeESM */
-export * from './util-platform.ts';
+export * as DATAQUERY from './util-data-search.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** named: IsValidType, SkipOriginType, isSpecialPktType, IsValidChannel,
  *         IsValidAddress, IsValidMessage, AllocateAddress, DecodeMessage,
