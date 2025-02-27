@@ -55,6 +55,8 @@
 
     // disable legacy cjs support in typescript, use only esm
     "esModuleInterop": true, // https://esbuild.github.io/content-types/#es-module-interop
+    // this is automatically set by esModuleInterop, but noting here what it does
+    "allowSyntheticDefaultImports": true, // https://typescriptlang.org/tsconfig/#allowSyntheticDefaultImports
 
     // can use extensions (e.g. .ts, .mts) in import statements
     "allowImportingTsExtensions": true, // https://typescriptlang.org/tsconfig/#allowImportingTsExtensions

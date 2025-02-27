@@ -12,14 +12,13 @@
     "lint": "eslint .",
     "clean": "rm -rf ./node_modules ./_dist"
   },
+  "type": "module",
   "exports": {
     "browser": {
-      "types": "./_types/@core-browser.d.ts",
       "import": "./_dist/core-browser-esm.js",
       "require": "./_dist/core-browser-cjs.js"
     },
     "node": {
-      "types": "./_types/@core-node.d.ts",
       "import": "./_dist/core-node.mjs",
       "require": "./_dist/core-node.cjs"
     }

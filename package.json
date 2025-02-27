@@ -1,7 +1,6 @@
 {
   "name": "ursys",
   "version": "1.0.0-alpha.1",
-  "type": "module",
   "description": "A modular self-contained development framework fpr realtime web app prototyping",
   "workspaces": [
     "_ur/",

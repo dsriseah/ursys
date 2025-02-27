@@ -3,6 +3,7 @@
   "version": "0.1",
   "description": "Addons for enhancing NetCreate ITEST",
   "private": true,
+  "type": "module",
   "scripts": {
     "lint": "eslint .",
     "clean": "rm -rf ./node_modules ./_dist"
