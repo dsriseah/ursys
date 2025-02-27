@@ -10,6 +10,7 @@ import chokidar from 'chokidar';
 import esbuild from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
 import { TerminalLog } from '../common/util-prompts.ts';
+import { ES_TARGET } from '../node-server/const-esbuild.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -121,7 +122,7 @@ async function BuildApp(opts: BuildOptions) {
     entryPoints: [`${SRC_JS}/${entry_file}`],
     bundle: true,
     loader: { '.js': 'jsx' },
-    target: 'es2020',
+    target: ES_TARGET,
     platform: 'browser',
     format: 'iife',
     sourcemap: true,
@@ -171,7 +172,7 @@ async function MultiBuildApp(opts: BuildOptions) {
     entryPoints: entry_files,
     bundle: true,
     loader: { '.js': 'jsx' },
-    target: 'es2020',
+    target: ES_TARGET,
     platform: 'browser',
     format: 'esm',
     splitting: true,

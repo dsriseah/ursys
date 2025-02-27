@@ -7,6 +7,7 @@
 import * as FILE from './file.mts';
 // typescript imports as default
 import * as CLIENT_CONSTANTS from '../common/constants-urnet-web.ts';
+import { ES_TARGET } from '../../_ur/node-server/const-esbuild.mts';
 
 /// TYPES & INTERFACES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -93,7 +94,7 @@ const HTTP_INFO: T_HTTP = {
 /// BUILD SYSTEM INFO /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const ESBUILD_INFO: TESBUILD = {
-  es_target: 'es2018' // esbuild target
+  es_target: ES_TARGET // esbuild target
 };
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

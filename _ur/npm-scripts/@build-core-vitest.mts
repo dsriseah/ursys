@@ -12,6 +12,7 @@ import FSE from 'fs-extra';
 // so we yoink the routines out of the source directly
 import { TerminalLog } from '../common/util-prompts.ts';
 import { GetRootDirs } from '../node-server/file.mts';
+import { ES_TARGET } from '../node-server/const-esbuild.mts';
 
 /// CONSTANTS AND DECLARATIONS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -62,7 +63,7 @@ async function ESBuildLibrary() {
     entryPoints: [`${ROOT}/_ur/web-client/@client.ts`],
     bundle: true,
     platform: 'browser',
-    target: ['es2018'], // brunch can't handle features beyond this date
+    target: [ES_TARGET],
     sourcemap: true
   };
 
