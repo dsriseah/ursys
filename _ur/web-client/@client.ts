@@ -32,6 +32,6 @@ export * as SNA from './sna-web.ts';
 /// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export * from '../common/@common.ts';
-import * as CLASS from '../common/@classes.ts';
+import * as CLASS from '../common/@common-classes.ts';
 export { CLASS };
 export { ConsoleStyler } from '../common/util-prompts.ts';

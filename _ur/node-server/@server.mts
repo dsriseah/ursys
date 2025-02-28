@@ -50,6 +50,6 @@ export * as ADDON from './ur-addon-mgr.mts'; // merge with PROC?
 /// FORWARDED COMMON EXPORTS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export * from '../common/@common.ts';
-import * as CLASS from '../common/@classes.ts';
+import * as CLASS from '../common/@common-classes.ts';
 export { CLASS };
 export { TerminalLog } from '../common/util-prompts.ts';
