@@ -44,7 +44,7 @@ async function ESBuildLibrary() {
     outfile: `${DIR_UR_OUT}/core-node.mjs`,
     format: 'esm'
   });
-  if (DBG) LOG('built node ESM');
+  if (DBG) LOG('built core-node.mjs');
 
   // @ts-ignore - build options
   await esbuild.build({
@@ -52,7 +52,7 @@ async function ESBuildLibrary() {
     outfile: `${DIR_UR_OUT}/core-node.cjs`,
     format: 'cjs'
   });
-  if (DBG) LOG('built node CJS');
+  if (DBG) LOG('built core-node.cjs');
 
   /** BROWSER CLIENT SHARED BUILD SETTINGS **/
   const browserBuild = {
@@ -66,27 +66,27 @@ async function ESBuildLibrary() {
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_UR_OUT}/core-browser-esm.js`,
+    outfile: `${DIR_UR_OUT}/core-web-esm.js`,
     format: 'esm'
   });
-  if (DBG) LOG('built browser ESM');
+  if (DBG) LOG('built core-web-esm.js');
 
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_UR_OUT}/core-browser-cjs.js`,
+    outfile: `${DIR_UR_OUT}/core-web-cjs.js`,
     format: 'cjs'
   });
-  if (DBG) LOG('built browser CJS');
+  if (DBG) LOG('built core-web-cjs.js');
 
   await esbuild.build({
     ...browserBuild,
     plugins: [umdWrapper()],
-    outfile: `${DIR_UR_OUT}/core-browser-umd.js`,
+    outfile: `${DIR_UR_OUT}/core-web-umd.js`,
     // @ts-ignore - esbuild-plugin-umd-wrapper option
     format: 'umd' // esbuild-plugin-umd-wrapper
   });
-  if (DBG) LOG('built browser UMD');
+  if (DBG) LOG('built core-web-umd.js');
 
   // if !DBG just emit a simpler message
   if (!DBG) console.log(`${LOG.DIM}info: built @ursys core${LOG.RST}`);

@@ -2,6 +2,7 @@
 
   VITEST BUILD URSYS CORE for VITEST
   based on @build-core.mts but exports the async function instead
+  used by tests/vitest-console-filter.mts
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
