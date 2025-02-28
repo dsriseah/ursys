@@ -12,7 +12,7 @@ import { GetRootDirs } from '../node-server/file.mts';
 
 /// CONSTANTS AND DECLARATIONS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { ROOT, DIR_UR_ADDS, DIR_UR_ADDS_DIST } = GetRootDirs();
+const { ROOT, DIR_UR_ADDS, DIR_UR_ADDS_OUT } = GetRootDirs();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
 const LOG = PROMPTS.TerminalLog('BUILD-MOD', 'TagSystem');
@@ -26,7 +26,7 @@ function _short(path) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** build the UR libraries for server and client */
 async function ESBuildModules() {
-  FSE.ensureDir(DIR_UR_ADDS_DIST);
+  FSE.ensureDir(DIR_UR_ADDS_OUT);
   /** SERVER CLIENT SHARED BUILD SETTINGS **/
   const nodeBuild = {
     entryPoints: [`${DIR_UR_ADDS}/@addons-server.mts`],
@@ -41,7 +41,7 @@ async function ESBuildModules() {
   // @ts-ignore - build options
   await esbuild.build({
     ...nodeBuild,
-    outfile: `${DIR_UR_ADDS_DIST}/addons-server-esm.mjs`,
+    outfile: `${DIR_UR_ADDS_OUT}/addons-server-esm.mjs`,
     format: 'esm'
   });
   if (DBG) LOG('built ur_addons-server ESM');
@@ -49,7 +49,7 @@ async function ESBuildModules() {
   // @ts-ignore - build options
   await esbuild.build({
     ...nodeBuild,
-    outfile: `${DIR_UR_ADDS_DIST}/addons-server.cjs`,
+    outfile: `${DIR_UR_ADDS_OUT}/addons-server.cjs`,
     format: 'cjs'
   });
   if (DBG) LOG('built ur_addons-server CJS');
@@ -66,7 +66,7 @@ async function ESBuildModules() {
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_UR_ADDS_DIST}/addons-client-esm.js`,
+    outfile: `${DIR_UR_ADDS_OUT}/addons-client-esm.js`,
     format: 'esm'
   });
   if (DBG) LOG('built ur_addons-client ESM');
@@ -74,7 +74,7 @@ async function ESBuildModules() {
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_UR_ADDS_DIST}/addons-client-cjs.js`,
+    outfile: `${DIR_UR_ADDS_OUT}/addons-client-cjs.js`,
     format: 'cjs'
   });
   if (DBG) LOG('built ur_addons-client CJS');
@@ -82,7 +82,7 @@ async function ESBuildModules() {
   await esbuild.build({
     ...browserBuild,
     plugins: [umdWrapper()],
-    outfile: `${DIR_UR_ADDS_DIST}/mod-client-umd.js`,
+    outfile: `${DIR_UR_ADDS_OUT}/mod-client-umd.js`,
     // @ts-ignore - esbuild-plugin-umd-wrapper
     format: 'umd' // esbuild-plugin-umd-wrapper
   });

@@ -19,14 +19,14 @@ import { ES_TARGET } from '../node-server/const-esbuild.mts';
 const DBG = false;
 const LOG = TerminalLog('BuildCore', 'TagSystem');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { ROOT, DIR_UR_DIST } = GetRootDirs();
+const { ROOT, DIR_UR_OUT } = GetRootDirs();
 
 /// ESBUILD API ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** build the UR libraries for server and client */
 async function ESBuildLibrary() {
-  // FSE.removeSync(DIR_UR_DIST); // don't do this because brunch watch will break
-  FSE.ensureDir(DIR_UR_DIST);
+  // FSE.removeSync(DIR_UR_OUT); // don't do this because brunch watch will break
+  FSE.ensureDir(DIR_UR_OUT);
 
   /** SERVER CLIENT SHARED BUILD SETTINGS **/
   const nodeBuild = {
@@ -45,7 +45,7 @@ async function ESBuildLibrary() {
   // @ts-ignore - build options
   await esbuild.build({
     ...nodeBuild,
-    outfile: `${DIR_UR_DIST}/server-esm.mjs`,
+    outfile: `${DIR_UR_OUT}/server-esm.mjs`,
     format: 'esm'
   });
   if (DBG) LOG('built ur-server ESM');
@@ -53,7 +53,7 @@ async function ESBuildLibrary() {
   // @ts-ignore - build options
   await esbuild.build({
     ...nodeBuild,
-    outfile: `${DIR_UR_DIST}/server.cjs`,
+    outfile: `${DIR_UR_OUT}/server.cjs`,
     format: 'cjs'
   });
   if (DBG) LOG('built ur-server CJS');
@@ -70,7 +70,7 @@ async function ESBuildLibrary() {
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_UR_DIST}/client-esm.js`,
+    outfile: `${DIR_UR_OUT}/client-esm.js`,
     format: 'esm'
   });
   if (DBG) LOG('built ur-client ESM');
@@ -78,7 +78,7 @@ async function ESBuildLibrary() {
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_UR_DIST}/client-cjs.js`,
+    outfile: `${DIR_UR_OUT}/client-cjs.js`,
     format: 'cjs'
   });
   if (DBG) LOG('built ur-client CJS');
@@ -86,7 +86,7 @@ async function ESBuildLibrary() {
   await esbuild.build({
     ...browserBuild,
     plugins: [umdWrapper()],
-    outfile: `${DIR_UR_DIST}/client-umd.js`,
+    outfile: `${DIR_UR_OUT}/client-umd.js`,
     // @ts-ignore - esbuild-plugin-umd-wrapper option
     format: 'umd' // esbuild-plugin-umd-wrapper
   });

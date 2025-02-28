@@ -10,17 +10,17 @@
   "scripts": {
     "build-core": "node ./npm-scripts/@build-core.mts",
     "lint": "eslint .",
-    "clean": "rm -rf ./node_modules ./_dist"
+    "clean": "rm -rf ./node_modules ./_out"
   },
   "type": "module",
   "exports": {
     "browser": {
-      "import": "./_dist/core-browser-esm.js",
-      "require": "./_dist/core-browser-cjs.js"
+      "import": "./_out/core-browser-esm.js",
+      "require": "./_out/core-browser-cjs.js"
     },
     "node": {
-      "import": "./_dist/core-node.mjs",
-      "require": "./_dist/core-node.cjs"
+      "import": "./_out/core-node.mjs",
+      "require": "./_out/core-node.cjs"
     }
   },
   "devDependencies": {

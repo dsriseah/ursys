@@ -21,7 +21,7 @@ const LOG = PROMPTS.TerminalLog('MIDI', 'TagPurple');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function ESBuildApp() {
   const SRC = FILE.AbsLocalPath('_ur_addons/midi');
-  const DST = FILE.AbsLocalPath('_ur_addons/_dist/_public');
+  const DST = FILE.AbsLocalPath('_ur_addons/_out/_public');
   FSE.ensureDir(DST);
 
   // build the webapp and stuff it into public

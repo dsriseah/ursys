@@ -13,7 +13,7 @@ import PATH from 'node:path';
 import * as _P from '../common/util-prompts.ts';
 import * as CRYPTO from 'node:crypto';
 import * as url from 'url';
-import { pipeline } from 'node:stream/promises';
+import { ES_TARGET, ES_OUTDIR } from './const-esbuild.mts';
 
 /// TYPE DECLARATIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -34,11 +34,11 @@ const DBG = false;
 let ROOT: string; // root of the project
 let DIR_PUBLIC: string; // path to PUBLIC directory for webapp
 let DIR_UR: string; // path to _ur directory
-let DIR_UR_DIST: string; // path to browser client code
+let DIR_UR_OUT: string; // path to _ur_out directory (dev build)
 let DIR_BDL_BROWSER: string; // path to node server code
 let DIR_BDL_NODE: string; // path to _ur/dist directory for library out
 let DIR_UR_ADDS: string; // path to _ur_mod directory
-let DIR_UR_ADDS_DIST: string; // path to _ur_mod/_dist directory
+let DIR_UR_ADDS_OUT: string; // path to _ur_mod/_out directory
 
 /// PATH UTILITIES ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -50,11 +50,11 @@ function u_init_roots() {
   if (!ROOT) throw Error(`${fn} could not find project root`);
   DIR_PUBLIC = u_path('/public');
   DIR_UR = u_path('/_ur');
-  DIR_UR_DIST = u_path('/_ur/_dist');
+  DIR_UR_OUT = u_path(`/_ur/${ES_OUTDIR}`);
   DIR_BDL_BROWSER = u_path('/_ur/web-client');
   DIR_BDL_NODE = u_path('/_ur/node-server');
   DIR_UR_ADDS = u_path('/_ur_addons');
-  DIR_UR_ADDS_DIST = u_path('/_ur_addons/_dist');
+  DIR_UR_ADDS_OUT = u_path(`/_ur_addons/${ES_OUTDIR}`);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return an absolute path string from root-relative path */
@@ -127,11 +127,11 @@ function GetRootDirs() {
     ROOT,
     DIR_PUBLIC,
     DIR_UR,
-    DIR_UR_DIST,
+    DIR_UR_OUT,
     DIR_BDL_BROWSER,
     DIR_BDL_NODE,
     DIR_UR_ADDS,
-    DIR_UR_ADDS_DIST
+    DIR_UR_ADDS_OUT
   };
 }
 

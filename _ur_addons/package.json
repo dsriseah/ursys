@@ -6,19 +6,19 @@
   "type": "module",
   "scripts": {
     "lint": "eslint .",
-    "clean": "rm -rf ./node_modules ./_dist"
+    "clean": "rm -rf ./node_modules ./_out"
   },
-  "browser": "./_dist/addons-client-cjs.js",
-  "main": "./_dist/addons-server.cjs",
+  "browser": "./_out/addons-client-cjs.js",
+  "main": "./_out/addons-server.cjs",
   "exports": {
     "node": {
-      "import": "./_dist/addons-server-esm.mjs",
-      "require": "./_dist/addons-server.cjs"
+      "import": "./_out/addons-server-esm.mjs",
+      "require": "./_out/addons-server.cjs"
     },
     "browser": {
-      "import": "./_dist/addons-client-esm.js",
-      "require": "./_dist/addons-client-cjs.js",
-      "default": "./_dist/addons-client-umd.js"
+      "import": "./_out/addons-client-esm.js",
+      "require": "./_out/addons-client-cjs.js",
+      "default": "./_out/addons-client-umd.js"
     }
   },
   "devDependencies": {

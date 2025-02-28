@@ -24,12 +24,17 @@
 
 # ignore generated directories and files
 # _runtime is used by apps in the root level of the framework
+# _dist is used for persisted library files and therefore not ignored
 _public
-_dist
-**/_dist
+_out
+**/_out
 /runtime
 **/_runtime*
 **/__app_imports.ts
+
+# uncomment this when ready to commit to _dist
+_dist
+**/_dist
 
 # Also ignore build system directories
 .npmignore
