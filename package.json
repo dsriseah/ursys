@@ -6,10 +6,6 @@
     "_ur/",
     "_ur_addons/"
   ],
-  "bin": {
-    "ur": "./_ur/ur",
-    "create": "./_ur/ur-create.sh"
-  },
   "files": [
     "./_ur/_dist"
   ],
