@@ -24,20 +24,18 @@ import { ItemList } from './class-data-itemlist.ts';
 // import { ItemDict } from './class-data-itemdict.ts';
 import { DecodeDataURI, DecodeManifest } from './util-data-ops.ts';
 import { DataBin } from './abstract-data-databin.ts';
-import { DecodeDataConfig } from './util-data-ops.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   DataBinID,
   DataBinType,
-  UR_SchemaID,
   IDS_Serialize,
-  DS_DataURI,
   UR_ManifestObj,
-  DS_DatasetObj
+  DS_DatasetObj,
+  OpResult,
+  DS_DataURI
 } from '../_types/dataset.d.ts';
-import { OpResult } from '../_types/ursys.ts';
 import type { ItemListOptions } from './class-data-itemlist.ts';
 type DataAccessTok = string;
 type DataAccessTokSet = Set<DataAccessTok>;

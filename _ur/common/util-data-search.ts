@@ -42,7 +42,7 @@ import type {
   SearchFlags,
   SearchProps,
   SearchState
-} from '../_types/dataset.d.ts';
+} from '../_types/dataset.ts';
 
 /// CONSTANT DECLARATIONS /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

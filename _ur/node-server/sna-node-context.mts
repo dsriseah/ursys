@@ -11,7 +11,7 @@ import { SNA_NewComponent, SNA_HookServerPhase } from './sna-node-hooks.mts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { NetEndpoint } from '../common/class-urnet-endpoint.js';
-import type { OpResult, DataObj } from '../_types/dataset.d.ts';
+import type { OpResult, DataObj } from '../_types/dataset.ts';
 type LockState = 'init' | 'preconfig' | 'prehook' | 'locked';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

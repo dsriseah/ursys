@@ -24,7 +24,7 @@ import type {
   IDS_Serialize,
   UR_ManifestObj,
   DataBinID
-} from '../_types/dataset.d.ts';
+} from '../_types/dataset.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

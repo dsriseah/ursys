@@ -17,7 +17,7 @@ import type {
   DataSyncRes,
   DS_DataURI,
   DS_DatasetObj
-} from '../_types/dataset.d.ts';
+} from '../_types/dataset.ts';
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

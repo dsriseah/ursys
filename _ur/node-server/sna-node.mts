@@ -26,7 +26,7 @@ import MOD_DataServer from './sna-dataserver.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpResult, DataObj } from '../_types/dataset.d.ts';
+import type { OpResult, DataObj } from '../_types/dataset.ts';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

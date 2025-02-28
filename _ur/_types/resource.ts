@@ -5,6 +5,8 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
+import type { PropName, UR_SchemaID } from './ursys.ts';
+
 /// RESOURCE TYPES ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** Resources are file-based data structures that conform to a schema */
@@ -22,7 +24,7 @@ export type TemplateUID = string; // must be unique within a schema
 /** A template is a collection of properties defined in schema */
 export type UR_Template = {
   _schema_id: UR_SchemaID;
-  template_name: BagName;
+  template_name: PropName;
   fields: {
     [templateProperty: PropName]: any;
   };

@@ -34,9 +34,9 @@ import type {
   IDS_Serialize,
   DS_DatasetObj,
   UR_ManifestObj,
-  DS_DataURI,
-  DataBinID
-} from '../_types/dataset.d.ts';
+  DataBinID,
+  DS_DataURI
+} from '../_types/dataset.ts';
 type DSObj = DS_DatasetObj;
 type DSMan = UR_ManifestObj;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

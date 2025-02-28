@@ -17,7 +17,7 @@ import { NetPacket } from '../common/class-urnet-packet.ts';
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { NP_Msg, NP_Address, NM_Handler } from '../_types/urnet.d.ts';
-import type { DataObj } from '../_types/dataset.d.ts';
+import type { DataObj } from '../_types/dataset.ts';
 type AddressInfo = { port: number; family: string; address: string };
 type RequestHandler = express.RequestHandler; // (req,res,next)=>void
 type PacketHandler = (pkt: NetPacket) => void;

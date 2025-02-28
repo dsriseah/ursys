@@ -22,7 +22,7 @@ import type {
   ResourceURI,
   UR_SchemaID,
   DS_DataURI
-} from '../_types/dataset.d.ts';
+} from '../_types/dataset.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

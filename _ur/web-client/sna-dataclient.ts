@@ -32,22 +32,24 @@ import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj, OpResult } from '../_types/ursys.d.ts';
+import type { SNA_EvtHandler } from '../_types/sna.ts';
 import type {
   IDS_DatasetAdapter,
   DatasetReq,
+  DataObj,
   DatasetRes,
   DataSyncOptions,
   DataSyncReq,
   DataSyncRes,
   DataSyncMode,
   UR_Item,
-  DS_DataURI,
   DS_DatasetObj,
+  DS_DataURI,
   SearchOptions,
+  OpResult,
   RecordSet
-} from '../_types/dataset.d.ts';
-import type { SNA_EvtHandler } from '../_types/sna.d.ts';
+} from '../_types/dataset.ts';
+
 //
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

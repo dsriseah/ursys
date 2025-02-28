@@ -36,7 +36,7 @@ const DBG = true;
 
 /// CLASS DECLARATION //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { IDS_DataBin, IDS_Serialize } from '../_types/dataset.d.ts';
+import type { IDS_DataBin, IDS_Serialize } from '../_types/dataset.ts';
 abstract class DataBin implements IDS_DataBin, IDS_Serialize {
   //
   name: DataBinID; // name of this collection

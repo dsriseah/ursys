@@ -4,31 +4,44 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import type { DataObj, ErrObj, OpResult } from './ursys.d.ts';
-
-/// BASE TYPES ////////////////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** identifier strings for types of collections in the URSYS ecosystem */
-type PropName = string; // camelCase for user, _snake_case for internal
-
-/// UNIVERSAL IDENTIFIERS /////////////////////////////////////////////////////
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Identify ownership and schema uniquely across the world */
-type SchemaRoot = string; // e.g. 'ursys', 'rapt'
-type SchemaName = string; // e.g. 'resource_type', 'meme', 'netcreate'
-type SchemaVersion = `version=${string}`; // e.g. 'version=1.0.0'
-type TagString = string; // e.g. 'tag1=foo;tag2' semicolon separated
-export type UR_SchemaID = `${SchemaRoot}:${SchemaName}:${SchemaVersion};${TagString}`;
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/** Identify a dataset uniquely across the world */
-type OrgDomain = string; // e.g. 'ursys.org', 'rapt
-type BucketID = string; // e.g. a UUID with no / or : characters
-type InstanceID = string; // e.g. a slashpath to a dataset resource
-type AppID = string; // e.g. unique 'meme', 'step'
-export type DS_DataURI =
-  `${OrgDomain}:${BucketID}/${AppID}/${InstanceID}:${TagString}`;
+import type {
+  DataObj,
+  ErrObj,
+  OpResult,
+  SNA_EvtName,
+  SNA_EvtHandler,
+  DS_DataURI
+} from './ursys.ts';
 
 /// INTERFACES ////////////////////////////////////////////////////////////////
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export interface IRecordSet {
+  src_items: UR_Item[];
+  cur_items: UR_Item[];
+  cur_meta: ItemStatsResult;
+  page_index: number;
+  page_size: number;
+  page_count: number;
+  pages: UR_Item[][];
+
+  getItems(): UR_Item[];
+  getStats(name?: string): ItemStatsResult;
+  getSrcItems(): UR_Item[];
+  sort(sOpt?: SortOptions): IRecordSet;
+  format(fOpt: ItemFormatOptions): IRecordSet;
+  analyze(testOpts: ItemStatsOptions): IRecordSet;
+  reset(): IRecordSet;
+  paginate(pageSize?: number): IRecordSet;
+  goPage(index: number): IRecordSet;
+  nextPage(): IRecordSet;
+  prevPage(): IRecordSet;
+  getPage(): UR_Item[];
+  getPageIndex(): number;
+  getPageCount(): number;
+  getPageSize(): number;
+  isLastPage(): boolean;
+  isFirstPage(): boolean;
+}
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** used by databin and dataset classes moving data across the network */
 export interface IDS_Serialize {
@@ -61,7 +74,7 @@ export interface IDS_DataBin {
   off(event: SNA_EvtName, lis: SNA_EvtHandler): void;
   notify(evt: SNA_EvtName, data: DataObj): void;
   find(criteria?: SearchOptions): UR_Item[];
-  query(criteria?: SearchOptions): RecordSet;
+  query(criteria?: SearchOptions): IRecordSet;
 }
 
 /// ASSET MANAGEMENT TYPES ////////////////////////////////////////////////////
@@ -335,7 +348,8 @@ export type ItemStatsResult = {
 
 /// FORWARDED EXPORTS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export type { DataObj, ErrObj, OpResult } from './ursys.d.ts';
-export type { DataBin } from '../common/abstract-data-databin.d.ts';
-export type { Dataset, SyncOptions } from '../common/class-data-dataset.d.ts';
-export type { RecordSet } from '../common/class-data-recordset.d.ts';
+export type { DataObj, ErrObj, OpResult, UR_SchemaID } from './ursys.js';
+export type { DataBin } from '../common/abstract-data-databin.ts';
+export type { Dataset } from '../common/class-data-dataset.ts';
+export type { RecordSet } from '../common/class-data-recordset.ts';
+export type { DS_DataURI } from './ursys.ts';

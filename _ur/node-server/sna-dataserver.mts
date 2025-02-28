@@ -36,7 +36,7 @@ import type {
   DatasetReq,
   DS_DatasetObj,
   DS_DataURI
-} from '../_types/dataset.d.ts';
+} from '../_types/dataset.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SyncOptions = {
   syncType: 'pull' | 'push' | 'both';

@@ -6,8 +6,6 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-/// <reference types="../_types/ursys.d.ts" />
-
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import { TerminalLog } from '../common/util-prompts.ts';
@@ -18,7 +16,7 @@ import * as FILE from './file.mts';
 
 /// TYPES DECLARATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpResult } from '../_types/dataset.d.ts';
+import type { OpResult } from '../_types/dataset.ts';
 
 /// SUPPORT METHODS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
