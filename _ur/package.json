@@ -15,8 +15,8 @@
   "type": "module",
   "exports": {
     "browser": {
-      "import": "./_out/core-browser-esm.js",
-      "require": "./_out/core-browser-cjs.js"
+      "import": "./_out/core-web-esm.js",
+      "require": "./_out/core-web-cjs.js"
     },
     "node": {
       "import": "./_out/core-node.mjs",
