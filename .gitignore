@@ -32,9 +32,9 @@ _out
 **/_runtime*
 **/__app_imports.ts
 
-# uncomment this when ready to commit to _dist
-_dist
-**/_dist
+# comment-out when ready to commit to _dist
+# _dist
+# **/_dist
 
 # Also ignore build system directories
 .npmignore
