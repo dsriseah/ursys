@@ -10,14 +10,19 @@
     "ur": "./_ur/ur",
     "create": "./_ur/ur-create.sh"
   },
+  "files": [
+    "_dist"
+  ],
   "exports": {
-    "node": {
-      "import": "./_ur_exports/core-node-esm/node-server/@server.mjs",
-      "require": "./_ur_exports/core-node-cjs/node-server/@server.mjs"
-    },
     "browser": {
-      "import": "./_ur_exports/core-web-esm.js",
-      "require": "./_ur_exports/core-web-umd.js"
+      "types": "./_ur/_dist/types/core-web.d.ts",
+      "import": "./_ur/_dist/core-web-esm.js",
+      "require": "./_ur/_dist/core-web-cjs.js"
+    },
+    "node": {
+      "types": "./_ur/_dist/types/core-node.d.ts",
+      "import": "./_ur/_dist/core-node.mjs",
+      "require": "./_ur/_dist/core-node.cjs"
     }
   },
   "scripts": {
@@ -28,7 +33,7 @@
   "author": "DSri Seah",
   "license": "MIT",
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.50.1",
+    "@microsoft/api-extractor": "^7.51.0",
     "@rollup/plugin-commonjs": "^28.0.2",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@typescript-eslint/eslint-plugin": "^7.17.0",

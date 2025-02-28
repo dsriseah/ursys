@@ -1,6 +1,6 @@
 {
   "name": "@ursys/core",
-  "version": "0.1",
+  "version": "0.0.1",
   "description": "modular system for enhancing NetCreate 2.0 (ITEST)",
   "repository": {
     "type": "git",
