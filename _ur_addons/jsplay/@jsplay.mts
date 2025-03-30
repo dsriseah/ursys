@@ -17,7 +17,7 @@
 
 import PROCESS from 'node:child_process';
 import PATH from 'node:path';
-import { PROMPTS, FILE } from '@ursys/core';
+import { PROMPTS, FILE } from 'ursys';
 import CHOKIDAR from 'chokidar';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

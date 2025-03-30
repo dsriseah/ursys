@@ -8,7 +8,7 @@
 
 import PATH from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PROMPTS, PROC, FILE } from '@ursys/core';
+import { PROMPTS, PROC, FILE } from 'ursys';
 import * as KV from './kv-json.mts';
 import * as CTRL from './cli-serve-control.mts';
 import { UseServer } from './urnet-constants.mts';

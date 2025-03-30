@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { NORM, FILE, ASSET, SNA } from '@ursys/core';
+import { NORM, FILE, ASSET, SNA } from 'ursys';
 import * as PATH from 'path';
 // module dereferences
 const { DSFS: MOD_DatasetFS } = SNA;

@@ -10,7 +10,7 @@
 /* eslint-disable no-unused-vars */
 
 // cjs-style modules
-import * as UR from '@ursys/core';
+import * as UR from 'ursys';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

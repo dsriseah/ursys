@@ -18,7 +18,7 @@ import esbuild from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
 import { WebSocketServer } from 'ws';
 //
-import { PROMPTS, PROC, FILE, CLASS } from '@ursys/core';
+import { PROMPTS, PROC, FILE, CLASS } from 'ursys';
 const { NetEndpoint, NetSocket } = CLASS;
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////

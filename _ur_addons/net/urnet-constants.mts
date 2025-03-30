@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { FILE } from '@ursys/core';
+import { FILE } from 'ursys';
 import CLIENT_CONSTANTS from './urnet-constants-webclient.js';
 const { HTTP_CLIENT_INFO } = CLIENT_CONSTANTS;
 import { ES_TARGET } from '../../_ur/node-server/const-esbuild.mts';

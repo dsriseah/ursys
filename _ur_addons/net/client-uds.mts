@@ -4,8 +4,8 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import * as FOO from '@ursys/core';
-import { PROMPTS, FILE, PROC, CLASS } from '@ursys/core';
+import * as FOO from 'ursys';
+import { PROMPTS, FILE, PROC, CLASS } from 'ursys';
 import { UDS_INFO } from './urnet-constants.mts';
 import NET from 'node:net';
 

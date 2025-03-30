@@ -1,5 +1,5 @@
 {
-  "name": "@ursys/core",
+  "name": "ursys",
   "version": "0.0.1",
   "description": "A modular self-contained development framework fpr realtime web app prototyping",
   "workspaces": [
@@ -51,7 +51,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@ursys/core": "file:./_ur",
-    "@ursys/addons": "file:./_ur_addons"
+    "ursys": "file:./_ur",
+    "ursys-addons": "file:./_ur_addons"
   }
 }

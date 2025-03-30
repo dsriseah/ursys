@@ -161,7 +161,7 @@
       "",
       "\\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/",
       "",
-      "import * as UR from '@ursys/core'; // import UR module",
+      "import * as UR from 'ursys'; // import UR module",
       "import * as MODULE from './my-module'; // import all exports",
       "import { SomeFunction } from './another-module'; // named export",
       "import SomeClass from './yet-another-module'; // default export",

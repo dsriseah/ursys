@@ -11,7 +11,7 @@
 /* eslint-disable no-unused-vars */
 
 import { readFileSync } from 'node:fs';
-import { PROMPTS } from '@ursys/core';
+import { PROMPTS } from 'ursys';
 import PG_CJS from 'peggy';
 const { generate } = PG_CJS;
 

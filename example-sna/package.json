@@ -12,7 +12,7 @@
   "author": "dsriseah",
   "license": "MIT",
   "dependencies": {
-    "@ursys/core": "file:../_ur",
+    "ursys": "file:../_ur",
     "txtgen": "^3.0.7"
   }
 }

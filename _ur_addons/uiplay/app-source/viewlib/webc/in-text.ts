@@ -7,7 +7,7 @@
 
 import StatelyElement from './lib/class-stately-element';
 import type { DataObj, StateObj } from '../viewstate-mgr';
-import { ConsoleStyler } from '@ursys/core';
+import { ConsoleStyler } from 'ursys';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

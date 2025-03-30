@@ -5,15 +5,15 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PROMPTS, FILE, CLASS } from '@ursys/core';
-import { APPSERV, APPBUILD } from '@ursys/core';
+import { PROMPTS, FILE, CLASS } from 'ursys';
+import { APPSERV, APPBUILD } from 'ursys';
 import PATH from 'node:path';
 import FS from 'node:fs';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type TSOptions = { field: string; value: any };
-import type { BuildOptions } from '@ursys/core';
+import type { BuildOptions } from 'ursys';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

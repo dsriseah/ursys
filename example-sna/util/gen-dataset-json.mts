@@ -5,7 +5,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import * as TXTGEN from 'txtgen';
-import { NORM, FILE, ASSET } from '@ursys/core';
+import { NORM, FILE, ASSET } from 'ursys';
 import * as PATH from 'path';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////

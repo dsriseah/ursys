@@ -1,5 +1,5 @@
 {
-  "name": "@ursys/addons",
+  "name": "ursys-addons",
   "version": "0.1",
   "description": "Addons for enhancing NetCreate ITEST",
   "private": true,
@@ -30,11 +30,11 @@
     "vitest": "^3.0.7"
   },
   "peerDependencies": {
-    "@ursys/core": "file:../_ur"
+    "ursys": "file:../_ur"
   },
   "dependencies": {
     "@melloware/coloris": "^0.24.0",
-    "@ursys/core": "file:../_ur",
+    "ursys": "file:../_ur",
     "chokidar": "^3.5.3",
     "express": "^4.19.2",
     "graphology": "^0.25.4",

@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler, CLASS } from '@ursys/core';
+import { ConsoleStyler, CLASS } from 'ursys';
 const { NetEndpoint, NetSocket } = CLASS;
 import { GetClientInfoFromWindowLocation } from '../../net/urnet-constants-webclient.ts';
 

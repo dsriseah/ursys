@@ -1,5 +1,5 @@
 {
-  "name": "@ursys/core",
+  "name": "ursys",
   "version": "0.0.1",
   "description": "modular system for enhancing NetCreate 2.0 (ITEST)",
   "repository": {
