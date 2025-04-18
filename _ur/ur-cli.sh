@@ -38,6 +38,7 @@ usage() {
       fi
     done
     ADDONS=$(prln $ADDONS)
+    ADDONS=$(echo "$ADDONS" | fold -s -w 40 | sed '1!s/^/           /')
     prln "usage:     ${yellow}ur [command | addon]${RESET}${DIM}"
     prln "commands   $COMMANDS"
     prln "addons     $ADDONS"
@@ -55,6 +56,11 @@ fi
 # If no arguments provided or unknown option, display usage
 #
 if [ $# -eq 0 ]; then
+  prln ""
+  prln "Sri's ${YELLOW}${BRITE}Universal Realtime System${RESET} (URSYS) is a framework"
+  prln "for developing realtime web applications and libraries"
+  prln "with visual studio code, nodejs, and typescript"
+  prln ""
   usage
 fi
 
