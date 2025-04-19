@@ -131,3 +131,4 @@ export {
   RegisterMessages,
   ClientEndpoint
 } from './sna-web-urnet-client.ts';
+export { ConsoleStyler } from '../common/util-prompts.ts';

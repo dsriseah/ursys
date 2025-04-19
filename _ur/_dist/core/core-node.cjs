@@ -70,6 +70,7 @@ __export(sna_node_exports, {
   SetServerConfig: () => SNA_SetServerConfig,
   Start: () => SNA_Start,
   Status: () => SNA_Status,
+  TerminalLog: () => makeTerminalOut,
   UseComponent: () => SNA_UseComponent
 });
 

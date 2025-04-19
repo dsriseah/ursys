@@ -40,6 +40,7 @@ __export(sna_web_exports, {
   APPCONTEXT: () => sna_web_context_exports,
   AddMessageHandler: () => AddMessageHandler,
   ClientEndpoint: () => ClientEndpoint,
+  ConsoleStyler: () => makeStyleFormatter,
   DATACLIENT: () => sna_dataclient_exports,
   DeleteMessageHandler: () => DeleteMessageHandler,
   GetAppConfig: () => SNA_GetAppConfig,

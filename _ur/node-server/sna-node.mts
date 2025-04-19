@@ -108,3 +108,4 @@ export {
   RegisterMessages,
   ServerEndpoint
 } from './sna-node-urnet-server.mts';
+export { TerminalLog } from '../common/util-prompts.ts';
