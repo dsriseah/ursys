@@ -88,6 +88,9 @@ case "$1" in
     # copies the current files in _out to _exports/core and _exports/sna
     # which are references in the root package.json exports section
     package)
+        # run build first
+        $NODEXEC $CLI_BUILD/@build-core.mts 2>&1 | cat
+        $NODEXEC $CLI_BUILD/@build-sna.mts 2>&1 | cat
         # create tarball using npm pack on root package.json
         $NODEXEC $CLI_BUILD/@pack-libraries.mts 2>&1 | cat
         exit 0;
