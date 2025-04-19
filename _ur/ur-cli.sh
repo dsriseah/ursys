@@ -17,7 +17,7 @@ UR_BUILD="$SCRIPT_DIR/"
 CLI_BUILD="$SCRIPT_DIR/npm-scripts"
 ADDONS_LIB="$SCRIPT_DIR/../_ur_addons"
 TEST_BUILD="$SCRIPT_DIR/../_ur_addons/loki"
-UR_EXPORTS="$SCRIPT_DIR/../_ur_exports"
+UR_EXPORTS="$SCRIPT_DIR/../_ur/_dist"
 
 # TERMINAL COLORS
 DIM=$(tput dim)
@@ -26,9 +26,18 @@ RESET=$(tput sgr0)
 BGBLUE=$(tput setab 4)$(tput setaf 7)
 BRITE=$(tput bold)
 
+# Make sure NodeJS is installed
+if ! command -v node > /dev/null 2>&1; then
+    prln "Node.js not found. Please ensure it's installed."
+    exit 1
+fi
 
+
+#
+# USAGE
+# 
 usage() {
-    COMMANDS="build test package new:addon"
+    COMMANDS="build | package"
     ADDONS=""
     a_dirs=$(find "$ADDONS_LIB" -mindepth 1 -maxdepth 1 -type d -name "[!_]*" -exec basename {} \;)
     a_dirs=$(prln "$a_dirs" | tr '\n' ' ')
@@ -45,13 +54,6 @@ usage() {
     prln "${RESET}"
     exit 1
 }
-
-# Make sure NodeJS is installed
-if ! command -v node > /dev/null 2>&1; then
-    prln "Node.js not found. Please ensure it's installed."
-    exit 1
-fi
-
 #
 # If no arguments provided or unknown option, display usage
 #
@@ -69,28 +71,30 @@ fi
 # note: Use --max-old-space-size to limit memory (values are in MB, so 128 is 128MB)
 #
 case "$1" in
+    # build will build the core and all addons to _exports/_out
+    # to make them available for use in dependent projects like addons and other
+    # local hosted projects (e.g. sna-example, app-example) you must run 
+    # ur package to copy the built files to _exports/core and _exports/sna
     build)
         # (1) always build library first
         $NODEXEC $CLI_BUILD/@build-core.mts 2>&1 | cat
-        # (2) add additional tasks here (eventually can be command args)
+        # (2) build standalone SNA module
+        $NODEXEC $CLI_BUILD/@build-sna.mts 2>&1 | cat
+        # (3) add additional tasks here (eventually can be command args)
         # $NODEXEC $CLI_BUILD/@build-addons.mts 2>&1 | cat
-        # (3) build standalone SNA module
-        # $NODEXEC $CLI_BUILD/@build-sna.mts 2>&1 | cat
         exit 0;
         ;;
 
+    # copies the current files in _out to _exports/core and _exports/sna
+    # which are references in the root package.json exports section
     package)
-        cd $UR_EXPORTS
-        prln ""
-        prln "${BGBLUE} UR PACKAGE TO '$UR_EXPORTS' ${RESET}"
-        ./@build-exports.sh
-        prln "package export complete"
-        prln ""
-        cd ..
+        # create tarball using npm pack on root package.json
+        $NODEXEC $CLI_BUILD/@pack-core.mts 2>&1 | cat
         exit 0;
         ;;
 
-    test)
+    # WIP
+    test:code)
         # get additional argument after 'test' into $option
         $NODEXEC $CLI_BUILD/@build-core.mts 2>&1 | cat
         PROMPT="${BGBLUE} UR TEST ${RESET}"
@@ -113,6 +117,7 @@ case "$1" in
         exit 0;
         ;;
 
+    # new:addon will create a new addon in the _ur_addons directory
     new:addon)
         # get additional argument after 'new' into $option
         prln ""

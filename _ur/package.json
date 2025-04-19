@@ -1,10 +1,10 @@
 {
   "name": "ursys",
   "version": "0.0.1",
-  "description": "modular system for enhancing NetCreate 2.0 (ITEST)",
+  "description": "URSYS Core Library",
   "repository": {
     "type": "git",
-    "url": "https://github.com/netcreateorg/netcreate-itest"
+    "url": "https://github.com/dsriseah/ursys"
   },
   "private": true,
   "scripts": {
@@ -14,13 +14,13 @@
   },
   "type": "module",
   "exports": {
-    "browser": {
-      "import": "./_out/core-web-esm.js",
-      "require": "./_out/core-web-cjs.js"
+    "./server": {
+      "import": "./_dist/core/core-node.mjs",
+      "require": "./_dist/core/core-node.cjs"
     },
-    "node": {
-      "import": "./_out/core-node.mjs",
-      "require": "./_out/core-node.cjs"
+    "./client": {
+      "import": "./_dist/core/core-web-esm.js",
+      "require": "./_dist/core/core-web-cjs.js"
     }
   },
   "devDependencies": {

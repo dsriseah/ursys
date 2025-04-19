@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  NODE CLI TOOL - BUILD URSYS ADDONS
+  NODE CLI TOOL - BUILD URSYS SNA ONLY
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -12,27 +12,26 @@ import { GetRootDirs } from '../node-server/file.mts';
 
 /// CONSTANTS AND DECLARATIONS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { ROOT, DIR_UR_ADDS, DIR_UR_ADDS_OUT } = GetRootDirs();
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const LOG = PROMPTS.TerminalLog('BUILD-MOD', 'TagSystem');
+const LOG = PROMPTS.TerminalLog('BuildSNA', 'TagSystem');
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { ROOT, DIR_UR_OUT } = GetRootDirs();
 
 /// ESBUILD API ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function _short(path) {
-  if (path.startsWith(ROOT)) return path.slice(ROOT.length);
-  return path;
-}
-/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** build the UR libraries for server and client */
-async function ESBuildModules() {
-  FSE.ensureDir(DIR_UR_ADDS_OUT);
+async function ESBuildLibrary() {
+  FSE.ensureDir(DIR_UR_OUT);
+
   /** SERVER CLIENT SHARED BUILD SETTINGS **/
   const nodeBuild = {
-    entryPoints: [`${DIR_UR_ADDS}/@addons-node.mts`],
+    entryPoints: [`${ROOT}/_ur/node-server/sna-node.mts`],
     bundle: true,
     platform: 'node',
     target: ['node18', 'esnext'],
+    logOverride: {
+      'empty-import-meta': 'silent'
+    },
     sourcemap: true,
     packages: 'external'
   };
@@ -41,60 +40,60 @@ async function ESBuildModules() {
   // @ts-ignore - build options
   await esbuild.build({
     ...nodeBuild,
-    outfile: `${DIR_UR_ADDS_OUT}/addons-node.mjs`,
+    outfile: `${DIR_UR_OUT}/sna-node.mjs`,
     format: 'esm'
   });
-  if (DBG) LOG('built addons-node mjs');
+  if (DBG) LOG('built sna-node.mjs');
 
   // @ts-ignore - build options
   await esbuild.build({
     ...nodeBuild,
-    outfile: `${DIR_UR_ADDS_OUT}/addons-node.cjs`,
+    outfile: `${DIR_UR_OUT}/sna-node.cjs`,
     format: 'cjs'
   });
-  if (DBG) LOG('built addons-node.cjs');
+  if (DBG) LOG('built sna-node.cjs');
 
   /** BROWSER CLIENT SHARED BUILD SETTINGS **/
   const browserBuild = {
-    entryPoints: [`${DIR_UR_ADDS}/@addons-web.ts`],
+    entryPoints: [`${ROOT}/_ur/web-client/sna-web.ts`],
     bundle: true,
     platform: 'browser',
-    target: ['es2018'], // brunch can't handle features beyond this date
+    target: ['esnext'],
     sourcemap: true
   };
 
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_UR_ADDS_OUT}/addons-web-esm.js`,
+    outfile: `${DIR_UR_OUT}/sna-web-esm.js`,
     format: 'esm'
   });
-  if (DBG) LOG('built addons-web-esm.js');
+  if (DBG) LOG('built sna-web-esm.js');
 
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_UR_ADDS_OUT}/addons-web-cjs.js`,
+    outfile: `${DIR_UR_OUT}/sna-web-cjs.js`,
     format: 'cjs'
   });
-  if (DBG) LOG('built addons-web-cjs.js');
+  if (DBG) LOG('built sna-web-cjs.js');
 
   await esbuild.build({
     ...browserBuild,
     plugins: [umdWrapper()],
-    outfile: `${DIR_UR_ADDS_OUT}/addons-web-umd.js`,
-    // @ts-ignore - esbuild-plugin-umd-wrapper
+    outfile: `${DIR_UR_OUT}/sna-web-umd.js`,
+    // @ts-ignore - esbuild-plugin-umd-wrapper option
     format: 'umd' // esbuild-plugin-umd-wrapper
   });
-  if (DBG) LOG('built addons-web-umd.js');
+  if (DBG) LOG('built sna-web-umd.js');
 
-  // if !DBG, print simpler built message
-  if (!DBG) console.log(`${LOG.DIM}info: built ursys addons${LOG.RST}`);
+  // if !DBG just emit a simpler message
+  if (!DBG) console.log(`${LOG.DIM}info: built ursys sna${LOG.RST}`);
 }
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** TEST **/
 (async () => {
-  await ESBuildModules();
+  await ESBuildLibrary();
 })();

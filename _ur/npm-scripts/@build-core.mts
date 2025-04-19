@@ -1,6 +1,6 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  NODE CLI TOOL - TYPESCRIPT BUILD URSYS CORE
+  NODE CLI TOOL - BUILD URSYS CORE
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
@@ -21,7 +21,7 @@ const { ROOT, DIR_UR_OUT } = GetRootDirs();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** build the UR libraries for server and client */
 async function ESBuildLibrary() {
-  // FSE.removeSync(DIR_UR_OUT); // don't do this because brunch watch will break
+  LOG('DIR_OUT', DIR_UR_OUT);
   FSE.ensureDir(DIR_UR_OUT);
 
   /** SERVER CLIENT SHARED BUILD SETTINGS **/
