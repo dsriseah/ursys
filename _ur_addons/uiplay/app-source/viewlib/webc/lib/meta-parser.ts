@@ -3,11 +3,11 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import YAML from 'js-yaml';
-import { TEXT } from 'ursys';
+import { TEXT } from 'ursys/client';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj as StateObj } from 'ursys';
+import type { DataObj as StateObj } from 'ursys/client';
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

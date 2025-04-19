@@ -13,7 +13,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import * as Tone from 'tone';
-import { ConsoleStyler } from 'ursys';
+import { ConsoleStyler } from 'ursys/client';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

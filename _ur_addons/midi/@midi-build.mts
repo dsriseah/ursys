@@ -8,7 +8,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PROMPTS, FILE } from 'ursys';
+import { PROMPTS, FILE } from 'ursys/server';
 import FSE from 'fs-extra';
 import { copy } from 'esbuild-plugin-copy';
 import esbuild from 'esbuild';

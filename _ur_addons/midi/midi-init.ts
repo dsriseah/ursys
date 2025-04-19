@@ -5,7 +5,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler } from 'ursys';
+import { ConsoleStyler } from 'ursys/client';
 import { InitMIDI } from './midi-core.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

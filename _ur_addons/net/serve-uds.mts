@@ -9,7 +9,7 @@
 
 import NET from 'node:net';
 import PATH from 'node:path';
-import { PROMPTS, PROC, FILE, CLASS } from 'ursys';
+import { PROMPTS, PROC, FILE, CLASS } from 'ursys/server';
 import { UDS_INFO } from './urnet-constants.mts';
 const { NetEndpoint, NetSocket } = CLASS;
 

@@ -8,7 +8,7 @@
 import PATH from 'node:path';
 import * as KV from './kv-json.mts';
 import { SpawnOptions, spawn } from 'node:child_process';
-import { PROMPTS, PROC, FILE } from 'ursys';
+import { PROMPTS, PROC, FILE } from 'ursys/server';
 import { UDS_INFO, UseServer } from './urnet-constants.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

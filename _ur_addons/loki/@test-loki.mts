@@ -5,7 +5,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { FILE, PROMPTS } from 'ursys';
+import { FILE, PROMPTS } from 'ursys/server';
 import { PromiseLoadDatabase, ListCollections } from './import-lokidb.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

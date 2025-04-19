@@ -14,7 +14,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { FILE, PROMPTS, PROC } from 'ursys';
+import { FILE, PROMPTS, PROC } from 'ursys/server';
 import { fork } from 'node:child_process';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

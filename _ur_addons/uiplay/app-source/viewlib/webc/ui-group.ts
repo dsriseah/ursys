@@ -8,7 +8,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler } from 'ursys';
+import { ConsoleStyler } from 'ursys/client';
 import { AssertGroupName } from './lib/meta-parser';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////

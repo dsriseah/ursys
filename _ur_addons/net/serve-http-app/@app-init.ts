@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler } from 'ursys';
+import { ConsoleStyler } from 'ursys/client';
 import * as CLIENT from './client-http.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

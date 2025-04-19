@@ -14,7 +14,7 @@ import UIDataGroup from './class-datagroup.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj } from 'ursys';
+import type { DataObj } from 'ursys/client';
 type StateObj = DataObj;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

@@ -5,13 +5,13 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { FILE, PROMPTS } from 'ursys';
+import { FILE, PROMPTS } from 'ursys/server';
 import { UR_StartLifecycle, UR_Build } from './webplay-svc-server.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type TSOptions = { field: string; value: any };
-import type { BuildOptions } from 'ursys';
+import type { BuildOptions } from 'ursys/server';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

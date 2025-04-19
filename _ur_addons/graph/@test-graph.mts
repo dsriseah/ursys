@@ -13,7 +13,7 @@ import { stdin as input, stdout as output } from 'node:process';
 import readline from 'node:readline';
 import { readFileSync } from 'node:fs';
 //
-import { PROMPTS, TEXT } from 'ursys';
+import { PROMPTS, TEXT } from 'ursys/server';
 import GRAPHOLOGY from 'graphology';
 import PG_CJS from 'peggy';
 const { generate } = PG_CJS;

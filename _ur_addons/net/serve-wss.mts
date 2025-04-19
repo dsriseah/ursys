@@ -8,7 +8,7 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { WebSocketServer } from 'ws';
-import { PROMPTS, PROC, CLASS } from 'ursys';
+import { PROMPTS, PROC, CLASS } from 'ursys/server';
 const { NetEndpoint, NetSocket } = CLASS;
 import { WSS_INFO } from './urnet-constants.mts';
 

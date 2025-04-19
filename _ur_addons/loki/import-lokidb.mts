@@ -9,7 +9,7 @@ import Loki from 'lokijs';
 import FSE from 'fs-extra';
 import PATH from 'path';
 // our library import
-import { PROMPTS } from 'ursys';
+import { PROMPTS } from 'ursys/server';
 // import from local files require extensions
 import * as SESSION from '../_proposals/session.ts';
 

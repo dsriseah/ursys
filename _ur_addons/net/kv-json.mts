@@ -6,7 +6,7 @@
 
 import Keyv from 'keyv';
 import { KeyvFile } from 'keyv-file';
-import { PROMPTS } from 'ursys';
+import { PROMPTS } from 'ursys/server';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
