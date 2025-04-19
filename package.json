@@ -10,15 +10,13 @@
     "./_ur/_dist"
   ],
   "exports": {
-    "browser": {
-      "types": "./_ur/_dist/types/core-web.ts",
-      "import": "./_ur/_dist/core-web-esm.js",
-      "require": "./_ur/_dist/core-web-cjs.js"
+    "./server": {
+      "import": "./_ur/_dist/core/core-node.mjs",
+      "require": "./_ur/_dist/core/core-node.cjs"
     },
-    "node": {
-      "types": "./_ur/_dist/types/core-node.ts",
-      "import": "./_ur/_dist/core-node.mjs",
-      "require": "./_ur/_dist/core-node.cjs"
+    "./client": {
+      "import": "./_ur/_dist/core/core-web-esm.js",
+      "require": "./_ur/_dist/core/core-web-cjs.js"
     }
   },
   "scripts": {
@@ -49,9 +47,5 @@
     "tslib": "^2.8.1",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"
-  },
-  "dependencies": {
-    "ursys": "file:./_ur",
-    "ursys-addons": "file:./_ur_addons"
   }
 }
