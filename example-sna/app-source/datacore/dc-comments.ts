@@ -10,12 +10,12 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { SNA, ConsoleStyler } from 'ursys';
+import { SNA, ConsoleStyler } from 'ursys/client';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj, DataSyncRes, OpResult } from 'ursys';
-import type { SNA_EvtName } from 'ursys';
+import type { DataObj, DataSyncRes, OpResult } from 'ursys/client';
+import type { SNA_EvtName } from 'ursys/client';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
