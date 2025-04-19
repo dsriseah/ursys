@@ -89,7 +89,7 @@ async function ESBuildModules() {
   if (DBG) LOG('built addons-web-umd.js');
 
   // if !DBG, print simpler built message
-  if (!DBG) console.log(`${LOG.DIM}info: built @ursys addons${LOG.RST}`);
+  if (!DBG) console.log(`${LOG.DIM}info: built ursys addons${LOG.RST}`);
 }
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////

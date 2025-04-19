@@ -94,7 +94,7 @@ async function ESBuildLibrary() {
   if (DBG) LOG('built ur-client UMD');
 
   // if !DBG just emit a simpler message
-  if (!DBG) console.log(`${LOG.DIM}info: built @ursys core${LOG.RST}`);
+  if (!DBG) console.log(`${LOG.DIM}info: built ursys core${LOG.RST}`);
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

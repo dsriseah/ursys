@@ -73,8 +73,9 @@ case "$1" in
         # (1) always build library first
         $NODEXEC $CLI_BUILD/@build-core.mts 2>&1 | cat
         # (2) add additional tasks here (eventually can be command args)
-        $NODEXEC $CLI_BUILD/@build-addons.mts 2>&1 | cat
-        # (3) to build type files, see _ur_exports
+        # $NODEXEC $CLI_BUILD/@build-addons.mts 2>&1 | cat
+        # (3) build standalone SNA module
+        # $NODEXEC $CLI_BUILD/@build-sna.mts 2>&1 | cat
         exit 0;
         ;;
 
