@@ -89,7 +89,7 @@ case "$1" in
     # which are references in the root package.json exports section
     package)
         # create tarball using npm pack on root package.json
-        $NODEXEC $CLI_BUILD/@pack-core.mts 2>&1 | cat
+        $NODEXEC $CLI_BUILD/@pack-libraries.mts 2>&1 | cat
         exit 0;
         ;;
 

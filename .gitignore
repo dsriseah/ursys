@@ -18,6 +18,9 @@
 **/__*
 **/auto-*
 **/*_nocommit*
+**/_temp_*
+
+# don't save _export_libs files
 
 # ignore generated directories and files
 # _runtime is used by apps in the root level of the framework
