@@ -4,9 +4,6 @@
 # do not commit code-workspace; leave it up to user to manage
 *.code-workspace
 
-# ignore obsidian files and vaults
-.obsidian
-
 # URSYS apps are built on _ur and _ur_addons, but are submodules
 # that begin with app (webapp), jot (scratch), or sna (sri new arch)
 /app   
@@ -14,7 +11,7 @@
 /jot-*
 /sna-*
 
-# URSYS user addons shouldn't been committed to the framework
+# URSYS experimental user addons shouldn't been committed to the framework
 /_ur_addons/x-*
 
 # ignore dynamically-generated bundle entry point
@@ -32,9 +29,8 @@ _out
 **/_runtime*
 **/__app_imports.ts
 
-# comment-out when ready to commit to _dist
-# _dist
-# **/_dist
+# don't commit temporary tarball builds
+_tgz
 
 # Also ignore build system directories
 .npmignore
@@ -73,3 +69,4 @@ npm-debug.log
 .tmproj
 nbproject
 Thumbs.db 
+.obsidian
