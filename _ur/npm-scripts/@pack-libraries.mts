@@ -150,8 +150,9 @@ async function PackSNA() {
   UpdateDistributionFiles();
   LOG('Packing CORE ...');
   PackCore();
-  console.log('');
-  LOG('Packing SNA ...');
-  PackSNA();
+  // currently packaging sna indepndently
+  // console.log('');
+  // LOG('Packing SNA ...');
+  // PackSNA();
   console.log('');
 })();
