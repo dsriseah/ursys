@@ -27,9 +27,11 @@ type HashInfo = {
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { TerminalLog } = _P.default;
-const LOG = TerminalLog('FILE', 'TagGreen');
 const DBG = false;
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+const { TerminalLog, ANSI } = _P.default;
+const LOG = TerminalLog('FILE', 'TagGreen');
+const { YEL, BLU, NRM } = ANSI;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let ROOT: string; // root of the project
 let DIR_PUBLIC: string; // path to PUBLIC directory for webapp
@@ -47,7 +49,16 @@ let DIR_UR_ADDS_OUT: string; // path to _ur_mod/_out directory
 function u_init_roots() {
   const fn = 'u_init_roots:';
   ROOT = DetectedRootDir();
-  if (!ROOT) throw Error(`${fn} could not find project root`);
+  if (!ROOT) {
+    console.log(`Could not find project root containing ${BLU}.nvmrc${NRM} file.`);
+    const str1 = `(1) ${YEL}nvm --version${NRM}`;
+    const str2 = `(2) ${YEL}node --version${NRM}`;
+    const str3 = `(3) ${YEL}node --version > .nvmrc${NRM}`;
+    console.log(`Confirm that ${str1} and ${str2} runs in term shell,`);
+    console.log(`then run ${str3} from ${BLU}repo root dir${NRM} to create it`);
+    console.log('');
+    process.exit(1);
+  }
   DIR_PUBLIC = u_path('/public');
   DIR_UR = u_path('/_ur');
   DIR_UR_OUT = u_path(`/_ur/${ES_OUTDIR}`);

@@ -395,8 +395,9 @@ var ES_OUTDIR = "_out";
 // _ur/node-server/file.mts
 var import_meta = {};
 var FSE = fse_cjs.default;
-var { TerminalLog } = util_prompts_default;
+var { TerminalLog, ANSI } = util_prompts_default;
 var LOG = TerminalLog("FILE", "TagGreen");
+var { YEL, BLU, NRM } = ANSI;
 var ROOT;
 var DIR_PUBLIC;
 var DIR_UR;
@@ -408,7 +409,16 @@ var DIR_UR_ADDS_OUT;
 function u_init_roots() {
   const fn2 = "u_init_roots:";
   ROOT = DetectedRootDir();
-  if (!ROOT) throw Error(`${fn2} could not find project root`);
+  if (!ROOT) {
+    console.log(`Could not find project root containing ${BLU}.nvmrc${NRM} file.`);
+    const str1 = `(1) ${YEL}nvm --version${NRM}`;
+    const str2 = `(2) ${YEL}node --version${NRM}`;
+    const str3 = `(3) ${YEL}node --version > .nvmrc${NRM}`;
+    console.log(`Confirm that ${str1} and ${str2} runs in term shell,`);
+    console.log(`then run ${str3} from ${BLU}repo root dir${NRM} to create it`);
+    console.log("");
+    process.exit(1);
+  }
   DIR_PUBLIC = u_path("/public");
   DIR_UR = u_path("/_ur");
   DIR_UR_OUT = u_path(`/_ur/${ES_OUTDIR}`);
@@ -2128,7 +2138,7 @@ var NetSocket = class {
 
 // _ur/node-server/appserver.mts
 var DBG3 = true;
-var { DIM, NRM, BLU, BRI } = ANSI_COLORS;
+var { DIM, NRM: NRM2, BLU: BLU2, BRI } = ANSI_COLORS;
 var LOG7 = makeTerminalOut("URSERVE", "TagBlue");
 var APP;
 var SERVER;
@@ -2243,7 +2253,7 @@ function ListenHTTP(opt) {
     });
     SERVER = APP.listen(http_port, http_host, () => {
       LOG7.info(
-        `${SERVER_NAME} started on ${NRM}${BRI}${BLU}http://${http_host}:${http_port}`
+        `${SERVER_NAME} started on ${NRM2}${BRI}${BLU2}http://${http_host}:${http_port}`
       );
       resolve();
     });
@@ -2270,14 +2280,14 @@ function ListenWSS(opt) {
       clientTracking: true
     });
     WSS.on("connection", (client_link, request) => {
-      if (DBG3) LOG7(`${DIM}${WSS_NAME} connect ${request.socket.remoteAddress}${NRM}`);
+      if (DBG3) LOG7(`${DIM}${WSS_NAME} connect ${request.socket.remoteAddress}${NRM2}`);
       const send = (pkt) => client_link.send(pkt.serialize());
       const onData = (data) => {
         const returnPkt = EP._ingestClientPacket(data, client_sock);
         if (returnPkt) client_link.send(returnPkt.serialize());
       };
       const close = () => {
-        if (DBG3) LOG7(`${DIM}client disconnect${NRM}`);
+        if (DBG3) LOG7(`${DIM}client disconnect${NRM2}`);
         client_link.close();
       };
       const getConfig = CLIENT_CFG;
@@ -2398,7 +2408,7 @@ var NOTIFY_CB;
 var ENTRY_FILE;
 var ENTRY_FILES;
 var INDEX_FILE2;
-var { DIM: DIM2, NRM: NRM2 } = ANSI_COLORS;
+var { DIM: DIM2, NRM: NRM3 } = ANSI_COLORS;
 var LOG8 = makeTerminalOut("URBUILD", "TagBlue");
 function GetBuildOptions() {
   const fn2 = "m_SavedBuildOptions:";
@@ -2533,7 +2543,7 @@ async function WatchExtra(opts) {
   });
   watcher.on("change", async (changed) => {
     const opts2 = GetBuildOptions();
-    LOG8(`${DIM2}watch-extra: rebuilding app...${NRM2}`);
+    LOG8(`${DIM2}watch-extra: rebuilding app...${NRM3}`);
     if (opts2.entry_file) await BuildApp(opts2);
     else if (opts2.entry_files) await MultiBuildApp(opts2);
     if (notify_cb) notify_cb({ changed });
@@ -2545,11 +2555,11 @@ async function WatchExtra(opts) {
 var import_node_fs = __toESM(require("node:fs"), 1);
 var import_node_path3 = __toESM(require("node:path"), 1);
 var LOG9 = makeTerminalOut("DIMPORT", "TagCyan");
-var { BLU: BLU2, YEL, RED, DIM: DIM3, NRM: NRM3 } = ANSI_COLORS;
+var { BLU: BLU3, YEL: YEL2, RED, DIM: DIM3, NRM: NRM4 } = ANSI_COLORS;
 async function FindServerModules(absSrcDir) {
   const fn2 = "FindServerModules:";
   if (!import_node_fs.default.existsSync(absSrcDir)) {
-    LOG9(`${RED}${fn2} Source directory not found: ${absSrcDir}${NRM3}`);
+    LOG9(`${RED}${fn2} Source directory not found: ${absSrcDir}${NRM4}`);
     return [];
   }
   try {
@@ -2562,14 +2572,14 @@ async function FindServerModules(absSrcDir) {
     return mtsFiles;
   } catch (error) {
     if (error.message.includes(`find package '_ur`))
-      LOG9(`${RED}${fn2} SNA dynamic modules can not use path aliases${NRM3}`);
+      LOG9(`${RED}${fn2} SNA dynamic modules can not use path aliases${NRM4}`);
     throw Error(`${fn2} Error during dynamic import: ${error.message}`);
   }
 }
 async function FindClientEntryFiles(srcDir) {
   const fn2 = "FindClientEntryFiles:";
   if (!import_node_fs.default.existsSync(srcDir)) {
-    LOG9(`${RED}${fn2} Source directory not found: ${srcDir}${NRM3}`);
+    LOG9(`${RED}${fn2} Source directory not found: ${srcDir}${NRM4}`);
     return [];
   }
   try {
@@ -2583,7 +2593,7 @@ async function FindClientEntryFiles(srcDir) {
 async function MakeAppImports(srcDir) {
   const fn2 = "MakeAppImports:";
   if (!import_node_fs.default.existsSync(srcDir)) {
-    LOG9(`${RED}${fn2} Source directory not found: ${srcDir}${NRM3}`);
+    LOG9(`${RED}${fn2} Source directory not found: ${srcDir}${NRM4}`);
     return void 0;
   }
   try {
@@ -2604,14 +2614,14 @@ async function MakeAppImports(srcDir) {
     return { entryFile: outFile, tsFiles: clientFiles };
   } catch (error) {
     if (error.message.includes(`find package '_ur`))
-      LOG9(`${RED}${fn2} SNA dynamic modules can not use path aliases${NRM3}`);
+      LOG9(`${RED}${fn2} SNA dynamic modules can not use path aliases${NRM4}`);
     throw Error(`${fn2} Error during dynamic import: ${error.message}`);
   }
 }
 async function MakeWebCustomImports(srcDir) {
   const fn2 = "MakeWebCustomImports:";
   if (!import_node_fs.default.existsSync(srcDir)) {
-    LOG9(`${RED}${fn2} Source directory not found: ${srcDir}${NRM3}`);
+    LOG9(`${RED}${fn2} Source directory not found: ${srcDir}${NRM4}`);
     return void 0;
   }
   try {
@@ -2655,7 +2665,7 @@ async function MakeWebCustomImports(srcDir) {
     return { webcFile: outFile, webcFiles };
   } catch (error) {
     if (error.message.includes(`find package '_ur`))
-      LOG9(`${RED}${fn2} SNA dynamic modules can not use path aliases${NRM3}`);
+      LOG9(`${RED}${fn2} SNA dynamic modules can not use path aliases${NRM4}`);
     throw Error(`${fn2} Error during dynamic import: ${error.message}`);
   }
 }
@@ -2712,8 +2722,8 @@ function SNA_GetServerConfigUnsafe() {
 }
 
 // _ur/node-server/sna-node-urnet-server.mts
-var { BLU: BLU3, YEL: YEL2, RED: RED2, DIM: DIM4, NRM: NRM4 } = ANSI_COLORS;
-var WARN = `${YEL2}**${NRM4}`;
+var { BLU: BLU4, YEL: YEL3, RED: RED2, DIM: DIM4, NRM: NRM5 } = ANSI_COLORS;
+var WARN = `${YEL3}**${NRM5}`;
 var LOG11 = makeTerminalOut("SNA.UNET", "TagCyan");
 var DBG5 = true;
 function SNA_RuntimeInfo() {
@@ -2762,13 +2772,13 @@ async function SNA_Build(rootDir, opt) {
   const { entryFile, tsFiles } = await MakeAppImports(source_dir);
   if (tsFiles.length) {
     const ff = tsFiles.length > 1 ? "files" : "file";
-    LOG11(`Build: bundling entry ${ff} ${BLU3}${tsFiles.join(" ")}${NRM4}`);
-    LOG11(`.. into ${BLU3}${bundle_name}${NRM4}`);
+    LOG11(`Build: bundling entry ${ff} ${BLU4}${tsFiles.join(" ")}${NRM5}`);
+    LOG11(`.. into ${BLU4}${bundle_name}${NRM5}`);
   } else LOG11(`${WARN} Build: No client components in ${sdir}`);
   const { webcFile, webcFiles } = await MakeWebCustomImports(webc_dir);
   if (webcFiles.length) {
-    LOG11(`Found web components: ${BLU3}${webcFiles.join(" ")}${NRM4}`);
-    LOG11(`import as ${BLU3}${webcFile}${NRM4}`);
+    LOG11(`Found web components: ${BLU4}${webcFiles.join(" ")}${NRM5}`);
+    LOG11(`import as ${BLU4}${webcFile}${NRM5}`);
   } else LOG11(`${WARN} No web components in ${wcdir}`);
   const notify_cb = m_NotifyCallback;
   const buildOpts = {
@@ -2781,7 +2791,7 @@ async function SNA_Build(rootDir, opt) {
     // hot reload callback, added to esbuild events
     notify_cb
   };
-  LOG11(`Using esbuild to assemble website -> ${BLU3}${u_short(output_dir)}${NRM4}`);
+  LOG11(`Using esbuild to assemble website -> ${BLU4}${u_short(output_dir)}${NRM5}`);
   SetBuildOptions(buildOpts);
   await BuildApp(buildOpts);
   const htdocs_short = u_short(buildOpts.output_dir);
@@ -2805,7 +2815,7 @@ async function SNA_Build(rootDir, opt) {
   await Start(serverOpts);
   const mtsFiles = await FindServerModules(source_dir);
   if (mtsFiles.length)
-    LOG11(`Loaded server components: ${BLU3}${mtsFiles.join(" ")}${NRM4}`);
+    LOG11(`Loaded server components: ${BLU4}${mtsFiles.join(" ")}${NRM5}`);
   else LOG11(`${WARN} No server components in '${sdir}'`);
 }
 async function SNA_MultiBuild(rootDir) {
@@ -2814,15 +2824,15 @@ async function SNA_MultiBuild(rootDir) {
   const sdir = u_short(source_dir);
   const entryFiles = await FindClientEntryFiles(source_dir);
   if (entryFiles.length) {
-    LOG11(`MultiBuild: bundling entry files: ${BLU3}${entryFiles.join(" ")}${NRM4}`);
+    LOG11(`MultiBuild: bundling entry files: ${BLU4}${entryFiles.join(" ")}${NRM5}`);
   } else {
     LOG11(`${WARN} MultiBuild: No entry files in ${sdir}`);
     return;
   }
   const { webcFile, webcFiles } = await MakeWebCustomImports(webc_dir);
   if (webcFiles.length) {
-    LOG11(`Found web components: ${BLU3}${webcFiles.join(" ")}${NRM4}`);
-    LOG11(`import as ${BLU3}${webcFile}${NRM4}`);
+    LOG11(`Found web components: ${BLU4}${webcFiles.join(" ")}${NRM5}`);
+    LOG11(`import as ${BLU4}${webcFile}${NRM5}`);
   } else LOG11(`${WARN} No web components in ${webc_dir}`);
   const notify_cb = m_NotifyCallback;
   const buildOpts = {
@@ -2834,7 +2844,7 @@ async function SNA_MultiBuild(rootDir) {
     // hot reload callback, added to esbuild events
     notify_cb
   };
-  LOG11(`Using esbuild to assemble website -> ${BLU3}${u_short(output_dir)}${NRM4}`);
+  LOG11(`Using esbuild to assemble website -> ${BLU4}${u_short(output_dir)}${NRM5}`);
   SetBuildOptions(buildOpts);
   await MultiBuildApp(buildOpts);
   const htdocs_short = u_short(buildOpts.output_dir);
@@ -2858,7 +2868,7 @@ async function SNA_MultiBuild(rootDir) {
   await Start(serverOpts);
   const mtsFiles = await FindServerModules(source_dir);
   if (mtsFiles.length)
-    LOG11(`Loaded server components: ${BLU3}${mtsFiles.join(" ")}${NRM4}`);
+    LOG11(`Loaded server components: ${BLU4}${mtsFiles.join(" ")}${NRM5}`);
   else LOG11(`${WARN} No server components in ${sdir}`);
 }
 function m_NotifyCallback(data) {
@@ -2872,11 +2882,11 @@ function m_NotifyCallback(data) {
   let hot = [".ts", ".css", ".html"].some((e) => changed.endsWith(e));
   if (hot) {
     const EP2 = ServerEndpoint();
-    if (DBG5) LOG11(`${DIM4}notify change: ${u_short(changed)}${NRM4}`);
+    if (DBG5) LOG11(`${DIM4}notify change: ${u_short(changed)}${NRM5}`);
     EP2.netSignal("NET:UR_HOT_RELOAD_APP", { changed });
     return;
   }
-  if (DBG5) LOG11(`${DIM4}unhandled notify change: ${u_short(changed)}${NRM4}`);
+  if (DBG5) LOG11(`${DIM4}unhandled notify change: ${u_short(changed)}${NRM5}`);
 }
 
 // _ur/common/class-phase-machine.ts
@@ -3330,7 +3340,7 @@ function MakeCamelCase(str) {
 }
 
 // _ur/node-server/sna-node-hooks.mts
-var { BLU: BLU4, YEL: YEL3, RED: RED3, DIM: DIM5, NRM: NRM5 } = ANSI_COLORS;
+var { BLU: BLU5, YEL: YEL4, RED: RED3, DIM: DIM5, NRM: NRM6 } = ANSI_COLORS;
 var LOG13 = makeTerminalOut("SNA.HOOK", "TagCyan");
 var DBG7 = true;
 var COMPONENTS = /* @__PURE__ */ new Set();
@@ -3413,7 +3423,7 @@ async function SNA_LifecycleStart() {
       ],
       PHASE_ERROR: ["SRV_ERROR"]
     });
-  if (!SNA_SetLockState("init")) LOG13(`${RED3}lockstate 'init' fail${NRM5}`);
+  if (!SNA_SetLockState("init")) LOG13(`${RED3}lockstate 'init' fail${NRM6}`);
   const SRV_CFG_COPY = { ...SNA_GetServerConfigUnsafe() };
   for (const component of COMPONENTS) {
     const { PreConfig, _name } = component;
@@ -3422,7 +3432,7 @@ async function SNA_LifecycleStart() {
       PreConfig(SRV_CFG_COPY);
     }
   }
-  if (!SNA_SetLockState("preconfig")) LOG13(`${RED3}lockstate 'preconfig' fail${NRM5}`);
+  if (!SNA_SetLockState("preconfig")) LOG13(`${RED3}lockstate 'preconfig' fail${NRM6}`);
   for (const component of COMPONENTS) {
     const { PreHook: PreHook2, _name } = component;
     if (typeof PreHook2 === "function") {
@@ -3430,17 +3440,17 @@ async function SNA_LifecycleStart() {
       PreHook2();
     }
   }
-  if (!SNA_SetLockState("prehook")) LOG13(`${RED3}lockstate 'prehook' fail${NRM5}`);
+  if (!SNA_SetLockState("prehook")) LOG13(`${RED3}lockstate 'prehook' fail${NRM6}`);
   if (DBG7) LOG13(`SNA Node Lifecycle Starting`);
   await RunPhaseGroup("SNA/PHASE_INIT");
   await RunPhaseGroup("SNA/PHASE_LOAD");
   await RunPhaseGroup("SNA/PHASE_CONNECT");
   await RunPhaseGroup("SNA/PHASE_RUN");
   await RunPhaseGroup("SNA/PHASE_READY");
-  if (!SNA_SetLockState("locked")) LOG13(`${RED3}lockstate 'prehook' fail${NRM5}`);
+  if (!SNA_SetLockState("locked")) LOG13(`${RED3}lockstate 'prehook' fail${NRM6}`);
   const dooks = GetDanglingHooks();
   if (dooks) {
-    LOG13(`${RED3} *** ERROR *** dangling phase hooks detected${NRM5}`, dooks);
+    LOG13(`${RED3} *** ERROR *** dangling phase hooks detected${NRM6}`, dooks);
   }
 }
 function SNA_LifecycleStatus() {
@@ -5232,7 +5242,7 @@ var sna_dataserver_default = SNA_NewComponent2("dataserver", {
 });
 
 // _ur/node-server/sna-node.mts
-var { BLU: BLU5, YEL: YEL4, RED: RED4, DIM: DIM6, NRM: NRM6 } = ANSI_COLORS;
+var { BLU: BLU6, YEL: YEL5, RED: RED4, DIM: DIM6, NRM: NRM7 } = ANSI_COLORS;
 var LOG17 = makeTerminalOut("SNA", "TagCyan");
 async function SNA_Start() {
   SNA_UseComponent(sna_dataserver_default);

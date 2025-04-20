@@ -10,7 +10,7 @@ import { GetRootDirs } from '../node-server/file.mts';
 import PROMPTS from '../common/util-prompts.ts';
 import FSE from 'fs-extra';
 import path from 'path';
-import { execSync } from 'child_process';
+import { exec, execSync } from 'child_process';
 
 /// CONSTANTS AND DECLARATIONS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,7 +33,7 @@ let PKG_INFO;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function u_PackageInfo() {
   if (PKG_INFO) return PKG_INFO;
-  const pkgPath = path.join(ROOT, 'package.json');
+  const pkgPath = path.join(ROOT, '_ur/package.json');
   if (!FSE.existsSync(pkgPath)) {
     LOG('Package.json not found at', pkgPath);
     return { error: 'root package.json not found' };
@@ -85,7 +85,7 @@ async function PackCore() {
     LOG('Creating tgz directory at', urTgzDir);
     FSE.mkdirSync(urTgzDir, { recursive: true });
   }
-  execSync(`npm pack ${ROOT}`, {
+  execSync(`npm pack ${ROOT}/_ur`, {
     cwd: urTgzDir,
     stdio: 'inherit'
   });
