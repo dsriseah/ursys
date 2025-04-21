@@ -30,10 +30,10 @@
     }
   },
   "devDependencies": {
-    "vitest": "^3.0.7"
+    "vitest": "^3.0.7",
+    "@types/node": "^20.14.12"
   },
   "dependencies": {
-    "@types/node": "^20.14.12",
     "esbuild": "^v0.25.0",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-plugin-umd-wrapper": "^2.0.0",
@@ -42,8 +42,9 @@
     "keyv": "^4.5.4",
     "keyv-file": "^0.2.0",
     "serve-index": "^1.9.1",
-    "lokijs": "^1.5.12",
     "node-dir": "^0.1.17",
-    "ws": "^8.14.2"
+    "ws": "^8.14.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
   }
 }

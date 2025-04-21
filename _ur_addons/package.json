@@ -26,7 +26,6 @@
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-plugin-umd-wrapper": "^2.0.0",
     "fs-extra": "^11.3.0",
-    "node-dir": "^0.1.17",
     "vitest": "^3.0.7"
   },
   "peerDependencies": {

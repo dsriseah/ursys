@@ -1,7 +1,7 @@
 {
   "name": "ursys",
   "version": "0.0.1",
-  "description": "A modular self-contained development framework fpr realtime web app prototyping",
+  "description": "An opinionated framework for prototyping realtime web apps",
   "workspaces": [
     "_ur/",
     "_ur_addons/"
@@ -27,24 +27,24 @@
   "author": "DSri Seah",
   "license": "MIT",
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.51.0",
-    "@rollup/plugin-commonjs": "^28.0.2",
-    "@rollup/plugin-node-resolve": "^16.0.0",
     "@typescript-eslint/eslint-plugin": "^7.17.0",
     "@typescript-eslint/parser": "^7.17.0",
-    "esbuild": "^v0.25.0",
-    "esbuild-plugin-copy": "^2.1.1",
-    "esbuild-plugin-umd-wrapper": "^3.0.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.1",
-    "prettier": "^3.3.3",
-    "rollup": "^4.34.8",
-    "rollup-plugin-dts": "^6.1.1",
-    "rollup-plugin-esbuild": "^6.2.0",
-    "rollup-plugin-typescript2": "^0.36.0",
-    "tslib": "^2.8.1",
+    "prettier": "^3.3.3"
+  },
+  "dependencies": {
+    "esbuild": "^v0.25.0",
+    "esbuild-plugin-copy": "^2.1.1",
+    "esbuild-plugin-umd-wrapper": "^2.0.0",
+    "express": "^4.19.2",
+    "fs-extra": "^11.3.0",
+    "keyv": "^4.5.4",
+    "keyv-file": "^0.2.0",
+    "serve-index": "^1.9.1",
+    "ws": "^8.14.2",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"
   }
