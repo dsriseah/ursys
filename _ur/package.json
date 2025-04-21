@@ -21,12 +21,12 @@
   ],
   "exports": {
     "./server": {
-      "import": "./_dist/core/core-node.mjs",
-      "require": "./_dist/core/core-node.cjs"
+      "import": "./_out/core-node.mjs",
+      "require": "./_out/core-node.cjs"
     },
     "./client": {
-      "import": "./_dist/core/core-web-esm.js",
-      "require": "./_dist/core/core-web-cjs.js"
+      "import": "./_out/core-web-esm.js",
+      "require": "./_out/core-web-cjs.js"
     }
   },
   "devDependencies": {
@@ -42,7 +42,6 @@
     "keyv": "^4.5.4",
     "keyv-file": "^0.2.0",
     "serve-index": "^1.9.1",
-    "node-dir": "^0.1.17",
     "ws": "^8.14.2",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"
