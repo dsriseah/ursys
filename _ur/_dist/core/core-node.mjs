@@ -2363,6 +2363,7 @@ var NOTIFY_CB;
 var ENTRY_FILE;
 var ENTRY_FILES;
 var INDEX_FILE2;
+var OPTIMIZE;
 var { DIM: DIM2, NRM: NRM3 } = ANSI_COLORS;
 var LOG8 = makeTerminalOut("URBUILD", "TagBlue");
 function GetBuildOptions() {
@@ -2381,7 +2382,8 @@ function GetBuildOptions() {
     index_file: INDEX_FILE2,
     // optional values
     bundle_name: BUNDLE_NAME,
-    notify_cb: NOTIFY_CB
+    notify_cb: NOTIFY_CB,
+    optimize: OPTIMIZE
   };
 }
 function SetBuildOptions(opts) {
@@ -2395,7 +2397,8 @@ function SetBuildOptions(opts) {
     entry_files,
     index_file,
     bundle_name,
-    notify_cb
+    notify_cb,
+    optimize
   } = opts;
   const valid = source_dir && asset_dir && output_dir;
   if (!valid) throw Error(`${fn2} source, asset, and output are all required`);
@@ -2408,11 +2411,12 @@ function SetBuildOptions(opts) {
   INDEX_FILE2 = index_file;
   BUNDLE_NAME = bundle_name;
   NOTIFY_CB = notify_cb;
+  OPTIMIZE = optimize || process.env.PRODUCTION === "true" || false;
   return GetBuildOptions();
 }
 async function BuildApp(opts) {
   const fn2 = "BuildApp:";
-  let { bundle_name, entry_file, notify_cb } = SetBuildOptions(opts);
+  let { bundle_name, entry_file, notify_cb, optimize } = SetBuildOptions(opts);
   if (!bundle_name) bundle_name = path.basename(entry_file);
   ensureDir(PUBLIC);
   const context = await esbuild.context({
@@ -2422,7 +2426,9 @@ async function BuildApp(opts) {
     target: ES_TARGET,
     platform: "browser",
     format: "iife",
-    sourcemap: true,
+    minify: optimize,
+    treeShaking: optimize,
+    sourcemap: !optimize,
     outfile: `${PUBLIC}/js/${bundle_name}`,
     plugins: [
       // @ts-ignore - esbuild-plugin-copy not in types

@@ -16,6 +16,7 @@ const DBG = false;
 const LOG = PROMPTS.TerminalLog('BuildCore', 'TagSystem');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const { ROOT, DIR_UR_OUT } = GetRootDirs();
+const OPTIMIZE = process.env.PRODUCTION === 'true' || false;
 
 /// ESBUILD API ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,7 +26,7 @@ async function ESBuildLibrary() {
   FSE.ensureDir(DIR_UR_OUT);
 
   /** SERVER CLIENT SHARED BUILD SETTINGS **/
-  const nodeBuild = {
+  const nodeBuild: esbuild.BuildOptions = {
     entryPoints: [`${ROOT}/_ur/node-server/@node-index.mts`],
     bundle: true,
     platform: 'node',
@@ -36,6 +37,11 @@ async function ESBuildLibrary() {
     sourcemap: true,
     packages: 'external'
   };
+  if (OPTIMIZE) {
+    nodeBuild.sourcemap = false;
+    nodeBuild.minify = true;
+    nodeBuild.treeShaking = true;
+  }
 
   /* build the server library for nodejs */
   // @ts-ignore - build options
@@ -55,13 +61,18 @@ async function ESBuildLibrary() {
   if (DBG) LOG('built core-node.cjs');
 
   /** BROWSER CLIENT SHARED BUILD SETTINGS **/
-  const browserBuild = {
+  const browserBuild: esbuild.BuildOptions = {
     entryPoints: [`${ROOT}/_ur/web-client/@web-index.ts`],
     bundle: true,
     platform: 'browser',
     target: ['es2018'], // brunch can't handle features beyond this date
     sourcemap: true
   };
+  if (OPTIMIZE) {
+    browserBuild.sourcemap = false;
+    browserBuild.minify = true;
+    browserBuild.treeShaking = true;
+  }
 
   // @ts-ignore - build options
   await esbuild.build({
