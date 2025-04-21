@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import fse from 'fs-extra';
+import { ensureDir } from 'fs-extra';
 import path from 'node:path';
 import chokidar from 'chokidar';
 import esbuild from 'esbuild';
@@ -116,7 +116,7 @@ async function BuildApp(opts: BuildOptions) {
   // option: default bundle name to entry file name if not set
   if (!bundle_name) bundle_name = path.basename(entry_file);
   // ensure the output directory exists
-  fse.ensureDir(PUBLIC);
+  ensureDir(PUBLIC);
   // build the webapp and stuff it into public
   const context = await esbuild.context({
     entryPoints: [`${SRC_JS}/${entry_file}`],
@@ -166,7 +166,7 @@ async function MultiBuildApp(opts: BuildOptions) {
   let { entry_files, notify_cb } = SetBuildOptions(opts);
   entry_files = entry_files.map(file => `${SRC_JS}/${file}`);
   // ensure the output directory exists
-  fse.ensureDir(PUBLIC);
+  ensureDir(PUBLIC);
   // build the webapp and stuff it into public
   const context = await esbuild.context({
     entryPoints: entry_files,

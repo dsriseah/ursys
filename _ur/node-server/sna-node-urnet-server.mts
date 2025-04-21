@@ -8,11 +8,25 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import PATH from 'node:path';
-import * as FILE from './file.mts';
-import * as APPSERV from './appserver.mts';
-import * as APPBUILD from './appbuilder.mts';
-import * as IMPORT from './util-dynamic-import.mts';
-import * as CONTEXT from './sna-node-context.mts';
+import { EnsureDirChecked, RemoveDir, u_short } from './file.mts';
+import { Start, ServerEndpoint } from './appserver.mts';
+import {
+  GetBuildOptions,
+  SetBuildOptions,
+  MultiBuildApp,
+  BuildApp,
+  WatchExtra
+} from './appbuilder.mts';
+import {
+  FindServerModules,
+  MakeAppImports,
+  MakeWebCustomImports,
+  FindClientEntryFiles
+} from './util-dynamic-import.mts';
+import {
+  SNA_GetServerConfigUnsafe,
+  SNA_GetServerConfig
+} from './sna-node-context.mts';
 import { TerminalLog, ANSI } from '../common/util-prompts.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
@@ -33,7 +47,7 @@ const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: return the root directory, runtime directory */
 function SNA_RuntimeInfo() {
-  const { asset_dir, output_dir, runtime_dir } = APPBUILD.GetBuildOptions();
+  const { asset_dir, output_dir, runtime_dir } = GetBuildOptions();
   return { asset_dir, output_dir, runtime_dir };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -48,19 +62,19 @@ function SNA_EnsureAppDirs(rootDir: string) {
   const webc_dir = PATH.join(viewlib_dir, 'webc');
 
   // first erase the output dir to purge it of old files
-  FILE.RemoveDir(output_dir);
+  RemoveDir(output_dir);
 
   // if these dirs don't exist, create them
-  FILE.EnsureDirChecked(source_dir);
-  FILE.EnsureDirChecked(asset_dir);
-  FILE.EnsureDirChecked(output_dir);
-  FILE.EnsureDirChecked(runtime_dir);
-  FILE.EnsureDirChecked(config_dir);
-  FILE.EnsureDirChecked(viewlib_dir);
-  FILE.EnsureDirChecked(webc_dir);
+  EnsureDirChecked(source_dir);
+  EnsureDirChecked(asset_dir);
+  EnsureDirChecked(output_dir);
+  EnsureDirChecked(runtime_dir);
+  EnsureDirChecked(config_dir);
+  EnsureDirChecked(viewlib_dir);
+  EnsureDirChecked(webc_dir);
 
   // save
-  const CFG = CONTEXT.SNA_GetServerConfigUnsafe();
+  const CFG = SNA_GetServerConfigUnsafe();
   CFG.runtime_dir = runtime_dir;
   CFG.config_dir = config_dir;
   CFG.source_dir = source_dir;
@@ -95,8 +109,8 @@ async function SNA_Build(rootDir: string, opt?: Options): Promise<void> {
 
   // ensure the required SNA APP directories exist
   const { source_dir, asset_dir, output_dir, webc_dir } = SNA_EnsureAppDirs(rootDir);
-  const sdir = FILE.u_short(source_dir);
-  const wcdir = FILE.u_short(webc_dir);
+  const sdir = u_short(source_dir);
+  const wcdir = u_short(webc_dir);
 
   // A build consists of (1) building js bundle from CLIENT_ENTRY, and copying the
   // output to HT_DOCS/js followed by (2) copying assets from HT_ASSETS to HT_DOCS,
@@ -104,14 +118,14 @@ async function SNA_Build(rootDir: string, opt?: Options): Promise<void> {
   // the index file yourself.
 
   const bundle_name = 'bundle.js';
-  const { entryFile, tsFiles } = await IMPORT.MakeAppImports(source_dir);
+  const { entryFile, tsFiles } = await MakeAppImports(source_dir);
   if (tsFiles.length) {
     const ff = tsFiles.length > 1 ? 'files' : 'file';
     LOG(`Build: bundling entry ${ff} ${BLU}${tsFiles.join(' ')}${NRM}`);
     LOG(`.. into ${BLU}${bundle_name}${NRM}`);
   } else LOG(`${WARN} Build: No client components in ${sdir}`);
 
-  const { webcFile, webcFiles } = await IMPORT.MakeWebCustomImports(webc_dir);
+  const { webcFile, webcFiles } = await MakeWebCustomImports(webc_dir);
   if (webcFiles.length) {
     LOG(`Found web components: ${BLU}${webcFiles.join(' ')}${NRM}`);
     LOG(`import as ${BLU}${webcFile}${NRM}`);
@@ -130,16 +144,16 @@ async function SNA_Build(rootDir: string, opt?: Options): Promise<void> {
     // hot reload callback, added to esbuild events
     notify_cb
   };
-  LOG(`Using esbuild to assemble website -> ${BLU}${FILE.u_short(output_dir)}${NRM}`);
-  APPBUILD.SetBuildOptions(buildOpts);
-  await APPBUILD.BuildApp(buildOpts);
+  LOG(`Using esbuild to assemble website -> ${BLU}${u_short(output_dir)}${NRM}`);
+  SetBuildOptions(buildOpts);
+  await BuildApp(buildOpts);
 
   /// SERVE AND WATCH APP ///
 
-  const htdocs_short = FILE.u_short(buildOpts.output_dir);
+  const htdocs_short = u_short(buildOpts.output_dir);
   const watch_dirs = [`${source_dir}/**/*`, `${asset_dir}/**/*`];
   LOG(`Live Reload Service is monitoring ${htdocs_short}`);
-  await APPBUILD.WatchExtra({
+  await WatchExtra({
     watch_dirs,
     notify_cb
   });
@@ -150,16 +164,16 @@ async function SNA_Build(rootDir: string, opt?: Options): Promise<void> {
     index_file: 'index.html',
     wss_path: 'sna-ws',
     get_client_cfg: () => {
-      const { dataURI } = CONTEXT.SNA_GetServerConfigUnsafe();
+      const { dataURI } = SNA_GetServerConfigUnsafe();
       return { dataURI };
     }
   };
-  await APPSERV.Start(serverOpts);
+  await Start(serverOpts);
 
   /// IMPORT DYNAMIC SERVER MODULES ///
   /// this happens after APPSERV.Start() because SNA relies on the Express
   /// server being up and running to handle URNET messages
-  const mtsFiles = await IMPORT.FindServerModules(source_dir);
+  const mtsFiles = await FindServerModules(source_dir);
   if (mtsFiles.length)
     LOG(`Loaded server components: ${BLU}${mtsFiles.join(' ')}${NRM}`);
   else LOG(`${WARN} No server components in '${sdir}'`);
@@ -171,8 +185,8 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
   LOG(`SNA MultiBuild: Transpiling and bundling entry files`);
   // ensure the required SNA APP directories exist
   const { source_dir, asset_dir, output_dir, webc_dir } = SNA_EnsureAppDirs(rootDir);
-  const sdir = FILE.u_short(source_dir);
-  const entryFiles = await IMPORT.FindClientEntryFiles(source_dir);
+  const sdir = u_short(source_dir);
+  const entryFiles = await FindClientEntryFiles(source_dir);
   if (entryFiles.length) {
     LOG(`MultiBuild: bundling entry files: ${BLU}${entryFiles.join(' ')}${NRM}`);
   } else {
@@ -180,7 +194,7 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
     return;
   }
 
-  const { webcFile, webcFiles } = await IMPORT.MakeWebCustomImports(webc_dir);
+  const { webcFile, webcFiles } = await MakeWebCustomImports(webc_dir);
   if (webcFiles.length) {
     LOG(`Found web components: ${BLU}${webcFiles.join(' ')}${NRM}`);
     LOG(`import as ${BLU}${webcFile}${NRM}`);
@@ -198,16 +212,16 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
     // hot reload callback, added to esbuild events
     notify_cb
   };
-  LOG(`Using esbuild to assemble website -> ${BLU}${FILE.u_short(output_dir)}${NRM}`);
-  APPBUILD.SetBuildOptions(buildOpts);
-  await APPBUILD.MultiBuildApp(buildOpts);
+  LOG(`Using esbuild to assemble website -> ${BLU}${u_short(output_dir)}${NRM}`);
+  SetBuildOptions(buildOpts);
+  await MultiBuildApp(buildOpts);
 
   /// SERVE AND WATCH APP ///
 
-  const htdocs_short = FILE.u_short(buildOpts.output_dir);
+  const htdocs_short = u_short(buildOpts.output_dir);
   const watch_dirs = [`${source_dir}/**/*`, `${asset_dir}/**/*`];
   LOG(`Live Reload Service is monitoring ${htdocs_short}`);
-  await APPBUILD.WatchExtra({
+  await WatchExtra({
     watch_dirs,
     notify_cb
   });
@@ -218,16 +232,16 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
     index_file: 'index.html',
     wss_path: 'sna-ws',
     get_client_cfg: () => {
-      const { dataURI } = CONTEXT.SNA_GetServerConfig();
+      const { dataURI } = SNA_GetServerConfig();
       return { dataURI };
     }
   };
-  await APPSERV.Start(serverOpts);
+  await Start(serverOpts);
 
   /// IMPORT DYNAMIC SERVER MODULES ///
   /// this happens after APPSERV.Start() because SNA relies on the Express
   /// server being up and running to handle URNET messages
-  const mtsFiles = await IMPORT.FindServerModules(source_dir);
+  const mtsFiles = await FindServerModules(source_dir);
   if (mtsFiles.length)
     LOG(`Loaded server components: ${BLU}${mtsFiles.join(' ')}${NRM}`);
   else LOG(`${WARN} No server components in ${sdir}`);
@@ -241,18 +255,18 @@ function m_NotifyCallback(data) {
   }
   // is this a file on the server? skip it
   if (changed.endsWith('.mts')) {
-    // if (DBG) LOG(`${DIM}skipping .mts files: ${FILE.u_short(changed)}${NRM}`);
+    // if (DBG) LOG(`${DIM}skipping .mts files: ${u_short(changed)}${NRM}`);
     return;
   }
   // otherwise check if it's a hot reloadable file
   let hot = ['.ts', '.css', '.html'].some(e => changed.endsWith(e));
   if (hot) {
-    const EP = APPSERV.ServerEndpoint();
-    if (DBG) LOG(`${DIM}notify change: ${FILE.u_short(changed)}${NRM}`);
+    const EP = ServerEndpoint();
+    if (DBG) LOG(`${DIM}notify change: ${u_short(changed)}${NRM}`);
     EP.netSignal('NET:UR_HOT_RELOAD_APP', { changed });
     return;
   }
-  if (DBG) LOG(`${DIM}unhandled notify change: ${FILE.u_short(changed)}${NRM}`);
+  if (DBG) LOG(`${DIM}unhandled notify change: ${u_short(changed)}${NRM}`);
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

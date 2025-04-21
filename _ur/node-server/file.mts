@@ -11,7 +11,7 @@ import * as fse_cjs from 'fs-extra'; // fs-extra has a weird export structure
 const FSE = fse_cjs.default;
 import PATH from 'node:path';
 import * as _P from '../common/util-prompts.ts';
-import * as CRYPTO from 'node:crypto';
+import { createHash } from 'node:crypto';
 import * as url from 'url';
 import { ES_TARGET, ES_OUTDIR } from './const-esbuild.mts';
 
@@ -337,7 +337,7 @@ async function UnlinkFile(filepath) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** given a filepath, return the hash of the file */
 async function AsyncFileHash(filepath, algo = 'md5') {
-  const hash = CRYPTO.createHash(algo);
+  const hash = createHash(algo);
   const stream = FSE.createReadStream(filepath);
   // wait for buffer to be read
   stream.on('data', data => hash.update(data));

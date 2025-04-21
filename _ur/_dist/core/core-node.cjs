@@ -385,7 +385,7 @@ __export(file_exports, {
 });
 var fse_cjs = __toESM(require("fs-extra"), 1);
 var import_node_path = __toESM(require("node:path"), 1);
-var CRYPTO = __toESM(require("node:crypto"), 1);
+var import_node_crypto = require("node:crypto");
 var url = __toESM(require("url"), 1);
 
 // _ur/node-server/const-esbuild.mts
@@ -636,7 +636,7 @@ async function UnlinkFile(filepath) {
   }
 }
 async function AsyncFileHash(filepath, algo = "md5") {
-  const hash = CRYPTO.createHash(algo);
+  const hash = (0, import_node_crypto.createHash)(algo);
   const stream = FSE.createReadStream(filepath);
   stream.on("data", (data) => hash.update(data));
   await new Promise((resolve, reject) => {
@@ -2394,7 +2394,7 @@ __export(appbuilder_exports, {
   SetBuildOptions: () => SetBuildOptions,
   WatchExtra: () => WatchExtra
 });
-var import_fs_extra = __toESM(require("fs-extra"), 1);
+var import_fs_extra = require("fs-extra");
 var import_node_path2 = __toESM(require("node:path"), 1);
 var import_chokidar = __toESM(require("chokidar"), 1);
 var import_esbuild = __toESM(require("esbuild"), 1);
@@ -2459,7 +2459,7 @@ async function BuildApp(opts) {
   const fn2 = "BuildApp:";
   let { bundle_name, entry_file, notify_cb } = SetBuildOptions(opts);
   if (!bundle_name) bundle_name = import_node_path2.default.basename(entry_file);
-  import_fs_extra.default.ensureDir(PUBLIC);
+  (0, import_fs_extra.ensureDir)(PUBLIC);
   const context = await import_esbuild.default.context({
     entryPoints: [`${SRC_JS}/${entry_file}`],
     bundle: true,
@@ -2499,7 +2499,7 @@ async function MultiBuildApp(opts) {
   const fn2 = "MultiBuildApp:";
   let { entry_files, notify_cb } = SetBuildOptions(opts);
   entry_files = entry_files.map((file) => `${SRC_JS}/${file}`);
-  import_fs_extra.default.ensureDir(PUBLIC);
+  (0, import_fs_extra.ensureDir)(PUBLIC);
   const context = await import_esbuild.default.context({
     entryPoints: entry_files,
     bundle: true,

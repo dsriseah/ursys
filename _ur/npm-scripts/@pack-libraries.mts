@@ -46,6 +46,29 @@ function u_PackageInfo() {
   }
   return PKG_INFO;
 }
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function u_RsyncTFile(localFilePath, remoteUser, remoteHost, remoteDirectory) {
+  return new Promise((resolve, reject) => {
+    // Construct the full rsync command
+    const rsyncCommand = `rsync -avz "${localFilePath}" "${remoteUser}@${remoteHost}:${remoteDirectory}"`;
+
+    // Execute the rsync command
+    exec(rsyncCommand, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Rsync Error: ${error.message}`);
+        reject(error);
+        return;
+      }
+
+      if (stderr) {
+        console.warn(`Rsync Warnings: ${stderr}`);
+      }
+
+      console.log(`File uploaded successfully: ${stdout}`);
+      resolve(stdout);
+    });
+  });
+}
 
 /// PACK METHOD /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -140,6 +163,18 @@ async function PackSNA() {
     stdio: 'inherit'
   });
   LOG(`Packed "${filename}" to "${u_short(urTgzDir)}"`);
+}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** upload the tarball to my remote server using rsync */
+async function UploadTarball() {
+  // Example usage
+  const localFile = '/path/to/local/file.txt';
+  const user = 'your_username';
+  const host = 'example.com';
+  const remoteDir = '/path/to/remote/directory/';
+  u_RsyncTFile(localFile, user, host, remoteDir)
+    .then(() => console.log('Upload complete'))
+    .catch(err => console.error('Upload failed', err));
 }
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
