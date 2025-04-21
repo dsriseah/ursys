@@ -1,6 +1,6 @@
 {
   "name": "ursys",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "An opinionated framework for prototyping realtime web apps",
   "workspaces": [
     "_ur/",

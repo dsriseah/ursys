@@ -1,6 +1,6 @@
 {
   "name": "ursys-sna",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "URSYS Library for SNA (Sri New Architecture) support",
   "repository": {
     "type": "git",

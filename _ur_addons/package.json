@@ -1,6 +1,6 @@
 {
   "name": "ursys-addons",
-  "version": "0.1",
+  "version": "0.1.0",
   "description": "Addons for enhancing NetCreate ITEST",
   "private": true,
   "type": "module",
