@@ -8,8 +8,8 @@ import express from 'express';
 import serveIndex from 'serve-index';
 import { WebSocketServer } from 'ws';
 import http from 'node:http';
-import * as FILE from './file.mts';
-import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
+import { EnsureDir, FileExists, DirExists } from './file.mts';
+import { TerminalLog, ANSI } from '../common/util-prompts.ts';
 import { NetEndpoint } from '../common/class-urnet-endpoint.ts';
 import { NetSocket } from '../common/class-urnet-socket.ts';
 import { NetPacket } from '../common/class-urnet-packet.ts';
@@ -17,7 +17,7 @@ import { NetPacket } from '../common/class-urnet-packet.ts';
 /// TYPE DEFINITIONS //////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { NP_Msg, NP_Address, NM_Handler } from '../_types/urnet.d.ts';
-import type { DataObj } from '../_types/dataset.d.ts';
+import type { DataObj } from '../_types/dataset.ts';
 type AddressInfo = { port: number; family: string; address: string };
 type RequestHandler = express.RequestHandler; // (req,res,next)=>void
 type PacketHandler = (pkt: NetPacket) => void;
@@ -45,8 +45,8 @@ type HookOptions = {
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const { DIM, NRM } = ANSI;
-const LOG = makeTerminalOut('URSERVE', 'TagBlue');
+const { DIM, NRM, BLU, BRI } = ANSI;
+const LOG = TerminalLog('URSERVE', 'TagBlue');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let APP: express.Application; // express app instance, init by ListenHTTP
 let SERVER: http.Server; // http server instance, init by ListenHTTP
@@ -73,7 +73,7 @@ function SaveHTOptions(opt: HTOptions): HTOptions {
   const valid = http_host && http_port;
   if (!valid) return { error: `${fn} missing http_host or http_port` };
   if (typeof http_docs !== 'string') return { error: `${fn} missing http_docs` };
-  if (!FILE.DirExists(http_docs)) return { error: `${fn} http_docs not found` };
+  if (!DirExists(http_docs)) return { error: `${fn} http_docs not found` };
   // error checking of optional elements
   if (typeof index_file !== 'string') throw Error(`${fn} index_file is invalid`);
   // everything good, so save the options
@@ -158,9 +158,9 @@ function ListenHTTP(opt: HTOptions) {
       reject('HTTP server already started');
       return;
     }
-    if (!FILE.DirExists(http_docs)) {
+    if (!DirExists(http_docs)) {
       LOG.info(`Creating directory: ${http_docs}`);
-      FILE.EnsureDir(http_docs);
+      EnsureDir(http_docs);
     }
     // configure HTTP server
     APP = express();
@@ -169,7 +169,7 @@ function ListenHTTP(opt: HTOptions) {
     else {
       const file = `${http_docs}/${index_file}`;
       APP.get('/', (req, res) => {
-        if (!FILE.FileExists(file)) {
+        if (!FileExists(file)) {
           let out404 = `<h2>No Index File Found</h2>`;
           out404 += `Make sure that 'index.html' exists in your static assets directory before building.`;
           res.status(404).send(out404);
@@ -186,7 +186,9 @@ function ListenHTTP(opt: HTOptions) {
     });
     // start the server
     SERVER = APP.listen(http_port, http_host, () => {
-      LOG.info(`${SERVER_NAME} started on http://${http_host}:${http_port}`);
+      LOG.info(
+        `${SERVER_NAME} started on ${NRM}${BRI}${BLU}http://${http_host}:${http_port}`
+      );
       resolve();
     });
   });
@@ -314,7 +316,6 @@ function DeleteMessageHandler(message: NP_Msg, pktHandlr?: PacketHandler) {
 async function RegisterMessages() {
   // declare messages to server
   const resdata = await EP.declareClientMessages();
-  // LOG(...PR(`RegisterMessages: ${resdata.error || 'success'}`));
   // LOG(resdata);
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

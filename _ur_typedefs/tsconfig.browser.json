@@ -1,0 +1,19 @@
+/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
+
+  This tsconfig file is used by rollup for web exports
+
+  It handles all the .ts files in the web-client and common directories
+
+\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
+
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "bundler",
+    "declaration": false,
+    "importHelpers": true
+  },
+  "include": ["../_ur/**/*.ts"],
+  "exclude": ["../_ur/node-server/**/*.ts", "../_ur/common/**/*.ts", "../_ur/tests"]
+}

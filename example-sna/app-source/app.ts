@@ -10,8 +10,8 @@
   
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { SNA, ConsoleStyler } from '@ursys/core';
-import * as COMMENTS from './datacore/dc-comments.ts';
+import { SNA, ConsoleStyler } from 'ursys/client';
+import * as COMMENTS from './datacore/dc-comments';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

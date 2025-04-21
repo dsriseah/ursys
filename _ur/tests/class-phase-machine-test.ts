@@ -23,8 +23,8 @@
 import { expect, test, vi } from 'vitest';
 import PhaseMachine from '../common/class-phase-machine.ts';
 import * as PROMPTS from '../common/util-prompts.ts';
-const { makeTerminalOut } = PROMPTS;
-const TERM = makeTerminalOut(' TEST', 'TagPink');
+const { TerminalLog } = PROMPTS;
+const TERM = TerminalLog(' TEST', 'TagPink');
 
 /// TESTS /////////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -124,7 +124,7 @@ test('expected execution order', async () => {
         // otherwise it will push immediately
         done.push('250');
         expect(done).toEqual(['0', '250']);
-        resolve();
+        resolve(void 0);
       }, 250);
     });
   });

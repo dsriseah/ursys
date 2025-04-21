@@ -12,7 +12,7 @@
   When using from nodejs mts file, you can only import this ts file as 'default' 
   property. To access the NetPacket class do this:
 
-    import CLASS_NP from './class-urnet-packet.ts';
+    import CLASS_NP from './class-urnet-packet';
     const NetPacket = CLASS_NP.default; // note .default
 
   This is not required when importing from another .ts typescript file

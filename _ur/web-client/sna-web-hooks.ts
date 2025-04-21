@@ -19,8 +19,9 @@ import {
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { PhaseID, HookFunction } from '../common/class-phase-machine.ts';
-import type { SNA_ComponentProps, DataObj } from '../@ur-types.d.ts';
+import type { PhaseID, HookFunction } from '../common/class-phase-machine.d.ts';
+import type { SNA_ComponentProps } from '../_types/sna.ts';
+import type { DataObj } from '../_types/dataset.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

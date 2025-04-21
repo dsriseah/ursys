@@ -8,10 +8,10 @@ import { NormStringToValue } from './util-data-norm.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { ErrObj } from '../_types/ursys';
-import type { DatasetOp, DataSyncReq, DatasetReq } from '../_types/dataset';
-import type { DataBinType, DataSyncOp, DataSyncMode } from '../_types/dataset';
-import type { UR_ManifestObj, DS_DataURI } from '../_types/dataset';
+import type { ErrObj, DS_DataURI } from '../_types/dataset.ts';
+import type { DatasetOp, DataSyncReq, DatasetReq } from '../_types/dataset.ts';
+import type { DataBinType, DataSyncOp, DataSyncMode } from '../_types/dataset.ts';
+import type { UR_ManifestObj } from '../_types/dataset.ts';
 //
 type DecodedManifest = UR_ManifestObj & ErrObj;
 type DecodedDataURI = {

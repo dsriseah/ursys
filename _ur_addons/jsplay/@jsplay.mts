@@ -17,7 +17,7 @@
 
 import PROCESS from 'node:child_process';
 import PATH from 'node:path';
-import { PR, FILE } from '@ursys/core';
+import { PROMPTS, FILE } from 'ursys/server';
 import CHOKIDAR from 'chokidar';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -37,7 +37,7 @@ let WATCHER_SUSPEND = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const [AO_NAME, AO_DIR] = FILE.DetectedAddonDir();
 const ADDON = AO_NAME.toUpperCase();
-const LOG = PR(ADDON, 'TagCyan');
+const LOG = PROMPTS.TerminalLog(ADDON, 'TagCyan');
 
 /// PROCESS EVENTS ////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -80,7 +80,7 @@ async function m_StartTSNode() {
     const fname = PATH.basename(fp);
     const date = new Date().toLocaleTimeString();
     LOG(`${DIM}${date} running ${BLU}${fname}${NRM}`);
-    PROCS.push(PROCESS.spawn('ts-node-esm', [fp], { stdio: 'inherit' }));
+    PROCS.push(PROCESS.spawn('tsx', [fp], { stdio: 'inherit' }));
   }
   await m_TSNodeStarted();
   WATCHER_SUSPEND = false;

@@ -9,7 +9,7 @@
 const { UR_RaiseMessage, UR_HandleMessage } = require('./server-message-api');
 const UDevice = require('./class-udevice');
 const DBG = require('./common/debug-props');
-const TERM = require('./util/prompts').makeTerminalOut('NETDVC');
+const TERM = require('./util/prompts').TerminalLog('NETDVC');
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

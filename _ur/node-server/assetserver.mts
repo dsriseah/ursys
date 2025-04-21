@@ -11,7 +11,14 @@ import * as FSE from 'fs-extra';
 import PATH from 'path';
 import express from 'express';
 import serveIndex from 'serve-index';
-import * as FILE from './file.mts';
+import {
+  Files,
+  ReadJSON,
+  FilesHashInfo,
+  GetPathInfo,
+  DirExists,
+  GetDirContent
+} from './file.mts';
 import { GetReqInfo } from './util-express.mts';
 import { IsAssetDirname } from '../common/util-data-ops.ts';
 
@@ -36,7 +43,7 @@ let m_asset_counter = 1000; // asset id counter
 /** scans the passed dirpath for any manifest JSON files. Returns an array of
  *  manifest objects */
 function m_GetPredefinedManifests(dataPath: string) {
-  const allfiles = FILE.Files(dataPath);
+  const allfiles = Files(dataPath);
   const mfiles = allfiles
     .filter(f => f.startsWith(MANIFEST_FILENAME) && f.endsWith('.json'))
     .sort();
@@ -44,7 +51,7 @@ function m_GetPredefinedManifests(dataPath: string) {
   if (mfiles.length > 0) {
     const manifestObjs = [];
     for (let f of mfiles) {
-      const obj = FILE.ReadJSON(`${dataPath}/${f}`);
+      const obj = ReadJSON(`${dataPath}/${f}`);
       manifestObjs.push(obj);
     }
     return manifestObjs;
@@ -56,8 +63,8 @@ function m_GetPredefinedManifests(dataPath: string) {
 /** Return a list of mediafiles for the assetype of the directory, which is
  *  determined by the terminating dirname of the path. */
 async function m_GetAssetFileInfo(assetPath: string) {
-  const files = FILE.Files(assetPath);
-  const assetInfo = await FILE.FilesHashInfo(files);
+  const files = Files(assetPath);
+  const assetInfo = await FilesHashInfo(files);
   return assetInfo;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -101,7 +108,7 @@ async function DeliverManifest(req, res, next) {
     return;
   }
   // bail if the requested path isn't a directory
-  const pathInfo = FILE.GetPathInfo(path);
+  const pathInfo = GetPathInfo(path);
   if (pathInfo.isFile) {
     const err = `${fullURL} appears to be a file request, not a directory`;
     res.status(400).send(err);
@@ -109,7 +116,7 @@ async function DeliverManifest(req, res, next) {
   }
 
   // if the directory exists, check for manifest files
-  if (FILE.DirExists(path)) {
+  if (DirExists(path)) {
     const mdata = m_GetPredefinedManifests(path);
     /** case 1: manifest file found in dir */
     if (mdata.length > 0) {
@@ -117,7 +124,7 @@ async function DeliverManifest(req, res, next) {
       return;
     }
     /** case 2: autogenerate manifest file */
-    const { dirs } = FILE.GetDirContent(path);
+    const { dirs } = GetDirContent(path);
     const assetDirs = dirs.filter(d => IsAssetDirname(d));
     if (assetDirs.length > 0) {
       m_MakeManifestObj(assetDirs).then(result => {

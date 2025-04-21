@@ -6,11 +6,11 @@
 
 import Keyv from 'keyv';
 import { KeyvFile } from 'keyv-file';
-import { PR } from '@ursys/core';
+import { PROMPTS } from 'ursys/server';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('KV-JSON');
+const LOG = PROMPTS.TerminalLog('KV-JSON');
 const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let m_keyvfile; // keyv-file json adapter for keyv

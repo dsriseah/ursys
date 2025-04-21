@@ -1,0 +1,16 @@
+{
+  "name": "example-appt",
+  "version": "1.0.0",
+  "private": true,
+  "description": "example app for URSYS",
+  "scripts": {
+    "ur:core": "tsx ../_ur/npm-scripts/@build-core.mts",
+    "ur:dev": "tsx ../_ur/npm-scripts/@build-core.mts && tsx ./@run-example.mts",
+    "dev": "tsx ./@run-example.mts"
+  },
+  "author": "dsriseah",
+  "license": "MIT",
+  "dependencies": {
+    "ursys": "file:../_ur"
+  }
+}

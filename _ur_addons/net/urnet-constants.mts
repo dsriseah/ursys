@@ -4,9 +4,10 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { FILE } from '@ursys/core';
-import CLIENT_CONSTANTS from './urnet-constants-webclient.ts';
+import { FILE } from 'ursys/server';
+import CLIENT_CONSTANTS from './urnet-constants-webclient.js';
 const { HTTP_CLIENT_INFO } = CLIENT_CONSTANTS;
+import { ES_TARGET } from '../../_ur/node-server/const-esbuild.mts';
 
 /// TYPES & INTERFACES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -89,7 +90,7 @@ const HTTP_INFO: T_HTTP = {
 /// BUILD SYSTEM INFO /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const ESBUILD_INFO: TESBUILD = {
-  es_target: 'es2018' // esbuild target
+  es_target: ES_TARGET // esbuild target (note: brunch compat max 2018)
 };
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

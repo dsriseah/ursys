@@ -1,21 +1,21 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
-  NODE CLI TOOL - TYPESCRIPT BUILD URSYS ADDONS
+  NODE CLI TOOL - BUILD URSYS ADDONS
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import esbuild from 'esbuild';
 import { umdWrapper } from 'esbuild-plugin-umd-wrapper';
 import FSE from 'fs-extra';
-import PROMPT from '../common/util-prompts.ts';
+import PROMPTS from '../common/util-prompts.ts';
 import { GetRootDirs } from '../node-server/file.mts';
 
 /// CONSTANTS AND DECLARATIONS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const { ROOT, DIR_UR_ADDS, DIR_UR_ADDS_DIST } = GetRootDirs();
+const { ROOT, DIR_UR_ADDS, DIR_UR_ADDS_OUT } = GetRootDirs();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const LOG = PROMPT.makeTerminalOut('BUILD-MOD', 'TagSystem');
+const LOG = PROMPTS.TerminalLog('BUILD-MOD', 'TagSystem');
 
 /// ESBUILD API ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -26,10 +26,10 @@ function _short(path) {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** build the UR libraries for server and client */
 async function ESBuildModules() {
-  FSE.ensureDir(DIR_UR_ADDS_DIST);
+  FSE.ensureDir(DIR_UR_ADDS_OUT);
   /** SERVER CLIENT SHARED BUILD SETTINGS **/
   const nodeBuild = {
-    entryPoints: [`${DIR_UR_ADDS}/@addons-server.mts`],
+    entryPoints: [`${DIR_UR_ADDS}/@addons-node.mts`],
     bundle: true,
     platform: 'node',
     target: ['node18', 'esnext'],
@@ -41,22 +41,22 @@ async function ESBuildModules() {
   // @ts-ignore - build options
   await esbuild.build({
     ...nodeBuild,
-    outfile: `${DIR_UR_ADDS_DIST}/addons-server-esm.mjs`,
+    outfile: `${DIR_UR_ADDS_OUT}/addons-node.mjs`,
     format: 'esm'
   });
-  if (DBG) LOG('built ur_addons-server ESM');
+  if (DBG) LOG('built addons-node mjs');
 
   // @ts-ignore - build options
   await esbuild.build({
     ...nodeBuild,
-    outfile: `${DIR_UR_ADDS_DIST}/addons-server.cjs`,
+    outfile: `${DIR_UR_ADDS_OUT}/addons-node.cjs`,
     format: 'cjs'
   });
-  if (DBG) LOG('built ur_addons-server CJS');
+  if (DBG) LOG('built addons-node.cjs');
 
   /** BROWSER CLIENT SHARED BUILD SETTINGS **/
   const browserBuild = {
-    entryPoints: [`${DIR_UR_ADDS}/@addons-client.ts`],
+    entryPoints: [`${DIR_UR_ADDS}/@addons-web.ts`],
     bundle: true,
     platform: 'browser',
     target: ['es2018'], // brunch can't handle features beyond this date
@@ -66,30 +66,30 @@ async function ESBuildModules() {
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_UR_ADDS_DIST}/addons-client-esm.js`,
+    outfile: `${DIR_UR_ADDS_OUT}/addons-web-esm.js`,
     format: 'esm'
   });
-  if (DBG) LOG('built ur_addons-client ESM');
+  if (DBG) LOG('built addons-web-esm.js');
 
   // @ts-ignore - build options
   await esbuild.build({
     ...browserBuild,
-    outfile: `${DIR_UR_ADDS_DIST}/addons-client-cjs.js`,
+    outfile: `${DIR_UR_ADDS_OUT}/addons-web-cjs.js`,
     format: 'cjs'
   });
-  if (DBG) LOG('built ur_addons-client CJS');
+  if (DBG) LOG('built addons-web-cjs.js');
 
   await esbuild.build({
     ...browserBuild,
     plugins: [umdWrapper()],
-    outfile: `${DIR_UR_ADDS_DIST}/mod-client-umd.js`,
+    outfile: `${DIR_UR_ADDS_OUT}/addons-web-umd.js`,
     // @ts-ignore - esbuild-plugin-umd-wrapper
     format: 'umd' // esbuild-plugin-umd-wrapper
   });
-  if (DBG) LOG('built ur_addons-client UMD');
+  if (DBG) LOG('built addons-web-umd.js');
 
   // if !DBG, print simpler built message
-  if (!DBG) console.log(`${LOG.DIM}info: built @ursys addons${LOG.RST}`);
+  if (!DBG) console.log(`${LOG.DIM}info: built ursys addons${LOG.RST}`);
 }
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////

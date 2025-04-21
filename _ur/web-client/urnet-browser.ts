@@ -5,14 +5,16 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import * as PROMPT from '../common/util-prompts.ts';
+import * as _P from '../common/util-prompts.ts';
 import NetEndpoint from '../common/class-urnet-endpoint.ts';
 import NetSocket from '../common/class-urnet-socket.ts';
+
 import type { NP_Msg, NP_Address, NM_Handler } from '../_types/urnet.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const PR = PROMPT.makeStyleFormatter('URNET', 'TagPurple');
+const { ConsoleStyler } = _P;
+const PR = ConsoleStyler('URNET', 'TagPurple');
 const LOG = console.log.bind(console);
 const DBG = false;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

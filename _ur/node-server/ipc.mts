@@ -30,8 +30,8 @@
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { makeTerminalOut } from '../common/util-prompts.ts';
-const LOG = makeTerminalOut('IPC', 'TagGreen');
+import { TerminalLog } from '../common/util-prompts.ts';
+const LOG = TerminalLog('IPC', 'TagGreen');
 import * as UR_EVENTS from '../common/declare-async.ts';
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

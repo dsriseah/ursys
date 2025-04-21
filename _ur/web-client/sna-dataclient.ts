@@ -19,37 +19,37 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler } from '../common/util-prompts.ts';
+import { SNA_HookAppPhase } from './sna-web-hooks.ts';
+import { SNA_NewComponent } from '../common/class-sna-component.ts';
 import {
-  HookAppPhase,
   AddMessageHandler,
   ClientEndpoint,
-  RegisterMessages,
-  NewComponent
-} from './sna-web.ts';
+  RegisterMessages
+} from './sna-web-urnet-client.ts';
 import { Dataset } from '../common/class-data-dataset.ts';
 import { DatasetAdapter } from '../common/abstract-dataset-adapter.ts';
 import { DecodeDataURI, DecodeDataConfig } from '../common/util-data-ops.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import type { SNA_EvtHandler } from '../_types/sna.ts';
 import type {
-  DataObj,
-  OpResult,
   IDS_DatasetAdapter,
   DatasetReq,
+  DataObj,
   DatasetRes,
   DataSyncOptions,
   DataSyncReq,
   DataSyncRes,
   DataSyncMode,
   UR_Item,
-  DS_DataURI,
   DS_DatasetObj,
+  DS_DataURI,
   SearchOptions,
-  RecordSet,
-  SNA_EvtHandler,
-  SNA_Component
-} from '../@ur-types.d.ts';
+  OpResult,
+  RecordSet
+} from '../_types/dataset.ts';
+
 //
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -416,7 +416,7 @@ function PreConfig(config: DataObj) {
  *  where your module can declare where it needs to do something */
 function PreHook() {
   // hook into NET_DATASET to initialize dataclient connection to dataserver
-  HookAppPhase('NET_DATASET', async () => {
+  SNA_HookAppPhase('NET_DATASET', async () => {
     let dataURI = DS_URI;
     const opts = { mode: DS_MODE };
     let res: OpResult;
@@ -456,7 +456,7 @@ function Unsubscribe(binID: string, evHdl: SNA_EvtHandler) {
  *  with the PreConfig() and PreHook() methods to allow the module to
  *  independently manage itself and its data */
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default NewComponent('dataclient', {
+export default SNA_NewComponent('dataclient', {
   PreConfig,
   PreHook,
   Subscribe,

@@ -9,15 +9,15 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import PATH from 'node:path';
-import { SNA, PR, FILE } from '@ursys/core';
+import { SNA, PROMPTS, FILE } from 'ursys/server';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj } from '@ursys/core';
+import type { DataObj } from 'ursys/server';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('server-ex', 'TagGreen');
+const LOG = PROMPTS.TerminalLog('server-ex', 'TagGreen');
 let CONFIG: DataObj = {};
 
 /// LIFECYCLE HOOKS ///////////////////////////////////////////////////////////

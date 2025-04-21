@@ -8,13 +8,13 @@
 import PATH from 'node:path';
 import * as KV from './kv-json.mts';
 import { SpawnOptions, spawn } from 'node:child_process';
-import { PR, PROC, FILE } from '@ursys/core';
+import { PROMPTS, PROC, FILE } from 'ursys/server';
 import { UDS_INFO, UseServer } from './urnet-constants.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const LOG = PR('Process', 'TagCyan');
+const LOG = PROMPTS.TerminalLog('Process', 'TagCyan');
 const DBG_PROC = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);
@@ -65,11 +65,7 @@ async function SpawnServer(scriptName: string, id: string) {
     detached: true,
     stdio: DBG ? 'inherit' : 'ignore'
   };
-  const proc = spawn(
-    'ts-node-esm',
-    ['--transpile-only', scriptName, ...m_args],
-    options
-  );
+  const proc = spawn('tsx', [scriptName, ...m_args], options);
   if (DBG_PROC) LOG(`Spawning ${identifier} with pid:${proc.pid}`);
 
   const pid = proc.pid.toString();

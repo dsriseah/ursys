@@ -21,7 +21,7 @@
 /// TYPES & INTERFACES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { DataObj } from '../_types/ursys.d.ts';
-import type { DataEncoding } from './declare-encodings.ts';
+import type { DataEncoding } from './declare-encodings.d.ts';
 import type { SNA_EvtName, SNA_EvtHandler } from '../_types/sna.d.ts';
 
 type EVM_Descriptor = {

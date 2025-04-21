@@ -1,17 +1,18 @@
 {
   "name": "sna-test",
   "version": "1.0.0",
-  "description": "",
+  "description": "test environment for adding SNA features",
   "scripts": {
-    "core": "ts-node-esm --transpile-only ../_ur/npm-scripts/@build-core.mts",
-    "dev": "npm run core && ts-node-esm  --transpile-only ./@run-sna.mts",
-    "gen:dataset": "npm run core && ts-node-esm  --transpile-only ./util/gen-dataset-json.mts",
-    "gen:manifest": "npm run core && ts-node-esm  --transpile-only ./util/gen-manifest.mts"
+    "ur:core": "tsx ../_ur/npm-scripts/@build-core.mts",
+    "ur:dev": "tsx ../_ur/npm-scripts/@build-core.mts && tsx ./@run-sna.mts",
+    "dev": "tsx ./@run-sna.mts",
+    "gen:dataset": "tsx ../_ur/npm-scripts/@build-core.mts && tsx ./util/gen-dataset-json.mts",
+    "gen:manifest": "tsx ../_ur/npm-scripts/@build-core.mts && tsx ./util/gen-manifest.mts"
   },
   "author": "dsriseah",
   "license": "MIT",
   "dependencies": {
-    "@ursys/core": "file:../_ur",
+    "ursys": "https://dsriseah.com/_tarballs/ursys-0.0.1.tgz",
     "txtgen": "^3.0.7"
   }
 }

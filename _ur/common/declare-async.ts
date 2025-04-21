@@ -96,7 +96,9 @@ const EMITTER = {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export {
+/// export both named and default for mts and ts interoperability
+export { APP_LIFECYCLE, UR_EVENTS };
+export default {
   APP_LIFECYCLE, //
   UR_EVENTS //
 };

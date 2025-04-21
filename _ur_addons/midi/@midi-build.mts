@@ -8,20 +8,20 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR, FILE } from '@ursys/core';
+import { PROMPTS, FILE } from 'ursys/server';
 import FSE from 'fs-extra';
 import { copy } from 'esbuild-plugin-copy';
 import esbuild from 'esbuild';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('MIDI', 'TagPurple');
+const LOG = PROMPTS.TerminalLog('MIDI', 'TagPurple');
 
 /// BUILD FILE ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function ESBuildApp() {
   const SRC = FILE.AbsLocalPath('_ur_addons/midi');
-  const DST = FILE.AbsLocalPath('_ur_addons/_dist/_public');
+  const DST = FILE.AbsLocalPath('_ur_addons/_out/_public');
   FSE.ensureDir(DST);
 
   // build the webapp and stuff it into public
@@ -50,12 +50,14 @@ async function ESBuildApp() {
   });
   await context.watch();
   // The return value tells us where esbuild's local server is
-  let { host, port } = await context.serve({
+  let { hosts, port } = await context.serve({
     servedir: DST,
     port: 8888
   });
-  if (host === '0.0.0.0') host = 'localhost';
-  LOG('appserver is listening at', `http://${host}:${port}`);
+  hosts.forEach(host => {
+    if (host === '0.0.0.0') host = 'localhost';
+    LOG('appserver is listening at', `http://${host}:${port}`);
+  });
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

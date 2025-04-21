@@ -29,7 +29,7 @@ import type {
   IDS_Serialize,
   //
   SearchOptions
-} from '../_types/dataset';
+} from '../_types/dataset.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type ItemListOptions = {
   idPrefix?: string; // prefix to use for ids, otherwise simple ids

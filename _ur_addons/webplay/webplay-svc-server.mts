@@ -5,16 +5,15 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR, CLASS } from '@ursys/core';
-import { FILE, PROMPTS } from '@ursys/core';
-import { APPSERV, APPBUILD } from '@ursys/core';
+import { PROMPTS, FILE, CLASS } from 'ursys/server';
+import { APPSERV, APPBUILD } from 'ursys/server';
 import PATH from 'node:path';
 import FS from 'node:fs';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type TSOptions = { field: string; value: any };
-import type { BuildOptions } from '@ursys/core';
+import type { BuildOptions } from 'ursys/server';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -30,7 +29,7 @@ const [AO_NAME, AO_DIR] = FILE.DetectedAddonDir();
 const ADDON = AO_NAME.toUpperCase();
 const [script_name, ...script_args] = process.argv.slice(2);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('WP.SVC', 'TagCyan');
+const LOG = PROMPTS.TerminalLog('WP.SVC', 'TagCyan');
 const DBG = true;
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 let PM: typeof PhaseMachine;

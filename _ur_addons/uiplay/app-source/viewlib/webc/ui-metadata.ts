@@ -6,8 +6,8 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ParseText, AssertGroupName } from './lib/meta-parser.ts';
-import { UpdateMetadata } from '../viewstate-mgr.ts';
+import { ParseText, AssertGroupName } from './lib/meta-parser';
+import { UpdateMetadata } from '../viewstate-mgr';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -4,9 +4,9 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { DeclareComponents, AttachRouter } from './viewlib';
-import { SNA } from '@ursys/core';
-import * as UR from '@ursys/core';
+import { DeclareComponents, AttachRouter } from './viewlib/router.ts';
+import { SNA } from 'ursys/client';
+import * as UR from 'ursys/client';
 
 /// ENVIRONMENT DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

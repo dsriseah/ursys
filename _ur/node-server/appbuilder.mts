@@ -4,12 +4,13 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import fse from 'fs-extra';
+import { ensureDir } from 'fs-extra';
 import path from 'node:path';
 import chokidar from 'chokidar';
 import esbuild from 'esbuild';
 import { copy } from 'esbuild-plugin-copy';
-import { makeTerminalOut } from '../common/util-prompts.ts';
+import { TerminalLog } from '../common/util-prompts.ts';
+import { ES_TARGET } from '../node-server/const-esbuild.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,6 +26,8 @@ type BuildOptions = {
   index_file?: string; // default index file for web server
   bundle_name?: string; // (opt) short name for the bundle
   notify_cb?: NotifyCallback; // (opt) callback to notify on build
+  //
+  optimize?: boolean; // (opt) optimize the build
   //
   error?: string; // (opt) error message...if present, options are invalid
 };
@@ -47,10 +50,11 @@ let NOTIFY_CB: NotifyCallback; // callback to notify on build
 let ENTRY_FILE: string; // default entry file for the app
 let ENTRY_FILES: string[]; // multiple entry files for the app
 let INDEX_FILE: string; // default index file for the app
+let OPTIMIZE: boolean; // optimize the build
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { ANSI_COLORS } from '../common/declare-colors.ts';
+import { ANSI_COLORS } from '../common/declare-colors.js';
 const { DIM, NRM } = ANSI_COLORS;
-const LOG = makeTerminalOut('URBUILD', 'TagBlue');
+const LOG = TerminalLog('URBUILD', 'TagBlue');
 
 /// CONFIGURATION /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -71,7 +75,8 @@ function GetBuildOptions(): BuildOptions {
     index_file: INDEX_FILE,
     // optional values
     bundle_name: BUNDLE_NAME,
-    notify_cb: NOTIFY_CB
+    notify_cb: NOTIFY_CB,
+    optimize: OPTIMIZE
   };
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -87,7 +92,8 @@ function SetBuildOptions(opts: BuildOptions) {
     entry_files,
     index_file,
     bundle_name,
-    notify_cb
+    notify_cb,
+    optimize
   } = opts;
   const valid = source_dir && asset_dir && output_dir;
   if (!valid) throw Error(`${fn} source, asset, and output are all required`);
@@ -100,6 +106,7 @@ function SetBuildOptions(opts: BuildOptions) {
   INDEX_FILE = index_file;
   BUNDLE_NAME = bundle_name;
   NOTIFY_CB = notify_cb;
+  OPTIMIZE = optimize || process.env.PRODUCTION === 'true' || false;
   return GetBuildOptions();
 }
 
@@ -111,20 +118,22 @@ function SetBuildOptions(opts: BuildOptions) {
 async function BuildApp(opts: BuildOptions) {
   const fn = 'BuildApp:';
   // save options for later. these are NOT esbuild-specific options
-  let { bundle_name, entry_file, notify_cb } = SetBuildOptions(opts);
+  let { bundle_name, entry_file, notify_cb, optimize } = SetBuildOptions(opts);
   // option: default bundle name to entry file name if not set
   if (!bundle_name) bundle_name = path.basename(entry_file);
   // ensure the output directory exists
-  fse.ensureDir(PUBLIC);
+  ensureDir(PUBLIC);
   // build the webapp and stuff it into public
   const context = await esbuild.context({
     entryPoints: [`${SRC_JS}/${entry_file}`],
     bundle: true,
     loader: { '.js': 'jsx' },
-    target: 'es2020',
+    target: ES_TARGET,
     platform: 'browser',
     format: 'iife',
-    sourcemap: true,
+    minify: optimize,
+    treeShaking: optimize,
+    sourcemap: !optimize,
     outfile: `${PUBLIC}/js/${bundle_name}`,
     plugins: [
       // @ts-ignore - esbuild-plugin-copy not in types
@@ -165,13 +174,13 @@ async function MultiBuildApp(opts: BuildOptions) {
   let { entry_files, notify_cb } = SetBuildOptions(opts);
   entry_files = entry_files.map(file => `${SRC_JS}/${file}`);
   // ensure the output directory exists
-  fse.ensureDir(PUBLIC);
+  ensureDir(PUBLIC);
   // build the webapp and stuff it into public
   const context = await esbuild.context({
     entryPoints: entry_files,
     bundle: true,
     loader: { '.js': 'jsx' },
-    target: 'es2020',
+    target: ES_TARGET,
     platform: 'browser',
     format: 'esm',
     splitting: true,

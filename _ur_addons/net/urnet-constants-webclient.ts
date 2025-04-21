@@ -58,3 +58,7 @@ export {
   HTTP_CLIENT_INFO, // used for http and https server
   GetClientInfoFromWindowLocation // return new client info for a different hostpath
 };
+export default {
+  HTTP_CLIENT_INFO,
+  GetClientInfoFromWindowLocation
+};

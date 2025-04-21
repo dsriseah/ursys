@@ -6,19 +6,17 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-/// <reference types="../_types/ursys.d.ts" />
-
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { makeTerminalOut } from '../common/util-prompts.ts';
+import { TerminalLog } from '../common/util-prompts.ts';
 import process from 'node:process';
 import PATH from 'node:path';
-const LOG = makeTerminalOut('PROCESS', 'TagGreen');
+const LOG = TerminalLog('PROCESS', 'TagGreen');
 import * as FILE from './file.mts';
 
 /// TYPES DECLARATIONS ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpResult } from '../_types/dataset.d.ts';
+import type { OpResult } from '../_types/dataset.ts';
 
 /// SUPPORT METHODS ///////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

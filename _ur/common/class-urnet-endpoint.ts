@@ -57,8 +57,8 @@ import { NormalizeData } from './util-urnet.ts';
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type { NP_ID, NP_Address, NP_Msg, NP_Data } from '../_types/urnet.d.ts';
-import type { I_NetSocket } from './class-urnet-socket.ts';
-import type { THandlerFunc } from './class-urnet-servicemap.ts';
+import type { I_NetSocket } from './class-urnet-socket.d.ts';
+import type { THandlerFunc } from './class-urnet-servicemap.d.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1087,6 +1087,7 @@ class NetEndpoint {
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/// export both default and named for interoperability
 export default NetEndpoint;
 export {
   NetEndpoint // the class

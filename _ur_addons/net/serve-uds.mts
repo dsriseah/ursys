@@ -9,13 +9,13 @@
 
 import NET from 'node:net';
 import PATH from 'node:path';
-import { PR, PROC, FILE, CLASS } from '@ursys/core';
+import { PROMPTS, PROC, FILE, CLASS } from 'ursys/server';
 import { UDS_INFO } from './urnet-constants.mts';
 const { NetEndpoint, NetSocket } = CLASS;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('UDSHost', 'TagBlue');
+const LOG = PROMPTS.TerminalLog('UDSHost', 'TagBlue');
 const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);
 
 /// PROCESS SIGNAL HANDLING ///////////////////////////////////////////////////

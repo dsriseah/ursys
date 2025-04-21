@@ -4,8 +4,8 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import StatelyElement from './lib/class-stately-element.ts';
-import type { DataObj, StateObj } from '../viewstate-mgr.ts';
+import StatelyElement from './lib/class-stately-element';
+import type { DataObj, StateObj } from '../viewstate-mgr';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -39,10 +39,10 @@ function AssertKeyword(str: string): string {
   return str;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function AssertAlphaNumeric(str: string): string {
-  if (BadString(str)) throw Error('AssertAlphaNumeric: not a string');
+function AssertAlphanumeric(str: string): string {
+  if (BadString(str)) throw Error('AssertAlphanumeric: not a string');
   if (IsAlphaNumeric(str)) return str;
-  throw Error(`AssertAlphaNumeric: ${str} is not alphanumeric`);
+  throw Error(`AssertAlphanumeric: ${str} is not alphanumeric`);
 }
 
 /// PARSER INPUT NORMALIZER ////////////////////////////////////////////////////
@@ -218,7 +218,7 @@ export {
   // PROCESSING UTILITIES
   AssertNumber, // return number|parsed number or throw Error
   AssertString, // return string or throw Error
-  AssertAlphaNumeric, // return alphanumeric string or throw Error
+  AssertAlphanumeric, // return alphanumeric string or throw Error
   AssertKeyword, // return single alphanum word or throw Error
   ForceAlphanumeric, // non-alphanumeric chars -> delimiter
   MakeLowerSnakeCase, // conformers uses ForceAlphanumeric as base

@@ -6,7 +6,15 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import * as FILE from './file.mts';
+import {
+  Files,
+  ReadJSON,
+  FilesHashInfo,
+  WriteJSON,
+  GetDirContent,
+  GetPathInfo,
+  DirExists
+} from './file.mts';
 import * as PATH from 'node:path';
 import {
   DecodeDataURI,
@@ -24,7 +32,7 @@ import type {
   IDS_Serialize,
   UR_ManifestObj,
   DataBinID
-} from '../_types/dataset.js';
+} from '../_types/dataset.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +43,7 @@ let manifest_id_counter = 1000; // asset id counter
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** return an array of manifest objects read from predefined manifest files */
 async function m_GetPredefinedManifests(dataPath: string) {
-  const allfiles = FILE.Files(dataPath);
+  const allfiles = Files(dataPath);
   const mfiles = allfiles
     .filter(f => f.startsWith(MANIFEST_FILENAME) && f.endsWith('.json'))
     .sort();
@@ -43,7 +51,7 @@ async function m_GetPredefinedManifests(dataPath: string) {
   if (mfiles.length > 0) {
     const manifestObjs = [];
     for (let f of mfiles) {
-      const obj = FILE.ReadJSON(`${dataPath}/${f}`);
+      const obj = ReadJSON(`${dataPath}/${f}`);
       manifestObjs.push({ manifest: obj, manifest_src: f });
     }
     return manifestObjs;
@@ -53,8 +61,8 @@ async function m_GetPredefinedManifests(dataPath: string) {
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 async function m_GetDirFilesInfo(assetPath: string) {
-  const files = FILE.Files(assetPath, { absolute: true });
-  const info = await FILE.FilesHashInfo(files);
+  const files = Files(assetPath, { absolute: true });
+  const info = await FilesHashInfo(files);
   return info;
 }
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -82,7 +90,7 @@ async function m_GetDataBinEntries(dataPath, assetPath) {
 /** scan the dataPath for asset directories and generate a manifest object */
 async function m_MakeDataBinManifest(dataPath: string) {
   const raw_manifest = {};
-  const { dirs } = FILE.GetDirContent(dataPath);
+  const { dirs } = GetDirContent(dataPath);
   const assetDirs = dirs.filter(d => IsAssetDirname(d)); // lowercase dirs
   if (assetDirs.length === 0) {
     return undefined;
@@ -106,10 +114,10 @@ async function m_MakeDataBinManifest(dataPath: string) {
 /** API: generate a manifest from the passed dataPath */
 async function GetManifestFromPath(dataPath: string) {
   // bail if the requested path isn't a directory
-  const pathInfo = FILE.GetPathInfo(dataPath);
+  const pathInfo = GetPathInfo(dataPath);
   if (pathInfo.isFile)
     return { error: `${dataPath} appears to be a file request, not a directory` };
-  if (FILE.DirExists(dataPath)) {
+  if (DirExists(dataPath)) {
     /* is there an predefined manifest file? */
     const manifestObjs = await m_GetPredefinedManifests(dataPath);
     if (manifestObjs.length > 0) return manifestObjs[0];
@@ -130,7 +138,7 @@ function MakePathFromDataURI(dataURI: DS_DataURI, rootDir?: string): string {
   const dataPath = PATH.join(orgPath, bucketPath, instanceID);
   if (rootDir === undefined) return dataPath;
   if (typeof rootDir !== 'string') throw Error('rootDir must be a string');
-  if (FILE.DirExists(rootDir)) return PATH.join(rootDir, dataPath);
+  if (DirExists(rootDir)) return PATH.join(rootDir, dataPath);
   throw Error(`MakePathFromDataURI: rootDir ${rootDir} does not exist`);
 }
 
@@ -157,7 +165,7 @@ class SNA_DataObjAdapter extends DataObjAdapter {
     if (typeof dataDir !== 'string') {
       throw new Error('dataDir must be a string');
     }
-    if (!FILE.DirExists(dataDir)) {
+    if (!DirExists(dataDir)) {
       throw new Error(`dataDir ${dataDir} does not exist`);
     }
     this.data_dir = dataDir;
@@ -216,7 +224,7 @@ class SNA_DataObjAdapter extends DataObjAdapter {
       for (let list of itemlists) {
         const { name, uri, type } = list;
         const path = PATH.join(dataPath, uri);
-        const binObj = await FILE.ReadJSON(path);
+        const binObj = await ReadJSON(path);
         data.ItemLists[name] = binObj;
       }
     }
@@ -225,7 +233,7 @@ class SNA_DataObjAdapter extends DataObjAdapter {
       for (let dict of itemdicts) {
         const { name, uri, type } = dict;
         const path = PATH.join(dataPath, uri);
-        const binObj = await FILE.ReadJSON(path);
+        const binObj = await ReadJSON(path);
         data.ItemDicts[name] = binObj;
       }
     }
@@ -250,7 +258,7 @@ class SNA_DataObjAdapter extends DataObjAdapter {
       for (let [name, binObj] of Object.entries(ItemLists)) {
         const uri = `${name}.json.bak`;
         const path = PATH.join(dataPath, 'itemlists', uri);
-        await FILE.WriteJSON(path, binObj);
+        await WriteJSON(path, binObj);
         saved.push(PATH.basename(path));
       }
     }
@@ -259,7 +267,7 @@ class SNA_DataObjAdapter extends DataObjAdapter {
       for (let [name, binObj] of Object.entries(ItemDicts)) {
         const uri = `${name}.json.bak`;
         const path = PATH.join(dataPath, 'itemdicts', uri);
-        await FILE.WriteJSON(path, binObj);
+        await WriteJSON(path, binObj);
         saved.push(PATH.basename(path));
       }
     }

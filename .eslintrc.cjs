@@ -32,7 +32,7 @@ const config = {
     compatible AST for ESLINT.
   :*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
   parser: '@typescript-eslint/parser',
-  ignorePatterns: ['**/_dist/*', '**/node_modules/*'],
+  ignorePatterns: ['**/_dist/*', '**/_out/*', '**/node_modules/*'],
   parserOptions: {
     'ecmaVersion': 2022,
     'sourceType': 'module'

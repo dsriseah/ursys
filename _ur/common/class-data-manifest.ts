@@ -9,7 +9,7 @@ import {
   DecodeManifest,
   DecodeSchemaID,
   DecodeDataURI
-} from '../common/util-data-ops';
+} from '../common/util-data-ops.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -22,7 +22,7 @@ import type {
   ResourceURI,
   UR_SchemaID,
   DS_DataURI
-} from '../_types/dataset';
+} from '../_types/dataset.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -57,7 +57,7 @@ class DatasetManifest {
   _setFromManifestObj(maniObj: UR_ManifestObj): void {
     const { error, ...decoded } = DecodeManifest(maniObj);
     if (error) throw Error(`error constructing DatasetManifest: ${error}`);
-    const { _dataURI, _metaInfo, ...bins } = decoded;
+    const { _dataURI, _meta, ...bins } = decoded;
     this._manifest = decoded;
     // memory note: ? none-duplicated pointers ?
     this._dataURI = _dataURI;
@@ -105,7 +105,7 @@ class DatasetManifest {
     });
     return {
       _dataURI,
-      _metaInfo,
+      _meta: _metaInfo,
       ...bins
     };
   }

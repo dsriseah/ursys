@@ -4,9 +4,10 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import * as FILE from './file.mts';
+import { AbsLocalPath } from './file.mts';
 // typescript imports as default
 import * as CLIENT_CONSTANTS from '../common/constants-urnet-web.ts';
+import { ES_TARGET } from '../../_ur/node-server/const-esbuild.mts';
 
 /// TYPES & INTERFACES ////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -57,7 +58,7 @@ function UseServer(serverType: TServerType) {
 
 /// SERVER CONFIGURATION INFO /////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const dir_addon_net = FILE.AbsLocalPath('_ur_addons/net');
+const dir_addon_net = AbsLocalPath('_ur_addons/net');
 const sock_file = 'UDSHOST_nocommit.sock';
 const UDS_INFO: T_UDS = {
   sock_file,
@@ -77,7 +78,7 @@ const WSS_INFO: T_WSS = {
 const { wss_path: wss_path_http, wss_url: wss_url_http } = HTTP_CLIENT_INFO;
 const { http_host, http_port } = HTTP_CLIENT_INFO;
 const HTTP_INFO: T_HTTP = {
-  app_src: FILE.AbsLocalPath('_ur_addons/net/serve-http-app'),
+  app_src: AbsLocalPath('_ur_addons/net/serve-http-app'),
   app_index: 'index-net-http.html',
   app_bundle: 'js/net-http.bundle.js',
   app_bundle_map: 'script/net-http.bundle.js.map',
@@ -85,7 +86,7 @@ const HTTP_INFO: T_HTTP = {
   http_host,
   http_port,
   http_url: `http://${http_host}:${http_port}`, //
-  http_docs: FILE.AbsLocalPath('_ur_addons/_public'),
+  http_docs: AbsLocalPath('_ur_addons/_public'),
   wss_path: wss_path_http,
   wss_url: wss_url_http
 };
@@ -93,7 +94,7 @@ const HTTP_INFO: T_HTTP = {
 /// BUILD SYSTEM INFO /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const ESBUILD_INFO: TESBUILD = {
-  es_target: 'es2018' // esbuild target
+  es_target: ES_TARGET // esbuild target
 };
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////

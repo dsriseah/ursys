@@ -5,13 +5,13 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { FILE, PROMPTS, PR } from '@ursys/core';
+import { FILE, PROMPTS } from 'ursys/server';
 import { UR_StartLifecycle, UR_Build } from './webplay-svc-server.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type TSOptions = { field: string; value: any };
-import type { BuildOptions } from '@ursys/core';
+import type { BuildOptions } from 'ursys/server';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -24,7 +24,7 @@ const ADDON = AO_NAME.toUpperCase();
 const [script_name, ...script_args] = process.argv.slice(2);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = true;
-const LOG = PR(ADDON, 'TagCyan');
+const LOG = PROMPTS.TerminalLog(ADDON, 'TagCyan');
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

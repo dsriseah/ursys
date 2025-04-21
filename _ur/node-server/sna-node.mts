@@ -4,7 +4,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
+import { TerminalLog, ANSI } from '../common/util-prompts.ts';
 import {
   SNA_Build,
   SNA_MultiBuild,
@@ -23,11 +23,10 @@ import { SNA_NewComponent } from '../common/class-sna-component.ts';
 /// SNA MODULES PACKAGING /////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import MOD_DataServer from './sna-dataserver.mts';
-import MOD_NodeContext from './sna-node-context.mts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpResult, DataObj } from '../_types/dataset.d.ts';
+import type { OpResult, DataObj } from '../_types/dataset.ts';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -35,7 +34,7 @@ const { BLU, YEL, RED, DIM, NRM } = ANSI;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = makeTerminalOut('SNA', 'TagCyan');
+const LOG = TerminalLog('SNA', 'TagCyan');
 const DBG = true;
 
 /// API METHODS ///////////////////////////////////////////////////////////////
@@ -43,7 +42,6 @@ const DBG = true;
 /** API: initialize the server's lifecycle */
 async function SNA_Start() {
   SNA_UseComponent(MOD_DataServer);
-  SNA_UseComponent(MOD_NodeContext);
   // prepare own hooks before starting the lifecycle
   SNA_HookServerPhase('SRV_READY', LOG('Server Ready'));
   // now start the lifecycle
@@ -90,10 +88,12 @@ export {
   SNA_SetServerConfig as SetServerConfig,
   SNA_GetServerConfig as GetServerConfig,
   SNA_UseComponent as UseComponent,
-  SNA_NewComponent as NewComponent,
-  // included modules
-  MOD_DataServer
+  SNA_NewComponent as NewComponent
 };
+/** named: LoadDataset, CloseDataset, PersistDataset, OpenBin, CloseBin,
+ *  default export registers 'dataserver' SNA Component */
+export * as MOD_DataServer from './sna-dataserver.mts';
+//
 export {
   // sna hook methods
   HookPhase,
@@ -108,3 +108,4 @@ export {
   RegisterMessages,
   ServerEndpoint
 } from './sna-node-urnet-server.mts';
+export { TerminalLog } from '../common/util-prompts.ts';

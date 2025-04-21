@@ -1,0 +1,24 @@
+/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
+
+  This tsconfig file is used only by tsc to generate client type definitions
+
+  This is the minimal configuration needed to generate type definitions, and
+  is simpler than the node-server configuration because it doesn't handle
+  mixed code, is bundled, and doesn't have NodeJS's module resolution
+  idiocyncracies.
+
+\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
+
+{
+  "compilerOptions": {
+    // type exports
+    "declaration": true,
+    "target": "ESNext",
+    "emitDeclarationOnly": true,
+    "outDir": "dist/types",
+    "stripInternal": true,
+    "skipLibCheck": true
+  },
+  "include": ["../_ur/web-client/**/*.ts", "../_ur/common/**/*.ts"],
+  "exclude": ["../_ur/tests"]
+}

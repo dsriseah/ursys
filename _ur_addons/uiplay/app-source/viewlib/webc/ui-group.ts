@@ -8,12 +8,12 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { ConsoleStyler } from '@ursys/core';
-import { AssertGroupName } from './lib/meta-parser.ts';
+import { ConsoleStyler } from 'ursys/client';
+import { AssertGroupName } from './lib/meta-parser';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import StatelyElement from './lib/class-stately-element.ts';
+import StatelyElement from './lib/class-stately-element';
 const LOG = console.log.bind(console);
 const PR = ConsoleStyler('ui-group', 'TagGray');
 

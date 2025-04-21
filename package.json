@@ -1,19 +1,27 @@
 {
   "name": "ursys",
-  "version": "1.0.0-alpha.1",
-  "type": "module",
-  "description": "A modular self-contained development framework fpr realtime web app prototyping",
+  "version": "0.0.1",
+  "description": "An opinionated framework for prototyping realtime web apps",
   "workspaces": [
     "_ur/",
     "_ur_addons/"
   ],
-  "bin": {
-    "ur": "./_ur/ur",
-    "create": "./_ur/ur-create.sh"
+  "files": [
+    "./_ur/_dist"
+  ],
+  "exports": {
+    "./server": {
+      "import": "./_ur/_dist/core/core-node.mjs",
+      "require": "./_ur/_dist/core/core-node.cjs"
+    },
+    "./client": {
+      "import": "./_ur/_dist/core/core-web-esm.js",
+      "require": "./_ur/_dist/core/core-web-cjs.js"
+    }
   },
   "scripts": {
-    "example": "npx ts-node-esm ./_ur/npm-scripts/@build-core.mts && node ./example-app/@build-example.mjs",
-    "build-core": "npx ts-node-esm ./_ur/npm-scripts/@build-core.mts",
+    "example": "tsx ./_ur/npm-scripts/@build-core.mts && tsx ./example-app/@run-example.mts",
+    "build": "./@build-ursys.sh",
     "lint": "npm exec --workspaces -- npm run lint && eslint example-app/"
   },
   "author": "DSri Seah",
@@ -21,9 +29,6 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.17.0",
     "@typescript-eslint/parser": "^7.17.0",
-    "esbuild": "^v0.24.2",
-    "esbuild-plugin-copy": "^2.1.1",
-    "esbuild-plugin-umd-wrapper": "^3.0.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.6.1",
@@ -31,8 +36,16 @@
     "prettier": "^3.3.3"
   },
   "dependencies": {
-    "@ursys/addons": "file:./_ur_addons",
-    "@ursys/core": "file:./_ur",
-    "ts-node": "^10.9.2"
+    "esbuild": "^v0.25.0",
+    "esbuild-plugin-copy": "^2.1.1",
+    "esbuild-plugin-umd-wrapper": "^2.0.0",
+    "express": "^4.19.2",
+    "fs-extra": "^11.3.0",
+    "keyv": "^4.5.4",
+    "keyv-file": "^0.2.0",
+    "serve-index": "^1.9.1",
+    "ws": "^8.14.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
   }
 }

@@ -1,46 +1,49 @@
 {
-  "name": "@ursys/core",
-  "version": "0.1",
-  "description": "modular system for enhancing NetCreate 2.0 (ITEST)",
+  "name": "ursys",
+  "version": "0.0.1",
+  "description": "URSYS Core Library",
+  "engines": {
+    "node": ">=18.18.2"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/netcreateorg/netcreate-itest"
+    "url": "https://github.com/dsriseah/ursys"
   },
   "private": true,
   "scripts": {
     "build-core": "node ./npm-scripts/@build-core.mts",
     "lint": "eslint .",
-    "clean": "rm -rf ./node_modules ./_dist"
+    "clean": "rm -rf ./node_modules ./_out"
   },
-  "browser": "./_dist/client-cjs.js",
-  "main": "./_dist/server.cjs",
-  "types": "./@ur-types.d.ts",
+  "type": "module",
+  "files": [
+    "_dist/core"
+  ],
   "exports": {
-    "node": {
-      "import": "./_dist/server-esm.mjs",
-      "require": "./_dist/server.cjs"
+    "./server": {
+      "import": "./_out/core-node.mjs",
+      "require": "./_out/core-node.cjs"
     },
-    "browser": {
-      "import": "./_dist/client-esm.js",
-      "require": "./_dist/client-cjs.js",
-      "default": "./_dist/client-umd.js"
+    "./client": {
+      "import": "./_out/core-web-esm.js",
+      "require": "./_out/core-web-cjs.js"
     }
   },
   "devDependencies": {
-    "@types/node": "^20.14.12",
-    "esbuild": "^v0.24.2",
-    "esbuild-plugin-copy": "^2.1.1",
-    "esbuild-plugin-umd-wrapper": "^2.0.0",
-    "rollup-plugin-dts": "^6.1.1",
-    "ts-node": "^10.9.1",
-    "vitest": "^1.6.0"
+    "vitest": "^3.0.7",
+    "@types/node": "^20.14.12"
   },
   "dependencies": {
-    "fs-extra": "^11.1.1",
+    "esbuild": "^v0.25.0",
+    "esbuild-plugin-copy": "^2.1.1",
+    "esbuild-plugin-umd-wrapper": "^2.0.0",
+    "express": "^4.19.2",
+    "fs-extra": "^11.3.0",
     "keyv": "^4.5.4",
     "keyv-file": "^0.2.0",
-    "lokijs": "^1.5.12",
-    "node-dir": "^0.1.17",
-    "ws": "^8.14.2"
+    "serve-index": "^1.9.1",
+    "ws": "^8.14.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
   }
 }

@@ -12,12 +12,12 @@
 
 import { strictEqual, deepEqual } from 'node:assert/strict';
 import sqlite3 from 'sqlite3';
-import { FILE, PR } from '@ursys/core';
+import { FILE, PROMPTS } from 'ursys/server';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DB = new sqlite3.Database(':memory:'); // use 'auth.sqlite3' for file
-const TERM = PR('SQLite', 'TagYellow');
+const TERM = PROMPTS.TerminalLog('SQLite', 'TagYellow');
 const DBG = true; // Runs Tests if true
 
 /// INITIALIZE DATABASE ///////////////////////////////////////////////////////

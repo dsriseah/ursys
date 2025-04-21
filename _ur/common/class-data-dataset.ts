@@ -21,23 +21,21 @@
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ItemList } from './class-data-itemlist.ts';
-import { ItemDict } from './class-data-itemdict.ts';
+// import { ItemDict } from './class-data-itemdict.ts';
 import { DecodeDataURI, DecodeManifest } from './util-data-ops.ts';
 import { DataBin } from './abstract-data-databin.ts';
-import { DecodeDataConfig } from './util-data-ops.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import type {
   DataBinID,
   DataBinType,
-  UR_SchemaID,
   IDS_Serialize,
-  DS_DataURI,
   UR_ManifestObj,
   DS_DatasetObj,
-  OpResult
-} from '../_types/dataset';
+  OpResult,
+  DS_DataURI
+} from '../_types/dataset.d.ts';
 import type { ItemListOptions } from './class-data-itemlist.ts';
 type DataAccessTok = string;
 type DataAccessTokSet = Set<DataAccessTok>;
@@ -80,7 +78,7 @@ class Dataset implements IDS_Serialize {
   acc_toks: Map<DataBinID, DataAccessTokSet>; // access tokens for each bin
   //
   LISTS: { [ref_name: DataBinID]: ItemList };
-  FOLDERS: { [ref_name: DataBinID]: ItemDict };
+  // FOLDERS: { [ref_name: DataBinID]: ItemDict };
   // see https://github.com/dsriseah/ursys/discussions/25 for other bin types
   // docfolders
   // files
@@ -114,7 +112,7 @@ class Dataset implements IDS_Serialize {
   _init() {
     this.open_bins = new Set();
     this.LISTS = {};
-    this.FOLDERS = {};
+    // this.FOLDERS = {};
   }
 
   /** private: mark a bin as open */
@@ -142,9 +140,9 @@ class Dataset implements IDS_Serialize {
       lists[binID] = bin._getDataObj();
     }
     const docs = {};
-    for (const [binID, bin] of Object.entries(this.FOLDERS)) {
-      docs[binID] = bin._getDataObj();
-    }
+    // for (const [binID, bin] of Object.entries(this.FOLDERS)) {
+    //   docs[binID] = bin._getDataObj();
+    // }
     return {
       _dataURI: this._dataURI,
       ItemLists: lists,

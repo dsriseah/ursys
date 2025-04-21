@@ -5,9 +5,9 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import StatelyElement from './lib/class-stately-element.ts';
-import type { DataObj, StateObj } from '../viewstate-mgr.ts';
-import { ConsoleStyler } from '@ursys/core';
+import StatelyElement from './lib/class-stately-element';
+import type { DataObj, StateObj } from '../viewstate-mgr';
+import { ConsoleStyler } from 'ursys/client';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

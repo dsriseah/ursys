@@ -10,11 +10,11 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import UIDataGroup from './class-datagroup.js';
+import UIDataGroup from './class-datagroup.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { DataObj } from '@ursys/core';
+import type { DataObj } from 'ursys/client';
 type StateObj = DataObj;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////

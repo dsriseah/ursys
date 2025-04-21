@@ -5,12 +5,12 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { FILE, PR } from '@ursys/core';
+import { FILE, PROMPTS } from 'ursys/server';
 import { PromiseLoadDatabase, ListCollections } from './import-lokidb.mts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('LOKI', 'TagBlue');
+const LOG = PROMPTS.TerminalLog('LOKI', 'TagBlue');
 
 /// RUNTIME TESTS /////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,3 +21,4 @@ const datadir = FILE.AbsLocalPath('_ur_addons/loki/_data');
 await PromiseLoadDatabase(`${datadir}/test-graph.loki`);
 ListCollections();
 LOG('run complete');
+process.exit(0);

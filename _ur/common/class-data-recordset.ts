@@ -59,8 +59,9 @@ import type {
   //
   ItemFormatOptions,
   ItemStatsOptions,
-  ItemStatsResult
-} from '../_types/dataset';
+  ItemStatsResult,
+  IRecordSet
+} from '../_types/dataset.ts';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -76,7 +77,8 @@ const tx_option_id = (item: UR_Item) => (item.opt = `opt${item._id}`);
 
 /// CLASS DECLARATION /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-class RecordSet {
+
+class RecordSet implements IRecordSet {
   //
   src_items: UR_Item[]; // source items
   cur_items: UR_Item[]; // transformed items
@@ -228,7 +230,7 @@ class RecordSet {
   }
 
   /** resets the current item set to beginning */
-  reset() {
+  reset(): RecordSet {
     this.cur_items = DeepCloneArray(this.src_items);
     // method-chaining return
     return this;

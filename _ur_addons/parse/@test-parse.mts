@@ -11,7 +11,7 @@
 /* eslint-disable no-unused-vars */
 
 import { readFileSync } from 'node:fs';
-import { PR } from '@ursys/core';
+import { PROMPTS } from 'ursys/server';
 import PG_CJS from 'peggy';
 const { generate } = PG_CJS;
 
@@ -24,7 +24,7 @@ let parser;
 const F_GRAMMAR = './graph-parser.peg';
 const F_DATA = './graph-data.txt';
 const F_TEST = './graph-test.txt';
-const LOG = PR('Parse', 'TagPurple');
+const LOG = PROMPTS.TerminalLog('Parse', 'TagPurple');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /**
  * This function takes a multi-line string and performs the following operations:

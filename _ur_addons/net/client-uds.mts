@@ -4,15 +4,16 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { PR, FILE, PROC, CLASS } from '@ursys/core';
+import * as FOO from 'ursys/server';
+import { PROMPTS, FILE, PROC, CLASS } from 'ursys/server';
 import { UDS_INFO } from './urnet-constants.mts';
 import NET from 'node:net';
-const { NetEndpoint, NetSocket } = CLASS;
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('UDSClient', 'TagBlue');
+const LOG = PROMPTS.TerminalLog('UDSClient', 'TagBlue');
 const DBG = false;
+
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const [m_script, m_addon, ...m_args] = PROC.DecodeAddonArgs(process.argv);
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -20,7 +21,7 @@ let UDS_DETECTED = false;
 
 /// DATA INIT /////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const EP = new NetEndpoint();
+const EP = new CLASS.NetEndpoint();
 let SERVER_LINK: NET.Socket;
 
 /// HELPERS ///////////////////////////////////////////////////////////////////
@@ -59,7 +60,7 @@ function Connect(): Promise<boolean> {
       const send = pkt => SERVER_LINK.write(pkt.serialize());
       const onData = data => EP._ingestServerPacket(data, client_sock);
       const close = () => SERVER_LINK.end();
-      const client_sock = new NetSocket(SERVER_LINK, { send, onData, close });
+      const client_sock = new CLASS.NetSocket(SERVER_LINK, { send, onData, close });
       SERVER_LINK.on('data', onData);
       SERVER_LINK.on('end', () => {
         EP.disconnectAsClient();
@@ -70,7 +71,7 @@ function Connect(): Promise<boolean> {
       // 2. start client; EP handles the rest
       const auth = { identity: 'my_voice_is_my_passport', secret: 'crypty' };
       const resdata = await EP.connectAsClient(client_sock, auth);
-      if (DBG) LOG(...PR('EP.connectAsClient returned', resdata));
+      if (DBG) LOG('EP.connectAsClient returned', resdata);
       if (resdata.error) {
         LOG.error(resdata.error);
         resolve(false);
@@ -101,7 +102,7 @@ async function RegisterMessages() {
     return { 'NET:CLIENT_TEST': 'received' };
   });
   const resdata = await EP.declareClientMessages();
-  if (DBG) LOG(...PR('EP.declareClientMessages returned', resdata));
+  if (DBG) LOG('EP.declareClientMessages returned', resdata);
   // test code below can be removed //
   let count = 0;
   let foo = setInterval(() => {

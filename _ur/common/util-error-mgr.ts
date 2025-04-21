@@ -6,10 +6,10 @@
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import { EXIT_CODES } from './declare-errors';
+import { EXIT_CODES } from './declare-errors.ts';
 const { ERR_UR } = EXIT_CODES;
-import { makeTerminalOut } from './util-prompts';
-const ERROUT = makeTerminalOut('ERR', 'TagRed');
+import { TerminalLog } from './util-prompts.ts';
+const ERROUT = TerminalLog('ERR', 'TagRed');
 
 /// API METHODS ///////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,7 +32,7 @@ const DIE = (...args) => {
 const NewConsoleError = (label = '_ERR_', tagColor = 'TagRed') => {
   const fn = 'NewConsoleError';
   if (typeof label !== 'string') DIE(fn, `arg must be a string`);
-  const OUT = makeTerminalOut(label, tagColor);
+  const OUT = TerminalLog(label, tagColor);
   return OUT;
 };
 

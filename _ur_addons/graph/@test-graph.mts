@@ -13,7 +13,7 @@ import { stdin as input, stdout as output } from 'node:process';
 import readline from 'node:readline';
 import { readFileSync } from 'node:fs';
 //
-import { PR, TEXT } from '@ursys/core';
+import { PROMPTS, TEXT } from 'ursys/server';
 import GRAPHOLOGY from 'graphology';
 import PG_CJS from 'peggy';
 const { generate } = PG_CJS;
@@ -22,7 +22,7 @@ const { Graph } = GRAPHOLOGY;
 
 /// DECLARATIONS //////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('Graph', 'TagPurple');
+const LOG = PROMPTS.TerminalLog('Graph', 'TagPurple');
 
 /// METHODS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

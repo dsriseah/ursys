@@ -1,24 +1,18 @@
 /*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
 
   SNA-WEB-CONTEXT manages shared configuration and state across an SNA App
-  instance. It is synchronized with selected elements of server-side context
-  in a read-only manner.
+  instance. 
 
   This module is similar to SNA-NODE-CONTEXT.
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
 import { ConsoleStyler } from '../common/util-prompts.ts';
-import { SNA_NewComponent, SNA_HookAppPhase } from './sna-web-hooks.ts';
-import {
-  AddMessageHandler,
-  ClientEndpoint,
-  RegisterMessages
-} from './sna-web-urnet-client.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-import type { OpResult, DataObj } from '../_types/dataset.d.ts';
+import type { OpResult, DataObj } from '../_types/dataset.ts';
+import type { NetEndpoint } from '../common/class-urnet-endpoint.d.ts';
 type LockState = 'init' | 'preconfig' | 'prehook' | 'locked';
 
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
@@ -81,26 +75,26 @@ function SNA_GetAppConfigUnsafe(): DataObj {
   return APP_CFG;
 }
 
-/// SNA COMPONENT SETUP ///////////////////////////////////////////////////////
+/// ENABLE CONTEXT HOOK ///////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-function PreHook() {
-  const EP = ClientEndpoint();
-  SNA_HookAppPhase('NET_ACTIVE', async () => {
-    AddMessageHandler('SYNC:CLI_CONTEXT', data => {});
-    await RegisterMessages();
-  });
+/** internal handler for updating the global configuration */
+function HandleUpdateMessage(data: DataObj) {}
+/// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** API: app startup should invoke this during SNA/NET_ACTIVE,
+ *  passing the NetEndpoint instance */
+function AddMessageHandlers(EP: NetEndpoint) {
+  EP.addMessageHandler('SNA/SET_APP_CONFIG', HandleUpdateMessage);
 }
 
 /// EXPORTS ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export default SNA_NewComponent('context', {
-  PreHook
-});
 export {
   SNA_SetLockState, // set locks state
   SNA_GetLockState, // get lock state
   SNA_SetAppConfig, // set global server config
   SNA_GetAppConfig, // get copy global server config
   // direct access to global config object
-  SNA_GetAppConfigUnsafe // get direct global server config
+  SNA_GetAppConfigUnsafe, // get direct global server config
+  //
+  AddMessageHandlers // add message handlers
 };

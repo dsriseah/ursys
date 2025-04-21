@@ -1,0 +1,28 @@
+/*///////////////////////////////// ABOUT \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*\
+
+  This tsconfig file is used only by tsc to generate server type definitions
+
+  In addition to the type exports, this configuration also handles mixed code
+  and NodeJS's module resolution idiocyncracies.
+
+\*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
+
+{
+  "compilerOptions": {
+    // type exports
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist/types",
+    "stripInternal": true,
+    "skipLibCheck": true,
+
+    // additional options to get this to work
+    "target": "ESNext", // handle TS2802 errors
+    "allowImportingTsExtensions": true, // handle TS5097 errors
+    "module": "NodeNext", // handle TS1323 errors
+    "moduleResolution": "NodeNext", // handle TS2307 errors
+    "allowSyntheticDefaultImports": true // handle TS1259 errors
+  },
+  "include": ["../_ur/node-server/**/*.mts"],
+  "exclude": ["../_ur/tests"]
+}

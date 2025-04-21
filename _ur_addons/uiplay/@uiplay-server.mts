@@ -5,7 +5,7 @@
 
 \*\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ * /////////////////////////////////////*/
 
-import { SNA, PROMPTS, PR } from '@ursys/core';
+import { SNA, PROMPTS } from 'ursys/server';
 
 /// IMPORTED CLASSES & CONSTANTS //////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -15,7 +15,7 @@ const { BLU, YEL, RED, DIM, NRM } = PROMPTS.ANSI;
 const [AO_DIR, AO_NAME] = SNA.GetProcessInfo(process);
 const ADDON = AO_NAME.toUpperCase();
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-const LOG = PR('UIPLAY', 'TagCyan');
+const LOG = PROMPTS.TerminalLog('UIPLAY', 'TagCyan');
 
 /// RUNTIME ///////////////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

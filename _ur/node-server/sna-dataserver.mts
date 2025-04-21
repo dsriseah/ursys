@@ -24,7 +24,7 @@ import { SNA_DataObjAdapter } from './sna-dataobj-adapter.mts';
 import { AddMessageHandler, ServerEndpoint } from './sna-node-urnet-server.mts';
 import { SNA_HookServerPhase, SNA_NewComponent } from './sna-node-hooks.mts';
 import { SNA_GetServerConfig } from './sna-node-context.mts';
-import { makeTerminalOut, ANSI } from '../common/util-prompts.ts';
+import { TerminalLog } from '../common/util-prompts.ts';
 
 /// TYPE DECLARATIONS /////////////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +36,7 @@ import type {
   DatasetReq,
   DS_DatasetObj,
   DS_DataURI
-} from '../_types/dataset.d.ts';
+} from '../_types/dataset.ts';
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 type SyncOptions = {
   syncType: 'pull' | 'push' | 'both';
@@ -55,7 +55,7 @@ type BinOpRes = OpResult & { bin?: DataBin; binName?: DataBinID };
 /// CONSTANTS & DECLARATIONS //////////////////////////////////////////////////
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const DBG = false;
-const LOG = makeTerminalOut('SNA.DSRV', 'TagBlue');
+const LOG = TerminalLog('SNA.DSRV', 'TagBlue');
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /// to start, we just have one dataset, but for the future we could support
 /// multiple ones in a DatasetCache
