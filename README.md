@@ -22,10 +22,15 @@ Features
 * Verbose prompting and guardrails to help users understand what's going on.
 * Favors straightforward fluent code patterns and formatting so source code is easy to scan.
 
-Under Development
+Updates
+_see [Closed Pull Requests](https://github.com/dsriseah/ursys/pulls?q=is:pr+is:closed) for an idea of what's new._
 
-* see [Closed Pull Requests](https://github.com/dsriseah/ursys/pulls?q=is:pr+is:closed) for an idea of what's new. 
-* pending: import URSYS as a dependency into existing projects
+* 0.1.0 - importable version (see [example-sna-nodejs](https://github.com/dsriseah/example-sna-nodejs))
+
+Under Development
+* web components library
+* html view router
+* property editor
 * pending: other [feature porting](https://github.com/dsriseah/ursys/wiki/Catalog-of-URSYS-Modules) candidates
 
 Documentation
