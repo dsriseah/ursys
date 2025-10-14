@@ -2779,7 +2779,7 @@ async function SNA_Build(rootDir, opt) {
     LOG11(`Loaded server components: ${BLU4}${mtsFiles.join(" ")}${NRM5}`);
   else LOG11(`${WARN} No server components in '${sdir}'`);
 }
-async function SNA_MultiBuild(rootDir) {
+async function SNA_MultiBuild(rootDir, opt) {
   LOG11(`SNA MultiBuild: Transpiling and bundling entry files`);
   const { source_dir, asset_dir, output_dir, webc_dir } = SNA_EnsureAppDirs(rootDir);
   const sdir = u_short(source_dir);
@@ -2816,7 +2816,7 @@ async function SNA_MultiBuild(rootDir) {
     notify_cb
   });
   const serverOpts = {
-    http_port: 8080,
+    http_port: opt?.port || 8080,
     http_host: "localhost",
     http_docs: output_dir,
     index_file: "index.html",

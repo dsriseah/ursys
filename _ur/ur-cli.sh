@@ -78,7 +78,7 @@ case "$1" in
     build)
         # (1) always build library first
         $NODEXEC $CLI_BUILD/@build-core.mts 2>&1 | cat
-        # (2) build standalone SNA module
+        # (2) build standalone SNA module library (WIP)
         $NODEXEC $CLI_BUILD/@build-sna.mts 2>&1 | cat
         # (3) add additional tasks here (eventually can be command args)
         # $NODEXEC $CLI_BUILD/@build-addons.mts 2>&1 | cat
@@ -88,11 +88,14 @@ case "$1" in
     # copies the current files in _out to _exports/core and _exports/sna
     # which are references in the root package.json exports section
     package)
-        # run build first
+        # (1) always build library first
         $NODEXEC $CLI_BUILD/@build-core.mts 2>&1 | cat
+        # (2) build standalone SNA module library (WIP)
         # $NODEXEC $CLI_BUILD/@build-sna.mts 2>&1 | cat
-        # create tarball using npm pack on root package.json
+        # (3) create tarball using npm pack on root package.json
+        #     this also copies the _dist bundles
         $NODEXEC $CLI_BUILD/@pack-libraries.mts 2>&1 | cat
+        prln "Ready to update package on github"
         exit 0;
         ;;
 
