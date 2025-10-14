@@ -181,7 +181,7 @@ async function SNA_Build(rootDir: string, opt?: Options): Promise<void> {
 /// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /** API: SNA_MultiBuild is a variant of SNA_Build. Found client ts files are
  *  are bundled into separate bundle files with the same root name */
-async function SNA_MultiBuild(rootDir: string): Promise<void> {
+async function SNA_MultiBuild(rootDir: string, opt?: Options): Promise<void> {
   LOG(`SNA MultiBuild: Transpiling and bundling entry files`);
   // ensure the required SNA APP directories exist
   const { source_dir, asset_dir, output_dir, webc_dir } = SNA_EnsureAppDirs(rootDir);
@@ -226,7 +226,7 @@ async function SNA_MultiBuild(rootDir: string): Promise<void> {
     notify_cb
   });
   const serverOpts = {
-    http_port: 8080,
+    http_port: opt?.port || 8080,
     http_host: 'localhost',
     http_docs: output_dir,
     index_file: 'index.html',
