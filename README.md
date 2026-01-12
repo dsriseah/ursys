@@ -22,18 +22,17 @@ This repository is a modular rebuild of support features I've developed for thes
 * Verbose prompting and guardrails to help users understand what's going on.
 * Favors straightforward fluent code patterns and formatting so source code is easy to scan.
 
+#### Derivative Works
+
+URSYS is the main repo, but it's been remixed into smaller versions for different projects.
+* [URSYS-MIN](https://github.com/dsriseah/ursys-min) is a stripped-down version to work with legacy node projects.
+* [SNA-UNDERWORLD](https://github.com/dsriseah/sna-underworld) is a game jam project that loads URSYS as a dependency.
+* [Example-SNA-Typescript](https://github.com/dsriseah/example-sna-typescript) and [Example-SNA-NodeJS](https://github.com/dsriseah/example-sna-nodejs) use URSYS as a library to make playgrounds for client-server experiments.
+
 #### Updates
 
 * [2025-0422](https://github.com/dsriseah/ursys/releases/tag/2025-0422) prerelease 0.1.0 - importable library (see [example-sna-nodejs](https://github.com/dsriseah/example-sna-nodejs))
 * _see [Closed Pull Requests](https://github.com/dsriseah/ursys/pulls?q=is:pr+is:closed) for an idea of what else happened._
-
-
-#### Under Development
-* web components library
-* html view router
-* property editor
-* webrtc-based peer-to-peer networking / ursys directory services
-* pending: other [feature porting](https://github.com/dsriseah/ursys/wiki/Catalog-of-URSYS-Modules) candidates
 
 #### Documentation
 
